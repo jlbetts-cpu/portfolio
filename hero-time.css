@@ -582,29 +582,43 @@
  --time-focus:var(--c950);
 }
 
+/* ── NIGHT IS A LIGHT HOUR NOW.  2026-08-27 ────────────────────────────────
+   "I dont like how differnt the gradient looks for the night im thinking of
+   making it more of a light mode gradient like the rest but having the stars
+   and such only in the gradient not outside of it. also the lighting of the
+   head needs to change as well to work with the new lighting too."
+   This block WAS the last inversion on the site: --time-ink white, the primary
+   button flipped, the menu on an ink ground, --time-rim the inverted one. Six
+   hours were light and one was not, which is exactly the difference he is
+   pointing at. It now mirrors dusk's SHAPE token for token and keeps only what
+   is night's own: the hue.
+   THE HEAD'S LIGHTING IS --time-cast AND --time-bloom, and they are the two he
+   means. #9ab0ff on a black sky was a cold rim against darkness; on a pale sky
+   it would read as a blue smear, so the cast becomes the pale indigo the new
+   gradient actually throws and the bloom drops to dusk's strength. */
 .hero[data-time-state="night"]{
- --time-base:#0b0c0f;
- --time-ink:var(--c50);
- --time-primary-bg:var(--c50);
- --time-primary-ink:var(--c950);
- --time-primary-hover-bg:var(--c100);
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c800);
  --time-secondary-bg:var(--time-base);
- --time-secondary-ink:var(--c50);
- --time-secondary-hover-bg:var(--time-base);
- --time-secondary-border:rgba(244,245,247,.28);
- --time-secondary-hover-border:rgba(244,245,247,.42);
- --time-rim:var(--rim-i2);
- --time-bloom:rgba(111,169,255,.40);
- --time-cast:#9ab0ff;
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--c50);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c200);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(120,134,200,.34);
+ --time-cast:#b9c3e8;
  --time-light-x:50%;
- --time-light-dir:0.32;
+ --time-light-dir:0.28;
  --time-light-y:104%;
  --time-menu-bg:var(--time-base);
- --time-menu-ink:var(--i700);
- --time-menu-ink-strong:var(--c50);
- --time-menu-selected:var(--wash-i1);
- --time-menu-shadow:inset 0 0 0 var(--hair-w) rgba(244,245,247,.20);
- --time-focus:var(--c50);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:inset 0 0 0 var(--hair-w) var(--c100);
+ --time-focus:var(--c950);
 }
 
 /* left/right:0 rather than left:50%;width:100vw. 100vw INCLUDES the scrollbar,
@@ -858,14 +872,25 @@
 .heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(var(--hero-glow-rx) 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
 .heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(var(--hero-glow-rx) 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
 .heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(var(--hero-glow-rx) 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
-.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 42% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 58% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx) 103% at 50% 104%,#1b2a6b 0,#3f52a8 14%,#7d8ed6 30%,#b9c3e8 45%,#e6eaf6 60%,#f8fafd 100%)}
 @media(max-width:760px){
- .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 40% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 56% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+ .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx) 103% at 50% 104%,#1b2a6b 0,#3f52a8 14%,#7d8ed6 30%,#b9c3e8 45%,#e6eaf6 60%,#f8fafd 100%)}
 }
 /* The stars belong to the scene, so they arrive with the sky rather than
    appearing on the frame the attribute flips. Measured before: 0 -> 1 with no
    transition declared at all, which was a pop against a 640ms cross-fade. */
-.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none;
+/* THE STARS ARE MASKED TO THE SKY.  "having the stars and such only in the
+   gradient not outside of it." They were inset:0 over the whole Hero, so on the
+   old BLACK night that read as one continuous sky; on a light night the top of
+   the Hero is nearly white and a star sitting on it is a speck of dirt on the
+   page. The mask is the same shape the cloud field used: nothing at the top
+   where the sky has already faded to page colour, full through the middle
+   where the gradient actually has colour, out again before the floor so a star
+   never crosses the portrait's chin. One declaration, no JS, and it covers the
+   meteors too because they live inside this element. */
+.heroNightStars{--star-mask:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 40%,#000 52%,#000 92%,rgba(0,0,0,0) 100%);
+ -webkit-mask-image:var(--star-mask);mask-image:var(--star-mask);
+ position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none;
  transition:opacity var(--hero-time-duration) var(--hero-time-ease)}
 /* THE CROP HAS TO FOLLOW THE CURVE. .heroCharacterPeek is inset:0 with
    overflow:hidden and no radius of its own, so it was clipping the portrait to
@@ -894,7 +919,15 @@
    after that page's <style>, so an equal-specificity rule there reads
    correctly and does nothing. This file loads after controls.css. */
 @supports (height:1svh){.heroCharacterPeek{height:var(--heroRow)}}
-.heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;opacity:var(--star-visible)}
+.heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);/* THE STARS MOVE DOWN INTO THE SKY.  Their --star-y values are inline and were
+   authored for the OLD night, whose gradient was darkest at the TOP
+   (linear-gradient(180deg,#060a13,#09101f 66%,#11162b)). The new one is a light
+   hour like the other six: palest at the top, saturated at the bottom. So the
+   same 17% / 38% / ... that used to sit in deep sky now sit on near-white page,
+   where a pale star is a speck of dirt.
+   Remapped rather than retyped: 0-100% becomes 46-98%, one calc, thirty-two
+   inline styles untouched and their relative spacing preserved. */
+ top:calc(46% + var(--star-y) * 0.52);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;opacity:var(--star-visible)}
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}
 /* ── THE SHIMMER RUNS AT NIGHT AND ONLY AT NIGHT.  2026-08-27 ────────────────
@@ -1449,9 +1482,20 @@
    A real face at night is mostly IN shadow -- you read the edge of it and the
    light in the eyes, not an evenly lit surface. --time-contrast stays at .70 so
    nothing crushes to pure black, and the catchlight is untouched. */
+/* ── AND THE HEAD IS RELIT FOR THE NEW SKY.  2026-08-27 ────────────────────
+   "also the lighting of the head needs to change as well to work with the new
+   lighting too."  The note above is still true about a real face at night, but
+   it was written about a BLACK hero: exposure .85 and contrast .70 read as a
+   face half-lost in the dark, which is right when the sky behind it is #060a13
+   and muddy when the sky is a pale indigo. Measured against its neighbours,
+   night was the darkest and flattest of the seven by a distance --
+   .85/.70 against daytime's .93/.96 and dusk's 1.02/.80.
+   It now sits beside dusk, which is the hour it is closest to: 1.00/.80. The
+   rim comes in with it -- a 15px throw at 26% was a hard cold edge for
+   separating a head from black, and on a light sky it draws a halo. */
 .hero[data-time-state="night"]{
- --time-contrast:.70;--time-exposure:.85;--time-portrait-opacity:1;
- --rim-throw:15px;--rim-blur:5px;--rim-strength:26%;--time-shade:.58;--time-glow:.36
+ --time-contrast:.80;--time-exposure:1.00;--time-portrait-opacity:.96;
+ --rim-throw:11px;--rim-blur:6px;--rim-strength:18%;--time-shade:.58;--time-glow:.30
 }
 .hero[data-time-state="off"] .heroAura{display:none;opacity:0}
 /* ── OFF IS A DESTINATION, NOT AN EXCEPTION ──────────────────────────────────
