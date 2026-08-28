@@ -661,30 +661,17 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 @property --mock-sky-mid{syntax:"<color>";inherits:true;initial-value:transparent}
 @property --mock-sky-high{syntax:"<color>";inherits:true;initial-value:transparent}
 .content :is(.playerStage,.tv.tvPhone .tvFrame){
- /* ── IT IS THE SKY'S SHAPE NOW, NOT A TWO-STOP RAMP.  2026-08-27 ──────────
-    Jayden: "make sure that like its actually the gradient ... we dont have a
-    flat gradient". He was right and it measured: the ground was
-    linear-gradient(180deg,#ddeaf9,#5a86a9) under a white scrim at .42-.62,
-    which is two muted stops with most of their difference washed out. The
-    hero's daytime sky is a RADIAL from below the bottom edge with five stops
-    -- #0071c1, #60a8e2, #b4d8ff, #d9ebff, #f8fafd -- and the reason it reads
-    as depth rather than as a ramp is that the saturated core sits OFF the box
-    and you only ever see the falloff.
-    So this takes the same construction and the same colours: a radial centred
-    below the ground's bottom edge, three registered stops sampled from the
-    hero's own, and the scrim cut from .42/.62 to .16/.30 because it was the
-    scrim doing most of the flattening.
-    IT STILL DOES NOT MOVE -- he asked for that too. There is no animation
-    here; the radial is static and only its COLOURS interpolate, which is what
-    keeps an hour change in step with the cover instead of snapping. */
- --mock-sky-low:#0071c1;--mock-sky-mid:#8cc6ee;--mock-sky-high:#dceeff; /* daytime, the default state */
- background:
-   linear-gradient(180deg,rgba(253,253,253,.16),rgba(253,253,253,.30)),
-   radial-gradient(126% 138% at 50% 132%,
-     var(--mock-sky-low) 0%,
-     var(--mock-sky-mid) 30%,
-     var(--mock-sky-high) 58%,
-     var(--c50) 100%);
+ /* ── NO GRADIENT ON THE MOCKUP GROUND.  2026-08-27 ────────────────────────
+    "take the gradient off the phone mockups."  It had been the hero's own
+    radial, sampled stop for stop, and it was still one more thing on a page he
+    is trying to quieten. A screenshot does not need a sky behind it; it needs
+    somewhere to sit. So the ground is the page's own quiet tint and a hairline,
+    which is what every other surface on this site separates with.
+    The per-hour --mock-sky-* table below is now unused by this rule and is left
+    in place deliberately -- it is sampled from hero-time.css and re-deriving it
+    is the expensive part. If the ground stays flat for good, delete the table
+    and the @property registrations together. */
+ background:var(--c50);
  /* MARGIN TO MARGIN. It was 504px inside a 1200px column -- a card hugging the
     phone rather than a ground the phone stands on, which is what he saw:
     "shouldnt the box be like margin to margin". The image keeps its own width
@@ -771,6 +758,105 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    surrounds, and this site separates with hairlines rather than with edges.
    The screenshots keep their own --rim-1, which is the hairline, and that is
    the whole treatment. Do not re-add a frame without asking. */
+
+/* ══ THE READING.  2026-08-27 ═══════════════════════════════════════════════
+   "ther is two section head sizes like header text which looks weird and
+   paragraphs are spaced weird and sized its like every new paragraph is a new
+   design system ... making the center aligned text colums the same width for
+   legibility ... making sure everything looks like apple designed the reading."
+
+   MEASURED FIRST, on apollo at 1440, every prose block on the page:
+     - SEVENTEEN blocks ran at 1200px starting at x=120, and SIX ran at 680px
+       starting at x=380. Two measures on one page is the "same width" one.
+     - .secHead is 26px on 31.2px leading; .subHead is 18px on 21.6px. So the
+       second heading is BODY-SIZED with HEADING leading -- it reads as a
+       heading that is not one, which is "two section head sizes ... looks
+       weird".
+     - .subHead takes margin-top 8px in a section and 4px inside a before/after
+       block. Same class, same page, different rhythm by context. That is
+       literally "every new paragraph is a new design system".
+
+   ── 1. ONE MEASURE, AND IT IS CENTRED ──────────────────────────────────────
+   CLAUDE.md says do not re-apply a measure here without asking, because a
+   680px column was once added on an audit's finding and he reverted it: "I
+   never asked you to change it back to squished to the left." That revert is
+   respected rather than overridden, because what he rejected was the SHAPE,
+   not the width: 680 left-aligned inside 1200 leaves 520px of white down the
+   right and reads as broken. He has now asked for the opposite arrangement in
+   his own words -- "center aligned text colums the same width" -- so the
+   column is centred and the white falls evenly on both sides.
+   72ch at 18px is ~740px. The old 1200 was ~110 characters a line, which is
+   roughly twice what any Apple text column runs and is the actual reason the
+   reading felt hard. */
+/* ONE NUMBER, IN PIXELS, AND NOT IN ch.  The first pass wrote 74ch and it does
+   not do what it looks like it does: ch is relative to the element's OWN font
+   size, so the 26px section head resolved to a wider column than the 18px body
+   and the page came back carrying 883 / 910 / 1200 / 680 -- four measures where
+   there had been two. Measured, which is the only reason it was caught. One
+   declared width in px is the whole point of the instruction. */
+.content{--measure:740px}
+.content :is(.secBody,.ovBody,.lede,.baBody,.stat,.secHead,.subHead,.roleHead,.hmwQ,.stepHead){
+ max-width:var(--measure);
+ margin-inline:auto;
+}
+/* .baText carried its own 680px cap, which is where the second measure came
+   from. It takes the same one now, so the before/after block reads at the same
+   width as the section above it instead of stepping in by 60px. */
+/* .baBlock .baText carries a 680px cap of its own, which outranks a plain
+   .content .baText -- so this matches its specificity rather than raising the
+   stakes with !important. */
+.content .baBlock .baText{max-width:var(--measure);margin-inline:auto}
+
+/* ── 2. ONE HEADING LOOK ────────────────────────────────────────────────────
+   .secHead stays the section head and keeps its size. .subHead stops
+   pretending to be a second one: it keeps the body's size AND the body's
+   leading, so it reads as a bold lead-in inside the flow rather than as a
+   heading a rung down. Nothing new is introduced -- this REMOVES a treatment,
+   which is the whole instruction. */
+.content .subHead{
+ line-height:var(--lh-body);
+ margin-block:var(--sp-32) var(--sp-8);
+}
+
+/* ── 3. ONE RHYTHM, AND IT DOES NOT DEPEND ON WHERE YOU ARE ─────────────────
+   Every paragraph gets the same space above it and none below, so the gap
+   between two paragraphs is one number and cannot vary by container. The
+   before/after block's private overrides are what made .subHead 4px there and
+   8px everywhere else; they are gone. */
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede){margin-block:var(--sp-16) 0}
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
+.content .baText .subHead{margin-block:var(--sp-32) var(--sp-8)}
+.content .secHead{margin-block:var(--sp-64) var(--sp-16)}
+.content .sec>.secHead:first-child{margin-block-start:0}
+
+/* ── EVERYTHING IN THE ARTICLE SITS ON THE SAME COLUMN ──────────────────────
+   The kickers and the figure captions were still starting at the section's
+   x=120 while the prose had moved in to x=350, so every label hung off the left
+   of the column it belongs to. "the same width" has to mean the labels too --
+   they are part of the reading, not furniture beside it. */
+/* width:100% MATTERS HERE and is not belt-and-braces. Several of these sit in
+   flex columns (.photoFig is one), and a flex item with auto inline margins
+   does NOT stretch -- it shrink-wraps. Without the width the captions came back
+   89px and 96px wide, centred on their own text instead of starting where the
+   paragraph above them starts. That is the same trap that collapsed the mockup
+   ground to 400px earlier today; it is written down twice now for a reason. */
+.content :is(.kicker,.subKick,.eyebrow,.rlabel,.hmwLabel,.photoFig>figcaption.cap,.cap){
+ width:100%;
+ max-width:var(--measure);
+ margin-inline:auto;
+ text-align:left;
+}
+
+/* ── THE STAT COMES DOWN A RUNG.  He kept it at the h1's size this morning when
+   the question was asked in isolation; the instruction now is about the reading
+   as a whole -- "paragraphs are spaced weird and sized its like every new
+   paragraph is a new design system" -- and a 44px numeral inside an 18px
+   sentence is the largest single jump left on the page at 2.44x. At the section
+   head's rung it is 1.44x: still unmistakably a number, no longer a second
+   headline arriving mid-paragraph. No new size is introduced -- 26 is already
+   the section head -- so the page stays on four. */
+.content .statNum{font-size:var(--fs-h3);letter-spacing:var(--tr-head)}
+
 
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
