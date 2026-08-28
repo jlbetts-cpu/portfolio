@@ -3175,6 +3175,43 @@ function teams(){
         diagonal shot is judged where it actually passed the post rather than a frame late. */
      overL=(bx+BR>XL&&bx-BR<XL+UPW);overR=(bx+BR>XR-UPW&&bx-BR<XR);
      gt=groundY-UCB;                                    // the crossbar\'s plane
+     /* ── THE CROSSBAR IS SOLID.  2026-08-27 ───────────────────────────────────
+        Jayden: "there still is a bit of not goals that look like goals going on
+        a lot. like if we want it to not come from the bottom then there should
+        be physics for the bottom that bounces it back up or something."
+        He has found the real hole. Scoring is ARMED by sweeping the near post's
+        plane at aperture height, so a ball that rises from under the bar and up
+        through it ends up inside the window without ever having crossed a post
+        -- correctly not a goal, and indistinguishable on screen from one,
+        because it visibly went between the uprights. The predicate was right
+        and the PICTURE was lying.
+        A bar you cannot pass through removes the ambiguity at its source rather
+        than adding another rule about it: over the top becomes the only way in,
+        which is what "through the uprights" means. Nothing new is drawn -- the
+        bar is already there -- and no scoring number moves.
+        SWEPT AGAINST THE PLANE, not sampled against the band. e=0.72, the same
+        restitution the ceiling and the grass use, and it emits the same
+        'woodwork' the posts do so the near miss is legible. */
+     /* S.barHits IS THERE TO BE TESTED. Counting plane-crossings across two
+        different random matches proved nothing -- the samples were not
+        comparable and the "control" came out no worse, which is the honest
+        reading of a bad experiment rather than evidence. A counter on the
+        published state says the deflection FIRED, which is the thing that can
+        actually be asserted, and it costs one integer. */
+     var _bhw=Math.max(3,UPW*0.14),_barY=gt,_bSurf=_bhw+BR;
+     if((bx+BR>XL&&bx-BR<XL+UPW)||(bx+BR>XR-UPW&&bx-BR<XR)){
+      var _kb;
+      if(_pby-_barY>=_bSurf&&by-_barY<_bSurf&&bvy<0){        // rising into the underside
+       by=_barY+_bSurf;bvy=Math.abs(bvy)*0.72;S.barHits=(S.barHits||0)+1;S.barUnder=(S.barUnder||0)+1;
+       _kb=Math.min(0.12,Math.abs(bvy)*0.00012);bsyP=1-_kb;bsxP=1/(1-_kb);bsT=0.12;
+       bvx*=0.92;bw+=(Math.random()*200-100);
+       S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}
+      }else if(_barY-_pby>=_bSurf&&_barY-by<_bSurf&&bvy>0){  // dropping onto the top
+       by=_barY-_bSurf;bvy=-Math.abs(bvy)*0.72;S.barHits=(S.barHits||0)+1;S.barOver=(S.barOver||0)+1;
+       bvx*=0.92;bw+=(Math.random()*200-100);
+       S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}
+      }
+     }
      var _npL=XL+UPW,_npR=XR-UPW,_tc,_yc;               // the two near-post planes -- where the drawn upright is
      if(_pbx>_npL&&bx<=_npL){_tc=(_pbx-_npL)/Math.max(1e-6,_pbx-bx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=-1;}
      else if(_pbx<_npR&&bx>=_npR){_tc=(_npR-_pbx)/Math.max(1e-6,bx-_pbx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=1;}
