@@ -464,6 +464,20 @@ body.hmYowCup .bcGrain{display:none}
    invisible and over a head it frosts, which is the point (apple-design.md §12).
    No elevation -- the separation is the hairline.
    --------------------------------------------------------------------------- */
+/* ── THE HEADER IS VISIBLE FOR THE WHOLE CUP, NOT JUST A MATCH.  2026-08-27 ─
+   "header gets glitched easily completely disappearing."
+   Reproduced: after End the bar measured logo 0, links 0, matchup 0, round 0,
+   End 0 -- entirely empty. The play screen sets .jbGrp* to visibility:hidden
+   while it owns the viewport, and this un-hide was scoped to hmYowHdr, which
+   headerBuild() only sets DURING A MATCH. So the moment a fixture finished,
+   the League's own items left the bar and nothing restored the site's, and
+   the header vanished on the bracket, the drains and the champion.
+   THE TWO SCOPES DO DIFFERENT JOBS AND THAT IS THE FIX: hmYowCup makes the bar
+   exist for the whole cup; hmYowHdr, below, is only what a live match swaps
+   INTO it. */
+body.hmYowCup .jbGrpL,
+body.hmYowCup .jbGrpC,
+body.hmYowCup .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}
 body.hmYowHdr .jbGrpL,
 body.hmYowHdr .jbGrpC,
 body.hmYowHdr .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}

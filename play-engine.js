@@ -2556,9 +2556,23 @@
    try{
     var navC=document.querySelector(".jbGrpC"), navR=document.querySelector(".jbGrpR");
     if(!navC||!navR||!board) return;
-    var row=board.querySelector(".sbRow")||board.querySelector(".sbCard");
-    var rnd=board.querySelector(".sbRound");
-    var end=board.querySelector(".hmScoreEnd");
+    /* ── FIND THEM WHEREVER THEY ARE, NOT WHERE THEY STARTED.  2026-08-27 ───
+       THIRD BUG FROM ONE CAUSE, so it gets stated plainly: moving a node out
+       of its owner breaks every lookup that walks down from that owner.
+       First the digit and rule hides (descendant selectors of .hmScore). Then
+       paintBoard(), which bailed on a null .sbInner so the bar never repainted
+       between rounds. Now the teardown -- it re-fetched the row with
+       board.querySelector(".sbCard"), which is null precisely BECAUSE the row
+       is in the nav. So `row` was null, the guarded move-back never ran, and
+       only the body class came off: the matchup, round and End stayed in the
+       bar across the bracket, the champion and the play menu. That is
+       "elements that shouldnt be there are shown on the play screen".
+       Looking in the document as well finds the same single element in either
+       place, which is what all three of these fixes have turned out to be. */
+    var row=board.querySelector(".sbRow")||board.querySelector(".sbCard")
+            ||document.querySelector(".hmHdrMatch");
+    var rnd=board.querySelector(".sbRound")||document.querySelector(".hmHdrRound");
+    var end=board.querySelector(".hmScoreEnd")||document.querySelector(".hmHdrEnd");
     if(on){
      if(!hdrHome){
       hdrHome={row:row&&row.parentNode, rowNext:row&&row.nextSibling,
