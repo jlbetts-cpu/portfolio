@@ -765,7 +765,17 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    and the page came back carrying 883 / 910 / 1200 / 680 -- four measures where
    there had been two. Measured, which is the only reason it was caught. One
    declared width in px is the whole point of the instruction. */
-.content{--measure:740px}
+/* MARGIN TO MARGIN AGAIN.  2026-08-27, and this is his third word on it, so it
+   is written down properly: "i actually think i prefer the margin to margin
+   text".
+   The 740 column was added on his own ask ("center aligned text colums the same
+   width for legibility") and it did make the reading measure right, ~72
+   characters. He has looked at it and prefers the full column, which is also
+   what CLAUDE.md recorded him defending the first time. THE FULL COLUMN IS THE
+   DECISION. What survives from the 740 pass is the part that was never about
+   width: one margin rule, one leading, one weight and one ink per paragraph.
+   Do not re-narrow this without him saying so in those words. */
+.content{--measure:100%}
 .content :is(.secBody,.ovBody,.lede,.baBody,.stat,.secHead,.subHead,.roleHead,.hmwQ,.stepHead){
  max-width:var(--measure);
  margin-inline:auto;
@@ -796,6 +806,34 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    8px everywhere else; they are gone. */
 .content :is(.secBody,.ovBody,.baBody,.stat,.lede){margin-block:var(--sp-16) 0}
 .content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
+
+/* ── EVERY PARAGRAPH, NOT MOST OF THEM.  2026-08-27 ─────────────────────────
+   "not all paragraphs are getting the same spacing and treatment." Audited all
+   five pages rather than the one I had been looking at, and he was right twice:
+
+     .ovBody  -- the overview paragraph on all five -- paints at rgb(9,11,36)
+     while every other body paragraph is rgb(83,84,102). A darker standfirst is
+     a real typographic device, but it is also one more treatment on a page he
+     has asked three times to quieten, and it is the paragraph he sees FIRST,
+     so the page announces an inconsistency before it says anything else.
+
+     bearings carried a bare <p class="rv"> -- "I led the visual design and
+     built the system" -- with margin-top 0 and full ink. One paragraph on one
+     page with its own rhythm, which is precisely the complaint.
+
+   So the selector stops naming classes and names PARAGRAPHS. Anything that is
+   a paragraph inside a section gets the one treatment, whatever it is called,
+   and a class that arrives later cannot opt out of the rhythm by accident. */
+.content .sec p,
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede,.rv){
+ margin-block:var(--sp-16) 0;
+ color:var(--c700);
+ font-size:var(--fs-prose);
+ line-height:var(--lh-body);
+}
+.content .sec p:first-child,
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
+
 .content .baText .subHead{margin-block:var(--sp-32) var(--sp-8)}
 .content .secHead{margin-block:var(--sp-64) var(--sp-16)}
 .content .sec>.secHead:first-child{margin-block-start:0}
