@@ -2870,8 +2870,62 @@ function teams(){
      if(T&&T.live&&T.cur){ var tm=(side===1?T.cur.a:T.cur.b); if(tm&&tm.col) return tm.col; }
    }catch(_){} return side===1?RED:BLUE; }
    window.__hmTeamRGB=teamRGB;   // THE GOAL GRAMMAR's particle burst reuses this exact source instead of its own copy, so team colours can never drift apart between the pitch and the goal-mouth particles
+  /* ══ THE HEAD DROPS THE BALL IN.  2026-08-27 ═══════════════════════════════
+     "the floating Jayden head should drop the ball into the area have a clean
+     premium animation with a good reaction and then goes away."
+
+     IT REPLACES THE COUNTDOWN RATHER THAN JOINING IT. A 3-2-1-GO and a head
+     ceremonially delivering the ball are two openers doing one job, and "less
+     is more" settles which survives: the head IS the count -- you can see
+     exactly when play starts because you watch the ball leave its hands.
+     It is also shorter. The countdown ran 3x800 + 560 = 2,960ms; this runs
+     1,180ms, so every fixture opens 1.8s sooner, which is 12s off an eight-
+     match cup for free.
+
+     FOUR BEATS, ALL ON THE SITE'S OWN LADDER, none invented:
+       enter   500ms  --dur-enter on --sp-settle: it descends and settles
+                      without overshoot. A head that bounces reads as a toy.
+       hold    260ms  the pause that makes the release deliberate rather than
+                      a thing that merely happened.
+       release 100ms  --dur-press. THE REACTION IS A RECOIL, not a cheer: the
+                      weight leaves its hands, so it lifts and tips a little,
+                      which is what a real body does. Newton, not choreography.
+       exit    360ms  --dur-reveal, rising and fading. It leaves the way it
+                      came so nothing about it needs explaining.
+
+     COMPOSITOR ONLY -- transform and opacity, per apple-design.md §11 -- and
+     the element is REMOVED at the end rather than parked at opacity 0, so
+     nothing is left on the pitch between fixtures. League only. */
+  var dropEl=null;
+  function headDropIn(done){
+   try{
+    if(!YOW||!hero){ done(); return; }
+    if(dropEl&&dropEl.parentNode) dropEl.parentNode.removeChild(dropEl);
+    dropEl=document.createElement("div");
+    dropEl.className="hmDropper";
+    dropEl.setAttribute("aria-hidden","true");
+    dropEl.innerHTML='<img class="hmDropperHead" src="images/neutral.webp" alt="" draggable="false">'
+                    +'<img class="hmDropperBall" src="images/football.webp" alt="" draggable="false">';
+    hero.appendChild(dropEl);
+    void dropEl.offsetWidth;                 /* commit the start state before the class lands */
+    dropEl.classList.add("isIn");            /* enter + settle */
+    setTimeout(function(){ if(!S.on){ cleanUp(); return; }
+      dropEl.classList.add("isDrop");        /* the ball leaves; the head recoils */
+      setTimeout(function(){ if(!S.on){ cleanUp(); return; }
+        dropEl.classList.add("isOut");       /* and it goes away */
+        done();
+        setTimeout(cleanUp,420);
+      },100);
+    },760);
+   }catch(_){ try{done();}catch(__){} }
+   function cleanUp(){ try{ if(dropEl&&dropEl.parentNode) dropEl.parentNode.removeChild(dropEl); dropEl=null; }catch(_){} }
+  }
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
    var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");S.phase="count";
+   /* THE LEAGUE OPENS WITH THE HEAD; every other mode keeps the count. */
+   if(YOW){ if(countEl)countEl.textContent="";
+     headDropIn(function(){ if(!S.on)return; bvy=30; S.phase="play"; });
+     return; }
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}

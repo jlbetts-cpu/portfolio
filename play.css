@@ -926,6 +926,27 @@ body.pHubOn .hmRefl{
   letter-spacing:var(--tr-caps);color:var(--c500);
 }
 body:not(.hmYow) .hmStake{display:none}
+/* ── EVERYTHING IN THE HEADER, NOTHING ON THE COURT.  2026-08-27 ───────────
+   "keep all the information in the header and the court clean of text since
+   there isnt a lot and i think it can look clean in the header."
+   That is the right call and it resolves three separate complaints at once --
+   the dark slab over the pitch, the missing names, and the End control that
+   had nowhere good to live. There is very little to say in this format: who is
+   playing, which round, what the winner picks. Three short things fit on one
+   header line, and the pitch gets to be nothing but the game.
+   THE COURT CARRIES NO TEXT AT ALL NOW. The stake line was mine, added when
+   the scoreboard went and something had to say what the match was for; it was
+   the right information in the wrong place. */
+body.hmYowCup .hmStake{
+  position:fixed;left:50%;top:var(--sp-16);transform:translateX(-50%);
+  z-index:60;text-align:center;
+  font-size:var(--fs-label);font-weight:400;color:var(--c500);
+  letter-spacing:var(--tr-flat);text-transform:none;
+}
+/* The nav's own items step aside while a fixture is live -- two competing rows
+   of chrome in one bar is exactly the clutter he is asking me to remove. The
+   logo stays, because it is the way back. */
+body.hmYowCup .jbGrpC{opacity:0;pointer-events:none}
 /* ── THE WAY OUT LIVES IN THE HEADER.  2026-08-27 ──────────────────────────
    "put the end game in the header on the right."
    And the capture shows why it mattered beyond taste: with the race board's
@@ -952,9 +973,64 @@ body.hmYowCup .hmScore{
   width:auto;padding:0;background:none;border:0;box-shadow:none;
   pointer-events:none;
 }
+/* The End control is pinned in its own right, not merely carried by its
+   parent. Measured after pinning the containers: the race board's button
+   landed in the header correctly, but the pitch board's sat at y=193, on the
+   court -- .hmScore lays its children out in a row and the button had simply
+   flowed there. Both are now placed, and both clear the pitch chrome at z:60. */
+/* ── THE BATTLE COUNTER IS NOT A LEAGUE THING.  2026-08-27 ─────────────────
+   .battleCount is the "N left" readout from battle mode, and it carries the
+   SECOND .hmScoreEnd. Pinning that button kept failing for the third time in
+   this pass for the same reason as the first two: .battleCount carries
+   transform:translateX(-50%), and a transformed ancestor becomes the
+   containing block for position:fixed, so the button stayed at y=201 on the
+   court no matter where it was told to go.
+   The counter has nothing to say in a one-score fixture, and the header
+   already carries the only End a League match needs. So the whole thing goes,
+   which removes the stray control with it rather than chasing it around. */
+body.hmYowCup .battleCount{display:none}
+/* .hmScoreEnd UNSCOPED, because there are TWO of them: play-engine.js builds
+   one inside .hmScore and another inside .battleCount. Scoping to .hmScore
+   pinned the first and left the second sitting at y=193 in the middle of the
+   court -- measured, after I had already reported the End button moved. */
 body.hmYowCup .hmRaceBoard button,
-body.hmYowCup .hmScore .hmScoreEnd{
-  pointer-events:auto;margin:0;border-left:0;
+body.hmYowCup .hmScoreEnd{
+  position:fixed;top:var(--sp-16);right:var(--sp-40);
+  z-index:60;pointer-events:auto;margin:0;border-left:0;
+}
+/* ── THE DROPPER.  The head that brings the ball on.  2026-08-27 ───────────
+   Four beats, every duration and curve taken from the ladder rather than
+   invented: enter on --dur-enter/--sp-settle, a hold, a --dur-press recoil as
+   the weight leaves, and a --dur-reveal exit.
+   TRANSFORM AND OPACITY ONLY (apple-design.md §11), so the whole thing runs on
+   the compositor beside a live match without touching layout once. */
+.hmDropper{
+  position:absolute;left:50%;top:0;z-index:48;
+  width:clamp(96px,11vw,150px);
+  pointer-events:none;
+  transform:translate(-50%,-118%);
+  opacity:0;
+  transition:transform var(--dur-enter) var(--sp-settle),opacity var(--dur-state) linear;
+}
+.hmDropper.isIn{transform:translate(-50%,6%);opacity:1}
+.hmDropperHead{width:100%;height:auto;display:block}
+/* The ball hangs under the head as though held, and is the same football the
+   match is played with -- not a second asset that would have to be kept in
+   step with the first. */
+.hmDropperBall{
+  position:absolute;left:50%;top:88%;width:26%;
+  transform:translate(-50%,0) scale(1);
+  transition:transform var(--dur-move) cubic-bezier(.4,0,1,1),opacity var(--dur-state) linear;
+}
+/* THE REACTION IS A RECOIL. The weight leaves its hands, so the head lifts and
+   tips; the ball accelerates away on an ease-IN, because it is falling and
+   gravity does not ease out. */
+.hmDropper.isDrop{transform:translate(-50%,2%) rotate(-4deg);transition:transform var(--dur-press) var(--ease-out)}
+.hmDropper.isDrop .hmDropperBall{transform:translate(-50%,340%) scale(.72);opacity:0}
+.hmDropper.isOut{transform:translate(-50%,-118%);opacity:0;
+  transition:transform var(--dur-reveal) var(--ease-out),opacity var(--dur-reveal) linear}
+@media(prefers-reduced-motion:reduce){
+  .hmDropper,.hmDropper.isIn,.hmDropper.isDrop,.hmDropper.isOut,.hmDropperBall{transition:none}
 }
 /* ── NO POSITION BOARD IN THE LEAGUE.  2026-08-27 ──────────────────────────
    THIS is the scoreboard he kept reporting, and I kept fixing the wrong one.
@@ -981,11 +1057,48 @@ body.hmYow .hmScore{
      control stays and keeps its hit area. */
   background:none;box-shadow:none;padding:0;pointer-events:none;
 }
-body.hmYow .hmScore .sTeam,
+/* ── THE LEAGUE STRIP: LIGHT, AND IT SAYS WHO IS PLAYING.  2026-08-27 ──────
+   Two corrections in one, both his and both right.
+
+   1. THE DARK BAR. He sent a picture of it: a near-black slab reading
+      "QUARTER-FINAL | End". It is .sbCard, which paints
+      var(--sb-material, var(--cupPaint, #2b2f2a)) with a cast shadow and a
+      46px inset -- the broadcast-scoreboard material. I had stripped the OUTER
+      .hmScore and never touched the card inside it, which is why "the
+      scoreboard is still there" kept being true after each pass. The football
+      mode is a light UI like the rest of this site: no paint, no shadow, ink
+      text, and the site's own hairline if anything at all.
+
+   2. THE NAMES COME BACK. "there is no names to know who is playing in the
+      games." Removing them was me over-reading "remove the scoreboard" -- the
+      counting is what had nothing to say at one score, not the identity.
+      So .sTeam returns and only the DIGITS stay gone. That is the whole
+      distinction: a scoreboard counts, a strip introduces. */
 body.hmYow .hmScore .sR,
 body.hmYow .hmScore .sB,
-body.hmYow .hmScore .sbMeta,
 body.hmYow .hmScore .sBall{display:none}
+body.hmYow .hmScore .sbCard{
+  background:none;box-shadow:none;border-radius:0;
+  color:var(--c700);
+}
+body.hmYow .hmScore .sbRound{color:var(--c500)}
+body.hmYow .hmScore .sTeam{color:var(--c950)}
+/* ONE LINE, not a stacked card: in the header the strip has a row's height to
+   live in, so the two teams and the round sit side by side with the label rung
+   and a single dot between them. No rule, no ground, no box. */
+body.hmYowCup .hmScore .sbCard,
+body.hmYowCup .hmScore .sbRow{
+  display:flex;align-items:center;gap:var(--sp-12);
+  width:auto;max-width:none;padding:0;
+}
+body.hmYowCup .hmScore .sTeam{
+  font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
+  white-space:nowrap;
+}
+body.hmYowCup .hmScore .sbRound{
+  font-size:var(--fs-label);letter-spacing:var(--tr-caps);
+}
+body.hmYowCup .hmScore{ left:var(--sp-40);right:auto; }
 body.hmYow .hmScore .hmScoreEnd{
   pointer-events:auto;
   margin-left:0;border-left:0;padding-left:var(--sp-12);
