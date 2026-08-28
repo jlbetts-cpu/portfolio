@@ -345,7 +345,14 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    collapse to the ladder's one. */
 .tvEyebrow{
   margin:0;flex:0 0 auto;
-  font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);
+  /* --fs-label, NOT --fs-micro.  2026-08-27, the League's component pass.
+    Audited every visible size on the qualifying screen and the ladder came back
+    35 / 15 / 12 / 11: the eyebrow was ALONE on 11 while every other small label
+    on the same card -- the option line, the qualifying blurb -- sits on 12. One
+    size, one component, one rung below its own neighbours, which is the same
+    stray-rung shape the case studies had at .fv. --fs-micro still exists for
+    anything genuinely smaller; nothing here is. */
+ font-weight:600;font-size:var(--fs-label);line-height:var(--lh-flat);
   letter-spacing:var(--tr-caps);text-transform:uppercase;
   color:var(--theme-muted,var(--c500));
 }

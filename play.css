@@ -327,14 +327,14 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
    Routed through --goal-net/--goal-net-a for the same reason --head-shadow is: the ink is the only
    part that belongs to the surface, so a dark ground rebinds one number and every other property of
    the net -- the 45deg pair, the 1-in-8 pitch, the alpha -- stays exactly as authored. */
-.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px)}
+.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:var(--r-2xs);background:repeating-linear-gradient(45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px)}
 .hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoalR{box-shadow:inset 20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
 .hmGoalB{box-shadow:inset -20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
 .hmGoal::before{content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:var(--r-2xs)}
 .hmGoalR::before{right:-1px;background:linear-gradient(90deg,rgba(var(--tc1,224,90,78),.5),rgba(var(--tc1,224,90,78),1) 60%);box-shadow:0 0 7px rgba(var(--tc1,224,90,78),.4),inset -1.5px 0 1px rgba(255,255,255,.55)}
 .hmGoalB::before{left:-1px;background:linear-gradient(270deg,rgba(var(--tc2,90,160,216),.5),rgba(var(--tc2,90,160,216),1) 60%);box-shadow:0 0 7px rgba(var(--tc2,90,160,216),.4),inset 1.5px 0 1px rgba(255,255,255,.55)}
-.hmGoal::after{content:"";position:absolute;inset:0;border-radius:3px;border-top:2.5px solid;border-bottom:2.5px solid;pointer-events:none}
+.hmGoal::after{content:"";position:absolute;inset:0;border-radius:var(--r-2xs);border-top:2.5px solid;border-bottom:2.5px solid;pointer-events:none}
 .hmGoalR::after{border-color:rgba(var(--tc1,224,90,78),.72)}
 .hmGoalB::after{border-color:rgba(var(--tc2,90,160,216),.72)}
 .hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
@@ -404,7 +404,7 @@ body.hmYow .hmGoalB{color:rgb(var(--tc2,90,160,216))}
 body.hmYow .hmGoal::before,body.hmYow .hmGoal::after{display:none}
 body.hmYow .hmUpStem,body.hmYow .hmUpBar,body.hmYow .hmUpPost{
  display:block;position:absolute;--memb:rgb(var(--yp));background-color:var(--memb);
- border-radius:3px}
+ border-radius:var(--r-2xs)}
 /* The cylinder. Across the member, never along it: a bar lit down one edge is round, a bar
    lit at one end is a tube pointing at the camera. */
 body.hmYow .hmUpPost,body.hmYow .hmUpStem{
@@ -849,7 +849,7 @@ body.pHubOn .hmRefl{
 /* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
    Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
    pitch so it never overlaps .hmScore, which stays put at the top throughout. */
-.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:var(--sp-10);max-width:min(74vw,360px);padding:var(--sp-8) var(--sp-14) var(--sp-8) var(--sp-8);border-radius:var(--r-xs);background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
+.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:var(--sp-10);max-width:min(74vw,360px);padding:var(--sp-8) var(--sp-14) var(--sp-8) var(--sp-8);border-radius:var(--r-2xs);background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
 .hmLowerThird.in{transform:translateX(0);opacity:1}
 /* THE GOAL BELONGS TO A SIDE. The card used to be pinned bottom-left and always
    slid in from the left, whichever end the ball went in -- Jayden flagged it as
@@ -893,7 +893,14 @@ body.pHubOn .hmRefl{
 .hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-flat);transition:color var(--dur-state) var(--ease-out)}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
-.hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
+/* NO ELEVATION ON THE PLATFORM.  2026-08-27. It carried
+   box-shadow:0 1px 2px rgba(...) -- a genuine cast shadow, and the only one on
+   the League's screens that was not an inset hairline. The site's rule is that
+   the companion heads cast the only shadow here; a platform is chrome, and it
+   already separates with the 1px border it has. Found by listing every
+   non-none box-shadow on the qualifying screen: eight results, seven of them
+   the inset rim, this one real. */
+.hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-2xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
@@ -1288,7 +1295,7 @@ body.hmFinal .sbRound{color:#e8b347}
    so an inner corner must be SMALLER than 10 -- 6 is, 8 was closer to the
    parent's own radius than the nesting allows. */
 .hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:var(--fs-label);padding:var(--sp-6) var(--sp-8);min-height:0;
- border-radius:var(--r-xs);corner-shape:var(--corner);
+ border-radius:var(--r-2xs);corner-shape:var(--corner);
  transition:color var(--ease-out-dur) var(--ease-out),background-color var(--ease-out-dur) var(--ease-out)}
 .hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}

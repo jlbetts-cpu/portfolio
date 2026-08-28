@@ -259,7 +259,15 @@
     2,4,6,8,10,12,14,16,20,24,28,(30),32. */
  --sp-16:16px;--sp-20:20px;--sp-24:24px;
 
- /* 14 - a radius BELOW --r-xs. The scale is 6/10/14/20/28 plus --r-hair (2),
+ /* THE PROSE IN THIS FILE WAS STALE AND IT COST A WRONG EDIT.  2026-08-27.
+    The paragraph below said "--r-xs 6" and called --r-2xs 4px, both true before
+    --r-xs became 4. A League component audit read the COMMENT instead of the
+    declaration, decided three literal 3px radii were off-ladder, tokenised them
+    to --r-xs and quietly rounded them up a pixel. They are --r-2xs now and
+    unchanged. THE LADDER AS DECLARED IS: --r-hair 2, --r-2xs 3, --r-xs 4,
+    --r-sm 6, --r-md 14, --r-lg 20, --r-xl 28. Read the declarations.
+
+    14 - a radius BELOW --r-xs. The scale is 6/10/14/20/28 plus --r-hair (2),
     --r-pill and --r-full, and play.css writes border-radius:4px 28 times --
     more than every named radius on the page combined. 4px is what the small
     controls (menu items, the head thumbnails, the goal posts, every chip)
@@ -507,7 +515,7 @@
 
    BELOW THOSE: --r-sm 10 for a row inside a menu (the concentric rule -- an
    --r-lg panel with an --sp-8 inset gives its rows --r-md, and an --r-md control
-   inside that gives --r-sm); --r-xs 6 and --r-2xs 4 for small inline marks (a
+   inside that gives --r-sm); --r-xs 4 and --r-2xs 3 for small inline marks (a
    numeral chip, a toast, a 130px logo tile); --r-pill for a capsule; --r-full
    for a circle. --r-hair 2 is a 2px underline's cap, not a box.
 
