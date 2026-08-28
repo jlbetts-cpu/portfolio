@@ -243,7 +243,24 @@ def main():
         assert "radial-gradient(var(--hero-glow-rx)" in live.group(0), (
             "%s no longer takes its glow radius from --hero-glow-rx" % state)
     assert "heroNightStars" in home_html and 28 <= home_html.count("--star-x:") <= 36
-    assert ".heroNightStars{position:absolute;inset:0" in hero_time_css
+    # ── THE STAR FIELD, ASSERTED AS PROPERTIES AND NOT AS A STRING ──────────
+    # 2026-08-27. This was `".heroNightStars{position:absolute;inset:0" in
+    # hero_time_css` -- a literal that pinned not just the two properties but
+    # the ORDER they were declared in and what came first in the block. The
+    # night-sky work added --star-mask to the head of that rule, both
+    # properties survived untouched, and the gate went red anyway. It stayed
+    # red across several commits because the failure looks identical to a real
+    # regression.
+    # This is the same fix the reduced-motion assertion below already carries;
+    # it was applied there and missed here. What is checked now is what
+    # actually has to be true: the star layer fills its parent. Declaration
+    # order is not behaviour.
+    _stars = re.search(r"\.heroNightStars\{([^}]*)\}", hero_time_css)
+    assert _stars, "the .heroNightStars rule is gone"
+    for _prop in ("position:absolute", "inset:0"):
+        assert _prop in _stars.group(1), (
+            ".heroNightStars no longer sets %s, so the star field does not "
+            "fill the hero" % _prop)
     assert ".hero[data-time-state=\"night\"] .heroNightStars{opacity:1}" in hero_time_css
     # ── THE REDUCED-MOTION STARS, ASSERTED AS PROPERTIES AND NOT AS A STRING ──
     # 2026-08-27. This pinned the rule's whole declaration block character for
