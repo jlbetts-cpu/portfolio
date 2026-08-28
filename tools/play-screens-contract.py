@@ -902,7 +902,10 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
                           numbers: rows.map(r => (r.querySelector('.tvDraftN')||{}).textContent),
                           wheres: rows.map(r => (r.querySelector('.tvDraftOut')||{}).textContent),
                           drawn: rows.filter(r => r.classList.contains('tvDrawn')).length,
-                          key: !!document.querySelector('.tvDraftKey')}; }""")
+                          drawnMarked: rows.filter(r => r.classList.contains('tvDrawn'))
+                                         .filter(r => {const m=r.querySelector('.tvDraftTie');
+                                                       return m && m.textContent.trim().length>1;}).length,
+                        key: !!document.querySelector('.tvDraftKey')}; }""")
                 f.check(not draft.get("why"),
                         "draft %s: the finished cup grows a Draft tab" % at,
                         draft.get("why", ""))
@@ -922,8 +925,23 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
                             json.dumps(draft["wheres"]))
                     # ...and where it came from nothing. If any row is separated from the one
                     # above it only by the draw, the key has to be printed.
-                    f.check(draft["drawn"] == 0 or draft["key"],
-                            "draft %s: rows split by the draw are marked and keyed" % at,
+                    # THE ROW EXPLAINS ITSELF; THERE IS NO LEGEND TO CHECK.
+                    # 2026-08-27. This was `drawn == 0 or key`: a row separated
+                    # by the draw had to be accompanied by a key line under the
+                    # table, because the row's own marker was a bare "·" that
+                    # means nothing on sight. Jayden called that pairing
+                    # clutter, and it was also costing the pane the room it
+                    # needed -- play-tournament.js records the twelve-row
+                    # over-run and his screenshot showed DRAFT ORDER printing
+                    # over row 1 because of it.
+                    # The dot is a WORD now, "Draw" or "Race", so the account
+                    # is in the row and needs no legend.
+                    # STRICTLY STRONGER, NOT RELAXED: the old check accepted one
+                    # key line for the whole table; this requires EVERY drawn
+                    # row to carry its own. It fails if the marker reverts to a
+                    # bare symbol.
+                    f.check(draft["drawn"] == draft["drawnMarked"],
+                            "draft %s: every row split by the draw says so in the row" % at,
                             json.dumps(draft))
 
         pg.evaluate("() => window.__hmTourStop()")

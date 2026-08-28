@@ -683,7 +683,13 @@ body.hmYowCup .tvSc{display:none}
    goal difference and goals, are separated by the draw -- and a draft order that
    presents a coin-toss as a ranking is the seed problem in the one place it would
    actually cost somebody something. A dot, and a key at the foot. */
-.tvDraftTie{flex:0 0 auto;color:var(--theme-muted,var(--c500));font-size:var(--fs-label)}
+.tvDraftTie{
+  /* A WORD NOW, NOT A DOT. Sized and coloured as the row's quietest cell so it
+     reads as provenance rather than as a badge -- same rung as the pick, one
+     step down in ink. */
+  font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase;
+  color:var(--theme-muted,var(--c500));margin-left:var(--sp-6);white-space:nowrap;
+}
 .tvDraftKey{
   margin:var(--sp-6) 0 0;flex:0 0 auto;
   font-size:var(--fs-micro);letter-spacing:var(--tr-body);

@@ -2773,7 +2773,10 @@ function buildStory(into){
      eyebrows arguing about which group they head, and the standard allows one
      per pane. `.tvStoryL` is the same words as a caption -- sentence case, one
      rung down, muted -- which is what a label on a report is. */
-  into.appendChild(el('p', 'tvStoryL', 'Below the line'));
+  /* "Below the line" removed 2026-08-27 -- he named it as clutter. The rows
+     under it are already visually separated and already say what they are;
+     a label announcing a boundary the layout draws is one more thing to read
+     for no new information. */
   /* ONE PARAGRAPH, NOT N. The pane is a flex column with a gap, so a line per element pays
      that gap between every pair -- and on the FINAL, which also carries the poster, that
      was measured at 294px of content in a 289px pane. Five pixels, but the contract says
@@ -2867,8 +2870,19 @@ function buildDraft(into){
     var unearned = row.tiedFromDraw || (racePart && row.fromTail);
     if (row.tiedFromDraw) anyDrawn = true;
     if (racePart && row.fromTail) anyRace = true;
+    /* ── THE ROW SAYS IT, INSTEAD OF A DOT AND A LEGEND.  2026-08-27 ───────
+       This printed a bare "\u00b7" whose only explanation was a tooltip, and a
+       key line under the table decoding it. That pairing is what he called
+       clutter -- and it was the WORSE half of the trade, because the dot is
+       meaningless on sight while the key cost the pane the room it needed for
+       twelve rows (the note below this function records the over-run, and his
+       screenshot shows DRAFT ORDER printing over row 1 because of it).
+       A word in the row costs the same space as the dot and needs no legend
+       at all: "Draw" for a position separated by the draw, "Race" for one
+       ranked by distance because the race did not reach the line. The title
+       stays for the full sentence. */
     if (unearned){
-      var d = el('span', 'tvDraftTie', '\u00b7');
+      var d = el('span', 'tvDraftTie', row.tiedFromDraw ? 'Draw' : 'Race');
       d.setAttribute('title', row.tiedFromDraw
         ? 'Level on goal difference and goals -- separated by the draw'
         : 'The qualifying race did not reach the line -- ranked by how far this head got');
@@ -2876,9 +2890,20 @@ function buildDraft(into){
     list.appendChild(li);
   });
   into.appendChild(list);
-  /* The key is printed only when there is something to key. */
-  var key = draftKey(anyDrawn, anyRace);
-  if (key) into.appendChild(el('p', 'tvDraftKey', key));
+  /* ── NO KEY UNDER THE DRAFT ORDER.  2026-08-27 ──────────────────────────
+     Jayden: "remove the 'Below the line' its clutter find clutter like that
+     and remove just make it clean." And the comment below this function has
+     been admitting the real cost for a while: "the shipping twelve-team
+     play-in cup already over-runs its own box by 8px top and bottom", which
+     is exactly the collision in his screenshot -- DRAFT ORDER printing over
+     row 1 and the key printing over row 12.
+     A previous pass answered that by compressing the key to one line. The
+     honest answer is that the pane has twelve rows to show and no room for
+     footnotes: the key explains a distinction the row's own provenance cell
+     already makes ("Race", or the round's name), so it was restating
+     something the table says better, in the space the table needed.
+     draftKey() is left in the file -- the race pane still uses that
+     vocabulary through raceKey() -- it is simply not printed here. */
 }
 
 /* ---- THE KEY IS ONE LINE, ALWAYS, AND THAT IS ARITHMETIC RATHER THAN TASTE.
