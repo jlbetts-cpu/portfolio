@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=72fc6cc0c1">
+<link rel="stylesheet" href="tokens.css?v=0edb62d961">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -759,6 +759,31 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csItem.csIn .csFrame{opacity:1;transform:none}
 .csImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .csItem:has(.soon) .csImg{filter:grayscale(1)}
+
+/* ── THE THUMBNAILS TAKE THE HOVER ZOOM.  2026-08-27 ────────────────────────
+   "the phone mockups zoom in when they shouldnt i met thumbnails not mockups
+   for the zoom affect on hover." The first pass put it on the case-study
+   MOCKUPS; it is off them now and here instead, on the cards on home.
+   THE IMAGE MOVES, THE FRAME DOES NOT. .csFrame already carries
+   overflow:hidden and a fixed 2/1 aspect box, so scaling .csImg inside it
+   tightens the crop and nothing in the grid reflows -- which is the whole
+   reason the effect reads as expensive rather than as a card growing.
+   It also cannot fight the entrance animation: that animates .csFrame's own
+   transform, and this is the img's.
+   1.04 and --dur-move, the same values the site uses elsewhere for something
+   changing position. Hover-capable pointers only -- on a touch screen :hover
+   latches after a tap and the card would stay zoomed with nothing to release
+   it. */
+@media (hover:hover) and (pointer:fine){
+ .csImg{transition:transform var(--dur-move) var(--ease-out)}
+ .csGo:hover .csImg,
+ .csGo:focus-visible .csImg{transform:scale(1.04)}
+}
+@media (prefers-reduced-motion:reduce){
+ .csImg{transition:none}
+ .csGo:hover .csImg,.csGo:focus-visible .csImg{transform:none}
+}
+
 .csMeta{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:0 var(--sp-24);margin:0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
 .csItem.csIn .csMeta{opacity:1;transform:none}
 .csName{font-family:var(--sans);font-weight:600;font-size:var(--work-title-size);letter-spacing:var(--tr-head);color:var(--c950);}
@@ -2391,11 +2416,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=72fc6cc0c1">
-<link rel="stylesheet" href="header.css?v=72fc6cc0c1">
-<link rel="stylesheet" href="hero-time.css?v=72fc6cc0c1">
-<link rel="stylesheet" href="footer.css?v=72fc6cc0c1">
-<link rel="stylesheet" href="site-theme.css?v=72fc6cc0c1">
+<link rel="stylesheet" href="controls.css?v=0edb62d961">
+<link rel="stylesheet" href="header.css?v=0edb62d961">
+<link rel="stylesheet" href="hero-time.css?v=0edb62d961">
+<link rel="stylesheet" href="footer.css?v=0edb62d961">
+<link rel="stylesheet" href="site-theme.css?v=0edb62d961">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to

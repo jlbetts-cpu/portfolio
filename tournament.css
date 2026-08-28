@@ -425,6 +425,18 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
   font-size:var(--fs-label);color:var(--theme-ink,var(--c950));
 }
 .tvSide.tvWon .tvNm{font-weight:600}
+/* ── NO SCORE COLUMN IN THE LEAGUE.  2026-08-27 ─────────────────────────────
+   "the simulated matches look weird."
+   Simulation was already manual -- simulateRound() has exactly one caller and
+   it is a button handler -- so what looks weird is the RESULTS. At one score
+   every completed fixture reads 1 and 0, so the column is a stripe of ones and
+   zeros that says nothing the row is not already saying: the number IS the
+   outcome, which is the same reason the pitch scoreboard went.
+   Nothing is lost, because the winner was never carried by the numeral.
+   .tvLost already mutes the losing side's name AND fades its face to .5, and
+   both are untouched -- verified against the three rules below rather than
+   assumed. */
+body.hmYow .tvSc{display:none}
 .tvSide.tvLost{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvSc{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvFaceC img{opacity:.5}

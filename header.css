@@ -755,6 +755,24 @@
    `.jbNav .gIco` is (0,2,0), so it wins that without an !important.
    Alignment is centre, not baseline: a 14px label in a 38px box baseline-aligned
    against an 18px square sits the square 2-3px low. */
+/* ── .uiIcon IS ON THIS SELECTOR TO WIN A TIE, NOT FOR SHOW.  2026-08-27 ────
+   Jayden: "time of day button is diffenernt for some reason on play than on
+   home and about are they all the same?"
+   They were not, and only in one property: the icon measured 18x18 on index,
+   about and every case study, and 15x15 on play. Everything else about the
+   button -- class, size, radius, border, stroke, shadow -- was identical, which
+   is why it read as a mystery rather than as a different component.
+   THE CAUSE WAS LINK ORDER, NOT CSS. Two rules both at 0,2,0:
+     header.css    .jbNav .heroTimeIcon  -> --ico-md (18)
+     controls.css  .ctl--nav .uiIcon     -> --ico-sm (15)
+   At equal specificity the later STYLESHEET wins, and play.html links
+   header.css BEFORE controls.css while index, about and the case studies all
+   link them the other way round. So play alone resolved to 15.
+   Adding .uiIcon here takes this rule to 0,3,0 and settles it on merit instead
+   of on which file happened to load second. The link order on play.html is
+   left alone deliberately -- reordering sheets on a page this size to fix one
+   icon is a much larger blast radius than winning the cascade honestly. */
+.jbNav .gIco.uiIcon,.jbNav .heroTimeIcon.uiIcon,
 .jbNav .gIco,.jbNav .heroTimeIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);display:block;
   /* color:inherit is load-bearing, not tidiness. index.html declares
      .gIco{color:var(--c700)} for its own game rows; inside the bar that made

@@ -899,10 +899,17 @@ body.pHubOn .hmRefl{
    colours up top, because a viewer arriving mid-match still has to know who is
    playing. That is the part of this component that was never about counting.
    The soccer cup keeps its board whole -- this is body.hmYow only. */
-body.hmYow .hmScore .sR,
-body.hmYow .hmScore .sB,
-body.hmYow .hmScore .sbMeta{display:none}
-body.hmYow .hmScore{background:none;box-shadow:none;padding:0}
+/* ALL OF IT, NOT THE DIGITS.  2026-08-27, second pass: "the scoreboard is
+   still there for some reason."
+   The first pass hid .sR/.sB/.sbMeta and deliberately KEPT the team names and
+   colours, on the reasoning that someone arriving mid-match still needs to know
+   who is playing. That was me deciding what he meant. He said the scoreboard,
+   and the row of names in a bar across the top of the pitch is the scoreboard
+   as far as anyone looking at it is concerned.
+   Nothing is lost that is not said elsewhere: the bracket names the fixture
+   before kick-off, the two teams are the only two colours on the pitch, and the
+   lower third names the scorer at the moment it matters. */
+body.hmYow .hmScore{display:none}
 .hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:var(--sp-12);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:var(--sp-8)}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:var(--r-full)}

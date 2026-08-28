@@ -1664,6 +1664,41 @@
 .heroCopy{mix-blend-mode:difference}
 :root[data-hero-ink="ink"] .heroCopy,
 :root[data-hero-ink="white"] .heroCopy{mix-blend-mode:normal}
+/* ── NIGHT OPTS OUT OF THE BLEND.  2026-08-27 ───────────────────────────────
+   Jayden: "the h1 text for the night looks a bit wonky with the lighting looks
+   weird on it."
+   MEASURED IN PIXELS, because getComputedStyle is useless here -- it reports
+   color:#fff in every state, since the visible colour is the BLEND's output and
+   not the declared one. Sampling the glyphs inside the h1's own box:
+     daytime  ink (23, 13, 1)     -- near-black, sum 37
+     night    ink (47, 40, 16)    -- sum 103, i.e. 2.8x lighter, and olive
+   A difference blend over a pure-white source is exactly 255 - backdrop, so the
+   headline has no colour of its own: it is the inverse of whatever sky is
+   behind it. Night's sky is a pale lavender (~208,215,239 where the words sit),
+   and the inverse of pale lavender IS olive-brown. Nothing was "wrong" -- the
+   blend was doing precisely what it says, on the one sky it flatters least.
+   The comment above already suspected this and called it "a faint warm cast on
+   night". It is not faint; it is the difference between 37 and 103.
+   THE FIX IS THE ONE THE FILE ALREADY HAS. data-hero-ink="ink" turns the blend
+   off and paints #090b24, and night is a LIGHT-themed state -- he settled that
+   ("i dont think i like the dark mode for night i think we just keep it light")
+   -- so ink on pale lavender is a straightforward, high-contrast reading. Night
+   joins the two pinned variants instead of getting a mechanism of its own.
+   SPECIFICITY, AND I GOT IT WRONG ONCE. The first version of these three read
+   :root[data-theme-state="night"]:not([data-hero-ink="white"]) ... which is
+   0,3,2 -- an exact TIE with the existing
+   :root:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy h1
+   that pins white, and that one is declared later, so it won. The headline went
+   white on a pale lavender sky with the blend off: strictly worse than the
+   olive it replaced. Carrying the "ink" :not() as well takes these to 0,4,2 and
+   settles it on merit; it is also correct on its own terms, since a pinned-ink
+   hero should not be overridden by the hour.
+   The eyebrow follows, or the pair stops reading as one object: under the blend
+   it relies on rgba white alpha, which composites to nothing sensible once the
+   blend is normal, so it takes the muted ink token directly. */
+:root[data-theme-state="night"]:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy{mix-blend-mode:normal}
+:root[data-theme-state="night"]:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy h1{color:var(--c950)}
+:root[data-theme-state="night"]:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy .heroCred{color:var(--c600)}
 /* Paper, not --c50. #f4f5f7 would invert the sky to 7,5,2 offset by the 11
    levels it is short of white, which shows up as a faint warm cast on night --
    the one state where the glyphs are the bright thing. The literal is the
