@@ -2338,8 +2338,14 @@ function buildTape(A, B, nm2){
      like a bug rather than a rule. One score wins is the whole sentence. */
   try{ if (nm2){
     var _len = matchLength(nm2.round);
-    line((_len <= 1 ? 'One score wins. ' : 'First to ' + _len + ', win by two. ')
-         + stakesLine(nm2.round));
+    /* AND IN THE LEAGUE THE TAPE DOES NOT REPEAT THE STAKE LINE.  stakeOf() prints
+       "Winner takes the 1.01, first overall . loser the 1.02" four lines above,
+       and stakesLine() on the final returns "The winner takes the 1.01, first
+       overall" -- the same sentence twice on the one screen that matters most.
+       Screenshotted at 1440 on 2026-08-28. The League has a stake line of its own,
+       so the tape says only the thing the stake line does not: how the match ends. */
+    line((_len <= 1 ? 'One score wins.' : 'First to ' + _len + ', win by two.')
+         + (T.yow ? '' : ' ' + stakesLine(nm2.round)));
   } }catch(_){}
   try{ line(formLine(A, B)); }catch(_){}
   try{
@@ -2662,6 +2668,26 @@ function toldLine(m){
        + ln + ' for the ' + slot(m.lp[0]) + '.';
 }
 
+/* ---- THE PICK IS THE LEAGUE'S ACCENT, so it is a node and not a substring.
+   Every sentence this screen prints -- the stake, the drain report, the champion's
+   prize -- has a draft slot in it, and the slot is the only thing on these screens
+   that matters more than the prose around it. Wrapping it in <em> reuses the
+   emphasis the tape has always had for a winner's name, so there is ONE emphasis
+   mechanism on the panel rather than a second colour or a third weight rung.
+   league.css draws it: ink, 600, tabular figures.
+   Built from text nodes rather than innerHTML because these strings carry team
+   names, which come off the roster and are not this lane's to trust. ---- */
+function pickText(into, txt){
+  var re = /1\.\d\d/g, at = 0, m;
+  while ((m = re.exec(txt))){
+    if (m.index > at) into.appendChild(document.createTextNode(txt.slice(at, m.index)));
+    into.appendChild(el('em', null, m[0]));
+    at = m.index + m[0].length;
+  }
+  if (at < txt.length) into.appendChild(document.createTextNode(txt.slice(at)));
+  return into;
+}
+
 function isFinalRound(round){ return round === T.br.rounds.length - 1; }
 
 function buildNext(into, A2, B2, nm2){
@@ -2692,14 +2718,20 @@ function buildNext(into, A2, B2, nm2){
      match's own wp/lp) so it cannot say one thing while the draw does another.
      .tvQual is the pane's existing body line -- the same type, size and colour the
      qualifying screen uses. No new class, no new chrome, nothing to style. ===== */
+  /* THE STAKE IS COMPUTED HERE AND APPENDED BELOW THE MATCH-UP.  It answers
+     "what is this for", which is a question you ask AFTER you have seen who is
+     playing; above the captains it read as a caption on the round's name. It is
+     still COMPUTED before them, because __hmStakeNow is what the match bar reads
+     to put the pick beside the round. */
+  var stakeP = null;
   if (T.yow && nm2){
     var st = stakeOf(nm2.match || BR.matchAt(T.br, nm2.round, nm2.index));
     try{ window.__hmStakeNow = st || ''; }catch(_){}
-    if (st) into.appendChild(el('p', 'tvQual', st));
+    if (st) stakeP = pickText(el('p', 'tvQual'), st);
   }
   var vs = el('div', 'tvVs');
   vs.appendChild(sideRow(A2, { big: true }));
-  vs.appendChild(el('div', 'tvV', 'v.'));
+  vs.appendChild(el('div', 'tvV', T.yow ? 'v' : 'v.'));   // the League's hairline carries the mark; a full stop after it is a stray glyph
   vs.appendChild(sideRow(B2, { big: true }));
   /* THE POSTER STANDS BESIDE THE TWO CAPTAINS, and that is one change fixing two
      complaints -- see the note above buildNext for why the band it replaces could not
@@ -2719,6 +2751,7 @@ function buildNext(into, A2, B2, nm2){
   } else {
     into.appendChild(vs);
   }
+  if (stakeP) into.appendChild(stakeP);
   /* ===== THE STORY TAKES THE TAPE'S SLOT, IT DOES NOT ADD A ROW. Appended under the tape
      it overflowed: this pane's height is bounded and the two lines went behind the footer's
      own buttons -- the capsule trap, and play-screens-contract asserts that nothing here
@@ -2782,10 +2815,18 @@ function buildStory(into){
      was measured at 294px of content in a 289px pane. Five pixels, but the contract says
      nothing on this screen scrolls and five is enough to make it. The report is one thing
      anyway; <br> between its lines is what it always should have been. */
-  var pEl = el('p', 'tvQual');
-  T.story.forEach(function(line, i){
-    if (i) pEl.appendChild(document.createElement('br'));
-    pEl.appendChild(document.createTextNode(line));
+  /* `.tvStory` IS A FIX, NOT A RENAME.  tournament.css shrank the champion's
+     portrait for `.tvPane:has(.tvStoryL)` and this function has always emitted a
+     bare `.tvQual` -- so that rule never fired once, and the overrun its own
+     comment describes as fixed was still shipping: screenshotted 2026-08-28 at
+     1440x900 and 390x844, the last line of the report drawn UNDER the Leave
+     button. A selector that matches nothing fails in silence. The class the JS
+     writes and the class the stylesheet asks for are one string now.
+     One <span> per line rather than <br>: the report is a list of results, so it
+     is a grid of rows and its gap is a token. */
+  var pEl = el('p', 'tvQual tvStory');
+  T.story.forEach(function(line){
+    pEl.appendChild(pickText(el('span'), line));
   });
   into.appendChild(pEl);
 }
@@ -3070,6 +3111,12 @@ function buildChampion(into, champ2){
   hh.appendChild(crown); wrap.appendChild(hh);
   into.appendChild(wrap);
   into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the ' + (T.cup || 'cup')));
+  /* AND IN THE LEAGUE IT SAYS WHAT WAS WON.  There is no trophy here -- the prize
+     is the first overall pick, and the screen that ends the cup was the only one
+     that never named it. slot() is the same function the stake sentence, the tie
+     tags and the draft board already print, so the four cannot disagree. */
+  if (T.yow) into.appendChild(pickText(el('p', 'tvPrize'),
+    'Takes the ' + slot(1) + ', first overall.'));
   /* The last consolation set lands at the same moment the final does, so the champion
      screen carries it too -- otherwise the bottom of the draft order is settled by matches
      whose result is never said out loud anywhere. */

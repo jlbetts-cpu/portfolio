@@ -48,6 +48,7 @@ FILES = {
     "tour": ROOT / "play-tournament.js",
     "games": ROOT / "play-games.js",
     "css": ROOT / "play.css",
+    "league": ROOT / "league.css",
     "html": ROOT / "play.html",
 }
 
@@ -198,8 +199,17 @@ def no_shadow(src):
     # Same shape as the seo-contract bug that stripped scripts before comments.
     # Now the source is de-commented before any rule is read, so the gate can
     # only ever fail on something that actually paints.
+    #
+    # AND IT READS league.css TOO, SINCE 2026-08-28. The League's screens used to
+    # live in play.css as a diff against soccer's scoreboard; they were deleted and
+    # rebuilt in league.css, and a gate that only ever looked at play.css would have
+    # gone green on an empty room. The scan is over BOTH files, which makes this
+    # check strictly stronger than it was -- league.css is ~40 rules of chrome and
+    # every one of them is now under the no-elevation rule.
+    both = src + "\n" + FILES["league"].read_text()
+    both = re.sub(r"/\*.*?\*/", "", both, flags=re.S)
     src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
-    owned = [r for r in re.findall(r"[^{}]+\{[^{}]*\}", src)
+    owned = [r for r in re.findall(r"[^{}]+\{[^{}]*\}", both)
              if re.match(r"[^{]*(body\.hmYow|\.hmUp)", r)]
     if not owned:
         return False
@@ -208,6 +218,34 @@ def no_shadow(src):
             if decl.strip() != "none":
                 return False
     return "body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;" in src
+
+
+def league_chrome_is_scoped_to_the_class_that_is_on():
+    """Every rule in league.css names hmYowCup or hmYowHdr -- never bare hmYow.
+
+    THE SINGLE MOST EXPENSIVE MISTAKE THIS MODE MAKES. play-engine.js sets
+    `body.hmYow` AT KICKOFF and clears it at the whistle, so a rule scoped to it is
+    true only while the tournament screen is display:none -- absent from qualifying,
+    from every bracket pane, from the drains and from the champion. It made "the
+    scoreboard is still there" true four times running, and both of tournament.css's
+    League rules (the panel's material and the champion's shrink) shipped having
+    never run once.
+
+    league.css draws SCREENS, and no screen it draws exists while hmYow is on. So
+    the class is a mistake there by construction, and this says so rather than
+    leaving it to be rediscovered. `body.hmYowCup` and `body.hmYowHdr` both start
+    with the string `body.hmYow`, so the test is on the character that follows.
+    """
+    src = re.sub(r"/\*.*?\*/", "", FILES["league"].read_text(), flags=re.S)
+    bad = []
+    for rule in re.findall(r"[^{}]+\{[^{}]*\}", src):
+        sel = rule.split("{")[0]
+        for m in re.finditer(r"body\.hmYow(\w*)", sel):
+            if m.group(1) not in ("Cup", "Hdr"):
+                bad.append(sel.strip()[:60])
+    if bad:
+        return False, "scoped to bare body.hmYow: " + "; ".join(sorted(set(bad))[:3])
+    return True, "every rule names hmYowCup or hmYowHdr"
 
 
 def poster_still_gated_on_the_soccer_final():
@@ -238,7 +276,10 @@ def run(sources):
     good, why = poster_still_gated_on_the_soccer_final()
     print("  %-44s %s  (%s)" % ("posters-withdrawn-and-still-withdrawn",
                                 "ok" if good else "FAIL", why))
-    return ok and good
+    scoped, why2 = league_chrome_is_scoped_to_the_class_that_is_on()
+    print("  %-44s %s  (%s)" % ("league-chrome-is-scoped-to-the-cup",
+                                "ok" if scoped else "FAIL", why2))
+    return ok and good and scoped
 
 
 def main():

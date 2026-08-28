@@ -215,38 +215,10 @@ body.hmTourSim .tvPanel{animation:none}
    nobody has to forgive. */
 .tvPanel{animation:tvArrive var(--sp-settle-dur) var(--sp-settle) both}
 
-/* ── THE LEAGUE PANEL IS A MATERIAL, NOT A LID.  2026-08-27 ────────────────
-   Jayden: "a lot of overlapping elements for the league ... the ui for the
-   league is just ugly and not minimal enough."
-   LOOKED AT IT, on a captured fixture screen rather than a forced one. The
-   panel is z:47 and the heads are z:3, so nothing is actually mis-stacked --
-   but .surface paints an OPAQUE ground, so a head that drifts under the card
-   gets sliced clean through by its bottom edge. A head cut in half by a
-   rectangle reads as a collision even when the z-order is correct, and that
-   is what "overlapping" is describing.
-   TRANSLUCENCY IS THE SANCTIONED ANSWER HERE, twice over: CLAUDE.md says this
-   site's chrome separates with hairlines and translucency and never with
-   elevation, and docs/apple-design.md §12 says to build floating chrome as a
-   translucent layer with content passing underneath rather than as an opaque
-   bar that cuts the scene. A head behind glass is behind something; a head
-   behind cardboard is broken.
-   --mat-2 and --blur-2 are the site's own material tokens, so this introduces
-   no new values -- it spends ones that already exist. The rim stays exactly as
-   .surface sets it: the hairline is still what draws the edge.
-   ONE ELEMENT, AND ONLY WHILE A CUP IS UP. backdrop-filter is not free, so it
-   is scoped to body.hmYow .tvPanel rather than to .surface, which would have
-   promoted every panel on the site. */
-body.hmYow .tvPanel.surface{
-  background:var(--mat-2);
-  -webkit-backdrop-filter:blur(var(--blur-2)) saturate(180%);
-          backdrop-filter:blur(var(--blur-2)) saturate(180%);
-}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  /* No blur available: fall back to the opaque ground rather than to a
-     see-through card with sharp heads legible through it, which is worse than
-     the slice it was meant to fix. */
-  body.hmYow .tvPanel.surface{background:var(--surface-ground)}
-}
+/* THE LEAGUE'S PANEL MATERIAL MOVED TO league.css (2026-08-28): the League
+   designs its own surface there rather than repainting soccer's here, and it
+   was scoped to body.hmYow -- a class that is only on AT KICKOFF, when this
+   screen is display:none. It was never running. */
 
 @keyframes tvArrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){ .tvPanel{animation:none} }
@@ -470,15 +442,7 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    .tvLost already mutes the losing side's name AND fades its face to .5, and
    both are untouched -- verified against the three rules below rather than
    assumed. */
-/* ── AND IT IS hmYowCup, NOT hmYow.  §5, 2026-08-28 ──────────────────────
-   This shipped scoped to `body.hmYow`, which play-engine.js sets AT KICKOFF and
-   clears at the whistle -- so it was true during a match, when this screen is
-   display:none, and false everywhere the bracket is actually read. Measured at
-   1440 between two fixtures: .tvSc was live, 14.4px wide, Archivo 800, printing
-   1 and 0 down the round panes. That is the same four-round mistake this mode
-   has made three times before, and it is why the standard names the class.
-   hmYowCup is on from the first qualifying screen to the last drain. */
-body.hmYowCup .tvSc{display:none}
+/* One score wins, so the League prints no score column at all -- league.css. */
 .tvSide.tvLost{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvSc{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvFaceC img{opacity:.5}
@@ -551,12 +515,9 @@ body.hmYowCup .tvSc{display:none}
    as the label on the report rather than as a heading arguing with the one four
    lines above it.
    --------------------------------------------------------------------------- */
-.tvStoryL{
-  margin:0;flex:0 0 auto;
-  font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);
-  letter-spacing:var(--tr-body);
-  color:var(--theme-muted,var(--c500));
-}
+/* .tvStoryL was a rule for a class nothing ever built -- buildStory() has always
+   emitted .tvQual. Deleted 2026-08-28; the League's drain report is designed in
+   league.css against the class the JS actually writes. */
 
 /* ---------------------------------------------------------------------------
    A ROUND PANE -- the bracket, one round at a time
@@ -896,24 +857,8 @@ body.hmFinal .tvPanel{
    than absent), "Simulating..." still says what is happening, and the only ink
    left in the foot is Stop -- which is the only thing there is to press. The
    soccer cup keeps the library's dim; this is the League's standard. */
-/* ── AND THE FIRST QUIET CONTROL HANGS BACK ONTO THE INK EDGE.  §2 ────────
-   An outlined secondary put its BOX on the panel's inline padding, so the edge
-   the eye read was the box's. A quiet one has no box, so what the eye reads is
-   the label -- and the label sits --ctl-pad (16px) inside it. Measured at 1440
-   the moment the variant changed: the eyebrow, the stake line, the faces and
-   the tape all start at 526 and "Leave" started at 542, which is a 16px step in
-   the bottom-left corner of the card and the only place on the panel with one.
-   A negative margin equal to the padding hangs the label back onto the edge and
-   leaves the 44px box exactly where it was, so nothing is lost off the tap
-   target -- the box's own left edge lands on the panel's padding box. */
-body.hmYowCup .tvFoot > .ctl--quiet:first-child{
-  margin-inline-start:calc(var(--ctl-pad) * -1);
-}
-body.hmYowCup .tvGo:disabled,
-body.hmYowCup .tvGo[aria-disabled="true"]{
-  opacity:1;background:none;box-shadow:none;
-  color:var(--theme-muted,var(--c500));
-}
+/* The League's own footer -- the hung-back quiet control and the un-dimmed
+   disabled primary -- is designed in league.css. */
 /* Running: it is now Stop, and it takes the armed appearance defined with Leave
    above -- the two are the same state on the same rung and had two copies of one
    rule between them. */
@@ -973,7 +918,11 @@ body.hmYowCup .tvGo[aria-disabled="true"]{
    MEANING does not change with its size -- a crowned portrait at 104px is the
    same statement as one at 168. Same clamp shape, one rung down, and only when
    there is a report to make room for. */
-.tvPane:has(.tvStoryL){--tvChamp:clamp(56px, 10svh, 104px)}
+/* THIS RULE NEVER FIRED. It is keyed on .tvStoryL and buildStory() emits .tvQual,
+   so the 25px overrun it documents below was still shipping on 2026-08-28 --
+   screenshotted at 1440 and 390, the report's last line drawn under the Leave
+   button. league.css keys the shrink off .tvStory, the class buildStory() now
+   actually writes, and a selector that matches nothing is exactly why. */
 /* ---- AND IT COMES DOWN A RUNG BELOW 760px OF HEIGHT, because the pane the champion
    lives in is NOT proportional to the viewport: it is `--tvGround - --tvTop` less the
    panel's fixed chrome, and --tvTop is a constant 88. So the pane shrinks faster than

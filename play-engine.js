@@ -2567,12 +2567,22 @@
      }
      if(row&&row.parentNode!==navC){ row.classList.add("hmHdrMatch"); navC.appendChild(row); }
      if(rnd&&rnd.parentNode!==navR){ rnd.classList.add("hmHdrRound"); navR.insertBefore(rnd,navR.firstChild); }
-     if(end&&end.parentNode!==navR){ end.classList.add("hmHdrEnd"); navR.appendChild(end); }
+     /* THE WAY OUT IS A CONTROL, so while it is in the bar it IS one. play-engine
+        draws this button privately -- its own ink, its own border-left, its own
+        padding -- which is exactly what the control system forbids, and on the
+        bar it sat beside real .ctl items at a different height and radius. The
+        library's classes go on with hmHdrEnd and come off with it, so the
+        scoreboard's own copy of this button is untouched. */
+     if(end&&end.parentNode!==navR){ end.classList.add("hmHdrEnd");
+       end.classList.add("ctl"); end.classList.add("ctl--quiet"); end.classList.add("ctl--sm");
+       navR.appendChild(end); }
      document.body.classList.add("hmYowHdr");
     }else if(hdrHome){
      if(row&&hdrHome.row){ row.classList.remove("hmHdrMatch"); hdrHome.row.insertBefore(row,hdrHome.rowNext||null); }
      if(rnd&&hdrHome.rnd){ rnd.classList.remove("hmHdrRound"); hdrHome.rnd.insertBefore(rnd,hdrHome.rndNext||null); }
-     if(end&&hdrHome.end){ end.classList.remove("hmHdrEnd"); hdrHome.end.insertBefore(end,hdrHome.endNext||null); }
+     if(end&&hdrHome.end){ end.classList.remove("hmHdrEnd");
+       end.classList.remove("ctl"); end.classList.remove("ctl--quiet"); end.classList.remove("ctl--sm");
+       hdrHome.end.insertBefore(end,hdrHome.endNext||null); }
      hdrHome=null;
      document.body.classList.remove("hmYowHdr");
     }
@@ -2599,7 +2609,16 @@
         if(_base&&!_rd.getAttribute("data-round")) _rd.setAttribute("data-round",_base);
         var _pick=(txt.match(/1\.\d\d/)||[])[0];
         var _want=_pick?(_base+" \u00b7 "+_pick):_base;
-        if(_rd.textContent!==_want) _rd.textContent=_want;
+        /* THE PICK IS A NODE, not part of the string, because it is the League's
+           one accent: league.css draws it in ink at 600 with tabular figures
+           while the round beside it stays muted, and on the final it takes the
+           cup's gold. Rebuilt with text nodes and one <em> -- never innerHTML,
+           since _base comes from the bracket's own labels. */
+        if(_rd.textContent!==_want){
+          _rd.textContent="";
+          _rd.appendChild(document.createTextNode(_pick?(_base+" \u00b7 "):_base));
+          if(_pick){var _em=document.createElement("em");_em.textContent=_pick;_rd.appendChild(_em);}
+        }
       }
     }catch(_){}
    }catch(_){}
@@ -3460,6 +3479,17 @@ function teams(){
       below: playing a bracket out to a champion never calls stop(), so a class left on
       would hand the next casual kickabout a football and a set of uprights. */
    YOW=false;S.yow=false;document.body.classList.remove("hmYow");
+   /* AND THE MATCH BAR COMES DOWN WITH IT.  headerBuild() was only ever CALLED
+      with YOW, from start() -- so it built the bar on a League kickoff and had no
+      caller that could ever take it apart. In a League session it never came down:
+      the previous fixture's captains, its round and its End button stayed in the
+      nav across the bracket screens, the drains and the champion. Screenshotted
+      2026-08-28 -- the champion screen carried "Final . 1.01  End" over it. It
+      only ever cleared because a SOCCER match started later and passed false.
+      finish() is the one place every ending path goes through, which is exactly
+      why the mode class is cleared on the line above; the bar it turns on belongs
+      on the same line. */
+   try{ headerBuild(false); }catch(_){}
    /* The through-read goes with the mode. Kept off the line above on purpose: that exact
       string is pinned verbatim by tools/play-yowmings-contract.py, because "the mode comes
       off at the whistle" is the assertion and an edit through the middle of it is how a

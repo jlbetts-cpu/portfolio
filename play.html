@@ -1300,6 +1300,11 @@
 <link rel="stylesheet" href="footer.css?v=0edb62d961">
 <link rel="stylesheet" href="controls.css?v=0edb62d961">
 <link rel="stylesheet" href="site-theme.css?v=0edb62d961">
+<!-- league.css LINKS LAST, AND THAT IS THE POINT. controls.css and site-theme.css
+     both come after this page's own <style> block, so an equal-specificity rule
+     written earlier loses on source order and loses SILENTLY -- four League rules
+     were lost that way. The League owns the final word on its own screens. -->
+<link rel="stylesheet" href="league.css">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">

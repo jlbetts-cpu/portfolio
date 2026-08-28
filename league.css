@@ -1,0 +1,633 @@
+/* ============================================================================
+   league.css -- the Yowmings League's screens, designed rather than diffed.
+
+   WHY THIS FILE EXISTS, AND WHY IT IS A DELETION FIRST.  Jayden, 2026-08-28:
+   "delete all the ui for the yowmings mode and rebuild it to the best of your
+    ability in an apple like style using the apple.md skill and our design
+    system, a remake not small changes, no lazy work."
+
+   WHAT WAS THERE.  The League had no visual layer of its own.  It had ~400
+   lines spread across play.css and tournament.css that SUBTRACTED soccer's
+   broadcast scoreboard one instruction at a time -- hide the digits, hide the
+   grain, hide the meta, hide the trophy, un-tilt the card, un-paint the plate,
+   re-pin the End button to the viewport, re-pin it again to the nav.  Every one
+   of those lines was a correct answer to a question that should never have been
+   asked, because a fantasy-football draft settled by one-score matches has
+   nothing to do with a dark TV bug that holds a running total.  Reading the
+   cascade was the only way to know what the League looked like.
+
+   SO: play.css keeps the PITCH (uprights, football, eye black, the dropper) and
+   nothing else about this mode.  tournament.css keeps the screen every cup
+   shares.  This file is the League, and it is written from tokens.css upward.
+
+   FIVE THINGS IT MUST GET RIGHT, each of which cost a round to learn:
+
+   1. `body.hmYow` IS ONLY ON AT KICKOFF.  `body.hmYowCup` is on from the first
+      qualifying screen to the last drain.  A League rule hung on hmYow is
+      absent from every screen this file draws -- which is how a "removed"
+      scoreboard stayed on four times running, and how tournament.css's own
+      panel material and champion-shrink rules shipped never having run once.
+      EVERY rule below is scoped hmYowCup (the cup) or hmYowHdr (the match bar).
+   2. NOTHING HERE CASTS A SHADOW.  Not one `box-shadow` in this file is
+      anything but `none`.  The League separates with hairlines (`border`, so
+      the rim is not even spelled as a shadow) and with translucency.  Only the
+      companion heads cast, because only they stand on something.
+   3. THE SELECTORS ARE READ OFF THE BUILT MARKUP, never guessed.  The captain's
+      name is `.sbNm`; the story is `.tvQual.tvStory`; the round in the bar is
+      `.sbRound.hmHdrRound`.  A selector that matches nothing fails in silence
+      and this mode has three shipped examples of exactly that.
+   4. ELEMENTS MOVED OUT OF A CONTAINER LOSE EVERY DESCENDANT RULE.
+      headerBuild() lifts `.sbCard` out of `.hmScore` and into `.jbGrpC`, so
+      anything written as `.hmScore .sbNm` stops applying the moment it matters.
+      The bar's rules are written against `.hmHdrMatch`, which travels WITH it.
+   5. IT LINKS LAST.  After controls.css and site-theme.css, so an
+      equal-specificity League rule wins on source order and does not lose
+      silently the way four earlier ones did.
+
+   THE TYPE, four rungs and two weights, one role each:
+     eyebrow  --fs-label 12 / 600 / caps / --tr-caps / muted   the screen's name
+     title    --fs-h5  17-20 / 600 /       --tr-sub            captains, champion
+     row      --fs-small  15  / 400 /      --tr-body           every list row
+     prose    --fs-label 12  / 400 / --lh-body / muted         stake, tape, drain
+   Everything on these screens used to be 12px grey except the two captain
+   names: one size doing four jobs.  The rows are the texture of a bracket and a
+   draft board, so they take the site's list size and the prose stays under them.
+
+   THE ONE ACCENT IS THE PICK.  1.01 is what this cup is for, so wherever a pick
+   appears -- the stake line, the drain report, the tie tag, the draft board, the
+   round in the match bar -- it is drawn in ink at 600 with tabular figures and
+   everything around it stays muted.  --accent is ink site-wide, so this spends
+   the accent rather than inventing one.  Nothing here is coloured.
+
+   AND ARCHIVO DOES NOT COME IN HERE.  `.bcNum` is the broadcast board's
+   condensed 800 numeral and it is the last piece of that component; the League
+   sets its numerals in Geist with tabular figures instead.  The class stays on
+   the node (the soccer cup's contract counts it), it simply is not painted with
+   a second typeface on a screen that is a ledger.  No rule in this file names
+   Archivo, so play.css is still its single declaration site.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   THE LEAGUE'S SCALE.  Rebinding the tournament screen's own layout tokens is
+   what they are for -- one place decides how big a row and a face are in this
+   mode, and every component below reads it.  (This is not "rebinding --accent":
+   these are a component's private geometry, not a site-wide signal.)
+   --tvRow is measured, not chosen.  The tallest pane is a round of four ties at
+   two rows each; at 1440x900 the band leaves the list 266px, so a tie may cost
+   at most 66 and a row at most 24 + its air.
+   --------------------------------------------------------------------------- */
+body.hmYowCup{
+  --tvPanel:460px;                        /* 420 -> 460: the fixture is the hero */
+  --tvFace:clamp(42px, 5.4svh, 56px);     /* the two captains */
+  --tvRow:clamp(22px, 2.5svh, 26px);      /* every list row */
+  --lgRule:var(--theme-rim, rgba(9,11,36,.10));
+  --lgPad:var(--sp-24);
+}
+
+/* ---------------------------------------------------------------------------
+   THE PANEL.
+   IT SAT AT THE TOP OF ITS BAND AND THAT IS WHY THE SCREEN LOOKED EMPTY.
+   Screenshotted at 1440x900 before anything was touched: a 420px card pinned at
+   y=88 with 500px of white under it before the heads.  The band (88 -> 58svh) is
+   the League's room and the panel was using the first quarter of it.  Centred in
+   the band it lands at y~180 and the air above and below it is equal, which is
+   the whole fix -- nothing moved except `align-items`.
+   THE MATERIAL IS GLASS, not a lid: a head that drifts under an opaque card is
+   sliced through by its bottom edge and reads as a collision even though z-order
+   is correct.  --mat-2 + --blur-2 are the site's own tokens (apple-design.md
+   §12: floating chrome is a translucent layer with content passing under it).
+   THE RIM IS A BORDER, NOT AN INSET SHADOW, and that is deliberate rather than
+   stylistic: `box-shadow` is the property this mode is forbidden to spend, and a
+   hairline that is spelled as a border cannot be mistaken for elevation by a
+   reader or by the gate.  .surface's own shadow is turned off explicitly.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvScreen{align-items:center}
+
+body.hmYowCup .tvPanel.surface{
+  box-shadow:none;
+  border:var(--hair-w) solid var(--lgRule);
+  border-radius:var(--r-xl);corner-shape:var(--corner);
+  padding:var(--lgPad);
+  gap:var(--sp-12);
+  /* --theme-material, NOT --mat-2.  The --mat-* rungs are PAPER values --
+     rgba(253,253,253,.86) -- and this panel draws its text in --theme-ink, which
+     inverts with the theme and does not. Screenshotted in dark on 2026-08-28 with
+     --mat-2 in place: a near-white slab carrying near-white type, unreadable, and
+     it was a regression I introduced by spending a literal material rung where a
+     semantic one exists. --theme-material is the same .86 opacity on whichever
+     ground the theme is actually on. */
+  background:var(--theme-material, var(--mat-2));
+  -webkit-backdrop-filter:blur(var(--blur-2)) saturate(180%);
+          backdrop-filter:blur(var(--blur-2)) saturate(180%);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  /* No blur: an opaque ground beats a see-through card with sharp heads legible
+     through it, which is worse than the slice it was meant to fix. */
+  body.hmYowCup .tvPanel.surface{background:var(--surface-ground)}
+}
+/* THE FINAL'S EDGE.  tournament.css marks the final by putting the cup's gold
+   into .tvPanel's inset ring -- a box-shadow, which this mode may not spend and
+   which body.hmFinal would otherwise apply here on the League's final too.  Same
+   statement, drawn in the border this panel already has. */
+body.hmYowCup.hmFinal .tvPanel{
+  box-shadow:none;
+  border-color:color-mix(in srgb, var(--gold-ink) 55%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   THE TABS.  The rail keeps the library's travelling underline and the shared
+   hairline; what changes is that the row is given air of its own so the
+   indicator is not drawn on top of the rule that closes the panel's first band.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvTabs{
+  gap:0;
+  border-block-end:var(--hair-w) solid var(--lgRule);
+  margin-inline:calc(var(--lgPad) * -1);
+  padding-inline:var(--sp-8);
+}
+body.hmYowCup .tvPane{gap:var(--sp-8)}
+
+/* ---------------------------------------------------------------------------
+   THE HEAD ROW.  One caps run per pane -- the screen's name on the left, the
+   optional fact on the right, both on the label rung so the row is one line of
+   type rather than two competing ones.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvEyebrow{
+  font-weight:600;font-size:var(--fs-label);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-caps);text-transform:uppercase;
+  color:var(--theme-muted,var(--c500));
+}
+/* THE FINAL KEEPS ITS GOLD.  tournament.css marks it with `.tvEyebrowGold` at
+   (0,1,0); the League's own eyebrow rule is (0,2,1) and silently took it back to
+   muted -- screenshotted at 1440, the final's eyebrow was the same grey as a
+   quarter-final's. Restated at the League's own specificity so the mark survives. */
+body.hmYowCup .tvEyebrowGold{color:var(--gold-ink)}
+body.hmYowCup .tvOptL{
+  font-weight:400;font-size:var(--fs-label);letter-spacing:var(--tr-body);
+  color:var(--theme-muted,var(--c500));
+}
+
+/* ---------------------------------------------------------------------------
+   PROSE, AND THE PICK INSIDE IT.  The stake sentence, the tape and the drain
+   report are one voice: 12/--lh-body, muted, sentence case.  The picks inside
+   them are the only thing that steps forward, and it is the same <em> the tape
+   has always used for a winner's name, so there is one emphasis mechanism on
+   this screen rather than two.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvQual,
+body.hmYowCup .tvTape{
+  font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);
+  letter-spacing:var(--tr-body);color:var(--theme-muted,var(--c500));
+}
+body.hmYowCup .tvQual em,
+body.hmYowCup .tvTape em{
+  font-style:normal;font-weight:600;color:var(--theme-ink,var(--c950));
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   THE FIXTURE.  Two captains, and a hairline between them carrying the "v".
+
+   WHAT WAS WRONG: the two names sat in a loose stack with "v." floating at a
+   hard-coded indent of face-width-plus-gap, which is a number that has to be
+   kept in sync by hand and looked like a stray character at every size.  The
+   rule IS the versus -- it is the site's own separator -- and the mark sits in
+   the face column, centred under the two portraits, so the row has one grid and
+   no invented offsets.  The anonymous text node is grid item 1, the rule is
+   item 2; they cannot drift apart because they are the same grid as the rows
+   above and below.
+   THE STAKE MOVED UNDER THE MATCH-UP (see play-tournament.js).  It is the
+   answer to "what is this for", which is a thing you ask after you have seen
+   who is playing, not before.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvVs{gap:0}
+body.hmYowCup .tvSideBig{
+  gap:var(--sp-16);min-height:var(--tvFace);padding-block:var(--sp-8);
+}
+body.hmYowCup .tvSideBig .tvNm{
+  font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-auto);
+  letter-spacing:var(--tr-sub);color:var(--theme-ink,var(--c950));
+}
+body.hmYowCup .tvV{
+  display:grid;grid-template-columns:var(--tvFace) minmax(0,1fr);
+  align-items:center;gap:var(--sp-16);padding:0;
+  font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-caps);text-transform:uppercase;text-align:center;
+  color:var(--theme-muted,var(--c500));
+}
+body.hmYowCup .tvV::after{
+  content:"";height:var(--hair-w);background:var(--lgRule);
+}
+/* The final stands its poster beside the captains, at the picture's own
+   proportions.  Nothing here animates: the 2026-08-04 wipe stays cancelled. */
+/* THE POSTER IS THE HEIGHT OF THE PAIR IT STANDS BESIDE.  --tvPosterH was
+   clamp(124px, 20svh, 168px), which at 1440x900 made the picture 168 tall against
+   a captains' column of 150: the art drove the row and the two halves lined up on
+   neither edge. Measured on the pane, that also cost the final-plus-drain-report
+   more height than the band had.
+   IT IS DERIVED FROM --tvFace RATHER THAN CLAMPED AGAINST THE VIEWPORT, so the two
+   sides of the row track each other by construction: the column is two faces plus
+   their air plus the v-rule, and 2.7 faces is that number at every size this ships
+   at (measured 131 against 127 at 900, 123 against 121 at 844).
+   TRIED AND REJECTED: align-self:stretch with aspect-ratio, which reads the
+   picture's own height back through a width:100%/height:100% child and resolved to
+   1388px -- the pane's scrollHeight went from 258 to 1388. Measured, not guessed.
+   The APERTURE keeps the picture's own 1000:1295, so the whole artwork is still
+   inside the frame and the crop that made "the poster isn't even showing" true is
+   not reopened. */
+body.hmYowCup .tvMeet{gap:var(--sp-20)}
+body.hmYowCup .tvPoster{
+  --tvPosterH:clamp(72px, calc(var(--tvFace) * 2.7), 152px);
+  border-radius:var(--r-lg);corner-shape:var(--corner);
+  box-shadow:none;
+  border:var(--hair-w) solid var(--lgRule);
+}
+
+/* ---------------------------------------------------------------------------
+   A ROUND PANE -- the bracket as a ledger.
+
+   WHAT WAS WRONG: four ties of two rows each, separated only by a 16px gap, at
+   12px.  Eight near-identical grey lines with no statement about which two
+   belonged together, and the right-hand cell ("Next", or the two picks the tie
+   decides) marooned at the far edge of a 420px card.
+   NOW: the row takes the site's list size, and a hairline BETWEEN ties says
+   where one fixture ends and the next begins -- which is the site's own way of
+   separating and costs no elevation.  The ties are what you read; the tag is
+   what you read second, so it stays on the label rung.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvTies{gap:0}
+body.hmYowCup .tvTie{
+  column-gap:var(--sp-12);
+  padding-block:var(--sp-4);
+}
+body.hmYowCup .tvTie + .tvTie{
+  border-block-start:var(--hair-w) solid var(--lgRule);
+}
+body.hmYowCup .tvSide{gap:var(--sp-10);min-height:var(--tvRow)}
+body.hmYowCup .tvNm{
+  font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);
+  color:var(--theme-ink,var(--c950));
+}
+body.hmYowCup .tvSide.tvWon .tvNm{font-weight:600}
+body.hmYowCup .tvSide.tvLost .tvNm{font-weight:400;color:var(--theme-muted,var(--c500))}
+/* The colour stripe is the team's, and it is a hairline rather than a bar: at
+   3px against a 15px name it was a swatch competing with the portrait beside it. */
+body.hmYowCup .tvChipC{
+  flex:0 0 var(--sp-2);width:var(--sp-2);
+  height:calc(var(--tvRow) - var(--sp-8));
+  border-radius:var(--r-hair);
+}
+body.hmYowCup .tvTieTag{
+  font-weight:600;font-size:var(--fs-label);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);color:var(--theme-ink,var(--c950));
+}
+/* The picks a settled tie decides are a fact, not a call to action: same rung,
+   muted, with the numerals themselves in ink so the column still scans. */
+body.hmYowCup .tvTieTag.tvTieStake{
+  font-weight:400;color:var(--theme-muted,var(--c500));
+  font-variant-numeric:tabular-nums lining-nums;
+}
+body.hmYowCup .tvSide.tvTBD .tvNm{color:var(--theme-muted,var(--c500))}
+/* ONE SCORE WINS, SO THERE IS NO SCORE COLUMN.  At a target of one every played
+   tie reads 1 and 0 -- a stripe of ones and zeros restating what the weight of
+   the name already says.  The winner is carried by the ink, never by a numeral. */
+body.hmYowCup .tvSc{display:none}
+
+/* ---------------------------------------------------------------------------
+   THE DRAIN REPORT -- the consolation matches nobody watched.
+
+   WHAT WAS WRONG, and it was invisible rather than ugly: tournament.css shrank
+   the champion's portrait only for `.tvPane:has(.tvStoryL)`, and buildStory()
+   has always emitted `.tvQual`.  The rule never fired once.  Screenshotted at
+   1440x900 and 390x844 on 2026-08-28, the report's last line was drawn UNDER
+   the Leave button and the champion pane overran its band -- exactly the
+   overrun that rule's own comment describes as fixed.
+   The class is `.tvStory` now, the JS writes it, and the shrink is keyed on it.
+   A hairline above says "these are results, not the sentence about the fixture"
+   without spending a line of height on a heading the pane cannot afford.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvStory{
+  display:grid;gap:var(--sp-4);
+  padding-block-start:var(--sp-10);
+  border-block-start:var(--hair-w) solid var(--lgRule);
+}
+/* (the champion's portrait size is decided in THE CHAMPION below, where both
+   of its cases can be read side by side.) */
+
+/* ---------------------------------------------------------------------------
+   THE DRAFT BOARD -- the thing the whole cup exists to produce.
+
+   THE RANK COLUMN IS GONE, and that is subtraction rather than tidying: the row
+   printed "1" and then "1.01", which is the same fact twice.  In a draft the
+   pick IS the ordinal, so it leads the row, set in ink at 600 with tabular
+   figures so the column of 1.01 ... 1.12 aligns on the dot.
+   TWO COLUMNS AT EVERY SIZE.  A twelve-team field is twelve rows and the pane
+   has room for about nine; the existing two-up only appeared under 640px of
+   HEIGHT, so the case that overflowed -- a tall phone with a full field -- was
+   the one it did not cover.  Six rows a column reads as a draft board and fits
+   at 320 as well as at 1440.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvDraft{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(var(--tvDraftRows, 6), auto);
+  grid-auto-flow:column;
+  column-gap:var(--sp-24);row-gap:var(--sp-2);
+}
+body.hmYowCup .tvDraftRow{gap:var(--sp-10);min-height:var(--tvRow)}
+body.hmYowCup .tvDraftN{display:none}
+body.hmYowCup .tvDraftOut{
+  order:-1;flex:0 0 auto;margin:0;max-width:none;
+  font-weight:600;font-size:var(--fs-small);letter-spacing:var(--tr-body);
+  font-variant-numeric:tabular-nums lining-nums;
+  color:var(--theme-ink,var(--c950));
+}
+body.hmYowCup .tvDraftRow:first-child .tvNm{font-weight:600}
+/* Where a seat was not settled on the pitch, the row says so in the row --
+   there is no legend under the table and there is not going to be one. */
+body.hmYowCup .tvDraftTie{
+  margin-inline-start:auto;margin-inline-end:0;
+  font-size:var(--fs-caption);letter-spacing:var(--tr-caps);text-transform:uppercase;
+  color:var(--theme-muted,var(--c500));
+}
+/* The running order shares the board's shape; only its two states differ. */
+body.hmYowCup .tvOrder .tvChipC{flex:0 0 var(--sp-2);width:var(--sp-2)}
+body.hmYowCup .tvOrder .tvMoving .tvNm{color:var(--theme-muted,var(--c500))}
+
+/* ---------------------------------------------------------------------------
+   THE CHAMPION.  Portrait, name, and the prize said out loud -- because the
+   prize in this cup is a pick and not a trophy, and the screen that ends the
+   cup was the one screen that never named it.
+   --------------------------------------------------------------------------- */
+/* THE CAPS EYEBROW GOES ON THIS ONE PANE.  "CHAMPION" over "Player 4 wins the
+   Yowmings League" is the same fact twice, in two voices, and the caps run is
+   arguing with the only h2 on the screen. Dropping it is subtraction that also
+   buys the pane 26px -- which is what the drain report needs to fit under the
+   name instead of under the Leave button. */
+body.hmYowCup .tvPane:has(.tvChampWrap) > .tvHead{display:none}
+/* TWO SIZES, WRITTEN TOGETHER, because as two rules in two sections they were the
+   same specificity and the file's order decided which won -- the portrait stayed
+   at its full size on the pane that also carries the drain report, which is the
+   one case the shrink exists for. The second selector carries both :has() tests
+   so it wins on specificity and not on where it happens to sit. */
+body.hmYowCup .tvPane:has(.tvChampWrap){--tvChamp:clamp(60px, 11svh, 120px)}
+body.hmYowCup .tvPane:has(.tvChampWrap):has(.tvStory){--tvChamp:clamp(50px, 8.4svh, 100px)}
+body.hmYowCup .tvChampNm{
+  font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-auto);
+  letter-spacing:var(--tr-sub);color:var(--theme-ink,var(--c950));text-align:center;
+}
+body.hmYowCup .tvPrize{
+  margin:0;flex:0 0 auto;text-align:center;
+  font-weight:400;font-size:var(--fs-label);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);color:var(--theme-muted,var(--c500));
+}
+body.hmYowCup .tvPrize em{
+  font-style:normal;font-weight:600;color:var(--theme-ink,var(--c950));
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   THE FOOTER.  A hairline closes the pane, so the panel reads head / body /
+   actions instead of three things in a column.  The first quiet control hangs
+   back onto the panel's ink edge: a quiet control has no box, so what the eye
+   reads is its label, and a label sits --ctl-pad inside the box.  Measured at
+   1440 the moment the variant changed: everything else on the panel started at
+   526 and "Leave" started at 542 -- a 16px step in one corner of the card.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .tvFoot{
+  gap:var(--sp-8);
+  /* FULL-BLEED, LIKE THE TAB RAIL'S.  A rule inset to the padding box under one
+     that runs edge to edge reads as two different kinds of line; they are the
+     same kind -- the two edges of the pane -- so they are drawn the same. */
+  margin-inline:calc(var(--lgPad) * -1);
+  padding-block-start:var(--sp-12);
+  padding-inline:var(--lgPad);
+  border-block-start:var(--hair-w) solid var(--lgRule);
+}
+body.hmYowCup .tvFoot > .ctl--quiet:first-child{
+  margin-inline-start:calc(var(--ctl-pad) * -1);
+}
+/* Disabled while a simulation runs.  The library's dim is right for a control
+   that might come back under a finger; this one cannot -- "Simulating..." is a
+   status, so it takes status ink rather than a faded button. */
+body.hmYowCup .tvGo:disabled,
+body.hmYowCup .tvGo[aria-disabled="true"]{
+  opacity:1;background:none;box-shadow:none;
+  color:var(--theme-muted,var(--c500));
+}
+
+/* ---------------------------------------------------------------------------
+   THE LEAGUE HAS NO SCOREBOARD, AND NOW IT HAS NO SHELL OF ONE EITHER.
+
+   The old answer was to hide the board's parts one at a time -- the digits, the
+   ball, the meta, the trophy, the grain, the paint, the tilt -- and leave the
+   empty plate pinned to the viewport.  headerBuild() lifts the card OUT of
+   .hmScore and into the nav, so what is left behind has nothing in it: the
+   whole element goes.  One rule instead of fourteen.
+   .hmScore is also the home the card is returned to at the whistle, which is
+   why this hides the CONTAINER and never the card -- the card is in the bar by
+   then and hiding it would blank the header.
+   --------------------------------------------------------------------------- */
+body.hmYowCup .hmScore,
+body.hmYowCup .hmStake,
+body.hmYowCup .battleCount,
+body.hmYowCup .hmRaceRow,
+body.hmYowCup .hmRaceBoard{display:none}
+/* The race board's own End button is the way out of qualifying and must survive
+   its container -- it is re-shown in the bar rather than pinned to the viewport
+   corner, where a racer drifting past used to sit on top of it. */
+body.hmYowCup .hmRaceBoard button{display:inline-flex}
+body.hmYowCup .bcGrain{display:none}
+
+/* ---------------------------------------------------------------------------
+   THE IN-MATCH BAR.  Logo LEFT, match-up CENTRE, round RIGHT, End RIGHT, and
+   nothing else in it.  That arrangement is settled and headerBuild() builds it
+   by moving the real nodes into .jbGrpC / .jbGrpR; what is rebuilt here is how
+   it LOOKS.
+
+   VISIBILITY, NOT OPACITY, because play.html hides the bar's groups with
+   `visibility:hidden` while a game owns the viewport -- an opacity rule leaves
+   correct geometry painting nothing, which is how this looked "broken" once
+   with every rect measuring right.
+
+   IT IS A MATERIAL NOW.  The bar was transparent, so three pieces of text
+   floated on the pitch with heads passing through them.  --mat-1 + --blur-1 and
+   a hairline underneath give them somewhere to stand: over white it is nearly
+   invisible and over a head it frosts, which is the point (apple-design.md §12).
+   No elevation -- the separation is the hairline.
+   --------------------------------------------------------------------------- */
+body.hmYowHdr .jbGrpL,
+body.hmYowHdr .jbGrpC,
+body.hmYowHdr .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}
+body.hmYowHdr .jbGrpC > a,
+body.hmYowHdr .jbGrpC > button:not(.hmHdrMatch),
+body.hmYowHdr .jbGrpR > a,
+body.hmYowHdr .jbGrpR > button:not(.hmHdrEnd),
+body.hmYowHdr .jbContactBtn,
+body.hmYowHdr .heroTime,
+body.hmYowHdr #heroTimeBtn{display:none}
+body.hmYowHdr .hmHdrMatch,
+body.hmYowHdr .hmHdrRound,
+body.hmYowHdr .hmHdrEnd{visibility:visible}
+/* THE NAV'S OWN ITEMS STEP ASIDE BETWEEN FIXTURES -- but NOT during one, when
+   this zone is where the match-up lives. Written as :not(.hmYowHdr) rather than
+   relying on a later rule to win it back: both selectors are (0,2,1), so the one
+   that happens to be lower in the file decides, and it silently blanked the
+   match-up at every size on the first pass. */
+body.hmYowCup:not(.hmYowHdr) .jbGrpC{opacity:0;pointer-events:none}
+
+body.hmYowHdr .jbNav{
+  visibility:visible;box-shadow:none;border:0;
+  border-block-end:var(--hair-w) solid var(--lgRule);
+  background:var(--theme-material, var(--mat-1));
+  -webkit-backdrop-filter:blur(var(--blur-1));
+          backdrop-filter:blur(var(--blur-1));
+}
+
+/* THE MATCH-UP.  The card arrives carrying the board's ground, grain, tilt and
+   foot; all of it is turned off here rather than in fourteen places, because
+   the card is one element and this is the one selector that travels with it. */
+body.hmYowHdr .hmHdrMatch,
+body.hmYowHdr .hmHdrMatch *{background:none;box-shadow:none;border:0}
+body.hmYowHdr .hmHdrMatch{
+  display:flex;align-items:center;gap:var(--sp-10);
+  transform:none;padding:0;min-width:0;
+}
+body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-10);padding:0}
+body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-8);min-width:0}
+/* Sentence case at the bar's own type size.  It was 12px caps at .09em letter-
+   spacing -- the dark board's label voice, printed on white chrome beside a
+   nav that sets everything else at --fs-nav. */
+body.hmYowHdr .hmHdrMatch .sbNm{
+  font-weight:600;font-size:var(--fs-nav);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);text-transform:none;
+  color:var(--theme-ink,var(--c950));
+}
+body.hmYowHdr .hmHdrMatch .sbVs{
+  font-weight:400;font-size:var(--fs-label);line-height:var(--lh-flat);
+  color:var(--theme-muted,var(--c500));padding:0;
+}
+/* THE COLOURED RING COMES OFF THE PORTRAIT.  On the dark board it was the team
+   signal; at 26px on white, four chained drop-shadows in a saturated hue turn a
+   photograph into a coloured blob -- measured on a capture, the two captains
+   were indistinguishable and the ring was the only thing readable.  The names
+   are right beside them and the site's premise is that the head says who is
+   playing, so the ring goes and the portrait stays. */
+body.hmYowHdr .hmHdrMatch .sbFace{flex:0 0 26px;width:26px;height:26px}
+body.hmYowHdr .hmHdrMatch .sbFace img{filter:none}
+body.hmYowHdr .hmHdrMatch .sbDot{flex:0 0 12px;width:12px;height:12px}
+/* Everything the board carries that the bar has no room for. */
+body.hmYowHdr .hmHdrMatch .sR,
+body.hmYowHdr .hmHdrMatch .sB,
+body.hmYowHdr .hmHdrMatch .sBall,
+body.hmYowHdr .hmHdrMatch .sbMeta,
+body.hmYowHdr .hmHdrMatch .sbRule,
+body.hmYowHdr .hmHdrMatch .sbFoot,
+/* NO TROPHY IN THE LEAGUE, AND IT WAS STILL ARRIVING.  handTrophy() is gated on
+   the mode, but .sbTrophy is a CHILD of the card headerBuild() moves, and
+   `body.hmFinal .sbTrophy{display:block}` (0,2,1) beat the bar's own
+   `.hmHdrMatch .sbTrophy{display:none}` (0,2,0) -- so on the League's final a
+   soccer trophy hung over the header, half off the top of the screen.
+   Screenshotted 2026-08-28.  This selector carries the body class, so it wins. */
+body.hmYowHdr .hmHdrMatch .sbTrophy{display:none}
+
+/* THE ROUND AND THE PICK, one field: "Final · 1.01".  The pick is the League's
+   accent and takes ink at 600; the round stays muted.  On the final it takes the
+   cup's gold -- --gold-ink, which is the value tournament.css already tuned for
+   paper.  The board's own `body.hmFinal .sbRound{color:#e8b347}` is the DARK
+   board's gold and measures 1.9:1 on this bar. */
+body.hmYowHdr .hmHdrRound,
+body.hmYowHdr .sbRound.hmHdrRound{
+  font-weight:400;font-size:var(--fs-nav);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);text-transform:none;
+  color:var(--theme-muted,var(--c500));
+  border:0;padding:0;margin-inline-end:var(--sp-12);
+  white-space:nowrap;min-width:0;
+}
+body.hmYowHdr .sbRound.hmHdrRound em{
+  font-style:normal;font-weight:600;color:var(--theme-ink,var(--c950));
+  font-variant-numeric:tabular-nums lining-nums;
+}
+body.hmYowHdr.hmFinal .sbRound.hmHdrRound em{color:var(--gold-ink)}
+
+/* THE WAY OUT.  It is a control, so it comes from controls.css -- headerBuild()
+   adds `ctl ctl--quiet ctl--sm` when it lifts the button into the bar and takes
+   them off when it puts it back.  What is left here is placement and the icon.
+   THE ICON WAS RENDERING AS AN EMPTY BOX.  play-engine.js draws it with
+   `stroke="currentColor"` and no stroke-width, so a 24-unit rounded square came
+   out at 12px with a 1-unit hairline -- on screen, an unticked checkbox beside
+   the word End.  Same stroke weight the battle counter's copy already uses. */
+body.hmYowHdr .hmHdrEnd{
+  margin:0;border:0;padding-inline:var(--sp-10);
+  gap:var(--sp-6);border-radius:var(--r-md);corner-shape:var(--corner);
+}
+/* AND THE ICON GOES ENTIRELY.  play-engine.js draws a 24-unit rounded square
+   with `stroke="currentColor"` and no stroke-width, so at 12px it came out as a
+   1-unit outline: on screen, an unticked checkbox sitting beside the word End.
+   Screenshotted at 1440, 1280 and 390 on 2026-08-28 -- it is the first thing the
+   eye finds in that corner and it means nothing.
+   The fix is not a heavier stroke. A rounded square is a STOP glyph and this
+   control is not a stop; the bar's other items are words, the site's nav is
+   words, and "End" is already the shortest possible label. So the word carries
+   it alone, which is one less thing in a bar whose whole brief was that there is
+   nothing in it but the four things he named. */
+body.hmYowHdr .hmHdrEnd svg{display:none}
+
+/* ---------------------------------------------------------------------------
+   THE PHONE.  Below 760 the panel takes the gutter's padding and the media
+   rung, the same as every other surface on the site does there.
+   THE BAR RUNS OUT OF ROOM FIRST, and it does so silently: at 390 the round
+   printed "FINAL · 1" with the rest off the right edge.  The portraits are what
+   give, because the names say the same thing in less width and the bar's job at
+   this size is to name the fixture, not to illustrate it.
+   --------------------------------------------------------------------------- */
+@media(max-width:760px){
+  body.hmYowCup{--lgPad:var(--sp-16)}
+  body.hmYowCup .tvPanel.surface{border-radius:var(--r-lg)}
+  body.hmYowCup .tvTabs{padding-inline:var(--sp-4)}
+}
+@media(max-width:640px){
+  body.hmYowHdr .hmHdrMatch .sbFace,
+  body.hmYowHdr .hmHdrMatch .sbDot{display:none}
+  body.hmYowHdr .hmHdrMatch .sbNm{
+    font-size:var(--fs-label);overflow:hidden;text-overflow:ellipsis;
+  }
+  body.hmYowHdr .hmHdrRound,
+  body.hmYowHdr .sbRound.hmHdrRound{
+    font-size:var(--fs-label);margin-inline-end:var(--sp-8);
+  }
+  body.hmYowCup .tvDraftTie{display:none}
+}
+/* A SHORT VIEWPORT TAKES THE PANE'S AIR BEFORE IT TAKES ITS INFORMATION, and it
+   starts at 820 rather than 700 because the BAND is not proportional to the
+   viewport: it is `--tvGround - 88`, so a 800px window leaves 376px and a 900px
+   window leaves 434 -- the pane loses 58 for 100 of viewport. Measured at
+   1280x800 before this: every pane on the League overran, and 700 never fired. */
+@media(max-height:820px){
+  body.hmYowCup{--lgPad:var(--sp-16)}
+  body.hmYowCup .tvPanel.surface{gap:var(--sp-8)}
+  body.hmYowCup .tvPane{gap:var(--sp-8)}
+  body.hmYowCup .tvFoot{padding-block-start:var(--sp-8)}
+  body.hmYowCup .tvSideBig{padding-block:var(--sp-4)}
+  body.hmYowCup .tvTie{padding-block:var(--sp-2)}
+  body.hmYowCup .tvMeet{gap:var(--sp-12)}
+}
+
+/* A 568px window leaves the band 264px and the panel's own chrome -- two 44px
+   control rows, its padding and its gaps -- takes 145 of them. The portrait is the
+   only element left whose meaning does not change with its size. */
+@media(max-height:640px){
+  body.hmYowCup{--lgPad:var(--sp-12);
+    --tvFace:clamp(28px, 4.6svh, 40px);--tvRow:clamp(20px, 3.6svh, 24px)}
+  body.hmYowCup .tvPanel.surface{gap:var(--sp-6)}
+  body.hmYowCup .tvPane{gap:var(--sp-6)}
+  body.hmYowCup .tvFoot{padding-block-start:var(--sp-6)}
+  body.hmYowCup .tvSideBig{gap:var(--sp-10);padding-block:var(--sp-2)}
+}
+@media(prefers-reduced-transparency:reduce){
+  body.hmYowCup .tvPanel.surface{
+    background:var(--surface-ground);-webkit-backdrop-filter:none;backdrop-filter:none;
+  }
+  body.hmYowHdr .jbNav{
+    background:var(--surface-ground);-webkit-backdrop-filter:none;backdrop-filter:none;
+  }
+}
