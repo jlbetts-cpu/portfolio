@@ -1032,6 +1032,84 @@ body.hmYowCup .hmScoreEnd{
 @media(prefers-reduced-motion:reduce){
   .hmDropper,.hmDropper.isIn,.hmDropper.isDrop,.hmDropper.isOut,.hmDropperBall{transition:none}
 }
+/* ══ THE LEAGUE'S CHROME, WRITTEN ONCE.  2026-08-27 ═════════════════════════
+   "its clearly dark its like you keep ignoring my message ... I asked for a
+   redesign not slight tweaks."
+   Fair, and the diagnosis is specific rather than an apology. I had been
+   PATCHING: hiding one child, de-painting one card, pinning one button, each
+   in its own rule, several of them scoped to body.hmYow -- which play-engine
+   only sets AT KICKOFF. The bar he photographed reads "QUARTER-FINAL", so it
+   is on screen when that class is absent, and every de-paint rule I wrote
+   simply did not apply there. Four rounds of "still dark" had one cause and it
+   was mine.
+   THIS REPLACES THOSE PATCHES INSTEAD OF ADDING TO THEM, and it is scoped to
+   hmYowCup, which is on from the first qualifying screen to the last drain.
+
+   THE DESIGN, and it is a redesign: the broadcast scoreboard is not restyled,
+   it is DISMANTLED. Its material (a near-black slab with a cast shadow and a
+   46px inset, built to read on a TV bug) has no place on a page whose entire
+   chrome is hairlines on paper. What survives is the information -- who is
+   playing, which round, what the winner picks, and the way out -- laid on one
+   header line at the label rung, with no ground, no rule, no box and no
+   shadow anywhere in it. Everything else the component used to draw is gone.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. THE MATERIAL GOES, at every level that painted one. */
+body.hmYowCup .hmScore,
+body.hmYowCup .hmScore .sbCard,
+body.hmYowCup .hmScore .sbRow,
+body.hmYowCup .hmRaceBoard{
+  /* NO !important, AND THE GATE IS WHY. play-yowmings-contract forbids any
+     box-shadow in this mode's own rules that is not literally `none`, and
+     `none !important` does not match -- it went red on exactly that. It is
+     also not needed: body.hmYowCup .hmScore .sbCard is 0,2,1 against the
+     component's own 0,2,0, so it wins on merit. */
+  background:none;
+  box-shadow:none;
+  border:0;
+  border-radius:0;
+  backdrop-filter:none;
+}
+
+/* 2. WHAT IT NO LONGER SAYS. At one score a digit is the result, so the
+      counting parts have nothing left to report; the ball glyph was a
+      scoreboard ornament. */
+body.hmYowCup .hmScore .sR,
+body.hmYowCup .hmScore .sB,
+body.hmYowCup .hmScore .sBall,
+body.hmYowCup .hmScore .sbMeta,
+body.hmYowCup .hmScore .sbTrophy,
+body.hmYowCup .hmRaceRow,
+body.hmYowCup .battleCount{display:none}
+
+/* 3. WHAT IT DOES SAY, on one line in the header. */
+body.hmYowCup .hmScore{
+  position:fixed;left:var(--sp-40);right:auto;top:var(--sp-16);bottom:auto;
+  transform:none;z-index:60;width:auto;padding:0;pointer-events:none;
+  display:flex;align-items:center;gap:var(--sp-12);
+  color:var(--c700);
+}
+body.hmYowCup .hmScore .sbCard,
+body.hmYowCup .hmScore .sbRow{
+  display:flex;align-items:center;gap:var(--sp-12);
+  width:auto;max-width:none;padding:0;
+}
+body.hmYowCup .hmScore .sTeam{
+  font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
+  color:var(--c950);white-space:nowrap;
+}
+body.hmYowCup .hmScore .sbRound{
+  font-size:var(--fs-label);letter-spacing:var(--tr-caps);color:var(--c500);
+}
+
+/* 4. THE WAY OUT, pinned in its own right -- there are TWO .hmScoreEnd in the
+      engine and each of their parents carries a transform, which is why every
+      earlier attempt to place the button left it on the court. */
+body.hmYowCup .hmScoreEnd,
+body.hmYowCup .hmRaceBoard button{
+  position:fixed;top:var(--sp-16);right:var(--sp-40);
+  z-index:60;pointer-events:auto;margin:0;border-left:0;
+}
 /* ── NO POSITION BOARD IN THE LEAGUE.  2026-08-27 ──────────────────────────
    THIS is the scoreboard he kept reporting, and I kept fixing the wrong one.
    .hmRaceBoard is the marble race's running order -- eight numbered rows with
@@ -1047,58 +1125,8 @@ body.hmYowCup .hmRaceRow{display:none}
 body.hmYowCup .hmRaceBoard{background:none;border:0;box-shadow:none;padding:0}
 .hmEyeBlack{display:none}
 body.hmYow .hmEyeBlack{display:block}
-body.hmYow .hmScore{
-  /* NOT display:none -- THE END BUTTON LIVES IN HERE.  play-engine.js:2419
-     builds <button class="hmScoreEnd" aria-label="End the match"> as a CHILD of
-     .hmScore, so hiding the board whole took the only way out of a League match
-     with it. Caught by reading the board's markup after the visual pass, not by
-     the gates: nothing asserts that a running match can be quit.
-     So the BOARD's own surface and every counting part of it go, and the
-     control stays and keeps its hit area. */
-  background:none;box-shadow:none;padding:0;pointer-events:none;
-}
-/* ── THE LEAGUE STRIP: LIGHT, AND IT SAYS WHO IS PLAYING.  2026-08-27 ──────
-   Two corrections in one, both his and both right.
 
-   1. THE DARK BAR. He sent a picture of it: a near-black slab reading
-      "QUARTER-FINAL | End". It is .sbCard, which paints
-      var(--sb-material, var(--cupPaint, #2b2f2a)) with a cast shadow and a
-      46px inset -- the broadcast-scoreboard material. I had stripped the OUTER
-      .hmScore and never touched the card inside it, which is why "the
-      scoreboard is still there" kept being true after each pass. The football
-      mode is a light UI like the rest of this site: no paint, no shadow, ink
-      text, and the site's own hairline if anything at all.
 
-   2. THE NAMES COME BACK. "there is no names to know who is playing in the
-      games." Removing them was me over-reading "remove the scoreboard" -- the
-      counting is what had nothing to say at one score, not the identity.
-      So .sTeam returns and only the DIGITS stay gone. That is the whole
-      distinction: a scoreboard counts, a strip introduces. */
-body.hmYow .hmScore .sR,
-body.hmYow .hmScore .sB,
-body.hmYow .hmScore .sBall{display:none}
-body.hmYow .hmScore .sbCard{
-  background:none;box-shadow:none;border-radius:0;
-  color:var(--c700);
-}
-body.hmYow .hmScore .sbRound{color:var(--c500)}
-body.hmYow .hmScore .sTeam{color:var(--c950)}
-/* ONE LINE, not a stacked card: in the header the strip has a row's height to
-   live in, so the two teams and the round sit side by side with the label rung
-   and a single dot between them. No rule, no ground, no box. */
-body.hmYowCup .hmScore .sbCard,
-body.hmYowCup .hmScore .sbRow{
-  display:flex;align-items:center;gap:var(--sp-12);
-  width:auto;max-width:none;padding:0;
-}
-body.hmYowCup .hmScore .sTeam{
-  font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
-  white-space:nowrap;
-}
-body.hmYowCup .hmScore .sbRound{
-  font-size:var(--fs-label);letter-spacing:var(--tr-caps);
-}
-body.hmYowCup .hmScore{ left:var(--sp-40);right:auto; }
 body.hmYow .hmScore .hmScoreEnd{
   pointer-events:auto;
   margin-left:0;border-left:0;padding-left:var(--sp-12);
