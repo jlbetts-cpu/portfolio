@@ -4339,6 +4339,26 @@ function teams(){
   var DRIVE=false;
   var ELIM_WINDOW=34000;   // how much race an elimination bracket has to fit inside: the course takes ~40s to fall at twelve racers, measured
   var STALL_MS=6000;       // the front of the race gaining nothing for this long means the course is finished with us, whatever the standings say. The anti-stuck kick escalates over 2.7s, so this is comfortably longer than any legitimate jam.
+  /* ===== "THAT PEG SHOULD MOVE AFTER A WHILE" -- MEASURED, AND IT IS NOT THE FIX =====
+     Jayden: "still some heads get stuck on the peg on the drop down making it
+     impossible to finish. that peg should move after a while if we are gonna do it
+     like that."
+     The peg is real and he is right about where it is. It is the funnel SPLITTER, and
+     what it does is not hold a head up -- it SHUTS ONE SIDE OF THE THROAT. See the
+     splitter's own note in funnel(): its clearance was solved horizontally on two walls
+     that do not share a slope, so on the shallower wall the passage beside it measured
+     0.89 of a head. Half the funnel was closed and the whole field queued for the other
+     half, for 26 to 45 seconds.
+     A PEG THAT STEPS ASIDE WAS BUILT FIRST, because it is what he asked for, and it was
+     taken back out because it bought nothing. Every peg carried a settle clock, moved
+     one radius away from whatever had been resting on it for 1.8s and slid back. Over
+     120 seeded races at 1512x850 it changed parks 5.43 -> 5.29 a race and left the
+     worst case at 32.1s; with the splitter's clearance fixed instead, the same races
+     read 4.46 a race and a worst of 17.1s, and the peg-mover then fired 0.0 times a
+     race and moved parks by 0.04 -- inside the noise. A head parked at a funnel is not
+     resting ON anything: it is queueing in a corridor too narrow to enter, and no
+     amount of moving the peg opens a corridor that is closed by where the peg IS.
+     If this comes back, the thing to measure is the passage, not the peg. */
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
   var HL=0;function refreshHL(){HL=Math.round(hero.getBoundingClientRect().left);}   // viewport-space -> hero-space shift (heads + FX live in hero coords)
   function heroH(){return hero.clientHeight||600;}
@@ -4900,10 +4920,54 @@ function teams(){
        job it is there for, because it splits the queue BEFORE the queue forms rather
        than inside it. The throat stays the only bottleneck on the section, which is
        the one thing that must be true of a choke. */
-    var sepWant=DM*5.0,tS=(CW-sepWant)/Math.max(1,CW-th),sr2=(sepWant-2*(DM*1.34))/2;
-    if(tS>0.20&&tS<0.90&&sr2>=pr){
+    /* ── AND HOW WIDE: PERPENDICULAR TO EACH WALL, WHICH IS THE GAP A HEAD GOES
+       THROUGH. This was solved HORIZONTALLY, and horizontally it was right -- the post
+       sat at the midpoint of a five-head span with 2.2 diameters of daylight either
+       side. But a racer does not pass a slanted wall horizontally: the corridor between
+       a circle and a line is narrowest along the PERPENDICULAR, which is the horizontal
+       gap foreshortened by the wall's own slope. And the two walls of a funnel are not
+       the same slope, because the throat is offset (`cx=CC+rnd(-CW*0.08,CW*0.08)`); the
+       shallower one foreshortens harder.
+       Measured at 1512x850: a funnel with a 130px throat and a post whose horizontal
+       gaps were 2.19 diameters each had 1.22 diameters perpendicular on the steep side
+       and 0.89 on the shallow one. 0.89 is the shape this file says it must never
+       contain -- narrower than a head, wide enough to hold one. Half the throat was
+       shut, the whole field queued for the other half, and heads sat in the funnel for
+       26 to 45 seconds with the finish line in view. Over 120 seeded races the splitter
+       and the wall beside it held 156 parks, worst 42.4s, and 8% of races never
+       resolved their twelve.
+       So the post goes on the funnel's TRUE bisector -- the x where the two
+       perpendicular clearances are equal, which is not the midpoint on a skew funnel --
+       and it is sized from that clearance rather than from the span, with the same head
+       plus collision padding (`DM+9`) every other passage on this course is held to. If
+       that leaves it under the lattice's own peg radius there is no post here at all:
+       an obstacle that cannot be passed on both sides is not a splitter, it is a lid.
+       HANGING IT HIGHER INSTEAD OF SIZING IT DOWN WAS TRIED AND BOUGHT NOTHING. A
+       straight wall makes the perpendicular clearance a fixed fraction of the span, so
+       the span that carries a FULL-size post can be solved outright and the five-head
+       rule made a floor. The worry it was answering -- that a post shrunk 20% deflects
+       20% less, and the splitter is one of the four things here that scramble an order
+       -- did not survive the measurement: over the same 320 paired seeds, DECIDED 43.8%
+       against 43.4% and one race in 320 stopped resolving its twelve. The price this
+       fix pays is real and it is not the post's size (see below); do not pay for it
+       twice with arithmetic that does not help. */
+    var sepWant=DM*5.0,tS=(CW-sepWant)/Math.max(1,CW-th);
+    if(tS>0.20&&tS<0.90){
      var sxl=wl.x1+(wl.x2-wl.x1)*tS,sxr=wr.x1+(wr.x2-wr.x1)*tS;
-     pegs.push({x:(sxl+sxr)/2,y:y+drop*tS,r:Math.min(D*0.30,sr2),split:1});}
+     var kL=Math.abs(wl.y2-wl.y1)/Math.max(1,Math.hypot(wl.x2-wl.x1,wl.y2-wl.y1)),   // horizontal gap -> perpendicular gap, per wall
+         kR=Math.abs(wr.y2-wr.y1)/Math.max(1,Math.hypot(wr.x2-wr.x1,wr.y2-wr.y1));
+     var sx=(sxl*kL+sxr*kR)/Math.max(0.001,kL+kR),perp=(sx-sxl)*kL,   // the bisector, and the clearance it buys on both sides at once
+         sr2=perp-4.5-(DM+9);                                          // ...less the wall's collision pad and a whole head with the course's usual slack
+     if(sr2>=pr)pegs.push({x:sx,y:y+drop*tS,r:Math.min(D*0.30,sr2),split:1});}
+    /* WHAT THIS COSTS, STATED PLAINLY. Over 320 paired seeds DECIDED goes 37.2% ->
+       43.4% against the contract's 45% ceiling: the halfway leader wins more often than
+       it used to. That is not a tidying-up, it is the removal of one -- a funnel with
+       half its throat shut stopped the whole field for 26 to 45 seconds and scrambled
+       the order on the way out, and six points of this course's unpredictability were
+       being paid for by the race standing still. CLAUDE.md's own line on the soccer
+       pitch is the one that decides it: the chaos worth removing is the chaos that
+       STOPS the match. But the margin is 1.6 points now and it was 8, so the next
+       change that touches a choke has to measure DECIDED before it lands. */
     y+=drop;
     if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);
      voids.push({y0:y,y1:y+tube,x0:cx-th/2,x1:cx-th/2,side:-1},{y0:y,y1:y+tube,x0:cx+th/2,x1:cx+th/2,side:1});

@@ -169,6 +169,28 @@ hold forward, and it is never a named head.
   own speed is not the lever either — 0.58 and 0.22 both measured worse than the
   0.32 that ships. Three hypotheses are disproved: widening the funnel throat,
   switching anti-stuck from displacement to +y, and moving the door.
+- **"Stuck on the peg on the drop down" was the funnel SPLITTER, and clearance is
+  measured PERPENDICULAR to a wall, not across it.** The post's two side gaps
+  were solved horizontally on walls that do not share a slope (the throat is
+  offset), so on the shallower wall a 2.19-diameter horizontal gap measured 0.89
+  perpendicular — half the throat shut. Measured at 1512×850 over 120 seeded
+  races: 156 parks on the post and the wall beside it, worst 42.4s, 8% of races
+  never resolving. The post now sits on the funnel's true bisector and is sized
+  off that clearance: 5.4 parks a race → 4.4, worst 42.4s → 18.4s, the ≥12s tail
+  52 → 10, COMPLETE 91% → 99%.
+  **The price is DECIDED, 37.2% → 43.4% over 320 paired seeds against a 45%
+  ceiling** — six points of this course's unpredictability were being paid for by
+  the field standing still at a blocked funnel. The margin is 1.6 points now and
+  it was 8: measure DECIDED before touching a choke.
+  Two more hypotheses are disproved. **A peg that steps aside when something
+  settles on it** (Jayden's own suggestion, built first) moved parks 5.43 → 5.29 a
+  race and left a 32.1s worst case, then fired 0.0 times a race once the geometry
+  was right — a head parked at a funnel is not resting ON anything, it is queueing
+  in a corridor too narrow to enter. And **hanging the post higher instead of
+  sizing it down** measured 43.8% DECIDED against 43.4% and lost a finisher.
+  Note the viewport: at 1440×900 this defect is nearly invisible (5 parks in 160
+  races). It shows at 1512×850, a 14" MacBook. Sweep more than one size.
+
 
 ### The tournament
 
