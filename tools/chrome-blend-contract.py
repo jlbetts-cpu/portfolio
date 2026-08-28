@@ -86,3 +86,14 @@ assert not re.search(
 )
 
 print("chrome blend contract: OK")
+
+# HOW TO SELF-TEST THIS, AND THE TRAP IN DOING SO.  Invert night and re-run:
+#   blk = css[css.index('.hero[data-time-state="night"]{'):]  # slice to its `}`
+#   blk.replace("--time-ink:var(--c950)", "--time-ink:var(--c50)")
+# DO NOT use a whole-file str.replace(anchor, ..., 1). That anchor --
+# "--time-ink:var(--c950);\n --time-primary-bg:var(--c950);" -- occurs EIGHT
+# times, once per light hour, and replace(...,1) hits whichever comes first in
+# the file, which is not night. Done that way the injection lands on a different
+# hour, night still passes, and the run reports the gate is toothless when it is
+# not. That happened on 2026-08-27 and the wrong conclusion was written into a
+# commit message before it was caught. Slice to the block first.
