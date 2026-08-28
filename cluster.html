@@ -970,7 +970,14 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   gap:var(--sp-2)
 }
 .tv.collection .tvTabs.collection__tabs>.tvTab.ctl--tab{
-  font-size:var(--fs-nav);
+  /* --fs-label, NOT --fs-nav.  2026-08-27: "try to keep it maybe 3 text size
+     max." Measured across the article, this tab row was the only rung between
+     the 18px body and the 12px caption tier -- one size, used by one component,
+     on one row. Folding it onto the caption rung takes the page from five
+     visible sizes to four and costs nothing: a tab label and a figure caption
+     are the same kind of small text. --fs-nav is the HEADER's size and this row
+     is not the header. */
+  font-size:var(--fs-label);
   letter-spacing:var(--tr-body);
   padding-inline:var(--sp-12)
 }
