@@ -955,6 +955,19 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .content{--cs-head:clamp(27px,2.6vw,36px)}
 .content .head{font-size:var(--cs-head)}
 
+/* ── THE FACTS BAND JOINS THE LADDER.  2026-08-27 ───────────────────────────
+   The visual pass he asked for -- "make sure all the case studies get the
+   visual check treatment for them individually dont want to miss on any
+   discrepencies" -- turned up a FIFTH size on every page: .fv, the facts-band
+   value, at 18px against a 21px body and a 12px label. It was the last thing
+   sized for the old 18px body and never moved when the body did.
+   It goes to the LABEL's rung, not the body's: this is a compact metadata
+   strip, and at 21px it would shout over the h1 it sits under. Value and label
+   are told apart by weight and ink, which is what they were already doing --
+   the size was carrying nothing. Four sizes on every page again. */
+.content .fv{font-size:var(--fs-label)}
+
+
 
 /* ── THE SUB-LABEL GOES, AND WHAT IS LEFT BINDS TIGHT.  2026-08-27 ──────────
    "the section head for the mockups look so disconnected looks weird wouldnt
