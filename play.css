@@ -1119,9 +1119,25 @@ body.hmYowCup .hmScore .sbRow{
   display:flex;align-items:center;gap:var(--sp-12);
   width:auto;max-width:none;padding:0;
 }
-body.hmYowCup .hmScore .sTeam{
+/* ── THE NAMES ARE .sbNm, NOT .sTeam, AND THAT COST HIM A ROUND.  2026-08-27 ─
+   "cant see the names or what round its in."
+   They were rendering the whole time -- .sbNm "Milo" / "Jayden" at 53x13, and
+   .sbRound "Quarter-final" at 108x12, both visible, both in the strip. What
+   they were not was LEGIBLE: measured, .sbNm computes rgb(236,233,221) on a
+   page of rgb(253,253,253). That is about 1.08:1. The colour was correct for
+   the near-black broadcast card it used to sit on; I removed the card's ground
+   and recoloured .sbCard, .sbRound and a .sTeam THAT DOES NOT EXIST IN THIS
+   MARKUP, so the one element carrying the actual names kept its dark-board
+   ink and vanished into the paper.
+   Naming a selector that matches nothing fails silently -- no error, no
+   warning, and the rule simply does nothing. That is the whole lesson here:
+   I should have read the built markup before writing colours for it. */
+body.hmYowCup .hmScore .sbNm{
   font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
   color:var(--c950);white-space:nowrap;
+}
+body.hmYowCup .hmScore .sbVs{
+  font-size:var(--fs-label);line-height:var(--lh-flat);color:var(--c500);
 }
 body.hmYowCup .hmScore .sbRound{
   font-size:var(--fs-label);letter-spacing:var(--tr-caps);color:var(--c500);

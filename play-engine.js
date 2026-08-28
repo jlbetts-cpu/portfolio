@@ -1160,10 +1160,51 @@
                   && !document.body.classList.contains("hmSoccer")
                   && !window.__hmRaceOn; }catch(_){}
    if(_lineUp && peers.length>1){
-     var _i=peers.indexOf(me); if(_i<0)_i=0;
-     var _n=peers.length;
-     var _span=heroR.w-HW-M*2;
-     tx=M+_span*((_i+0.5)/_n);
+     /* THE FIELD IS THE HEADS THAT ARE ACTUALLY ON SCREEN.
+        peers.length was giving the wrong count and therefore the wrong slots:
+        it holds every head ever spawned, including eliminated and filler ones
+        whose root is detached or hidden. With _n too large the slots bunch
+        into a fraction of the row and several heads resolve to nearly the same
+        x -- which is why overlaps sat at 3-4 and the row's span jumped between
+        724 and 1142 between samples instead of settling.
+        me.root is on every peer (it is there so the championship spotlight can
+        measure one), so "is it live" is answerable: in the document, and
+        actually laid out. Filtering on that makes _i and _n describe the field
+        being drawn rather than the field that has ever existed. */
+     var _live=[];
+     for(var _k=0;_k<peers.length;_k++){
+       var _pr=peers[_k], _rt=_pr&&_pr.root;
+       if(!_rt||!_rt.isConnected) continue;
+       if(_pr.elim) continue;
+       if(_rt.offsetWidth<=0) continue;
+       _live.push(_pr);
+     }
+     if(_live.length<2){ tx=M+Math.random()*(heroR.w-HW-M*2); dir=tx>x?1:-1; }
+     var _i=_live.indexOf(me); if(_i<0)_i=0;
+     var _n=Math.max(1,_live.length);
+     /* THE ROW IS CENTRED AND TIGHT, NOT STRETCHED WALL TO WALL.
+        He said the heads had shrunk. Measured against fc35ec4 on three
+        screens, they had not: menu 466/466/108 identical, qualifying 109 ->
+        108, in-match 74 -> 74. The PIXELS never changed -- but spreading eight
+        heads evenly across 1280px when they used to cluster puts a lot of air
+        around each one, and the same head reads smaller with that much space
+        around it. He was describing something real that a width measurement
+        could not see.
+        So the line-up takes the middle 62% of the pitch and is centred in it.
+        They stay a group, the row reads as a line-up rather than as a row of
+        dots, and the composition stops being edge-to-edge with a hole in the
+        middle -- which is the other thing he has been pointing at. */
+     /* AS TIGHT AS IT CAN BE WITHOUT TOUCHING, which is a computed floor and
+        not a taste number. A flat 62% put seven ~110px heads into 539px and
+        overlaps went UP, from 2-4 to 6 -- the row needs at least n*HW to hold
+        them side by side, so a fraction chosen by eye is a collision waiting
+        for a bigger field. The span is therefore the LARGER of the tight look
+        and the width the field actually needs, then clamped to what exists. */
+     var _avail=heroR.w-HW-M*2;
+     var _need=_n*HW*1.18;
+     var _use=Math.min(_avail, Math.max(_avail*0.62, _need));
+     var _off=M+(_avail-_use)/2;
+     tx=_off+_use*((_i+0.5)/_n);
      /* ONCE IT IS ON ITS MARK IT STAYS THERE. Slots alone took the fixture
         screen from 12 overlapping pairs to 3, but it never settled -- measured
         over 30s it oscillated 4 / 2 / 4, because every head re-decides on its
