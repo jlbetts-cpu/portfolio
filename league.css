@@ -513,61 +513,38 @@ body.hmYowHdr .jbNav{
           backdrop-filter:blur(var(--blur-1));
 }
 
-/* ══ THE ROOM REMEMBERS WHO WON.  2026-08-27 ═══════════════════════════════
-   "the background should change to the winning teams color."
-   play-tournament.js publishes the winner as --lgWin, an RGB triple, on every
-   recorded result. The amount is decided HERE because it is a design
-   question: at 4% it is a tint you feel rather than a colour you see, which
-   is what a light, minimal page can carry without the pitch turning into a
-   coloured panel. The heads and the uprights already wear the teams' full
-   colour; the room only leans.
-   IT IS A GRADIENT, NOT A FLAT FILL -- strongest at the foot where the play
-   is and gone by the top, so the bar and the cards stay on paper.
-   No --lgWin (before any result) means no wash at all: the fallback is
-   transparent, not a grey, so nothing shows until something has been won.
-   It cross-fades on the sky's own duration so it reads as the room changing
-   rather than as a repaint. */
-body.hmYowCup .hero::after{
-  /* display:block IS THE WHOLE FIX, and it took a pixel test to find.
-     play.html carries `body.playViewportOwned .hero::after{display:none}` --
-     the play screen hides this pseudo-element outright, and playViewportOwned
-     is on throughout a cup. My rule set content, position, inset and the
-     gradient and never touched display, so everything about it computed
-     correctly (content:"", the right background-image, the right box) and it
-     painted nothing at all.
-     THAT IS WHY THE VARIABLE TEST PASSED AND THE SCREEN DID NOT CHANGE:
-     --lgWin was set, getComputedStyle returned the gradient, and the floor
-     pixels read 253,253,253 before and after. Reading the computed style of a
-     display:none element tells you what it WOULD look like. Only sampling the
-     rendered pixels caught it -- a loud red !important test still painted
-     nothing, which is what pointed at display rather than at colour. */
-  content:"";display:block;position:absolute;inset:0;
-  pointer-events:none;z-index:0;
-  /* ── STRONGER, BECAUSE .04 WAS NOT A COLOUR ANYONE COULD SEE.  2026-08-27 ─
-     "in the match the color of the background it doesnt look noticable enough
-     and it goes between rounds."
-     The second half turned out not to be true and that is worth recording:
-     --lgWin PERSISTS correctly -- measured 70,167,88 held through the result,
-     the celebration and into the next fixture screen, with the pseudo-element
-     display:block throughout. Nothing was clearing it. It was simply so faint
-     that it read as absent, which is the same complaint in different words.
-     At .04/.07 the floor moved 253,253,253 -> 253,250,237 on a saturated
-     yellow: three levels on one channel. That is inside the noise of the
-     page's own paper. It is .10 rising to .22 now, and the gradient starts at
-     18% instead of 42% so the colour is IN the room rather than pooled at the
-     very bottom edge.
-     STILL A WASH AND NOT A FILL: the top fifth stays paper so the header, the
-     cards and the type never sit on a tint, and the heads keep the only
-     saturated colour on the pitch. */
+/* ══ THE ROOM TAKES THE WINNER'S COLOUR, FULL BLEED.  2026-08-27 ═══════════
+   Three passes on this and each one was his correction, so all three are here.
+
+   IT WAS ON .hero::after AND THAT IS WHY IT CUT OFF. "with the gradient wash
+   i think it would look good if it actually did the whole screen like it cuts
+   off on the ground it shoul be the whole bottom of the screen." The hero is
+   540px of a 900px viewport, so a gradient bounded by it stops at the pitch
+   floor and leaves a hard edge across the page. It is position:fixed on the
+   body now and reaches the bottom of the SCREEN.
+
+   IT CLEARS AT KICKOFF. "the color has to go away between matches like right
+   now it shows it on the next match." It used to persist until the next
+   result, which meant a fixture opened wearing the previous winner's colour --
+   the room saying something about a match that was already over. play-engine
+   clears --lgWin when a match starts, so the colour belongs to the match that
+   earned it and to nothing else.
+
+   AND IT IS A WASH, NOT A FILL. Transparent through the top half so the
+   header, the cards and the type never sit on a tint; .10 at three quarters,
+   .22 at the very bottom. z-index 0 keeps it under the pitch and its chrome.
+   No --lgWin means no wash at all -- the fallback is transparent, not grey, so
+   nothing shows before anything has been won. */
+body.hmYowCup::after{
+  content:"";display:block;position:fixed;inset:0;
+  z-index:0;pointer-events:none;
   background:linear-gradient(180deg,
-    rgba(var(--lgWin,0 0 0),0) 18%,
-    rgba(var(--lgWin,0 0 0),.10) 58%,
+    rgba(var(--lgWin,0 0 0),0) 46%,
+    rgba(var(--lgWin,0 0 0),.10) 76%,
     rgba(var(--lgWin,0 0 0),.22) 100%);
   transition:background var(--theme-duration,640ms) var(--ease-out);
 }
-@media(prefers-reduced-motion:reduce){
-  body.hmYowCup .hero::after{transition:none}
-}
+@media(prefers-reduced-motion:reduce){ body.hmYowCup::after{transition:none} }
 
 /* ══ THE MATCH-UP: TWO TEAMS, IN THEIR COLOURS, BREATHING.  2026-08-27 ══════
    Three things he asked for, and they solve each other.
@@ -619,24 +596,30 @@ body.hmYowHdr .hmHdrMatch::before{
   body.hmYowHdr .hmHdrMatch::before{animation:none;opacity:.7}
 }
 
-/* ══ THE WIN, SAID IN THE MIDDLE.  2026-08-27 ═══════════════════════════════
-   "goal indicator remove it because it isnt stylized correctly the '' wins
-   should be shown in the middle when someone scores."
-   The lower third was a broadcast bug -- a face chip and a tag sliding in from
-   the corner, on a mode that has no score to caption. AND AT ONE SCORE IT WAS
-   SAYING THE WRONG THING: a goal here is not an event in a match, it is the
-   END of it. The only sentence worth printing is who won.
-   So it is one line, centred on the pitch, in the page's own ink at the
-   headline rung -- no chip, no ground, no slide, no corner. It arrives on the
-   settle spring and leaves with the celebration.
-   .hmL3Face and the old tag are hidden rather than deleted: the soccer mode
-   still uses that component as a scorer caption, and it is correct there. */
+/* ══ THE WIN, AND IT IS THE LOUDEST THING ON THE SCREEN.  2026-08-27 ═══════
+   "make it so that the winner is clearly stated in the message ... its not
+   that noticable or really in the right place and its not obvious."
+   FIRST VERSION WAS TOO POLITE: page-head sized, muted ink, sitting at 38% --
+   above the play, where nothing else is, so it read as a caption floating in
+   empty space rather than as the result.
+   IT IS THE RESULT OF THE WHOLE MATCH, so it is sized like one. Dead centre
+   of the pitch, display rung, and it carries the WINNER'S OWN COLOUR -- which
+   is where that colour belongs: naming who won, not tinting the room around
+   them. The colour is mixed toward ink so a pale team stays readable, the
+   same problem the header names had.
+   A ground behind it, because at this size over a busy pitch the words need
+   to sit on something -- the site's own material and a hairline, no shadow.
+   It arrives on the settle spring, holds, and leaves with the celebration. */
 body.hmYowCup .hmLowerThird{
-  left:50%;right:auto;bottom:auto;top:38%;
-  transform:translate(-50%,-50%) scale(.96);
+  left:50%;right:auto;bottom:auto;top:50%;
+  transform:translate(-50%,-50%) scale(.94);
   display:block;text-align:center;
-  background:none;box-shadow:none;border:0;padding:0;
-  opacity:0;
+  padding:var(--sp-16) var(--sp-32);
+  border-radius:var(--r-xl);
+  background:var(--mat-3, rgba(253,253,253,.96));
+  box-shadow:none;
+  border:var(--hair-w) solid var(--lgRule, rgba(17,18,20,.12));
+  opacity:0;z-index:64;
   transition:opacity var(--dur-state) linear,
              transform var(--sp-settle-dur) var(--sp-settle);
 }
@@ -650,206 +633,15 @@ body.hmYowCup .hmLowerThird .hmL3Txt{display:block}
 body.hmYowCup .hmLowerThird .hmL3Nm{
   display:block;
   font-family:var(--sans);font-weight:600;
-  font-size:var(--fs-pagehead);line-height:var(--lh-tight);
+  font-size:var(--fs-title);line-height:var(--lh-tight);
   letter-spacing:var(--tr-head);
-  color:var(--c950);
+  color:color-mix(in srgb, rgb(var(--lgWin,17,18,20)) 62%, var(--c950));
   white-space:nowrap;
 }
-
-/* THE MATCH-UP.  The card arrives carrying the board's ground, grain, tilt and
-   foot; all of it is turned off here rather than in fourteen places, because
-   the card is one element and this is the one selector that travels with it. */
-body.hmYowHdr .hmHdrMatch,
-body.hmYowHdr .hmHdrMatch *{background:none;box-shadow:none;border:0}
-body.hmYowHdr .hmHdrMatch{
-  display:flex;align-items:center;gap:var(--sp-10);
-  transform:none;padding:0;min-width:0;
-}
-/* AND THE CENTRE ZONE KEEPS ITS DISTANCE.  .jbNav is a flex row with no gap
-   between its three zones -- on a wide bar they are far apart and nothing shows,
-   but at 390 the match-up's last name and the round ran together into
-   "Player 7Final . 1.01". Screenshotted 2026-08-28. Air on both sides, so the
-   three fields read as three fields at every width. */
-body.hmYowHdr .jbGrpC{padding-inline:var(--sp-16)}
-/* ── A TEAM IS A FACE AND A NAME.  2026-08-27 ─────────────────────────────
-   "the spacing is a bit off like the secound name is a bit too far."
-   Measured: every gap in the row was 10px -- face, name, dash, name, face --
-   so nothing grouped and the dash read as belonging to the second name, which
-   made that name look pushed out. Tight INSIDE a team, wide either side of the
-   separator: the eye then sees two objects and a divider instead of five
-   evenly spaced items. Same total width. */
-body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-16);padding:0}
-body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-6);min-width:0}
-/* Sentence case at the bar's own type size.  It was 12px caps at .09em letter-
-   spacing -- the dark board's label voice, printed on white chrome beside a
-   nav that sets everything else at --fs-nav. */
-body.hmYowHdr .hmHdrMatch .sbNm{
-  font-weight:600;font-size:var(--fs-nav);line-height:var(--lh-flat);
-  letter-spacing:var(--tr-body);text-transform:none;
-  /* ── THE NAME STAYS INK; THE COLOUR IS A RING ROUND THE FACE.  2026-08-27 ─
-     "the color of the teams should show in the header."
-     I tried the name IN the team's colour first and measured it: mixing 12%
-     toward ink took a purple team from 6.05:1 to 7.07:1, fine -- and a light
-     blue team from 1.57:1 to only 2.01:1, still under 3:1 and unreadable at
-     12px. There is no single mix that is safe for every team, because the
-     roster's colours run from near-black to near-white; any value dark enough
-     for the blue destroys the identity of the dark ones.
-     SO THE COLOUR GOES WHERE IT CANNOT HURT LEGIBILITY: a 2px ring around the
-     head, which is the element that already IS the team. The name keeps full
-     ink at 18.4:1, the colour is unmissable next to it, and it works for every
-     team in the roster including the pale ones. */
-  color:var(--theme-ink,var(--c950));
-}
-body.hmYowHdr .hmHdrMatch .sbVs{
-  font-weight:400;font-size:var(--fs-label);line-height:var(--lh-flat);
-  color:var(--theme-muted,var(--c500));padding:0;
-}
-/* THE COLOURED RING COMES OFF THE PORTRAIT.  On the dark board it was the team
-   signal; at 26px on white, four chained drop-shadows in a saturated hue turn a
-   photograph into a coloured blob -- measured on a capture, the two captains
-   were indistinguishable and the ring was the only thing readable.  The names
-   are right beside them and the site's premise is that the head says who is
-   playing, so the ring goes and the portrait stays. */
-body.hmYowHdr .hmHdrMatch .sbFace{
-  flex:0 0 26px;width:26px;height:26px;
-  /* THE TEAM'S COLOUR, on the one element that is already the team. A ring
-     rather than a fill, so the face stays a face. */
-  border-radius:var(--r-full);
-  box-shadow:none;
-  outline:2px solid rgb(var(--tc,148,163,184));
-  outline-offset:1px;
-}
-body.hmYowHdr .hmHdrMatch .sbFace img{filter:none}
-body.hmYowHdr .hmHdrMatch .sbDot{flex:0 0 12px;width:12px;height:12px}
-/* Everything the board carries that the bar has no room for. */
-body.hmYowHdr .hmHdrMatch .sR,
-body.hmYowHdr .hmHdrMatch .sB,
-body.hmYowHdr .hmHdrMatch .sBall,
-body.hmYowHdr .hmHdrMatch .sbMeta,
-body.hmYowHdr .hmHdrMatch .sbRule,
-body.hmYowHdr .hmHdrMatch .sbFoot,
-/* NO TROPHY IN THE LEAGUE, AND IT WAS STILL ARRIVING.  handTrophy() is gated on
-   the mode, but .sbTrophy is a CHILD of the card headerBuild() moves, and
-   `body.hmFinal .sbTrophy{display:block}` (0,2,1) beat the bar's own
-   `.hmHdrMatch .sbTrophy{display:none}` (0,2,0) -- so on the League's final a
-   soccer trophy hung over the header, half off the top of the screen.
-   Screenshotted 2026-08-28.  This selector carries the body class, so it wins. */
-body.hmYowHdr .hmHdrMatch .sbTrophy{display:none}
-
-/* THE ROUND AND THE PICK, one field: "Final · 1.01".  The pick is the League's
-   accent and takes ink at 600; the round stays muted.  On the final it takes the
-   cup's gold -- --gold-ink, which is the value tournament.css already tuned for
-   paper.  The board's own `body.hmFinal .sbRound{color:#e8b347}` is the DARK
-   board's gold and measures 1.9:1 on this bar. */
-body.hmYowHdr .hmHdrRound,
-body.hmYowHdr .sbRound.hmHdrRound{
-  font-weight:400;font-size:var(--fs-nav);line-height:var(--lh-flat);
-  letter-spacing:var(--tr-body);text-transform:none;
-  color:var(--theme-muted,var(--c500));
-  border:0;padding:0;margin-inline-end:var(--sp-12);
-  white-space:nowrap;min-width:0;
-}
-body.hmYowHdr .sbRound.hmHdrRound em{
-  font-style:normal;font-weight:600;color:var(--theme-ink,var(--c950));
-  font-variant-numeric:tabular-nums lining-nums;
-}
-body.hmYowHdr.hmFinal .sbRound.hmHdrRound em{color:var(--gold-ink)}
-
-/* THE WAY OUT.  It is a control, so it comes from controls.css -- headerBuild()
-   adds `ctl ctl--quiet ctl--sm` when it lifts the button into the bar and takes
-   them off when it puts it back.  What is left here is placement and the icon.
-   THE ICON WAS RENDERING AS AN EMPTY BOX.  play-engine.js draws it with
-   `stroke="currentColor"` and no stroke-width, so a 24-unit rounded square came
-   out at 12px with a 1-unit hairline -- on screen, an unticked checkbox beside
-   the word End.  Same stroke weight the battle counter's copy already uses. */
-body.hmYowHdr .hmHdrEnd{
-  margin:0;border:0;padding-inline:var(--sp-10);
-  gap:var(--sp-6);border-radius:var(--r-md);corner-shape:var(--corner);
-}
-/* AND THE ICON GOES ENTIRELY.  play-engine.js draws a 24-unit rounded square
-   with `stroke="currentColor"` and no stroke-width, so at 12px it came out as a
-   1-unit outline: on screen, an unticked checkbox sitting beside the word End.
-   Screenshotted at 1440, 1280 and 390 on 2026-08-28 -- it is the first thing the
-   eye finds in that corner and it means nothing.
-   The fix is not a heavier stroke. A rounded square is a STOP glyph and this
-   control is not a stop; the bar's other items are words, the site's nav is
-   words, and "End" is already the shortest possible label. So the word carries
-   it alone, which is one less thing in a bar whose whole brief was that there is
-   nothing in it but the four things he named. */
-body.hmYowHdr .hmHdrEnd svg{display:none}
-
-/* ---------------------------------------------------------------------------
-   THE PHONE.  Below 760 the panel takes the gutter's padding and the media
-   rung, the same as every other surface on the site does there.
-   THE BAR RUNS OUT OF ROOM FIRST, and it does so silently: at 390 the round
-   printed "FINAL · 1" with the rest off the right edge.  The portraits are what
-   give, because the names say the same thing in less width and the bar's job at
-   this size is to name the fixture, not to illustrate it.
-   --------------------------------------------------------------------------- */
-@media(max-width:760px){
-  body.hmYowCup{--lgPad:var(--sp-16)}
-  body.hmYowCup .tvPanel.surface{border-radius:var(--r-lg)}
-  body.hmYowCup .tvTabs{padding-inline:var(--sp-4)}
-}
-@media(max-width:640px){
-  body.hmYowHdr .hmHdrMatch .sbFace,
-  body.hmYowHdr .hmHdrMatch .sbDot{display:none}
-  body.hmYowHdr .hmHdrMatch .sbNm{
-    font-size:var(--fs-label);overflow:hidden;text-overflow:ellipsis;
-  }
-  body.hmYowHdr .hmHdrRound,
-  body.hmYowHdr .sbRound.hmHdrRound{
-    font-size:var(--fs-label);margin-inline-end:var(--sp-8);
-  }
-  body.hmYowCup .tvDraftTie{display:none}
-}
-/* THE BAR AT ITS SMALLEST.  Four fields, 288px of nav, and measured at 320 they
-   wanted 325: End's right edge landed at 341 against a nav that ends at 304, so
-   the way out of a match was off the end of the bar. Nothing is dropped -- the
-   arrangement is settled and all four still say what they said -- they just take
-   the caption rung and the tighter air the phone header already uses elsewhere. */
-@media(max-width:400px){
-  body.hmYowHdr .jbGrpC{padding-inline:var(--sp-4)}
-  body.hmYowHdr .hmHdrMatch{gap:var(--sp-4)}
-  body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-6)}
-  body.hmYowHdr .hmHdrMatch .sbNm{font-size:var(--fs-caption)}
-  body.hmYowHdr .hmHdrRound,
-  body.hmYowHdr .sbRound.hmHdrRound{
-    font-size:var(--fs-caption);margin-inline-end:var(--sp-4);
-  }
-  body.hmYowHdr .hmHdrEnd{padding-inline:var(--sp-4);font-size:var(--fs-caption)}
-}
-/* A SHORT VIEWPORT TAKES THE PANE'S AIR BEFORE IT TAKES ITS INFORMATION, and it
-   starts at 820 rather than 700 because the BAND is not proportional to the
-   viewport: it is `--tvGround - 88`, so a 800px window leaves 376px and a 900px
-   window leaves 434 -- the pane loses 58 for 100 of viewport. Measured at
-   1280x800 before this: every pane on the League overran, and 700 never fired. */
-@media(max-height:820px){
-  body.hmYowCup{--lgPad:var(--sp-16)}
-  body.hmYowCup .tvPanel.surface{gap:var(--sp-8)}
-  body.hmYowCup .tvPane{gap:var(--sp-8)}
-  body.hmYowCup .tvFoot{padding-block-start:var(--sp-8)}
-  body.hmYowCup .tvSideBig{padding-block:var(--sp-4)}
-  body.hmYowCup .tvTie{padding-block:var(--sp-2)}
-  body.hmYowCup .tvMeet{gap:var(--sp-12)}
+@media(prefers-reduced-motion:reduce){
+  body.hmYowCup .hmLowerThird{transition:opacity var(--dur-state) linear}
+  body.hmYowCup .hmLowerThird,
+  body.hmYowCup .hmLowerThird.in{transform:translate(-50%,-50%)}
 }
 
-/* A 568px window leaves the band 264px and the panel's own chrome -- two 44px
-   control rows, its padding and its gaps -- takes 145 of them. The portrait is the
-   only element left whose meaning does not change with its size. */
-@media(max-height:640px){
-  body.hmYowCup{--lgPad:var(--sp-12);
-    --tvFace:clamp(28px, 4.6svh, 40px);--tvRow:clamp(20px, 3.6svh, 24px)}
-  body.hmYowCup .tvPanel.surface{gap:var(--sp-6)}
-  body.hmYowCup .tvPane{gap:var(--sp-6)}
-  body.hmYowCup .tvFoot{padding-block-start:var(--sp-6)}
-  body.hmYowCup .tvSideBig{gap:var(--sp-10);padding-block:var(--sp-2)}
-}
-@media(prefers-reduced-transparency:reduce){
-  body.hmYowCup .tvPanel.surface{
-    background:var(--surface-ground);-webkit-backdrop-filter:none;backdrop-filter:none;
-  }
-  body.hmYowHdr .jbNav{
-    background:var(--surface-ground);-webkit-backdrop-filter:none;backdrop-filter:none;
-  }
-}
+

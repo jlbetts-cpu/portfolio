@@ -3304,6 +3304,13 @@ function teams(){
    syncRefl();
    syncStake();
    headerBuild(YOW);
+   /* ── THE ROOM FORGETS THE LAST WINNER AT KICKOFF.  2026-08-27 ────────────
+      "the color has to go away between matches like right now it shows it on
+      the next match." --lgWin persisted until the NEXT result, so a fixture
+      opened wearing the previous winner's colour -- the room still talking
+      about a match that was over. Cleared here, which is the one moment that
+      is unambiguously a new match. */
+   try{ if(YOW) document.body.style.removeProperty('--lgWin'); }catch(_){}
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;

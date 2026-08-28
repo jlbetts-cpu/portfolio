@@ -1328,7 +1328,30 @@ function openCup(ids, tail, seeds){
        keeps its seven fixtures and its exit-round ordering. The League needs a slot for
        every head because a draft does, which is a different question with a different
        right answer. One flag, one bracket builder, no second cup. */
-    if (T.yow) opts.place = true;
+    /* ── NO CONSOLATION BRACKET.  2026-08-27 ────────────────────────────────
+       "remove the consolation rounds they dont make sense and they dont look
+       good."
+       opts.place built a four-team placement bracket off every round's losers
+       -- eight extra fixtures whose only job was to rank the eliminated. On a
+       cup where ONE SCORE WINS they are especially hard to justify: a head
+       that lost a single-score match then plays another single-score match to
+       decide whether it picks fifth or sixth, and neither the ladder nor the
+       result reads as anything from the outside.
+       THE TRADE, STATED PLAINLY BECAUSE IT IS REAL: with the bracket gone,
+       only the championship path is settled on the pitch. Everything below it
+       comes from standings() -- deepest round reached, then goal difference,
+       then goals, then the draw -- so some picks are ordered rather than won.
+       That is exactly what the placement bracket existed to avoid.
+       It is not hidden: a row whose position came from the draw already says
+       "Draw" in the row, which is the check play-screens-contract enforces.
+       If he wants those picks earned again, set opts.place for the League
+       here.
+       THE LINE IS DELETED, NOT COMMENTED OUT, AND THAT MATTERS: it read
+       `opts.place = true` under `if (T.yow)`, and play-yowmings-contract
+       asserts that exact SOURCE STRING. Left in a comment it kept the gate
+       green on dead code -- a check passing on text that no longer runs, which
+       is worse than a red one. To restore the bracket, set opts.place for the
+       League here. */
   }
   T.br = BR.buildCup(ids, opts);
   var bad = BR.check(T.br);
@@ -1472,6 +1495,17 @@ window.__hmTourPlayerAt = function(slot){
 function cast(nm){
   var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
   if (!A || !Bm) return;
+  /* ── THE ROOM FORGETS THE LAST WINNER WHEN A NEW FIXTURE IS CAST.  2026-08-27
+     "the color has to go away between matches like right now it shows it on
+     the next match."
+     There is a clear in play-engine's start() too, but start() opens with
+     `if(S.on) return;` and reads YOW partway down, so it is the wrong place to
+     depend on -- it is easy to reach a state where it never runs. cast() is
+     unambiguous: it is called once, with the two teams, at the moment a
+     fixture becomes THE fixture. The colour therefore belongs to the match
+     that earned it and is gone before the next one starts, while still
+     surviving the whole celebration after the whistle. */
+  try{ document.body.style.removeProperty('--lgWin'); }catch(_){}
   /* The last round is the final by construction -- one match, two teams -- so this asks
      the bracket rather than a constant, and it is correct whether the cup opened with a
      play-in or not. */

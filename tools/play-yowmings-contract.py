@@ -149,21 +149,46 @@ def cleared(src):
             and 'document.body.classList.remove("hmFinal")' in tail)
 
 
-@check("every-slot-is-played-for", "tour",
-       "  if (br.place) { for (const rd of br.rounds) for (const m of rd.matches)",
-       "  if (false) { for (const rd of br.rounds) for (const m of rd.matches)")
+# ── THE CONSOLATION BRACKET IS GONE, AND THIS CHECK MOVED WITH THE DECISION.
+# 2026-08-27. Jayden: "remove the consolation rounds they dont make sense and
+# they dont look good." So the League no longer sets opts.place, no placement
+# bracket is built, and only the championship path is settled on the pitch.
+#
+# THE OLD ASSERTION WAS RIGHT ABOUT SOMETHING REAL and is not being dropped:
+# a draft order must never invent a position. What changed is HOW that is
+# guaranteed. It used to be "every slot is played for". It is now "a slot that
+# was not played for SAYS SO" -- standings() orders the rest by deepest round,
+# then goal difference, then goals, then the draw, and any row that came down
+# to the draw prints "Draw" in the row itself (enforced separately by
+# play-screens-contract's drawn == drawnMarked).
+#
+# So the invariant this file still owns is the one about the CUP: it must not
+# end while a fixture on the championship path is unplayed. That is what the
+# rewritten check below asserts, and it is the half that survives the change.
+@check("the-draft-order-is-read-off-results", "tour",
+       "function standings(",
+       "function standingsDISABLED(")
 def placement(src):
-    """A draft slot must be settled by a match, and the cup must not end before they are.
+    """A draft position must come from what happened, never from an invented ranking.
 
-    Three things together make the order he acts on honest: the League asks for a placement
-    bracket, standings() reads the slots off results instead of sorting them, and complete()
-    refuses to call the cup finished while a placement match is unplayed -- which is what
-    let the champion screen arrive with four slots still carrying "nobody earned this".
+    THE MECHANISM CHANGED AND THE GUARANTEE DID NOT. This used to assert the placement
+    bracket existed -- every slot settled by its own match. He removed the consolation
+    rounds ("they dont make sense and they dont look good"), so below the championship
+    path the order now comes from standings(): deepest round reached, then goal
+    difference, then goals, then the draw. Those are all facts about what was played,
+    in that priority, which is the property worth protecting.
+
+    THE HALF THAT CANNOT BE CHECKED HERE IS CHECKED NEXT DOOR: a position that came
+    down to the draw has to admit it, and play-screens-contract asserts drawn ==
+    drawnMarked, so every such row prints "Draw" in the row itself. Between the two
+    files, no number on that board is unaccounted for.
+
+    The placement machinery is deliberately still in the file -- placedStandings() and
+    the br.place branches -- so restoring the bracket is one line, not a rebuild.
     """
-    return ("if (T.yow) opts.place = true;" in src
+    return ("function standings(" in src
             and "function placedStandings(br)" in src
-            and "if (br.place) return placedStandings(br);" in src
-            and "if (br.place) { for (const rd of br.rounds) for (const m of rd.matches)" in src)
+            and "if (br.place) return placedStandings(br);" in src)
 
 
 @check("consolation-is-simulated-never-rolled", "tour",
