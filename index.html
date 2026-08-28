@@ -806,9 +806,28 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    §"prefers-reduced-motion" -- handled below: the transform is dropped
    entirely rather than merely shortened. */
 @media (hover:hover) and (pointer:fine){
+ /* THE RELEASE IS A SPRING TOO, AND --ease-out WAS THE BUG.  2026-08-27.
+    "it feels a bit too fast adjusting back when not hovering like there is no
+    zoom out animation."
+    He is describing the CURVE, not the duration, and the arithmetic is stark.
+    --ease-out is cubic-bezier(.22,1,.36,1), which is enormously front-loaded:
+      48ms  -> 67% of the way back
+      120ms -> 96%
+    So the visible part of a 240ms exit was over in about a twentieth of a
+    second and the remaining 120ms animated the last 4%, which nobody can
+    perceive. Lengthening it would have changed nothing -- it would have spent
+    longer on the invisible tail.
+    --sp-settle over the same distance:
+      56ms  -> 34%
+      140ms -> 84%
+    which is motion spread across the window instead of a snap with a tail.
+    THE ASYMMETRY SURVIVES and is now carried by duration alone -- 360ms in,
+    280ms out -- rather than by one curve that moves and one that jumps. Both
+    are the same spring, so a card leaving feels like the same object as the
+    card arriving, which was the point of using a spring at all. */
  .csImg{
   transform:scale(1);
-  transition:transform var(--dur-state-out) var(--ease-out);
+  transition:transform var(--dur-move) var(--sp-settle);
  }
  .csGo:hover .csImg,
  .csGo:focus-visible .csImg{
