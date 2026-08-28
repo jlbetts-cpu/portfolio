@@ -2932,7 +2932,17 @@ function teams(){
      holding the old references would silently stop the score updating. */
   function paintBoard(){
     if(!board)return;
-    var inner=board.querySelector(".sbInner"); if(!inner)return;
+    /* ── THE ROW MAY NOT BE UNDER THE BOARD ANY MORE.  2026-08-27 ──────────
+       Jayden: "header doesnt update between rounds."
+       headerBuild() MOVES .sbCard -- and .sbInner inside it -- out of .hmScore
+       and into the nav for the League. This lookup was scoped to `board`, so
+       after that move it returned null and paintBoard() bailed on its first
+       line. Every repaint after the first fixture did nothing, which is why
+       the bar kept showing the round and the two captains it was born with.
+       Falling back to a document lookup keeps the one element the engine has
+       always painted, wherever it is currently parented. */
+    var inner=board.querySelector(".sbInner")||document.querySelector(".sbInner");
+    if(!inner)return;
     function side(which){
       var nm=(which==="R"?"Red":"Blue"), col=(which==="R"?"194,61,51":"49,109,181"), cut="";
       try{ var T=window.__hmTour;

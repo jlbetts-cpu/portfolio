@@ -484,9 +484,16 @@ body.hmYowHdr .hmHdrEnd{visibility:visible}
    match-up at every size on the first pass. */
 body.hmYowCup:not(.hmYowHdr) .jbGrpC{opacity:0;pointer-events:none}
 
+/* ── ONE RULE UNDER THE BAR, NOT TWO.  2026-08-27 ──────────────────────────
+   Jayden: "there is an extra line in the header." Measured at 1440: .jbStick
+   already draws the site's own full-width hairline as a box-shadow at y=72,
+   and this rule added a SECOND one as .jbNav's bottom border at y=60 -- inset
+   to the 1200 column, so it read as a short line floating above the real one.
+   Two rules under one bar, at two widths, twelve pixels apart.
+   The material stays -- that is this bar's job while a cup owns the screen --
+   and the edge is left to the element that already owned it. */
 body.hmYowHdr .jbNav{
   visibility:visible;box-shadow:none;border:0;
-  border-block-end:var(--hair-w) solid var(--lgRule);
   background:var(--theme-material, var(--mat-1));
   -webkit-backdrop-filter:blur(var(--blur-1));
           backdrop-filter:blur(var(--blur-1));
