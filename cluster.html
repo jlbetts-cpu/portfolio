@@ -671,7 +671,13 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    floating 52px clear of the thing it names. Measured: cap margin-bottom 12 +
    media margin-top 40. The gap belongs above the CAPTION, not between the
    caption and its picture, exactly like .kicker and .secHead. */
-.content .photoFig>figcaption.cap{margin-block:0 var(--sp-8)}
+/* CENTRED, BECAUSE THE THING IT LABELS IS CENTRED. "the section header for the
+   mockups should be centered so it looks like it goes with it." A caption at
+   the column's left edge over a phone sitting in the middle of 1200px reads as
+   two separate objects; over the picture it reads as its title. This is the
+   figure caption only -- the section kickers stay on the column edge with the
+   prose they introduce, which is where a running label belongs. */
+.content .photoFig>figcaption.cap{margin-block:0 var(--sp-8);text-align:center}
 .content .photoFig>:is(.player,.tv){margin-block-start:0}
 .content .photoFig{margin-block-start:var(--sp-40)}
 
@@ -716,7 +722,12 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* The caption reads as the line that introduces the picture, so it sits at the
    column's left edge like every other line of the article rather than centred
    under a phone -- centred, it was an orphan floating over a 1200px box. */
-.content .photoFig>figcaption.cap{order:-1;max-width:none;margin:0 0 var(--sp-12);text-align:left}
+/* order:-1 only. The margin and the alignment moved to the rule above, and
+   leaving them here made this the later declaration and therefore the winner --
+   the caption kept a 12px bottom margin and a left edge while the rule that was
+   supposed to own it said 8 and centre. Two rules for one element is how that
+   happens; this one now sets the one thing the other cannot. */
+.content .photoFig>figcaption.cap{order:-1;max-width:none}
 
 /* THE ARROWS KEEP THEIR TARGET AND LOSE THEIR CHIP. 44px is the site's tap
    floor and is not negotiable -- measured, not declared -- so the BOX stays 44
@@ -902,6 +913,23 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    the body's leading, which is what makes it a heading at the same size. */
 .content .subHead{font-size:var(--cs-prose)}
 
+/* ── THE CASE-STUDY TITLE COMES DOWN.  2026-08-27 ───────────────────────────
+   "now i feel like the h1 is too large."
+   It was --fs-pagehead, clamp(30px,3.4vw,44px), set when the body under it was
+   18px. The body is 21 now, and the ladder had gone 44 / 26 / 21 / 12 -- the
+   title jumped 1.7x over the section head while the section head is only 1.24x
+   over the body, so the top of the page was doing something the rest of it was
+   not.
+   36 at 1440 and 27 at 390: about 18% down on desktop, 10% on a phone, which is
+   the bottom half of his measured range for a size complaint. New ladder
+   36 / 26 / 21 / 12, and the steps between rungs are finally comparable.
+   SCOPED, AND DELIBERATELY SO. --fs-pagehead is shared, and CLAUDE.md records
+   that home's hero h1 is his alone and is not to be restyled. This is a token
+   the five case studies own; index.html is not touched. */
+.content{--cs-head:clamp(27px,2.6vw,36px)}
+.content .head{font-size:var(--cs-head)}
+
+
 /* ── THE SUB-LABEL GOES, AND WHAT IS LEFT BINDS TIGHT.  2026-08-27 ──────────
    "the section head for the mockups look so disconnected looks weird wouldnt
    use it there as well" -- and, on bearings, "there is a huge empty space
@@ -957,11 +985,22 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    89px and 96px wide, centred on their own text instead of starting where the
    paragraph above them starts. That is the same trap that collapsed the mockup
    ground to 400px earlier today; it is written down twice now for a reason. */
-.content :is(.kicker,.subKick,.eyebrow,.rlabel,.hmwLabel,.photoFig>figcaption.cap,.cap){
+/* THE FIGURE CAPTION IS NOT IN THIS LIST ANY MORE. It was, and this rule sits
+   LATER in the file than the centring rule below, so it quietly won and the
+   caption stayed on the left edge over a centred phone. The rest of these are
+   running labels that belong on the column edge with the prose they introduce;
+   a figure caption belongs over its figure. Fixed here rather than by piling
+   specificity onto the other rule. */
+.content :is(.kicker,.subKick,.eyebrow,.rlabel,.hmwLabel){
  width:100%;
  max-width:var(--measure);
  margin-inline:auto;
  text-align:left;
+}
+.content .cap:not(.photoFig>figcaption){
+ width:100%;
+ max-width:var(--measure);
+ margin-inline:auto;
 }
 
 /* ── THE STAT COMES DOWN A RUNG.  He kept it at the h1's size this morning when
