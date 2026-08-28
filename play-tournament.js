@@ -2299,7 +2299,7 @@ function formLine(A, B){
     if (a.gf === b.gf)
       return 'Both have won ' + n + ', scoring ' + a.gf + '.';
     return 'Both have won ' + n + '. ' + (a.gf > b.gf ? A.name : B.name)
-         + ' has the goals, ' + Math.max(a.gf, b.gf) + ' to ' + Math.min(a.gf, b.gf) + '.';
+         + (window.__hmYowLeague ? ' has the points, ' : ' has the goals, ') + Math.max(a.gf, b.gf) + ' to ' + Math.min(a.gf, b.gf) + '.';
   }
   var hi = a.won > b.won ? A : B, lo = a.won > b.won ? B : A;
   var hr = a.won > b.won ? a : b, lr = a.won > b.won ? b : a;
@@ -2777,7 +2777,7 @@ function draftKey(drawn, racePart){
     return '\u00b7 not settled on the pitch \u2014 ' + byWhat
          + ', or not raced to the line';
   if (racePart) return '\u00b7 not raced to the line \u2014 ranked by distance, not earned';
-  if (drawn)    return '\u00b7 level on goals \u2014 ' + byWhat
+  if (drawn)    return (window.__hmYowLeague ? '\u00b7 level on points \u2014 ' : '\u00b7 level on goals \u2014 ') + byWhat
          + (seeded ? '' : ', not earned');
   return '';
 }

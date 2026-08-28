@@ -2346,28 +2346,22 @@
    camFront=document.createElement("div");camFront.className="hmCam hmCamFront";hero.appendChild(camFront);
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camBack.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
-   ballRefl=ball.cloneNode(true);ballRefl.className="hmBall hmBallRefl";ballRefl.setAttribute("aria-hidden","true");
    ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
+   /* and the ball's reflection is cloned here for the same reason: its skin is a
+      CHILD, so a clone taken at creation time mirrored an empty div. */
+   ballRefl=ball.cloneNode(true);ballRefl.className="hmBall hmBallRefl";ballRefl.setAttribute("aria-hidden","true");
    var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
    camFront.appendChild(ball);
+   /* APPENDED HERE, WHERE THE BALL ITSELF IS. The first attempt appended the
+      clone via ball.parentNode at the moment it was cloned -- and the ball has
+      no parent yet at that line, so the reflection was built and then dropped
+      on the floor. It measured as null in the DOM while every other check
+      passed, which is why the ball was the one thing still not reflecting. */
    camFront.appendChild(ballRefl);
    goalShL=document.createElement("div");goalShL.className="hmGoalShadow";camBack.appendChild(goalShL);
    goalShR=document.createElement("div");goalShR.className="hmGoalShadow";camBack.appendChild(goalShR);
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";camBack.appendChild(goalL);   // left goal is RED\u2019s to defend
    goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";camBack.appendChild(goalR);
-   /* ── THE GOALS REFLECT, THE WAY THE HEADS DO.  2026-08-27 ──────────────────
-      Jayden: "also goals dont reflect like players do." True, and it was never
-      an oversight in the water -- it is that a head's reflection is an IMAGE
-      (.hmRefl carries background-image:url(data.cut) and is mirrored per frame)
-      and a goal is a stack of divs with gradients on them. There is nothing to
-      put in a background, so the goal reflects by being CLONED and flipped.
-      Cloned once here rather than per frame: a goal's children never change,
-      only its box does, so layout() copies the box across and sets one
-      transform. -webkit-box-reflect was considered and rejected for the same
-      reason the heads rejected it -- it is not standard, and this way the two
-      reflections are one technique. */
-   goalReflL=goalL.cloneNode(true);goalReflL.className="hmGoal hmGoalR hmGoalRefl";goalReflL.setAttribute("aria-hidden","true");camBack.appendChild(goalReflL);
-   goalReflR=goalR.cloneNode(true);goalReflR.className="hmGoal hmGoalB hmGoalRefl";goalReflR.setAttribute("aria-hidden","true");camBack.appendChild(goalReflR);
    /* THE UPRIGHTS RIDE INSIDE THE GOAL, they are not a second pair of elements. Everything
       that already knows how to show, hide, move, tint and flash a goal -- start()'s opacity,
       layout()'s transform, netCatch()'s .hmGoalHit, the camera wrapper -- keeps working
@@ -2377,6 +2371,19 @@
    ["hmUpStem","hmUpBar","hmUpPost hmUpPostF","hmUpPost hmUpPostN"].forEach(function(cn){
     var e0=document.createElement("div");e0.className=cn;goalL.appendChild(e0);
     var e1=document.createElement("div");e1.className=cn;goalR.appendChild(e1);});
+   /* ── CLONED AFTER THE BARS EXIST, AND THAT IS THE WHOLE BUG ────────────────
+      Jayden, twice: "no reflection for the goal posts or the ball."
+      The clones used to be made immediately after goalL/goalR were created --
+      which is BEFORE the four upright bars are appended to them, and before the
+      ball's skin is appended to the ball. cloneNode(true) copies the children a
+      node has AT THAT MOMENT, so both clones were empty boxes.
+      SOCCER HID IT. A soccer goal is painted on the element itself (the net is a
+      background, the post a ::before), so an empty clone still looked right --
+      which is why the reflections appeared to work and only the LEAGUE, whose
+      goal is entirely children, had nothing to mirror. Cloning here, after the
+      forEach that builds them, fixes both modes with one move. */
+   goalReflL=goalL.cloneNode(true);goalReflL.className="hmGoal hmGoalR hmGoalRefl";goalReflL.setAttribute("aria-hidden","true");camBack.appendChild(goalReflL);
+   goalReflR=goalR.cloneNode(true);goalReflR.className="hmGoal hmGoalB hmGoalRefl";goalReflR.setAttribute("aria-hidden","true");camBack.appendChild(goalReflR);
    board=document.createElement("div");board.className="hmScore";
    // Scoreboard structure taken from the SportyBlocks kit: an inner card holding a team row,
    // an asymmetric VS divider and a second team row, sitting on a footer ledge. Their crest
@@ -2849,7 +2856,7 @@ function teams(){
     var mx=Math.max(S.red,S.blue), mn=Math.min(S.red,S.blue), df=mx-mn;
     var ends=function(a,b){ return (a>=S.target && a-b>=2) || a>=S.cap; };
     var leaderWins = ends(mx+1, mn), eitherWins = leaderWins && ends(mn+1, mx);
-    if (eitherWins)          return {t:"next goal wins!", ms:2200};
+    if (eitherWins)          return {t:YOW?"next score wins!":"next goal wins!", ms:2200};
     if (df===0 && mx>=S.target-1) return {t:"deuce!", ms:1600};
     if (leaderWins && df>0)  return {t:"match point\u2026", ms:1500};
     return null;
@@ -3476,7 +3483,22 @@ function teams(){
    if(l3)return l3;
    var hEl=document.querySelector(".hero");if(!hEl)return null;
    l3=document.createElement("div");l3.className="hmLowerThird";l3.setAttribute("aria-hidden","true");
-   l3.innerHTML='<span class="hmL3Face"><img alt="" draggable="false"></span><span class="hmL3Txt"><b class="hmL3Tag">Goal</b><b class="hmL3Nm"></b></span>';
+   l3.innerHTML='<span class="hmL3Face"><img alt="" draggable="false"></span><span class="hmL3Txt"><b class="hmL3Tag"></b><b class="hmL3Nm"></b></span>';
+   /* THE WORD FOLLOWS THE SPORT.  2026-08-27. Jayden: "i want more of a football
+      feel like even the goals like they are called goal and not score". In the
+      League the ball goes through uprights, which is a FIELD GOAL -- calling it
+      a goal was the last piece of soccer left in the League's own vocabulary.
+      Written here rather than in the template because ensureL3() runs per match
+      and YOW is settled by then. */
+   /* READ OFF THE BODY CLASS, NOT YOW. ensureL3() lives OUTSIDE the soccer IIFE
+      -- verified by brace-matching, chars 335101 against the IIFE's 234949..329251
+      -- so YOW is not in scope here and the reference threw straight into the
+      catch, leaving the tag empty. Nothing logged, and the card rendered with a
+      blank label. body.hmYow carries the same fact and is visible everywhere.
+      This is the second time today a helper was written in the wrong closure in
+      this file; both times the symptom was silence, not an error. */
+   try{var _tag=l3.querySelector(".hmL3Tag");
+       if(_tag)_tag.textContent=document.body.classList.contains("hmYow")?"Field goal":"Goal";}catch(_){}
    hEl.appendChild(l3);   // a direct child of .hero, same as .hmScore -- never inside a camera wrapper, so it holds still like the board does
    return l3;
   }
