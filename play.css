@@ -729,6 +729,26 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
   mask-composite:intersect}}
 
+/* AND A FLOOR UNDER IT ALL: a reflection only paints while its pitch is live.
+   syncRefl() keeps the four in-match transitions honest, but a clone that is
+   created before a match and outlives one should never be able to paint on the
+   menu whatever its inline opacity says. This is the belt to that braces --
+   Jayden saw them "in menu and in games down below", which is two screens that
+   have no waterline at all. */
+.hmGoalRefl,.hmBallRefl{opacity:0}
+body.hmSoccer .hmGoalRefl,body.hmSoccer .hmBallRefl{opacity:1}
+/* ── THE MASK RUNS `to top`, AND THAT IS NOT A TASTE CALL.  2026-08-27 ──────
+   Jayden: "why are the goals reflecting not at the base but farther away
+   notice that." He was right and the pixels agreed: a 14px dead band under the
+   goal, then the reflection appearing lower down.
+   A MASK IS APPLIED IN THE ELEMENT'S OWN BOX, BEFORE ITS TRANSFORM. These
+   clones are scaleY(-1) about origin 0 0, so local y=0 lands at the FAR end on
+   screen and local y=H lands at the waterline. A `to bottom` gradient -- opaque
+   at local 0 -- therefore painted solid where the reflection should be dying
+   out and transparent where it should be touching the object. Inverted, exactly.
+   `to top` puts the solid end at local H, which is the base. The head's .hmRefl
+   is `to top` for the same reason and got it right first time; these two were
+   written by copying its VALUES rather than its reasoning. */
 /* ── THE GOAL'S REFLECTION.  2026-08-27 ────────────────────────────────────
    Same treatment .hmRefl gives a head, applied to a clone of the goal:
    desaturated because colour survives water and detail does not, and faded up
@@ -741,15 +761,15 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
  z-index:1;pointer-events:none;
  transform-origin:0 0;
  filter:saturate(.42) contrast(.72) brightness(1.06);
- -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
-         mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
+         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
 }
 @supports ((mask-composite:intersect) or (-webkit-mask-composite:source-in)){
  .hmGoalRefl{
-  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
+  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
   -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
+  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
   mask-composite:intersect}}
 /* Where the heads' reflections are switched off, the goals' go with them --
@@ -762,8 +782,8 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
    own squash all come across for free; only the mirror is added here. */
 .hmBallRefl{z-index:1;pointer-events:none;transform-origin:0 0;
  filter:saturate(.42) contrast(.72) brightness(1.06);
- -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%);
-         mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%)}
+ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%);
+         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%)}
 .hmBallRefl .hmBallShadow{display:none}
 @media(pointer:coarse){.hmBallRefl{display:none}}
 /* ============ THE LOBBY FLOOR IS REFLECTIVE TOO ============================================

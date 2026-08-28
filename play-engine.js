@@ -2284,6 +2284,25 @@
    // which is exactly the 8px the drop-from-the-title landed off by. Sync the DOM to BR instead.
    if(ball&&ball.style.width!==(2*BR)+"px"){ball.style.width=ball.style.height=(2*BR)+"px";}
    if(ballShadow&&ballShadow.style.width!==(2*BR)+"px"){ballShadow.style.width=(2*BR)+"px";ballShadow.style.height=(BR*0.55).toFixed(1)+"px";}}
+  /* ── THE REFLECTIONS FOLLOW THEIR OBJECTS, EVERYWHERE, NOT JUST IN layout() ──
+     2026-08-27. Jayden: "glitch with goals appearing when they shouldnt as well
+     in menu and in games down below."  Mine, and the mechanism is simple: the
+     clones took their opacity from reflectGoal(), which only runs inside
+     layout(). Every OTHER place that shows or hides a goal -- kickoff, the
+     goal-scored reset, and the teardown that ends a match -- wrote
+     goalL.style.opacity directly and the clone kept whatever it had. So a
+     reflection of a hidden goal stayed on screen in the menu and under the
+     other games.
+     One function, called at each of those four sites, so a reflection cannot
+     outlive the thing it reflects again. */
+  function syncRefl(){
+   try{
+    if(goalReflL&&goalL)goalReflL.style.opacity=goalL.style.opacity||"0";
+    if(goalReflR&&goalR)goalReflR.style.opacity=goalR.style.opacity||"0";
+    if(ballRefl&&ball)ballRefl.style.opacity=ball.style.opacity||"0";
+   }catch(_){}
+  }
+
   /* DEFINED IN HERE, AND THAT MATTERS. The first version of this helper landed
      next to confettiBurst -- which is in a DIFFERENT closure that had already
      closed by the time soccer() opened -- so every call resolved to nothing and
@@ -2766,12 +2785,14 @@ function teams(){
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
+   syncRefl();
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
   function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");
    goalBurst(team,bx,by);   // BANG -- it explodes the instant it crosses the line
    ball.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";bvx=0;bvy=0;bw=0;ballInTitle(true);   // and it's gone, never spinning around inside the net
+   syncRefl();
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
    setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
   function bigCall(txt,ms){try{if(!countEl)return;countEl.classList.add("hmMsg");countEl.textContent=txt;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");setTimeout(function(){if(countEl.textContent===txt){countEl.textContent="";countEl.classList.remove("hmMsg");}},ms||1800);}catch(_){}}
@@ -2864,6 +2885,7 @@ function teams(){
       beat entirely is what would make scoring feel cheap. Worth ~2.4s a match, ~17s a cup --
       small, and honestly the whole of what dead time had left to give. ---- */
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},450);}   // otherwise it re-appears for the next kickoff
+   syncRefl();
   function win(team){BUS.emit('fulltime',{winner:team,red:S.red,blue:S.blue});S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
    /* THE CELEBRATION. They do not just hop where they stand -- they RUN TO EACH OTHER first,
       the way a team does after a goal, and only bounce together once they have gathered.
@@ -2955,6 +2977,7 @@ function teams(){
   try{if(window.__hmTourAbort)window.__hmTourAbort();}catch(_){}   // hand the draw back, do not strand it
  
    if(ball){_gyLock=null;ballInTitle(true);ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
+   syncRefl();
    if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");
    /* The League comes off at the whistle for the same reason hmFinal does, three lines
       below: playing a bracket out to a champion never calls stop(), so a class left on

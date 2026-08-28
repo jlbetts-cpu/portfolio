@@ -197,6 +197,13 @@ def assert_viewport_owner(page, expected):
     assert state["footerDisplay"] == "none", state
 
 
+# THE REFLECTIONS ARE .hmGoal TOO, and deliberately: a goal's reflection is a CLONE
+# of it, so it needs every rule that draws a goal. A bare .hmGoal query therefore
+# returns FOUR elements on a two-goal pitch, and the goal count below is an
+# assertion. The query excludes .hmGoalRefl rather than the clone dropping the
+# class, which would take the net, the post and the colour with it.
+# (The first attempt at this comment was pasted INSIDE the page.evaluate string
+#  and broke the JS with a SyntaxError -- a Python comment is not a JS one.)
 def assert_soccer_plane(page, label, require_players=True):
     page.wait_for_function("!document.querySelector('.hmCamPunch')&&!document.querySelector('.hmGoalHit')", timeout=2_000)
     def sample():
@@ -209,7 +216,8 @@ def assert_soccer_plane(page, label, require_players=True):
               const footOf=e=>{try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return (row+1)/44;}}}catch(_){}return .945;};
               const players=Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]'))
                 .filter(visible).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').map(e=>{const r=e.getBoundingClientRect();return {slot:e.getAttribute('data-hm-lobby-slot'),left:r.left,right:r.right,top:r.top,bottom:r.bottom,feet:r.top+r.height*footOf(e)};});
-              const goals=Array.from(document.querySelectorAll('.hmGoal')).filter(visible).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};});
+
+              const goals=Array.from(document.querySelectorAll('.hmGoal:not(.hmGoalRefl)')).filter(visible).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};});
               const ball=document.querySelector('.hmBall'), br=ball&&ball.getBoundingClientRect();
               return {viewport:{w:innerWidth,h:innerHeight},arena:{left:hr.left,right:hr.right,top:hr.top,bottom:hr.bottom},plane,players,goals,ball:br?{left:br.left,right:br.right,top:br.top,bottom:br.bottom}:null};
             }
@@ -329,7 +337,12 @@ def run_layout(browser, base_url, width, height, reduced=False):
     # 2026-08-26: six doors -- the Yowmings League first, the Workspace last, none of them
     # spanning. See the same assertion in play-minimal-contract.py for why this stays an
     # exact list, and why an ODD count is the failure it is really guarding against.
-    assert data["cards"] == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork", "pcDraft"], data
+    # SIX CARDS. The draft board left on 2026-08-27 -- "lets remove the draft guide
+    # actually i dont think i want it on the site" -- and play-minimal-contract was
+    # updated that day while THIS list was not, so the smoke has been red on a
+    # removed feature ever since. Found while running the full play suite over an
+    # unrelated change, which is the argument for running the whole suite.
+    assert data["cards"] == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork"], data
     assert data["canonical"] == [1, 1, 1] and data["gameIds"], data
     assert abs(data["header"]["top"]) <= 1 and abs(data["header"]["height"] - 72) <= 1, data
     assert abs(data["navTop"] - 8) <= 1, data
