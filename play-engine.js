@@ -4182,7 +4182,21 @@ function teams(){
   function seg(x1,y1,x2,y2,cls){segs.push({x1:x1,y1:y1,x2:x2,y2:y2,e:0.28,cls:cls||""});}
   function buildCourse(){pegs.length=0;segs.length=0;spins.length=0;gates.length=0;mvPegs.length=0;
    refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;
-   X0=mob?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
+   /* ── THE LEFT RAIL WAS RESERVED FOR A BOARD THAT NO LONGER EXISTS. ────────
+      Jayden: "the marble race needs to be side o side it cuts off on the left."
+      X0=104 on desktop was NOT a margin -- it was the gutter the standings
+      board lived in, so the chips were "always legible and never buried under
+      a peg", which was correct while that board was up. It is hidden in the
+      League now (body.hmYowCup .hmRaceRow{display:none}), so the reservation
+      pays for nothing: measured, the course ran x=103..1281 on a 1280 viewport
+      -- 103px of dead gutter on the left and flush on the right, which is the
+      lopsidedness he is describing.
+      With no board to clear, the League gets the mobile inset at both ends and
+      the course is symmetric, wall to wall. EVERY OTHER MODE KEEPS ITS RAIL:
+      the standalone race still shows its standings and still needs the gutter,
+      so this is read off the same cup flag the board is hidden by. */
+   var _yowRace=false; try{_yowRace=!!window.__hmYowLeague;}catch(_){}
+   X0=(mob||_yowRace)?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
    var DM=Ds[Ds.length-1]||D;DMAX=DM;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
    var y=H*0.55;   // the start grid sits just under the opening frame
