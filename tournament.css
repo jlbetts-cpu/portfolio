@@ -890,6 +890,19 @@ body.hmFinal .tvPanel{
    than absent), "Simulating..." still says what is happening, and the only ink
    left in the foot is Stop -- which is the only thing there is to press. The
    soccer cup keeps the library's dim; this is the League's standard. */
+/* ── AND THE FIRST QUIET CONTROL HANGS BACK ONTO THE INK EDGE.  §2 ────────
+   An outlined secondary put its BOX on the panel's inline padding, so the edge
+   the eye read was the box's. A quiet one has no box, so what the eye reads is
+   the label -- and the label sits --ctl-pad (16px) inside it. Measured at 1440
+   the moment the variant changed: the eyebrow, the stake line, the faces and
+   the tape all start at 526 and "Leave" started at 542, which is a 16px step in
+   the bottom-left corner of the card and the only place on the panel with one.
+   A negative margin equal to the padding hangs the label back onto the edge and
+   leaves the 44px box exactly where it was, so nothing is lost off the tap
+   target -- the box's own left edge lands on the panel's padding box. */
+body.hmYowCup .tvFoot > .ctl--quiet:first-child{
+  margin-inline-start:calc(var(--ctl-pad) * -1);
+}
 body.hmYowCup .tvGo:disabled,
 body.hmYowCup .tvGo[aria-disabled="true"]{
   opacity:1;background:none;box-shadow:none;
