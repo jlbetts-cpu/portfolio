@@ -199,28 +199,21 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    --c500 elsewhere are untouched. */
 .cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);color:var(--c600);max-width:680px;text-wrap:pretty;}
 
-/* ── THE OVERVIEW IS A LEDE, ABOVE THE COVER.  2026-08-27 ──────────────────
-   Jayden: "need to just make two short pararagraphs before photos there
-   shouldnt be one point where there is only text on the screen with no visual."
-   THE OPENING WAS THE WORST OFFENDER AND IT WAS THE SAME ON ALL FIVE PAGES.
-   Title -> cover -> facts band -> Overview -> (My role) -> first section put
-   every page's at-a-glance text BELOW its one picture, so by the time a reader
-   had scrolled past the cover there was nothing left to look at for a full
-   screen. Measured at 390 before this: 478px of scroll on Cluster, 353 on UC
-   Davis, 938 on Apollo in which no image had 120px on screen.
-   Reading order now: title, two sentences, THE PICTURE, then the facts band.
-   That is his rhythm exactly, and it moves the cover ~110px (1440) / ~158px
-   (390) further down the document, which is 158px of the hole closed for free
-   on every page.
-   IT IS ORDER, NOT MARKUP. The <div class="ov"> stays where it is in the source
-   -- after the cover and the facts -- so the document order a screen reader and
-   the JSON-LD both walk is unchanged, and .hero simply lays its children out in
-   the order a sighted reader should meet them. h1 -2, overview -1, everything
-   else 0 in source order.
-   The joins are both on the 16 rung: title -> lede 16, lede -> cover 16. */
+/* ── THE OVERVIEW GOES BACK UNDER THE COVER.  2026-08-27, second word ──────
+   "Overview should be under the hero image not above."
+   It was lifted above the cover earlier today to close a text-only gap: "there
+   shouldnt be one point where there is only text on the screen with no visual",
+   measured then at 938px of imageless scroll on Apollo at 390. That reason was
+   real, and it is now paid for elsewhere -- the case studies have had two
+   passes since and the imageless bands were closed at the section level, not by
+   this reorder alone.
+   So the order comes out. Title -> cover -> overview -> facts is the reading he
+   wants, and it is also the DOCUMENT order, which means .hero no longer needs
+   to lay its children out differently from the source at all. One fewer thing
+   doing something clever. If a text-only band comes back at the top of a phone
+   screen, fix it where it is rather than by reordering this again. */
 .hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24));display:flex;flex-direction:column}
-.hero>.head{order:-2}
-.hero>.ov{order:-1;margin-top:var(--sp-16)}
+.hero>.ov{margin-top:var(--sp-16)}
 /* --lh-body, so this label resolves to the same 13/19.5 as about.html's
    .abLabel. It was inheriting whatever its parent happened to set (14.56px
    measured) -- one role, two leadings, on pages that sit next to each other. */
@@ -824,11 +817,20 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    So the selector stops naming classes and names PARAGRAPHS. Anything that is
    a paragraph inside a section gets the one treatment, whatever it is called,
    and a class that arrives later cannot opt out of the rhythm by accident. */
+/* ── THE TYPE GROWS SO THE LINE DOES NOT.  2026-08-27 ───────────────────────
+   He kept the full column and chose "full width, larger text" over narrowing
+   it. At 18px across 1200px a line ran ~110 characters, which is about double
+   an article measure and is the real reason the reading felt long -- the width
+   was never the whole story, the RATIO was. Raising the type shortens the line
+   without touching the column, which is the same fix from the other end.
+   --cs-prose is local to these five pages on purpose: --fs-prose is shared with
+   home and About and this is not a site-wide type change. */
+.content{--cs-prose:clamp(17px,1.45vw,21px)}
 .content .sec p,
 .content :is(.secBody,.ovBody,.baBody,.stat,.lede,.rv){
  margin-block:var(--sp-16) 0;
  color:var(--c700);
- font-size:var(--fs-prose);
+ font-size:var(--cs-prose);
  line-height:var(--lh-body);
 }
 .content .sec p:first-child,
@@ -837,6 +839,23 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .content .baText .subHead{margin-block:var(--sp-32) var(--sp-8)}
 .content .secHead{margin-block:var(--sp-64) var(--sp-16)}
 .content .sec>.secHead:first-child{margin-block-start:0}
+
+/* ── A LABEL BELONGS TO THE THING IT LABELS.  2026-08-27 ────────────────────
+   "why is the spacing between solution and onboarding so big look out for
+   those individual discrempencies."
+   MEASURED on bearings' Solution section: the kicker "Solution" sat 64px above
+   "So we built one for the whole crew", the heading it is the label FOR. The
+   64 is the section-break rung and it was landing in the wrong place -- between
+   a label and its own head, instead of before the pair of them. So every
+   section opened with its label floating, unattached to anything, which is the
+   discrepancy he is pointing at.
+   The break moves onto the kicker and the head hugs it at 8. Where a section
+   has no kicker the head keeps the 64 itself, so the rhythm between sections is
+   unchanged either way -- this moves a gap, it does not add or remove one. */
+.content .sec>.kicker{margin-block:var(--sp-64) 0}
+.content .sec>.kicker:first-child{margin-block-start:0}
+.content .kicker + .secHead{margin-block-start:var(--sp-8)}
+
 
 /* ── EVERYTHING IN THE ARTICLE SITS ON THE SAME COLUMN ──────────────────────
    The kickers and the figure captions were still starting at the section's
