@@ -1138,7 +1138,47 @@
     if(Math.random()<0.35)startFlip();return;}}
   var r=Math.random();
   if(r<0.36){ // travel: look where you are going first (the orienting reflex), then go
-   var tx=M+Math.random()*(heroR.w-HW-M*2);
+   /* ── ON A LEAGUE CARD SCREEN THEY LINE UP; EVERYWHERE ELSE THEY WANDER. ──
+      2026-08-27. Measured on the fixture screen: 8 heads and TWELVE
+      overlapping pairs, plus one sitting at opacity 0 -- a pile with a ghost
+      in it. A random target on a 1280 pitch collides constantly, which is
+      charm on the play menu and noise on the screen that is supposed to
+      introduce a match.
+      SO THE TARGET BECOMES A SLOT. Each head takes an even share of the width
+      by its own index in `peers`, which is the same distribution line 1365
+      already uses for the platforms -- so the row cannot overlap by
+      construction rather than by a separation force pushing them apart.
+      THIS IS NOT THE SOCCER RULE BEING BROKEN. CLAUDE.md forbids separation
+      steering IN THE MATCH -- "never make the match calmer, tidier or better
+      spaced" -- and this runs only while a cup CARD is up and no match is on.
+      The moment play starts, decide() is not driving them at all.
+      They still hop to the slot on their own clock, so it fills in like a
+      line-up rather than snapping into a grid. */
+   var tx;
+   var _lineUp=false;
+   try{ _lineUp = document.body.classList.contains("hmYowCup")
+                  && !document.body.classList.contains("hmSoccer")
+                  && !window.__hmRaceOn; }catch(_){}
+   if(_lineUp && peers.length>1){
+     var _i=peers.indexOf(me); if(_i<0)_i=0;
+     var _n=peers.length;
+     var _span=heroR.w-HW-M*2;
+     tx=M+_span*((_i+0.5)/_n);
+     /* ONCE IT IS ON ITS MARK IT STAYS THERE. Slots alone took the fixture
+        screen from 12 overlapping pairs to 3, but it never settled -- measured
+        over 30s it oscillated 4 / 2 / 4, because every head re-decides on its
+        own 2-5s clock and their hop paths cross on the way. A line-up that
+        keeps rearranging itself is not calmer than a scatter, it is a scatter
+        with extra steps.
+        So arriving is the end of it: within a head's own width of the mark,
+        decide() does nothing at all. They walk out, they stand, and the screen
+        stops moving -- which is the whole of what "less is more" asks for on a
+        card that exists to be read. They come back to life the moment the cup
+        class comes off. */
+     if(Math.abs(tx-x) < HW*0.9) return;
+   } else {
+     tx=M+Math.random()*(heroR.w-HW-M*2);
+   }
    dir=tx>x?1:-1;gzx=dir*0.75;gzy=0.05;sacAt=now+900;if(bf===0&&Math.random()<0.3)bf=5;   // big attention shifts often carry a blink
    surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));
    setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);}
