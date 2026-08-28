@@ -4317,23 +4317,38 @@ function teams(){
   function heroH(){return hero.clientHeight||600;}
   function rnd(a,b){return a+Math.random()*(b-a);}
   function seg(x1,y1,x2,y2,cls){segs.push({x1:x1,y1:y1,x2:x2,y2:y2,e:0.28,cls:cls||""});}
+  /* ── THE LEFT RAIL WAS RESERVED FOR A BOARD THAT NO LONGER EXISTS. ───────
+     Jayden: "the marble race needs to be side o side it cuts off on the left."
+     X0=104 on desktop was NOT a margin -- it was the gutter the standings board
+     lived in, so the chips were "always legible and never buried under a peg",
+     which was correct while that board was up. It is hidden in the League now
+     (play.css: body.hmYowCup .hmRaceRow{display:none}), so the reservation pays
+     for nothing there. EVERY OTHER MODE KEEPS ITS RAIL: the standalone race
+     still shows its standings and still needs the gutter, so this is read off
+     the same cup flag the board is hidden by.
+     THE 8px IS ONE-SIDED AND THAT IS DELIBERATE-BY-INHERITANCE, NOT SYMMETRY: the
+     right rail is W, so the League course paints x=8..1279 on a 1280 viewport.
+     An earlier note here claimed "the mobile inset at both ends"; measured, it is
+     8px on the left and 0 on the right, the same as mobile has always been. It is
+     0.6% of the width and nobody has ever mentioned it -- do not "fix" it by
+     inventing an X1, which every wall test in this file would have to learn. */
+  /* ── THE RAIL BOUNDS ARE DERIVED IN EXACTLY ONE PLACE. ────────────────────
+     They were derived in two, and the two disagreed. buildCourse() dropped X0
+     104 -> 8 for the League (the standings board it was reserving is hidden
+     there); start() kept a copy of the old rule, `X0=(W<=640)?8:104`, because
+     the STARTING GRID is laid out before the course is built. So the course
+     ran wall to wall and the twelve heads spawned in the 104..W band on top of
+     it: measured at 1280, painted course x=8..1279 while the grid ran
+     x0=194..1190 -- 194px of empty page to the left of the first head and 90px
+     to the right of the last. That asymmetry is what Jayden was still looking
+     at; the pegs were already flush and the FIELD was not.
+     One function, called by both, so the grid and the course can never again be
+     laid out against different rails. */
+  function rails(){var yow=false;try{yow=!!window.__hmYowLeague;}catch(_){}
+   X0=(W<=640||yow)?8:104;CW=W-X0;CC=(X0+W)/2;}   // the LEFT RAIL is reserved for the standings -- outside the League, where that board is up, the whole course lives to the right of it so the chips are never buried under a peg field
   function buildCourse(){pegs.length=0;segs.length=0;spins.length=0;gates.length=0;mvPegs.length=0;
-   refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;
-   /* ── THE LEFT RAIL WAS RESERVED FOR A BOARD THAT NO LONGER EXISTS. ────────
-      Jayden: "the marble race needs to be side o side it cuts off on the left."
-      X0=104 on desktop was NOT a margin -- it was the gutter the standings
-      board lived in, so the chips were "always legible and never buried under
-      a peg", which was correct while that board was up. It is hidden in the
-      League now (body.hmYowCup .hmRaceRow{display:none}), so the reservation
-      pays for nothing: measured, the course ran x=103..1281 on a 1280 viewport
-      -- 103px of dead gutter on the left and flush on the right, which is the
-      lopsidedness he is describing.
-      With no board to clear, the League gets the mobile inset at both ends and
-      the course is symmetric, wall to wall. EVERY OTHER MODE KEEPS ITS RAIL:
-      the standalone race still shows its standings and still needs the gutter,
-      so this is read off the same cup flag the board is hidden by. */
-   var _yowRace=false; try{_yowRace=!!window.__hmYowLeague;}catch(_){}
-   X0=(mob||_yowRace)?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
+   refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;   // `mob` is the LATTICE's phone threshold (pitch, bumper count), not the rail's -- rails() owns that one now
+   rails();
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
    var DM=Ds[Ds.length-1]||D;DMAX=DM;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
    var y=H*0.55;   // the start grid sits just under the opening frame
@@ -4987,22 +5002,55 @@ function teams(){
       left to move it; and because the bar's inner end slides, the displacement anti-stuck
       reads movement and never fires. That is CLAUDE.md's `nud=0` note, word for word.
 
-      IT WAS FIXED, MEASURED, AND TAKEN BACK OUT. Tilting both bars into ramps that feed the
-      opening removes the resting state completely, and over 120 seeded races it was WORSE
-      on three of the four numbers that matter:
+      THE BARS ARE NO LONGER FLAT, AND THE PRICE THAT KILLED THE FIRST ATTEMPT IS NOT BEING
+      PAID. Jayden, again: "still sometimes impossible obstacles to pass". A seeded sweep --
+      160 races, every racer's depth sampled every 0.25s, anything that failed to gain 8px
+      for four seconds while the race was live recorded against its nearest obstacle -- says
+      he is describing this and almost nothing else: 884 of 966 parks were on a gate bar,
+      6.0 a race, median 5.3s, and 23 of them over TEN SECONDS. Every one carried nud=0.
 
-                        flat bar      ramped bar
-        COMPLETE        100%          99%
-        CHUTE           12.5 diam     14.1 diam     (the ramp's envelope evicts backfill pegs)
-        |RHO|           0.004         0.044
-        SPREAD          3.31          3.36
+      The first fix tilted the bars into ramps and cost CHUTE (12.5 -> 14.1 diameters),
+      because it hung the whole bar off one end and the ramp's envelope then evicted backfill
+      pegs. This one PIVOTS EACH BAR ABOUT ITS OWN MIDPOINT, so the pair occupies a fixed band
+      of gy +- dv whatever the door is doing and the envelope never grows: at 4 degrees that
+      band is +-14px, inside the +-52px capChutes already reserves across the full width at
+      this depth and nowhere near room()'s +-130px.
 
-      The parking was never what stopped racers finishing -- the ending rule was, and that is
-      fixed where it lives (see the stall re-base below). With every racer home, an
-      eleven-second wrestle with a sliding bar is a thing that happened to somebody in a
-      chaos race, not a defect. Do not re-tilt these without re-reading CHUTE. ---- */
+                          flat bar     tilt 4
+        parks a race         6.03        3.91
+        parks >= 8s           105          60
+        parks >= 10s           23          15
+        races with a >=8s   77/160      51/160
+        worst park          15.2s       14.1s
+        CHUTE p95            13.7        13.9
+        REACH                 73%         73%
+        COMPLETE              99%        100%
+        SPREAD               3.37        3.36     (3.31-3.38 across identical rebuilds)
+        |RHO|               0.027       0.012
+        DECIDED               40%         40%
+
+      AND THE ANGLE IS 4 BECAUSE THE GATE IS THE COURSE'S STRONGEST RE-GATHERER, WHICH IS
+      THE THING THE PARKING IS MADE OF. Every steeper build measured better on parks and
+      worse on the race: 8 degrees takes parks to 3.2 a race and puts DECIDED -- the share of
+      races won by whoever led at the halfway depth -- at 46% against the contract's 45%
+      ceiling, on the same 160 seeds where flat and 4 both read 40%. 12 degrees takes parks
+      to 2.5 and CHUTE p95 to 17.3, over the contract's 17.0, which is the price the note
+      this replaced warned about arriving exactly where it said it would. What holds the
+      leader at the gate while the pack closes IS the delay; evict harder and the race
+      becomes a procession. So the tilt is set to keep the BEAT and cut the TAIL, and the
+      median gate delay is unchanged at 5.3s.
+      The door's own speed is not the lever and was measured in both directions -- see the
+      note on gt.ph below. ---- */
    function gate(){var ow=DM*1.5,gy=y+H*0.15;
-    var gl={x1:X0+2,y1:gy,x2:X0+CW*0.3,y2:gy,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy,x2:W-2,y2:gy,e:0.28,cls:"gate"};
+    /* BOTH BARS FALL TOWARD THE DOOR, EACH PIVOTED ON ITS OWN MIDPOINT. dv is half the
+       band the pair may occupy and it is FIXED -- the ends are set once and only x moves
+       after that, so the gate never reaches outside gy +- dv however long or short a bar
+       gets. The angle is what varies instead: a long bar is a gentle 3-degree slope, and
+       a bar shrunk down to a stub beside the rail is near vertical, which is the right
+       way round -- a racer stranded next to an almost-closed door is the one that needs
+       tipping through it soonest. */
+    var dv=(CW*0.3-2)*0.5*Math.tan(4*Math.PI/180);   // 4, not 8: see the note above -- 8 evicts more and costs DECIDED
+    var gl={x1:X0+2,y1:gy-dv,x2:X0+CW*0.3,y2:gy+dv,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy+dv,x2:W-2,y2:gy-dv,e:0.28,cls:"gate"};
     segs.push(gl);segs.push(gr);
     gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
     fto(gy,CC,CW/2);                                        // a gate sweeps the whole width, so everything under it is in play
@@ -5295,7 +5343,7 @@ function teams(){
    cutLine=(opt.advance>0&&opt.advance<rc.length)?(opt.advance|0):0;   // the hairline sits ABOVE this rank index; 0 means the board shows no cut
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
-   W=heroW();H=heroH();X0=(W<=640)?8:104;CW=W-X0;CC=(X0+W)/2;   // the rail bounds are needed BEFORE the grid spawns (buildCourse re-derives them a beat later)
+   W=heroW();H=heroH();rails();   // the rail bounds are needed BEFORE the grid spawns, and they must be the SAME bounds buildCourse() lays the course between -- see rails()
    elimMode=(opt.format==="elim")?true:(opt.format==="line")?false:(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;   // the FORMAT is rolled before the course is built -- it was being read one round stale, and a doubled deck then indexed off the end
    /* THE ELIMINATION BELL HAS TO FIT THE COURSE. It was a flat 8 seconds a cut, which
       is right at six racers and catastrophic at twelve: eleven cuts need 88 seconds and
@@ -5693,10 +5741,18 @@ function teams(){
    for(var mI=0;mI<mvPegs.length;mI++){var mp=mvPegs[mI];mp.mv.ph+=mp.mv.spd*dt;
     mp.x=mp.mv.x0+Math.sin(mp.mv.ph)*mp.mv.amp;}
    if(draw)for(var mE=0;mE<mvEls.length;mE++)mvEls[mE].el.style.transform="translateX("+(mvEls[mE].p.x-mvEls[mE].p.mv.x0).toFixed(1)+"px)";
-   for(var gI=0;gI<gates.length;gI++){var gt=gates[gI];gt.ph+=gt.spd*0.32*dt;   // the gate glides on its own clock (slow-mo slows it too, so a photo finish at the gate stays readable)
+   for(var gI=0;gI<gates.length;gI++){var gt=gates[gI];gt.ph+=gt.spd*0.32*dt;   // the gate glides on its own clock (slow-mo slows it too, so a photo finish at the gate stays readable). 0.32 STAYS: both directions were measured and both are worse. Faster (0.58) is much worse -- a racer needs the opening to linger long enough to fall THROUGH it, and at 0.58 the parks went 6.0 -> 8.4 a race with a worst of 29.3s. Slower on its own (0.22) is worse too, 7.8 a race. The door is not the lever; the bar's shape is.
     var ocx=CC+Math.sin(gt.ph)*gt.travel;gt.l.x2=ocx-gt.ow/2;gt.r.x1=ocx+gt.ow/2;}
-   if(draw)for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,ln=Math.max(0,sg.x2-sg.x1);
-    ge2.el.style.left=sg.x1.toFixed(1)+"px";ge2.el.style.width=ln.toFixed(1)+"px";}
+   /* THE DRAWN BAR IS THE SIMULATED BAR. This used to write `left` and a width of
+      x2-x1 and leave the rotation buildDOM() baked in, which was exactly right while
+      both bars were flat and is a lie the moment they are not: a tilted bar's angle
+      changes as it slides, and a picture that does not follow it would put the ink
+      somewhere no racer ever bounces. Four writes on two elements a frame. */
+   if(draw)for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,
+     gdx=sg.x2-sg.x1,gdy=sg.y2-sg.y1,ln=(gdx>0)?Math.hypot(gdx,gdy):0;
+    ge2.el.style.left=sg.x1.toFixed(1)+"px";ge2.el.style.top=(sg.y1-4.5).toFixed(1)+"px";
+    ge2.el.style.width=ln.toFixed(1)+"px";
+    ge2.el.style.transform="rotate("+(Math.atan2(gdy,gdx)*180/Math.PI).toFixed(2)+"deg)";}
    // ELIMINATION variant: on every bell the trailing head gets a 1s red-flash warning, then is vacuumed off the course
    if(ON&&elimMode&&winner<0&&n>=goAt){
     var liveN=0,lastIx=-1,lastY=1e18;

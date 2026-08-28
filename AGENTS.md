@@ -156,9 +156,19 @@ hold forward, and it is never a named head.
 - **REACH, not COVER.** Cover measures area near an obstacle and never asks
   whether a racer goes there; it reported 51% as a win while half the course was
   dead. Reach is 73%.
-- Known unfixed: a head resting 54px above a sliding gate, 874px from the line,
-  `nud=0`. Two hypotheses already disproved — widening the funnel throat, and
-  switching anti-stuck from displacement to +y.
+- **The head resting 54px above a sliding gate (`nud=0`) is the gate's flat bar,
+  and the bar is no longer flat.** It was never one seed: a sweep of 160 seeded
+  races sampling every racer's depth at 4Hz found 6.0 parks a race, 884 of 966 of
+  them on a gate bar, median 5.3s and 23 over ten seconds. Both bars now fall 4°
+  toward the opening, each pivoted on its own midpoint so the pair stays inside a
+  fixed ±14px band and the envelope never grows. Measured: 3.9 parks a race, the
+  ≥8s tail 105 → 60, worst 15.2s → 14.1s, every chaos guard held.
+  **Do not steepen it.** The gate is the course's strongest re-gatherer and the
+  parking IS the re-gathering: 8° takes parks to 3.2 and DECIDED to 46% against
+  the contract's 45%; 12° takes CHUTE p95 to 17.3 against its 17.0. The door's
+  own speed is not the lever either — 0.58 and 0.22 both measured worse than the
+  0.32 that ships. Three hypotheses are disproved: widening the funnel throat,
+  switching anti-stuck from displacement to +y, and moving the door.
 
 ### The tournament
 
