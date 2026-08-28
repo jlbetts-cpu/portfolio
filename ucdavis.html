@@ -854,6 +854,67 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    the section head -- so the page stays on four. */
 .content .statNum{font-size:var(--fs-h3);letter-spacing:var(--tr-head)}
 
+/* ══ A PARAGRAPH IS ONE THING.  2026-08-27, and this is the pass that was
+   actually asked for ═════════════════════════════════════════════════════════
+   "by your screen shot i can see its still not a clean paragraph format ... it
+   looks horrible like actually horrible."  He is right, and the previous pass
+   is why: it fixed the GEOMETRY -- one width, one margin, one leading -- and
+   then reported those numbers without judging the picture. Counting is not
+   looking, and this is what looking found.
+
+   ONE PARAGRAPH ON THIS PAGE CONTAINED FIVE TREATMENTS:
+     18px regular  .  18px BOLD mid-sentence  .  an underlined link  .  a 26px
+     numeral  .  a 12px source, trailing the last full stop.
+   Eight of fourteen body paragraphs carried bold runs -- "I have ADHD",
+   "I ran 30 user interviews", "witnessing beats willpower" -- so the page read
+   as though a highlighter had been over it. And an oversized numeral inside a
+   sentence makes that paragraph's FIRST line box taller than its second, which
+   is the uneven rag visible in the screenshot. No amount of consistent margins
+   fixes a paragraph that is internally inconsistent.
+
+   1. THE BOLD GOES. The sentences already carry the emphasis; the weight was
+      saying it twice. Two weights is still the rule -- 600 is for HEADS. */
+/* WEIGHT AND INK BOTH. Dropping only the weight left the paragraph two-TONE:
+   body is rgb(83,84,102) and <strong> was rgb(9,11,36), so "I have ADHD" still
+   read as a darker patch mid-sentence even at 400. Measured, after looking at
+   the screenshot and not before it. */
+.content :is(.secBody,.baBody,.ovBody,.stat,.lede,.role p) :is(strong,b){
+ font-weight:400;
+ color:inherit;
+}
+/* THE LINK KEEPS ITS UNDERLINE AND GIVES UP THE OTHER TWO SIGNALS. It was
+   600-weight, full-ink AND underlined -- three ways of saying one thing, inside
+   a sentence that is otherwise one weight and one colour. The underline alone
+   is what says "link"; it is also the only one of the three that survives being
+   read by someone who cannot see the colour. */
+.content :is(.secBody,.baBody,.ovBody,.stat,.lede,.role p) a{
+ font-weight:400;
+ color:inherit;
+}
+
+/* 2. THE NUMERAL JOINS ITS SENTENCE. Same size, same leading, so every line box
+      in the paragraph is the same height and the rag is even. It keeps 600 and
+      tabular figures, which is enough to make a number read as a number -- it
+      does not also need to be twice the size of the words around it. */
+.content .statNum{
+ font-size:inherit;
+ font-weight:600;
+ letter-spacing:var(--tr-body);
+ line-height:inherit;
+}
+.content .statUnit{font-size:inherit;font-weight:600}
+
+/* 3. THE SOURCE LEAVES THE SENTENCE. It was a 12px fragment trailing the final
+      full stop, which is a third size inside the paragraph and reads as debris.
+      On its own line it is a citation, which is what it is. */
+.content .statSrc{
+ display:block;
+ margin-top:var(--sp-4);
+ font-size:var(--fs-label);
+ color:var(--c600);
+}
+
+
 
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
