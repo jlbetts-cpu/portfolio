@@ -2200,7 +2200,7 @@
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,GH=150,OFF=0,XL=0,XR=0;
- var goalReflL=null,goalReflR=null,ballRefl=null;
+ var goalReflL=null,goalReflR=null;
   /* ===== THE YOWMINGS LEAGUE: ONE ENGINE, A DIFFERENT OBJECTIVE =====
      Jayden: "pretty much the exact same but just more catered to fantasy football".
      Taken literally, and that is the whole design. There is no second engine, no second
@@ -2299,8 +2299,7 @@
    try{
     if(goalReflL&&goalL)goalReflL.style.opacity=goalL.style.opacity||"0";
     if(goalReflR&&goalR)goalReflR.style.opacity=goalR.style.opacity||"0";
-    if(ballRefl&&ball)ballRefl.style.opacity=ball.style.opacity||"0";
-   }catch(_){}
+       }catch(_){}
   }
 
   /* DEFINED IN HERE, AND THAT MATTERS. The first version of this helper landed
@@ -2347,17 +2346,8 @@
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camBack.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
    ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
-   /* and the ball's reflection is cloned here for the same reason: its skin is a
-      CHILD, so a clone taken at creation time mirrored an empty div. */
-   ballRefl=ball.cloneNode(true);ballRefl.className="hmBall hmBallRefl";ballRefl.setAttribute("aria-hidden","true");
    var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
    camFront.appendChild(ball);
-   /* APPENDED HERE, WHERE THE BALL ITSELF IS. The first attempt appended the
-      clone via ball.parentNode at the moment it was cloned -- and the ball has
-      no parent yet at that line, so the reflection was built and then dropped
-      on the floor. It measured as null in the DOM while every other check
-      passed, which is why the ball was the one thing still not reflecting. */
-   camFront.appendChild(ballRefl);
    goalShL=document.createElement("div");goalShL.className="hmGoalShadow";camBack.appendChild(goalShL);
    goalShR=document.createElement("div");goalShR.className="hmGoalShadow";camBack.appendChild(goalShR);
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";camBack.appendChild(goalL);   // left goal is RED\u2019s to defend
@@ -3371,17 +3361,6 @@ function teams(){
    var _by=0;   // the ball, goals, and companion feet render on the same published flat match plane; the planet arc remains decorative scenery only.
    var _drawHalf=BR*bsx*bsp,_drawBx=Math.max(XL+_drawHalf,Math.min(XR-_drawHalf,bx));
    if(ball){ball.style.transform="translate("+(_drawBx-BR).toFixed(1)+"px,"+(by-BR+_by).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates; the painted squash stays inside the arena even while physics contacts the wall
-   /* AND THE FOOTBALL REFLECTS.  "also the football needs the same reflection as
-      everything else."  Same clone-and-flip as the goals: mirrored about the
-      ground line, so the ball's reflection rises to meet it as it lands and
-      falls away as it climbs -- which is the whole reason a reflection reads as
-      water rather than as a decal. It carries the ball's own scale so a squashed
-      ball has a squashed reflection. */
-   if(ballRefl&&ball){
-    ballRefl.style.width=ball.style.width||"";ballRefl.style.height=ball.style.height||"";
-    ballRefl.style.opacity=ball.style.opacity||"";
-    ballRefl.style.transform="translate("+(_drawBx-BR).toFixed(1)+"px,"+(2*groundY-(by-BR+_by)).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+",-"+(bsy*bsp).toFixed(3)+")";
-   }
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
     var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane

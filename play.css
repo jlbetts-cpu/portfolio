@@ -418,10 +418,15 @@ body.hmYow .hmUpStem{top:var(--upBar);bottom:0;width:var(--stemW);left:50%;
  margin-left:calc(var(--stemW) / -2)}
 /* THE PAD. A pseudo-element rather than a fifth bar, because the engine's dom() owns how
    many children a goal has and this is a property of the column, not a new part. */
+/* THE PAD'S TERMINATOR LINES UP WITH THE METAL'S. Its shade side was
+   rgba(0,0,0,.14) against every member's rgba(24,14,0,.20) -- a different
+   colour AND a different depth, so the dark edge of the pad sat where the dark
+   edge of the column did not, on the same object. The highlight stays softer at
+   .26 because foam is not chrome; only the shadow joins the one value. */
 body.hmYow .hmUpStem::after{content:"";position:absolute;left:50%;bottom:0;
  width:calc(var(--stemW) * 2.3);height:44%;transform:translateX(-50%);
  border-radius:5px 5px 3px 3px;background-color:currentColor;
- background-image:linear-gradient(90deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%,rgba(0,0,0,.14))}
+ background-image:linear-gradient(90deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%,rgba(24,14,0,.20))}
 /* Near post = the field side, far post = flush to the wall. Mirrored per end, because the
    wall the aperture hangs on is on the opposite side at each. */
 body.hmYow .hmGoalR .hmUpPostF{left:0}
@@ -735,8 +740,8 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
    menu whatever its inline opacity says. This is the belt to that braces --
    Jayden saw them "in menu and in games down below", which is two screens that
    have no waterline at all. */
-.hmGoalRefl,.hmBallRefl{opacity:0}
-body.hmSoccer .hmGoalRefl,body.hmSoccer .hmBallRefl{opacity:1}
+.hmGoalRefl{opacity:0}
+body.hmSoccer .hmGoalRefl{opacity:1}
 /* ── THE MASK RUNS `to top`, AND THAT IS NOT A TASTE CALL.  2026-08-27 ──────
    Jayden: "why are the goals reflecting not at the base but farther away
    notice that." He was right and the pixels agreed: a 14px dead band under the
@@ -761,31 +766,30 @@ body.hmSoccer .hmGoalRefl,body.hmSoccer .hmBallRefl{opacity:1}
  z-index:1;pointer-events:none;
  transform-origin:0 0;
  filter:saturate(.42) contrast(.72) brightness(1.06);
- -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
-         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%);
+         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%);
 }
 @supports ((mask-composite:intersect) or (-webkit-mask-composite:source-in)){
  .hmGoalRefl{
-  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
+  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
   -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.72) 16%,rgba(0,0,0,.3) 40%,transparent 72%),
+  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
   mask-composite:intersect}}
 /* Where the heads' reflections are switched off, the goals' go with them --
    coarse pointers and the reduced/flat paths. One surface, one decision. */
 @media(pointer:coarse){.hmGoalRefl{display:none}}
 
-/* THE FOOTBALL'S REFLECTION. Same water, same falloff, same ripple as the goals
-   and the heads -- and z-index 1 so it sits under everything standing on the
-   pitch. It is a clone of .hmBall, so the skin, the shading layer and the ball's
-   own squash all come across for free; only the mirror is added here. */
-.hmBallRefl{z-index:1;pointer-events:none;transform-origin:0 0;
- filter:saturate(.42) contrast(.72) brightness(1.06);
- -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%);
-         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.7) 22%,rgba(0,0,0,.26) 52%,transparent 80%)}
-.hmBallRefl .hmBallShadow{display:none}
-@media(pointer:coarse){.hmBallRefl{display:none}}
+/* THE FOOTBALL DOES NOT REFLECT.  2026-08-27. He asked for it -- "also the
+   football needs the same reflection as everything else" -- looked at it and
+   withdrew it: "the reflection of the ball dont make sense just remove it if it
+   gonna look like that." He is right about why. A head and a goal STAND on the
+   pitch, so their reflection is anchored at their base and moves with them. The
+   ball is almost always in the AIR, so its mirror sits far below it with a gap
+   of empty water between -- which reads as a second ball, not a reflection.
+   The rule is gone rather than made invisible; the clone stops being built in
+   play-engine.js too. */
 /* ============ THE LOBBY FLOOR IS REFLECTIVE TOO ============================================
    Jayden: "I do want the room to be reflective like the soccer." The pitch has had honest
    reflections since the water landed and the lobby had none -- play-engine.js's one gate read
@@ -840,7 +844,7 @@ body.pHubOn .hmRefl{
    reflection becomes a hard-edged duplicate -- both worse than the pitch as it was, so take the
    pitch as it was. */
 @supports not ((-webkit-mask-image:radial-gradient(#000,#0000)) or (mask-image:radial-gradient(#000,#0000))){
- .hmPlanet,.hmSky,.hmWater,.hmRefl,.hmGoalRefl,.hmBallRefl{display:none}}
+ .hmPlanet,.hmSky,.hmWater,.hmRefl,.hmGoalRefl{display:none}}
 
 /* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
    Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
