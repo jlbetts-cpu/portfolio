@@ -869,8 +869,17 @@
     page, which is right for an object and wrong for a cell -- at 100ms it would tear a
     1px seam open and shut. One step deeper on the same ramp is the same information.
     ═══════════════════════════════════════════════════════════════════════════════════ */
+ /* A ROW IS AS TALL AS ITS OWN ROW.  2026-08-28.  "no menu changes or look to be
+    cleaner." grid-auto-rows:1fr made EVERY row as tall as the tallest cell in the
+    whole band, and the tallest is Tournament, whose description is the only one
+    that wraps to two lines at the two-column width. Measured at 1280: five of the
+    six cells carried 42px under the description where the padding declares 24 --
+    18px of nothing each, and 36px of nothing down the band. Cells still stretch
+    to their own row, so every row is still flush edge to edge; what goes is the
+    hole. (The orphan itself is still there: "like." sits alone on line two of the
+    Tournament card. That is a copy trim, and the copy is his.) */
  .pCards{pointer-events:auto;width:100%;max-width:var(--col-max);margin:0 auto;
-  display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;
+  display:grid;grid-template-columns:repeat(2,1fr);
   gap:var(--rule-w);background:var(--rule);
   border-block-start:var(--rule-w) solid var(--rule)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
@@ -884,24 +893,19 @@
      control system's rule, so these breathe at the same rate as the nav */
   transition-property:color,background-color;
   transition-timing-function:var(--ease-out);transition-duration:var(--hover-out-dur)}
- /* HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL. The fill ban stands; what changed is
-    that the answer now actually carries. Jayden: "the different modes need more of a hover
-    effect, right now it's too subtle", and he was right -- measured, the old response was a
-    rim going .08 -> .14 alpha and a description going #848591 -> #535466. Both are
-    half-steps you have to look for. Four things move now, and every one is composite-only
-    or a colour, so nothing reflows:
-      rim          --rim-1 .08  ->  --rim-3 .20   (2.5x the alpha, the ladder's own top rung)
+ /* WHAT MOVES ON HOVER: the ground, the description and the icon. Three colours and
+    a stroke width, nothing that reflows and nothing that casts.
+      ground       --theme-page -> --ctl-ground-hover (--c75 #f1f1f4)
       description  --c500 #848591 -> --c950 #090b24  (4.6:1 -> 17.4:1 on white)
       icon         --c700 #535466 -> --c950 #090b24, stroke 1.8 -> 2
-      the card     0 -> translateY(-2px)
-    The lift is the piece that makes it read as a card rather than as text changing colour,
-    and with the rim stepping up at the same time it reads as the card coming forward rather
-    than as a nudge. It is a transform, not a shadow -- chrome here still never casts.
-    NO WEIGHT CHANGE, deliberately: the title is already 600, and moving a weight re-measures
-    the text and reflows the card under the cursor.
-    ONE DURATION, 240ms, IN AND OUT. The hover-in used to snap at 160ms while the exit took
-    240ms; Jayden has called an animation abrupt twice, so the asymmetry is gone and both
-    directions take the slower rung on --ease-out. */
+    NO WEIGHT CHANGE, deliberately: the title is already 600, and moving a weight
+    re-measures the text and reflows the card under the cursor.
+    ONE DURATION, 240ms, IN AND OUT. The hover-in used to snap at 160ms while the exit
+    took 240ms; Jayden has called an animation abrupt twice, so the asymmetry is gone
+    and both directions take the slower rung on --ease-out.
+    (This note used to describe a rim step and a translateY(-2px) lift. Neither exists:
+    the block above replaced them with the ground when the cards became cells in a flush
+    grid, and a comment that lists rules the file does not contain is worse than none.) */
  .pCard:hover{background:var(--ctl-ground-hover)}
  .pCard:hover .pCardD{color:var(--c950)}
  .pCard:hover .gIco{color:var(--c950);stroke-width:var(--ico-stroke-strong)}
@@ -946,12 +950,6 @@
     and 52ch is ~260, which wrapped this description onto three lines where its neighbours
     take one. The rule belongs in the two-column world it was written for. */
  @media(min-width:561px){ .pCardWide .pCardD{max-width:52ch} }
- /* THE WIDE CELL IS THE SAME CELL. One span declaration and one measure -- no second
-    padding, no second type scale, no second hover, no rule of its own. Everything that
-    makes it read as part of the band is the band's, which is the point: it is a door in
-    the same grid, and the only thing it does differently is take both columns because
-    five doors cannot sit in two. At one column (the phone block below) the span is a
-    no-op and it is simply the first row. */
 
 
  /* ---- THE HOVER PREVIEW IS REMOVED, AND IT IS A DELETION RATHER THAN A DEFERRAL.
@@ -1442,25 +1440,26 @@
       display size the two clauses run together into one breathless sentence without it. -->
  <nav class="pCards" aria-label="Games">
   <!-- ═══════════════════════════════════════════════════════════════════════════════
-       SEVEN DOORS, ONE SPAN, AND THREE PAIRS. The count decided the span and the KINDS
-       decided the order, and neither is decoration.
+       SIX DOORS, NO SPAN, THREE PAIRS. The count decides whether anything spans and the
+       KINDS decide the order, and neither is decoration.
 
-       THE SPAN IS ARITHMETIC. Two columns and an odd number of cells leaves a hole, and a
-       hole in a flush grid is not white space -- the container's --rule ground shows
-       through it as a solid block. Something has to take a whole row. It is the League:
-       the newest thing here, and the one Jayden actually uses, since it settles a real
-       fantasy draft. (This reverses a note that stood while there were six; six divided and
-       the span had nothing to fix. Seven does not.)
+       NOTHING SPANS, BECAUSE SIX DIVIDES. Two columns and an ODD number of cells leaves a
+       hole, and a hole in a flush grid is not white space -- the container's --rule ground
+       shows through it as a solid block; that is the only thing .pCardWide was ever for.
+       The draft board left, six is three clean pairs, and the span has nothing to fix.
+       (This note said SEVEN, ONE SPAN long after the seventh card and the span were both
+       gone. Put a seventh door back and re-add pCardWide -- do not re-derive it.)
 
        THE ORDER IS THE ONLY GROUPING, because a heading or a divider here would be exactly
-       the chrome this page has had removed from it twice. Play now holds three different
-       kinds of thing and the rows say so by proximity alone:
-           the League          -- the new one, alone
-           match / tournament  -- the other two games
-           head / gradient     -- the two makers, both of which leave the page
-           workspace / board   -- the two that are simply his
-       Nothing is labelled. A visitor reads pairs down the column and the sorting is
-       obvious; that is what "premium is subtraction" buys you when it works.
+       the chrome this page has had removed from it twice. The sequence is games first,
+       then the makers, then his own app:
+           League · Play a match · Tournament · Add your head · Make a gradient · Workspace
+       Nothing is labelled. A visitor reads down the column and the sorting is obvious;
+       that is what "premium is subtraction" buys you when it works.
+       (The old note claimed the ROWS carried the grouping. At six cards in two columns
+       they do not -- Tournament and Add your head share a row and are different kinds --
+       so the sequence is the honest description. Do not reorder to make rows agree: the
+       three games have to come first, and that is what decides it.)
        ═══════════════════════════════════════════════════════════════════════════════ -->
   <button class="pCard" id="pcYow" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a6 6 0 0 1 4 4c0 6.075 -7.925 14 -14 14a6 6 0 0 1 -4 -4c0 -6.075 7.925 -14 14 -14z"/><path d="M12 8l4 4"/><path d="M10 10l4 4"/><path d="M8 12l4 4"/></svg>

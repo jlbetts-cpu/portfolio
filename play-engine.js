@@ -781,7 +781,34 @@
   heroR={w:hero.clientWidth,h:hero.clientHeight};
   var hr=hero.getBoundingClientRect();
   function rel(el){if(!el)return null;var r=el.getBoundingClientRect();if(!r.width)return null;return{l:r.left-hr.left,t:r.top-hr.top,r:r.right-hr.left,b:r.bottom-hr.top};}
-  bigR=rel(document.getElementById("stage"));                     // the big head is the one solid thing besides the walls
+  /* ---- A STAGE ON LOAN IS NOT A MEASUREMENT OF THE STAGE.  2026-08-28 ----
+     "the heads did shrink they are miniture now in the football match." They
+     did, and only in the League. Bisected on ONE port with ONE roster held in
+     localStorage across every commit (a worktree per commit is a different
+     origin and therefore a different roster, which is what made the last
+     attempt at this measure storage instead of code): 108px through 2358240,
+     66px from 18ae59e on. 18ae59e is "Not a copy of the head: the head" --
+     the League kickoff stopped cloning the dropper's face and started BORROWING
+     #stageMorph itself, which is right and stays. But the borrowed node spends
+     1.2s inside .hmDropper, where #stage measures 142px instead of 469, and
+     survey() happens to run in that window. The size rule below is
+     stage-width*0.27 clamped to [66,108]: 142*0.27 = 38, so every companion was
+     resized to the floor -- and survey() does not run again on its own, so 66px
+     is where they stayed for the rest of the match.
+     The head being away is exactly the case the FLOOR already handles by
+     falling back to its cached plane; the SIZE branch never learned the same
+     lesson. .isBorrowed is on the node for precisely the length of the ceremony
+     (added at borrow, removed in cleanUp), so the loan is a fact this function
+     can read rather than a flag it has to be told. While it is out we KEEP the
+     last honest measurement rather than nulling it: bigR is module-scoped and
+     eleven other things read it (the secure-base wander, the spectator gaze,
+     the never-slip-behind-his-face z-index), so a null would quietly change
+     behaviour that has nothing to do with size, and survey() is rare enough
+     that it would stay null for the rest of the session. */
+  var stageEl=document.getElementById("stage"),stageLoan=false;
+  try{for(var _lp=stageEl;_lp&&_lp!==document.body;_lp=_lp.parentNode){
+    if(_lp.classList&&_lp.classList.contains("isBorrowed")){stageLoan=true;break;}}}catch(_){}
+  if(!stageLoan)bigR=rel(stageEl);   // the big head is the one solid thing besides the walls
   var gameOn=document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmBattle");   // during a game the big head STEPS OFF (fades + shifts) and the hero box measures shorter -- so his position is NOT the floor then
   var fY;
   // The floor used to clamp to heroR.h-2, which only reserves room for the FEET. The shadow is
