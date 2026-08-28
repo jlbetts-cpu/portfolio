@@ -379,30 +379,79 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
    against by its centre. */
 .hmUpStem,.hmUpBar,.hmUpPost{display:none}
 body.hmYow{--yp:224,154,16;--yp-far:150,100,14;--yp-lit:255,196,52}
-body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;color:rgb(var(--tc1,224,90,78));
- --upW:8px;--upBarH:10px;--stemW:12px}
+/* ── THE SOCCER GOAL COMES BACK, WITH A RIM ON TOP.  2026-08-27 ────────────
+   Jayden: "i want the goal to still look the same and it kinda be like a basket
+   where you can kick it in the side or make it like a basketball on top I like
+   how the goals look for the soccer more than the goal posts they look kinda
+   lame."
+   THE GEOMETRY ALREADY SAID THIS AND NOBODY HAD DRAWN IT. The element is
+   UPW x (UCB+UPH) and --upBar splits it: everything BELOW that line is the goal
+   body, everything ABOVE it is the scoring aperture, because the League's
+   predicate scores in the band over the crossbar. So the two halves want two
+   different objects, and they always did -- the uprights just painted one stick
+   through both. Below the line is the goal, netted and posted exactly as
+   soccer's is. Above it is the rim the ball drops through. That IS "a basket
+   you kick into the side, or a basketball on top": the same object read either
+   way, and not one number of the scoring geometry moves.
+   THE NET IS MASKED, NOT REBUILT. One linear-gradient mask on .hmGoal keeps the
+   net, the coloured post and the top/bottom rules that soccer already owns, and
+   simply stops them at the crossbar. Nothing in the soccer block is touched, so
+   the two modes cannot drift apart. */
+body.hmYow{--yp:224,154,16;--yp-far:150,100,14;--yp-lit:255,196,52;
+ --rimH:11px;--rimOver:9px}
+/* THE NET GETS ITS OWN LAYER, because a mask does not.  First attempt masked
+   .hmGoal to below the crossbar and it took the rim and both posts with it --
+   mask-image applies to an element AND its descendants, and the rim and posts
+   ARE descendants. Rendered it, saw two bare nets and a gold line, which is how
+   that was caught rather than by reading the spec again.
+   .hmUpStem was the old column and has nothing to hold up now, so it becomes
+   the goal body: same net, same coloured post, same top and bottom rules that
+   soccer authors, occupying exactly the span below --upBar. .hmGoal itself
+   paints nothing and is only the box everything is positioned in. */
+body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;
+ color:rgb(var(--tc1,224,90,78))}
 body.hmYow .hmGoalB{color:rgb(var(--tc2,90,160,216))}
 body.hmYow .hmGoal::before,body.hmYow .hmGoal::after{display:none}
-body.hmYow .hmUpStem,body.hmYow .hmUpBar,body.hmYow .hmUpPost{
- display:block;position:absolute;--memb:rgb(var(--yp));background-color:var(--memb);
- border-radius:3px}
-/* The cylinder. Across the member, never along it: a bar lit down one edge is round, a bar
-   lit at one end is a tube pointing at the camera. */
-body.hmYow .hmUpPost,body.hmYow .hmUpStem{
- background-image:linear-gradient(90deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
+body.hmYow .hmUpStem{
+ display:block;position:absolute;left:0;right:0;top:var(--upBar);bottom:0;
+ width:auto;border-radius:3px;
+ background:repeating-linear-gradient(45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px),
+            repeating-linear-gradient(-45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px);
+ border-top:2.5px solid currentColor;border-bottom:2.5px solid currentColor;
+ box-sizing:border-box;
+}
+/* the coloured post, on the side the ball comes from -- soccer's ::before, moved
+   onto the layer that is now the goal */
+body.hmYow .hmUpStem::after{
+ content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:var(--r-2xs);
+ background:currentColor;box-shadow:0 0 7px currentColor;
+}
+body.hmYow .hmGoalR .hmUpStem::after{right:-1px}
+body.hmYow .hmGoalB .hmUpStem::after{left:-1px}
+/* THE RIM. An open ring, not a bar: fully round ends and a hollow centre, so it
+   reads as something a ball goes THROUGH rather than a beam it bounces off. It
+   overhangs both posts, which is what makes a hoop look like a hoop and is also
+   the only px here that is not derived from --upBar. */
 body.hmYow .hmUpBar{
- background-image:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
-body.hmYow .hmUpBar{left:calc(var(--upW) / -2);right:calc(var(--upW) / -2);top:var(--upBar);
- height:var(--upBarH);margin-top:calc(var(--upBarH) / -2)}
-body.hmYow .hmUpPost{top:0;height:calc(var(--upBar) + var(--upBarH) / 2);width:var(--upW)}
-body.hmYow .hmUpStem{top:var(--upBar);bottom:0;width:var(--stemW);left:50%;
- margin-left:calc(var(--stemW) / -2)}
-/* THE PAD. A pseudo-element rather than a fifth bar, because the engine's dom() owns how
-   many children a goal has and this is a property of the column, not a new part. */
-body.hmYow .hmUpStem::after{content:"";position:absolute;left:50%;bottom:0;
- width:calc(var(--stemW) * 2.3);height:44%;transform:translateX(-50%);
- border-radius:5px 5px 3px 3px;background-color:currentColor;
- background-image:linear-gradient(90deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%,rgba(0,0,0,.14))}
+ display:block;position:absolute;
+ left:calc(var(--rimOver) * -1);right:calc(var(--rimOver) * -1);
+ top:var(--upBar);height:var(--rimH);margin-top:calc(var(--rimH) / -2);
+ border-radius:var(--r-pill);
+ border:3px solid rgb(var(--yp));
+ background:linear-gradient(180deg,rgba(var(--yp-lit),.55),rgba(var(--yp),0) 55%);
+ box-sizing:border-box;
+}
+/* Two short pipes carrying the rim, stopping AT it -- they frame the aperture
+   and never cross into the goal below. */
+body.hmYow .hmUpPost{
+ display:block;position:absolute;top:0;
+ height:calc(var(--upBar) + var(--rimH) / 2);width:var(--upW,8px);
+ border-radius:var(--r-pill);
+ background:linear-gradient(90deg,rgba(var(--yp-far),1),rgba(var(--yp-lit),1) 42%,rgba(var(--yp),1));
+}
+body.hmYow .hmUpPostN{right:calc(var(--upW,8px) / -2)}
+body.hmYow .hmUpPostF{left:calc(var(--upW,8px) / -2);background:linear-gradient(90deg,rgba(var(--yp-far),1),rgba(var(--yp),1))}
+
 /* Near post = the field side, far post = flush to the wall. Mirrored per end, because the
    wall the aperture hangs on is on the opposite side at each. */
 body.hmYow .hmGoalR .hmUpPostF{left:0}
