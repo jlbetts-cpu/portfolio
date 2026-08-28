@@ -650,38 +650,58 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 @property --mock-sky-low{syntax:"<color>";inherits:true;initial-value:transparent}
 @property --mock-sky-mid{syntax:"<color>";inherits:true;initial-value:transparent}
 @property --mock-sky-high{syntax:"<color>";inherits:true;initial-value:transparent}
+/* ── NO CONTAINER AT ALL.  2026-08-27 ──────────────────────────────────────
+   "container should no longer show actually should be completely clean", and
+   with it the two things that were symptoms of the box rather than faults of
+   their own: "the apollo section header like The latest design. looks
+   disconnected from the image like its not even in the box also the indicators
+   not in the container for some reason."
+   Both were true, and both were the BOX's fault. A heading and a tick row that
+   live in the document flow will never sit inside a panel that starts below
+   them -- the container drew an edge, and everything outside that edge then
+   read as excluded from it. Take the edge away and there is nothing to be
+   outside of: the picture, its one line and its ticks are simply a run of
+   things on the page, which is what the reference does and what he has asked
+   for four times now in four different words.
+   GONE: the ground colour, the radius, the --rim-1 hairline and the padding.
+   KEPT: width and centring, which are layout and not decoration. */
 .content :is(.playerStage,.tv.tvPhone .tvFrame){
- /* ── NO GRADIENT ON THE MOCKUP GROUND.  2026-08-27 ────────────────────────
-    "take the gradient off the phone mockups."  It had been the hero's own
-    radial, sampled stop for stop, and it was still one more thing on a page he
-    is trying to quieten. A screenshot does not need a sky behind it; it needs
-    somewhere to sit. So the ground is the page's own quiet tint and a hairline,
-    which is what every other surface on this site separates with.
-    The per-hour --mock-sky-* table below is now unused by this rule and is left
-    in place deliberately -- it is sampled from hero-time.css and re-deriving it
-    is the expensive part. If the ground stays flat for good, delete the table
-    and the @property registrations together. */
- background:var(--c50);
- /* MARGIN TO MARGIN. It was 504px inside a 1200px column -- a card hugging the
-    phone rather than a ground the phone stands on, which is what he saw:
-    "shouldnt the box be like margin to margin". The image keeps its own width
-    and centres; only the GROUND spans the column. */
+ background:none;
+ border-radius:0;
+ box-shadow:none;
+ padding-block:0;
  width:100%;
  display:flex;align-items:center;justify-content:center;
- border-radius:var(--r-lg);corner-shape:var(--corner);
- padding-block:var(--sp-24-40);
- box-shadow:var(--rim-1);   /* --rim-1, not --rule: this edges an OBJECT. --rule is for a line that crosses the page, and tools/structure-rule-contract.py counts its occurrences for exactly that reason. */
- /* named once and used twice, so the two stops cannot drift from each other or
-    from the cover. hero-time.css is not linked on a case study, so today both
-    fall back to --dur-enter -- the same value site-theme.css's .csImgOut ghost
-    resolves to. Written as the fallback pair rather than as --dur-enter so that
-    if the sky's own clock ever reaches these pages the ground moves with it. */
- --mock-fade:var(--hero-time-duration,var(--dur-enter));
- --mock-fade-ease:var(--hero-time-ease,var(--ease-out));
- transition:--mock-sky-low var(--mock-fade) var(--mock-fade-ease),
-            --mock-sky-mid var(--mock-fade) var(--mock-fade-ease),
-            --mock-sky-high var(--mock-fade) var(--mock-fade-ease);
 }
+
+/* THE OUTER WRAPPER IS A CONTAINER TOO, and it was the one actually drawing the
+   box he could see. .playerStage / .tvFrame is the INNER stage; .tv.collection
+   wraps the tab row AND the stage and carries the white ground, the 28px radius
+   and the inset hairline. Clearing only the inner one left the visible panel
+   untouched, which is why the first attempt looked unchanged.
+   THIS IS ALSO THE WHOLE OF "The latest design. looks disconnected from the
+   image like its not even in the box" AND "the indicators not in the
+   container": the caption and the ticks sit in the document flow OUTSIDE this
+   wrapper, so the wrapper drew a line around some of the group and not the
+   rest. With no line there is no inside to be excluded from. */
+.content .tv.collection,
+.content .tv.tvPhone.collection{
+ background:none;
+ box-shadow:none;
+ border-radius:0;
+}
+
+/* THE CAPTION BINDS TO ITS PICTURE, same rule as the kickers. It is ordered
+   above the media inside .photoFig, and the media kept a 40px top margin that
+   was written when the caption was BELOW it -- so reordering left the label
+   floating 52px clear of the thing it names. Measured: cap margin-bottom 12 +
+   media margin-top 40. The gap belongs above the CAPTION, not between the
+   caption and its picture, exactly like .kicker and .secHead. */
+.content .photoFig>figcaption.cap{margin-block:0 var(--sp-8)}
+.content .photoFig>:is(.player,.tv){margin-block-start:0}
+.content .photoFig{margin-block-start:var(--sp-40)}
+
+
 :root[data-theme-state="off"]      .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#e9eaec;--mock-sky-mid:#f1f2f3;--mock-sky-high:#f6f7f8}
 :root[data-theme-state="pre-dawn"] .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#486ffd;--mock-sky-mid:#c489ff;--mock-sky-high:#eadcff}
 :root[data-theme-state="sunrise"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#cb83ff;--mock-sky-mid:#ffc977;--mock-sky-high:#fff1dc}
@@ -734,10 +754,11 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 }
 .content .crslNav.ctl--icon:hover{background:none;color:var(--c950)}
 
-/* THE GROUND STOPS BEING A ROOM. It was padding-block var(--sp-24-40) on a box
-   that is now the full column, so the phone sat in a large empty field -- the
-   "spacing is off" half of it. */
-.content :is(.playerStage,.tv.tvPhone .tvFrame){padding-block:var(--sp-16-24)}
+/* THE ROOM'S LAST PADDING GOES TOO. This rule survived the container's removal
+   and, sitting later in the same file at equal specificity, quietly beat it --
+   background, radius and hairline were all cleared while a 24px pad stayed and
+   kept the picture floating in space. Found by asking the browser which rules
+   match, which is the only reliable way to answer an order question. */
 
 /* THE BEZEL IS OUT AGAIN, SAME DAY IT WENT IN. He asked for it -- "needs to be
    a clear iphone there needs to be border on the screen" -- looked at it, and
@@ -859,14 +880,23 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    naming it here means naming everything it is ever put on. The bare paragraph
    is already covered by `.content .sec p`, which is the whole reason that
    selector exists. */
-.content .sec p,
+/* `.content p`, NOT `.content .sec p`.  Scoping to sections is what let the
+   Role paragraph escape -- "I led the visual design and built the system..."
+   lives in .role, outside every .sec, and came back 18px on 27px leading in
+   full ink at margin-top 0 while every other paragraph was 21 on 31.32 in
+   rgb(83,84,102) at 16. He spotted it on the page; the audit had been scoped
+   to sections and could not see it.
+   THIS IS THE SECOND TIME the same mistake shipped: first naming classes, then
+   naming a container. A paragraph in this article is a paragraph wherever it
+   sits, so the selector finally says exactly that. */
+.content p,
 .content :is(.secBody,.ovBody,.baBody,.stat,.lede){
  margin-block:var(--sp-16) 0;
  color:var(--c700);
  font-size:var(--cs-prose);
  line-height:var(--lh-body);
 }
-.content .sec p:first-child,
+.content p:first-child,
 .content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
 
 .content .baText .subHead{margin-block:var(--sp-32) var(--sp-8)}
