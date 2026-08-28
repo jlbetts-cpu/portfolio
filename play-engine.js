@@ -893,7 +893,19 @@
   cv9.style.cssText="position:fixed;left:0;top:"+hr9.top.toFixed(0)+"px;width:100vw;height:"+hr9.height.toFixed(0)+"px;pointer-events:none;z-index:62";
   document.body.appendChild(cv9);var g9=cv9.getContext("2d");
   var cols=(colsIn&&colsIn.length)?colsIn:["#e05a4e","#e8b84b","#5aa0d8","#67b26f","#8a6fd8","#d87ea8"],pc=[];
-  for(var q9=0;q9<130;q9++)pc.push({x:Math.random()*innerWidth,y:-20-Math.random()*220,
+  /* ── cx0 IS AN ARGUMENT AND IT WAS NEVER READ.  2026-08-27 ──────────────────
+     Jayden: "the confetti doesnt go in the right spot." It went in NO spot:
+     confettiBurst(cx0,colsIn) has taken an origin since it was written, the win
+     path passes heroR.w*0.5, and the spawn line said Math.random()*innerWidth --
+     so every burst rained evenly across the whole viewport regardless of where
+     the thing being celebrated was. The parameter was documentation, not code.
+     cx0 arrives in HERO coordinates and this canvas is viewport-wide at left:0,
+     so it is offset by the hero's own left edge before use. The spread is a
+     third of the viewport either side, clamped in, so it still reads as a
+     shower rather than a jet -- the fix is that it is a shower FROM SOMEWHERE. */
+  var ox9=hr9.left+(typeof cx0==="number"?cx0:hr9.width*0.5);
+  var sp9=Math.max(160,innerWidth*0.34);
+  for(var q9=0;q9<130;q9++)pc.push({x:Math.min(innerWidth-4,Math.max(4,ox9+(Math.random()*2-1)*sp9)),y:-20-Math.random()*220,
    vy:105+Math.random()*120,ph:Math.random()*6.28,sw:22+Math.random()*34,fq:1.1+Math.random()*1.6,
    w:6+Math.random()*4,h:3+Math.random()*3,c:cols[q9%cols.length],rv:2+Math.random()*4});
   var t9=0,l9=performance.now();
@@ -1042,7 +1054,12 @@
    setTimeout(function(){if(grabbed||perched||air)return;bf=5;air=true;st="fall";surface=floorY;
     vx=-dir*(70+Math.random()*50);vy=-(240+Math.random()*80);sqT=0.11;sqyP=0.88;sqxP=1/0.88;},170);}}
   else {} // otherwise: a beat of rest
- }
+ } /* EXPOSED FOR THE SAME REASON __hmSpawnOne AND __hmKill ARE: this is the only
+    way to see the burst without winning a match to reach it, and "the confetti
+    doesnt go in the right spot" is exactly the kind of bug that hides behind a
+    five-minute cup. Takes the same arguments as the internal call. */
+ try{window.__hmConfettiAt=confettiBurst;}catch(_){}
+
  // --- grab like a Mii ---
  root.addEventListener("pointerdown",function(e){
   if(reduce)return;e.preventDefault();
