@@ -360,6 +360,16 @@
    on=b.contains("pHubOn")&&!b.contains("hmSoccer")&&!b.contains("hmBattle")&&!b.contains("hmTour")&&!window.__hmRaceOn;
    return on;};})();
  var REFL_K=0.9;
+ /* THE ONE ALPHA EVERY REFLECTION ON THIS PITCH USES. It was written inline in
+    the head path as 0.36*REFL_K and copied nowhere, so when the goals learned to
+    reflect they took their own opacity instead and came out 3.1x too strong.
+    Named so the next thing that reflects cannot invent a third value. */
+ var REFL_ALPHA=0.36;
+ function reflAlpha(op){
+  var o=parseFloat(op);
+  if(!(o>=0))o=0;
+  return (o*REFL_ALPHA*REFL_K).toFixed(3);
+ }
  // PERSPECTIVE COMPRESSION -- the reason a straight scale(1,-1) reads as a pasted, flipped copy.
  // A mirror is not what a viewer standing above a reflective surface sees: the reflection recedes
  // away from the eye while the object rises toward it, so the reflected image is vertically
@@ -1228,7 +1238,7 @@
    root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px)";
    shadow.style.transform="translate("+(x+HW*0.06).toFixed(1)+"px,"+(floorY+HH*FOOT-2).toFixed(1)+"px)";shadow.style.opacity=shown?"0.36":"0";
    if(_lob){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
-    refl.style.transform="translate("+x.toFixed(1)+"px,"+floorY.toFixed(1)+"px) scale(1,-1) scale(1,"+REFL_PERSP.toFixed(3)+")";refl.style.opacity=(0.36*REFL_K).toFixed(3);}
+    refl.style.transform="translate("+x.toFixed(1)+"px,"+floorY.toFixed(1)+"px) scale(1,-1) scale(1,"+REFL_PERSP.toFixed(3)+")";refl.style.opacity=reflAlpha(1);}
    else refl.style.opacity="0";
    return;}
   if(!shown)return;
@@ -2297,8 +2307,17 @@
      outlive the thing it reflects again. */
   function syncRefl(){
    try{
-    if(goalReflL&&goalL)goalReflL.style.opacity=goalL.style.opacity||"0";
-    if(goalReflR&&goalR)goalReflR.style.opacity=goalR.style.opacity||"0";
+    /* THE GOAL REFLECTS AT THE HEADS' STRENGTH, NOT AT ITS OWN OPACITY.
+       Jayden: "the reflection is a bit too strong compared to the heads."
+       Measured, and he was exactly right: a head writes 0.36*REFL_K = 0.324,
+       while this line was copying the GOAL's opacity straight across -- 1.0
+       whenever the goal is up. The goal was reflecting 3.1x harder than the
+       thing standing next to it in the same water.
+       REFL_ALPHA is the shared constant now, so the two cannot drift again;
+       multiplying by the goal's own opacity keeps the fade in and out intact,
+       which is the job this function was written to do. */
+    if(goalReflL&&goalL)goalReflL.style.opacity=reflAlpha(goalL.style.opacity);
+    if(goalReflR&&goalR)goalReflR.style.opacity=reflAlpha(goalR.style.opacity);
        }catch(_){}
   }
 
@@ -2697,7 +2716,11 @@ function teams(){
      through deuce and past the cap for every match since. */
   function ruleLabel(){if(!board)return;var el=board.querySelector(".sbRule")||board.querySelector("small");if(!el)return;
    var mx=Math.max(S.red,S.blue),df=Math.abs(S.red-S.blue),t;
-   if(mx>=S.cap-1)t="First to "+S.cap;
+   /* AT A TARGET OF ONE THERE IS NO DEUCE AND NO CAP TO CLIMB TOWARD, so the
+      three-branch ladder below has nothing to say -- every branch of it would
+      print a number that is also the finish line. One sentence instead. */
+   if(S.target<=1)t="One score wins";
+   else if(mx>=S.cap-1)t="First to "+S.cap;
    else if(mx>=S.target&&df<2)t="Win by 2";
    else t="First to "+S.target;
    if(el.textContent!==t)el.textContent=t;}
@@ -2780,11 +2803,28 @@ function teams(){
          var left=(T.br.rounds.length-1)-T.cur.round;   // 0 = the final
          t=(left<=0)?5:(left===1?4:3);
        }
+       /* ── THE LEAGUE IS ONE SCORE.  2026-08-27 ────────────────────────────
+          Jayden: "for the tournment we should remove the scoreboard and it
+          should be one score wins and making that one point as cinimatic and
+          entertaining as possible."
+          This is the LAST lever on the cup's length and it is the only one he
+          had not already ruled out. Measured earlier: 93.2% of a full cup was
+          the match segment -- 1,177s of 1,264 -- so every non-match saving put
+          together could not reach ten minutes while fixtures ran to 3, 4 and 5.
+          One score collapses that directly, and it does it by making the match
+          MORE tense rather than by trimming around the edges.
+          It also retires win-by-two here, which cannot mean anything at a
+          target of one: cap === target, so the first score ends it, full stop.
+          THE STEPPED LADDER STAYS FOR THE SOCCER CUP. 3/4/5 with the final
+          stepped up is sourced (CS Majors, VALORANT, TI) and he never asked to
+          change it -- this branch is the League only, and a standalone
+          kickabout still runs first-to-5. */
+       if(YOW){ t=1; }
      }catch(_){}
      /* cap = target+2, not +3. Win-by-two is what makes a close match worth watching, but at
         +3 a first-to-3 could grind to 6-5 -- one measured fixture took 69s against a 16s
         median. Two points of deuce keeps the drama and cuts the tail. */
-     S.target=t; S.cap=t+2;
+     S.target=t; S.cap=(t<=1)?t:t+2;   // at a target of one there is no deuce to have
    })();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced

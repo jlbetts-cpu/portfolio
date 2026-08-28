@@ -2261,6 +2261,13 @@ function ord(n){ var s = ['th','st','nd','rd'], v = n % 100;
    scoreboard's own `.sbRule` on a LIVE match, so the two cannot drift without the gate
    failing. A comment is not an invariant. ---- */
 function matchLength(round){
+  /* THE LEAGUE IS ONE SCORE, AND THIS LANE STILL DOES NOT OWN THE NUMBER.
+     2026-08-27. play-engine.js takes t=1 whenever YOW is on, before the
+     stepped ladder can apply; the same short-circuit is mirrored here, in the
+     same order, for the same reason the ladder below is mirrored -- the label
+     must never state a rule the engine is not running. play-screens-contract
+     checks this against a LIVE match, so the two cannot drift silently. */
+  if (window.__hmYowLeague) return 1;
   var left = (T.br.rounds.length - 1) - (round | 0);
   return (left <= 0) ? 5 : (left === 1 ? 4 : 3);
 }
@@ -2313,8 +2320,13 @@ function buildTape(A, B, nm2){
     if (p.childNodes.length) p.appendChild(el('br'));
     p.appendChild(document.createTextNode(txt));
   }
-  try{ if (nm2) line('First to ' + matchLength(nm2.round) + ', win by two. '
-                    + stakesLine(nm2.round)); }catch(_){}
+  /* "Win by two" cannot be said about a target of one, and "First to 1" reads
+     like a bug rather than a rule. One score wins is the whole sentence. */
+  try{ if (nm2){
+    var _len = matchLength(nm2.round);
+    line((_len <= 1 ? 'One score wins. ' : 'First to ' + _len + ', win by two. ')
+         + stakesLine(nm2.round));
+  } }catch(_){}
   try{ line(formLine(A, B)); }catch(_){}
   try{
     var ka = A && A.slots && A.slots[0], kb = B && B.slots && B.slots[0];

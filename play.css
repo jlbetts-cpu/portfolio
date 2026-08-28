@@ -398,8 +398,22 @@ body.hmYow{--yp:224,154,16;--yp-far:150,100,14;--yp-lit:255,196,52}
    visibly one system, and it changes no geometry. A ball crossing the plane
    crosses the net. */
 body.hmYow{--yp:224,154,16;--yp-far:150,100,14;--yp-lit:255,196,52}
+/* --upBar HAS A DEFAULT, AND IT IS LOad-BEARING.  2026-08-27.
+   The engine writes --upBar per match (play-engine.js sets it to UPH). Every
+   member of the post is built off it -- the bar's top, the stem's top, and
+   .hmUpPost's height via calc(var(--upBar) + var(--upBarH)/2). With the custom
+   property UNSET that calc() is invalid at computed-value time, and this repo
+   has been bitten by that rule before: it falls back to `unset`, NOT to a
+   previous declaration. Height resolves to auto, every member measures 0x0, and
+   the entire goal renders as nothing at all -- measured exactly that way while
+   inspecting the post, four children at 0x0.
+   62% is the proportion the engine's own UPH works out to, so the shape is
+   right before the first frame and identical after it. The engine's px value
+   overrides this the moment it lands; this only decides what a goal looks like
+   when something upstream has not run yet, and the answer should not be
+   "invisible". */
 body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;color:rgb(var(--tc1,224,90,78));
- --upW:8px;--upBarH:10px;--stemW:12px}
+ --upBar:62%;--upW:8px;--upBarH:10px;--stemW:12px}
 body.hmYow .hmGoalB{color:rgb(var(--tc2,90,160,216))}
 body.hmYow .hmGoal::before,body.hmYow .hmGoal::after{display:none}
 body.hmYow .hmUpStem,body.hmYow .hmUpBar,body.hmYow .hmUpPost{
@@ -441,13 +455,7 @@ body.hmYow .hmUpPostF{--memb:rgb(var(--yp-far));width:calc(var(--upW) - 2px)}
    were off it, was already right. So it goes. What he asked for in the end was
    one sentence long: "make it still feel like a field goal post." */
 
-/* Near post = the field side, far post = flush to the wall. Mirrored per end, because the
-   wall the aperture hangs on is on the opposite side at each. */
-body.hmYow .hmGoalR .hmUpPostF{left:0}
-body.hmYow .hmGoalR .hmUpPostN{right:0}
-body.hmYow .hmGoalB .hmUpPostF{right:0}
-body.hmYow .hmGoalB .hmUpPostN{left:0}
-body.hmYow .hmUpPostF{--memb:rgb(var(--yp-far));width:calc(var(--upW) - 2px)}
+
 /* ===== THE BALL IS THROUGH, AND YOU CAN SEE THAT IT IS =====
    Jayden, watching a cup: "i cant tell if its going through or not." The uprights are
    drawn near-and-far across the aperture, so the whole picture depends on knowing which
@@ -880,6 +888,21 @@ body.pHubOn .hmRefl{
    crosses it -- it just no longer wins against a head or the ball passing through. Position is
    untouched (left/top/transform, all unrelated to z-index) and it stays a direct child of
    `hero`, never a .hmCamBack/.hmCamFront descendant, so stagePunch() still can't move it. */
+/* ── THE LEAGUE HAS NO SCOREBOARD.  2026-08-27 ─────────────────────────────
+   "for the tournment we should remove the scoreboard and it should be one
+   score wins."
+   A scoreboard exists to hold a running total. At one score there is no total
+   to hold -- it would read 0-0 for the whole match and then the match would be
+   over, so the only number it could ever show is the one that ends it. It is
+   chrome with nothing to say, standing over the pitch.
+   The DIGITS go. The team identity does not: .sbTeams keeps the two names and
+   colours up top, because a viewer arriving mid-match still has to know who is
+   playing. That is the part of this component that was never about counting.
+   The soccer cup keeps its board whole -- this is body.hmYow only. */
+body.hmYow .hmScore .sR,
+body.hmYow .hmScore .sB,
+body.hmYow .hmScore .sbMeta{display:none}
+body.hmYow .hmScore{background:none;box-shadow:none;padding:0}
 .hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:var(--sp-12);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:var(--sp-8)}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:var(--r-full)}
