@@ -826,8 +826,15 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    --cs-prose is local to these five pages on purpose: --fs-prose is shared with
    home and About and this is not a site-wide type change. */
 .content{--cs-prose:clamp(17px,1.45vw,21px)}
+/* .rv IS NOT IN THIS LIST AND MUST NEVER BE.  It was added to catch one bare
+   <p class="rv"> on bearings, and it caught the H1 too -- <h1 class="head rv">
+   -- so the page title rendered at body size, 20.88px, the same as the
+   paragraph under it. That is a reveal-animation hook, not a text role, and
+   naming it here means naming everything it is ever put on. The bare paragraph
+   is already covered by `.content .sec p`, which is the whole reason that
+   selector exists. */
 .content .sec p,
-.content :is(.secBody,.ovBody,.baBody,.stat,.lede,.rv){
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede){
  margin-block:var(--sp-16) 0;
  color:var(--c700);
  font-size:var(--cs-prose);
@@ -855,6 +862,58 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .content .sec>.kicker{margin-block:var(--sp-64) 0}
 .content .sec>.kicker:first-child{margin-block-start:0}
 .content .kicker + .secHead{margin-block-start:var(--sp-8)}
+
+/* ── A HEADING IS NEVER SMALLER THAN ITS BODY.  2026-08-27 ──────────────────
+   "header being smaller than the body text feels weird." It was, and I did it:
+   raising the body to --cs-prose (20.88px at 1440) left .subHead behind on
+   --fs-prose (18px), so a subsection heading rendered SMALLER than the sentence
+   it introduced. .subHead now rides the same token as the body it heads, so the
+   two cannot come apart again whatever --cs-prose is set to. It keeps 600 and
+   the body's leading, which is what makes it a heading at the same size. */
+.content .subHead{font-size:var(--cs-prose)}
+
+/* ── THE SUB-LABEL GOES, AND WHAT IS LEFT BINDS TIGHT.  2026-08-27 ──────────
+   "the section head for the mockups look so disconnected looks weird wouldnt
+   use it there as well" -- and, on bearings, "there is a huge empty space
+   between solution and onboarding".
+   THEY ARE THE SAME DEFECT ONE LEVEL DOWN. Measured inside the Onboarding
+   block: .subKick ("Onboarding") sat 32px above .subHead ("The feeling comes
+   before the form"), while the section-level kicker had just been bound to its
+   own head at 8. So a 12px word floated above a heading that floated above a
+   mockup -- three things stacked with nothing holding them together, which is
+   the disconnection he is describing.
+   THE LABEL IS THE ONE THAT GOES. He said he would not use it there, and it is
+   the piece carrying least: .subHead already says what the block is, in a
+   sentence. The mockup keeps one line of introduction instead of two, and that
+   line now sits on the block's own 32 rather than floating between rungs. */
+.content .subBlock>.subKick,
+.content .baText>.subKick{display:none}
+.content .subKick + .subHead{margin-block-start:0}
+
+/* ── THE MOCKUPS COME DOWN 15%.  2026-08-27 ─────────────────────────────────
+   "i feel like the mockups might feel slightly too large." His "slightly" has a
+   measured range on this project -- 10 to 25 percent, never a big jump -- so
+   this is one step at the bottom of it: the phone goes 360 -> 306px wide, 783
+   -> 666 tall.
+   IT IS A LOCAL TOKEN, NOT --panel-w. --panel-w is 360 because it agrees with
+   --mk-panel and the Maker's inspector (tokens.css:961 says so explicitly);
+   moving it would resize a tool on another page to fix the look of a picture on
+   this one. --cs-phone is scoped to the five case studies and nothing else
+   reads it. */
+.content{--cs-phone:306px}
+/* THE COLLECTION'S OWN SELECTOR HAS TO BE MATCHED, not out-guessed.
+   controls.css carries `.tv.collection.tvPhone .collection__content > img` at
+   width:min(var(--panel-w),100%), which is (0,4,1) and beat the first attempt
+   here -- so cluster and ucdavis stayed at 360 while apollo and bearings came
+   down, and the pages disagreed with each other. Found by asking the browser
+   which rules actually match the element rather than by reading the sheet. */
+.content .playerStage.media--mockup>img,
+.content .tv .tvFrame>img,
+.content .tv.collection.tvPhone .collection__content>img,
+.content .tv.tvPhone .tvFrame>img{width:min(var(--cs-phone),100%)}
+
+
+
 
 
 /* ── EVERYTHING IN THE ARTICLE SITS ON THE SAME COLUMN ──────────────────────
@@ -1360,10 +1419,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="research" class="sec">
     <div class="kicker">Research &amp; ideation</div>
     <h2 class="secHead">Every tool left the group out.</h2>
-    <p class="secBody">Roadtrippers, Roadie and Google Maps are great at routes, but <strong>each assumes a single planner on a single path</strong>. So <strong>we surveyed and interviewed road trippers</strong>.</p>
-    <p class="stat"><span class="statNum" style="gap:0">90<span class="statUnit">%</span></span>of the people we surveyed plan their trips as a group. <span class="statSrc">Bearings survey &middot; 42 road trippers</span></p>
-    <p class="secBody"><strong>The friend who always ends up planning told us the hard part was never the route or the budget, it was getting everyone else to care.</strong></p>
-    <p class="secBody">Testing as we went, <strong>people kept looking for their group and their trip on the same screen, so we merged the two into a single shared hub</strong>.</p>
+    <p class="secBody">Roadtrippers, Roadie and Google Maps are great at routes, but each assumes a single planner on a single path, so we surveyed and interviewed road trippers. <span class="statNum" style="gap:0">90<span class="statUnit">%</span></span> of the people we surveyed plan their trips as a group, and the friend who always ends up planning told us the hard part was never the route or the budget — it was getting everyone else to care. Testing as we went, people kept looking for their group and their trip on the same screen, so we merged the two into a single shared hub.<span class="statSrc">Bearings survey &middot; 42 road trippers</span></p>
     <!-- THE IDENTITY BOARD MOVED DOWN HERE FROM THE HERO.  2026-08-27.
          It is the answer to this section, not an opener: "we merged the two into
          a single shared hub" and the board IS that hub's system. Where it stood
