@@ -1220,9 +1220,33 @@ body.hmYowCup .battleCount{display:none}
    nothing at all. Boxes with the right geometry and no pixels is exactly the
    failure mode a layout probe cannot see, which is why the screenshot was the
    thing that caught it. */
+/* ── FOUR THINGS IN THE BAR, AND NOTHING ELSE.  2026-08-27 ─────────────────
+   His screenshot: jb | Home About Play | MAKAYLA - DAD | QUARTER-FINAL · 1.01
+   | (time icon) Contact | End -- seven items across, with End pushed outside
+   the margin by the two site controls it had to get past. "the end isnt even
+   in the margin ... looks actually horrible."
+   He is right and it is my fault twice over: I un-hid .jbGrpC to make room for
+   the matchup, which brought Home/About/Play back with it, and I never hid the
+   right group's own controls, so End queued up behind Contact.
+   DURING A FIXTURE THE HEADER IS: logo · matchup · round · End. The site's own
+   navigation is not competing for that bar -- you are watching a match, and
+   Leave/End is the only way out you need. They all come back when the cup does
+   not own the screen. */
 body.hmYowHdr .jbGrpL,
 body.hmYowHdr .jbGrpC,
 body.hmYowHdr .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}
+body.hmYowHdr .jbGrpC > a,
+body.hmYowHdr .jbGrpC > button:not(.hmHdrMatch),
+body.hmYowHdr .jbGrpR > a,
+body.hmYowHdr .jbGrpR > button:not(.hmHdrEnd),
+body.hmYowHdr .jbContactBtn,
+body.hmYowHdr .heroTime,
+body.hmYowHdr #heroTimeBtn{display:none}
+/* The board's own foot rode into the header with the row and printed "One
+   score wins" a third time -- the round already says the format and the card
+   said it before kick-off. */
+body.hmYowHdr .sbFoot,
+.hmHdrMatch .sbFoot{display:none}
 body.hmYowHdr .hmHdrMatch,
 body.hmYowHdr .hmHdrRound,
 body.hmYowHdr .hmHdrEnd{visibility:visible}
@@ -1285,7 +1309,19 @@ body.hmYowCup .hmScore{
 /* 4. THE WAY OUT, pinned in its own right -- there are TWO .hmScoreEnd in the
       engine and each of their parents carries a transform, which is why every
       earlier attempt to place the button left it on the court. */
-body.hmYowCup .hmScoreEnd,
+/* ── END SITS IN THE NAV, NOT ON THE VIEWPORT.  2026-08-27 ─────────────────
+   "the end isnt even in the margin." Measured at 1440: the nav is a centred
+   1200 column, so its logo starts at x=126 -- but End was position:fixed to
+   right:40, which is the VIEWPORT's edge, 86px outside the column everything
+   else lines up to. Two different margins in one bar.
+   headerBuild() already moves End into .jbGrpR, so it does not need placing at
+   all: dropped to static, it takes the group's own right alignment and lands
+   on the same edge the logo starts from.
+   The RACE board's button is a different case -- there is no nav row on the
+   race screen for it to join -- so that one keeps its pin. */
+body.hmYowCup .hmScoreEnd{
+  position:static;z-index:auto;pointer-events:auto;margin:0;border-left:0;
+}
 body.hmYowCup .hmRaceBoard button{
   position:fixed;top:var(--sp-16);right:var(--sp-40);
   z-index:60;pointer-events:auto;margin:0;border-left:0;
