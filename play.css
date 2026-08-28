@@ -909,6 +909,25 @@ body.pHubOn .hmRefl{
    Nothing is lost that is not said elsewhere: the bracket names the fixture
    before kick-off, the two teams are the only two colours on the pitch, and the
    lower third names the scorer at the moment it matters. */
+/* ── EYE BLACK IS A LEAGUE THING.  2026-08-27 ──────────────────────────────
+   The strip is built for every head by the face engine, and hidden everywhere
+   except a fantasy-football fixture. Grease under the eyes is football; it
+   would be nonsense on a soccer pitch, in the marble race or on the menu, and
+   this keeps that decision in CSS rather than branching the engine. */
+/* ── THE STAKE LINE.  One line, the label rung, and nothing around it.
+   "make sure it is cleannnnn made like apple. nothing unnessary." So: no box,
+   no rule, no ground -- it is text on the pitch where the scoreboard used to
+   be, at the same top offset the board used so nothing shifted. Muted ink, so
+   it sits under the play rather than competing with it. */
+.hmStake{
+  position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);
+  z-index:1;pointer-events:none;white-space:nowrap;
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+  letter-spacing:var(--tr-caps);color:var(--c500);
+}
+body:not(.hmYow) .hmStake{display:none}
+.hmEyeBlack{display:none}
+body.hmYow .hmEyeBlack{display:block}
 body.hmYow .hmScore{
   /* NOT display:none -- THE END BUTTON LIVES IN HERE.  play-engine.js:2419
      builds <button class="hmScoreEnd" aria-label="End the match"> as a CHILD of

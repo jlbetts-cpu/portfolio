@@ -565,6 +565,71 @@
   ls.style.backgroundImage="url("+data.cut+")";ls.style.backgroundSize=(100/lidW)+"% "+(100/lidH)+"%";
   ls.style.backgroundPosition=((c.x-lidW/2)/(1-lidW)*100)+"% "+(((c.y+c.h*1.55)-lidH/2)/(1-lidH)*100)+"%";
   lw.appendChild(ls);root.appendChild(lw);
+  /* ── EYE BLACK.  2026-08-27 ────────────────────────────────────────────────
+     Jayden: "i think we should add the football strips to the head on the
+     cheeks for the jayden head."
+     IT IS BUILT OFF THE EYE'S OWN GEOMETRY, not off a guessed offset. Every
+     head on this site is a different photograph with its own marked eye
+     positions, so a hard-coded cheek coordinate would sit on the eye of one
+     head and the jaw of another. c.x/c.y/c.w/c.h are the aperture the maker
+     marked; the strip is placed a fixed fraction of the EYE'S OWN height
+     below it, at a fraction of the eye's own width, and it inherits the eye's
+     rotation. It lands on the cheekbone of any face those marks are valid for.
+     A real strip is matte and slightly warm-black, never pure #000 -- it is
+     grease on skin, and pure black next to a photograph reads as a hole cut in
+     it. It carries the same soft-edge mask the other face layers use so it
+     sits ON the cheek rather than being pasted over it.
+     LEAGUE ONLY: the class is what play.css keys off, so eye black appears in
+     a fantasy-football fixture and nowhere else. A soccer match, the marble
+     race and the menu are untouched. */
+  var eb=document.createElement("div");
+  eb.className="hmEyeBlack";
+  /* SIZED AGAINST THE EYE, AND BIGGER THAN THE FIRST TRY. At w2*0.86 / h2*0.42
+     it measured 3x6px on a pitch head and read as a speck rather than as
+     grease. Real eye black is about as wide as the eye and roughly a third of
+     the eye's height; the floor on c.w keeps it from vanishing on the smallest
+     heads, where a strip thinner than a pixel is worse than none. */
+  var ebW=w2*1.02, ebH=Math.max(c.w*0.20, h2*0.60);
+  eb.style.cssText="position:absolute;pointer-events:none;z-index:5;"
+   +"border-radius:"+(ebH*0.34)+"px;"
+   +"background:linear-gradient(180deg,rgba(28,22,18,.94),rgba(14,11,9,.98));"
+   +"-webkit-mask-image:radial-gradient(ellipse at center,#000 62%,rgba(0,0,0,.65) 84%,transparent 100%);"
+   +"mask-image:radial-gradient(ellipse at center,#000 62%,rgba(0,0,0,.65) 84%,transparent 100%);";
+  eb.style.width=(ebW*100)+"%";eb.style.height=(ebH*100)+"%";
+  eb.style.left=((c.x-ebW/2)*100)+"%";
+  /* DERIVED FROM THE EYE'S OWN FORMULA, NOT FROM A GUESS ABOUT c.y.
+     The first version used (c.y + h2*0.58) on the assumption that c.y is the
+     eye's centre in this box. Measured, it is not: the eye rendered at top 64%
+     of the head while that expression put the strip at 45.5% -- up on the
+     forehead, above the real eyebrows, which is exactly where the screenshot
+     showed it.
+     The eye element sets its own top as (c.y - h2/2/1.2) and its height as
+     (h2/1.2). Whatever c.y means, the eye's BOTTOM is therefore
+     c.y - h2/2/1.2 + h2/1.2 = c.y + h2/(2*1.2). Building off that identity
+     lands the strip under the eye on any head, without needing to know the
+     coordinate space at all. */
+  /* POSITIONED OFF THE EYE ELEMENT'S OWN INLINE VALUES, via calc(), because two
+     arithmetic attempts both landed on the forehead. (c.y + h2*0.58) put it at
+     45.5% while the eye rendered at 64%, and re-deriving from the eye's stated
+     bottom moved it 0.1%. The reason is that c.y/h2 are not the whole story --
+     the gaze and blink loop offsets the eyes after they are built -- so any
+     expression in those terms describes a position the eye does not keep.
+     `e` is the eye, and its top and height are already written as strings on
+     its own style. calc(top + height + a fraction) is therefore the eye's
+     actual bottom edge by construction, in whatever units it happens to use,
+     and it needs no assumption about the coordinate space at all. */
+  /* SAME PARENT AS THE EYE, AND THAT WAS THE WHOLE BUG.
+     Four placements all landed on the forehead at 45.5% while the eye rendered
+     at 64%, and none of them moved when the formula changed. The reason was
+     not arithmetic: measured, the eye's parentElement is a `.stage` DESCENDANT
+     of root, while the strip was being appended to root itself. Two different
+     percentage bases, so `top:50%` meant two different places on the same face
+     and no expression in c.y could ever have reconciled them.
+     Appending beside the eye puts both in one coordinate system, after which
+     the eye's own inline top and height say exactly where its bottom is. */
+  e.parentNode.appendChild(eb);
+  eb.style.top="calc("+e.style.top+" + "+e.style.height+" + "+(h2*0.22*100).toFixed(2)+"%)";
+  eb.style.transform="rotate("+(c.ang||0)+"rad)";
   eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e,cov:cov,lidWin:lw,ang:(c.ang||0)*57.2958});
  });
  var brows=[],mouth=null,nose=null;
@@ -2305,6 +2370,30 @@
      other games.
      One function, called at each of those four sites, so a reflection cannot
      outlive the thing it reflects again. */
+  /* ── WHAT THIS MATCH IS FOR, ON THE PITCH.  2026-08-27 ─────────────────────
+     "all the games should make it clear in game what draft pick its for."
+     The scoreboard is gone in the League and nothing replaced the one thing it
+     was actually good for: telling you what you are watching. This is that, and
+     only that -- one line, the label rung, muted ink, no box and no rule. It
+     takes the string from play-tournament.js's stakeOf() via __hmStakeNow
+     rather than formatting picks itself, so the pitch and the fixture screen
+     cannot drift into two vocabularies.
+     It sits where the board used to and is aria-hidden: the fixture screen has
+     already said this in a heading, so a screen reader would hear it twice. */
+  var stakeEl=null;
+  function syncStake(){
+   try{
+    var txt = YOW ? (window.__hmStakeNow||"") : "";
+    if(!txt){ if(stakeEl) stakeEl.textContent=""; return; }
+    if(!stakeEl){
+     var h=document.querySelector(".hero"); if(!h)return;
+     stakeEl=document.createElement("div");
+     stakeEl.className="hmStake"; stakeEl.setAttribute("aria-hidden","true");
+     h.appendChild(stakeEl);
+    }
+    if(stakeEl.textContent!==txt) stakeEl.textContent=txt;
+   }catch(_){}
+  }
   function syncRefl(){
    try{
     /* THE GOAL REFLECTS AT THE HEADS' STRENGTH, NOT AT ITS OWN OPACITY.
@@ -2830,6 +2919,7 @@ function teams(){
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    syncRefl();
+   syncStake();
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
@@ -2849,6 +2939,13 @@ function teams(){
      Tracked per frame like the spotlight, because the winner is still being simulated -- a
      trophy parked where they stood at the whistle is left behind by the first hop. */
   function handTrophy(p){
+    /* NO TROPHY IN THE LEAGUE. "remove the soccer trophy from the final games
+       in the tournment." It is a SOCCER trophy on a fantasy-football cup whose
+       prize is the 1.01, so it was saying the wrong thing even when it flew
+       correctly. This already no-op'd by accident once the board was hidden --
+       .sbTrophy has no width to measure -- and an accident is not a decision:
+       if the board ever comes back, so would the trophy. */
+    if(YOW)return;
     var src=board&&board.querySelector(".sbTrophy"); if(!src||!p||!p.root)return;
     var from=src.getBoundingClientRect(); if(!from.width)return;
     var fly=document.createElement("img");

@@ -2604,6 +2604,7 @@ function buildNext(into, A2, B2, nm2){
      qualifying screen uses. No new class, no new chrome, nothing to style. ===== */
   if (T.yow && nm2){
     var st = stakeOf(nm2.match || BR.matchAt(T.br, nm2.round, nm2.index));
+    try{ window.__hmStakeNow = st || ''; }catch(_){}
     if (st) into.appendChild(el('p', 'tvQual', st));
   }
   var vs = el('div', 'tvVs');
@@ -3344,6 +3345,16 @@ function start(yow){
     /* The engine reads this at kickoff and at no other time, so it is set before the first
        fixture can cast and cleared in stop() -- see play-engine.js's start(). */
     try{ window.__hmYowLeague = T.yow; }catch(_){}
+    /* ── THE STAKE, EXPOSED FOR THE PITCH.  2026-08-27 ────────────────────────
+       "all the games should make it clear in game what draft pick its for."
+       stakeOf() is already the one place that turns a fixture's wp/lp into the
+       draft's own words, and the fixture screen has been using it before
+       kick-off. The MATCH had no way to reach it -- play-engine.js is a
+       different file and does not know what a bracket is -- so the sentence
+       stopped at the moment the whistle went, which is exactly when it starts
+       mattering. Publishing the string rather than the numbers keeps the
+       vocabulary in one place: the pitch cannot invent its own phrasing. */
+    try{ window.__hmStakeNow = ''; }catch(_){}
     T.cup = T.yow ? 'Yowmings League' : (CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup');
     var idKey=T.yow ? 'Yowmings' : T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
