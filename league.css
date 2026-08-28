@@ -179,6 +179,15 @@ body.hmYowCup .tvTape{
   font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);
   letter-spacing:var(--tr-body);color:var(--theme-muted,var(--c500));
 }
+/* ONE EXCEPTION, AND IT IS THE SCREEN WITH NOTHING ELSE ON IT.  The qualifying
+   panel has no tabs, no captains and no bracket -- the paragraph IS the screen,
+   and the prose rung is sized to sit UNDER a match-up rather than to be read on
+   its own. It takes the row rung there, which is the size the rest of the site
+   sets a sentence at. Keyed on the absence of the tab rail, which is the actual
+   difference between this screen and every other one. */
+body.hmYowCup .tvPanel:not(:has(.tvTabs)) .tvQual{
+  font-size:var(--fs-small);line-height:var(--lh-body);
+}
 body.hmYowCup .tvQual em,
 body.hmYowCup .tvTape em{
   font-style:normal;font-weight:600;color:var(--theme-ink,var(--c950));
@@ -492,6 +501,12 @@ body.hmYowHdr .hmHdrMatch{
   display:flex;align-items:center;gap:var(--sp-10);
   transform:none;padding:0;min-width:0;
 }
+/* AND THE CENTRE ZONE KEEPS ITS DISTANCE.  .jbNav is a flex row with no gap
+   between its three zones -- on a wide bar they are far apart and nothing shows,
+   but at 390 the match-up's last name and the round ran together into
+   "Player 7Final . 1.01". Screenshotted 2026-08-28. Air on both sides, so the
+   three fields read as three fields at every width. */
+body.hmYowHdr .jbGrpC{padding-inline:var(--sp-16)}
 body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-10);padding:0}
 body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-8);min-width:0}
 /* Sentence case at the bar's own type size.  It was 12px caps at .09em letter-
@@ -596,6 +611,22 @@ body.hmYowHdr .hmHdrEnd svg{display:none}
     font-size:var(--fs-label);margin-inline-end:var(--sp-8);
   }
   body.hmYowCup .tvDraftTie{display:none}
+}
+/* THE BAR AT ITS SMALLEST.  Four fields, 288px of nav, and measured at 320 they
+   wanted 325: End's right edge landed at 341 against a nav that ends at 304, so
+   the way out of a match was off the end of the bar. Nothing is dropped -- the
+   arrangement is settled and all four still say what they said -- they just take
+   the caption rung and the tighter air the phone header already uses elsewhere. */
+@media(max-width:400px){
+  body.hmYowHdr .jbGrpC{padding-inline:var(--sp-4)}
+  body.hmYowHdr .hmHdrMatch{gap:var(--sp-4)}
+  body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-6)}
+  body.hmYowHdr .hmHdrMatch .sbNm{font-size:var(--fs-caption)}
+  body.hmYowHdr .hmHdrRound,
+  body.hmYowHdr .sbRound.hmHdrRound{
+    font-size:var(--fs-caption);margin-inline-end:var(--sp-4);
+  }
+  body.hmYowHdr .hmHdrEnd{padding-inline:var(--sp-4);font-size:var(--fs-caption)}
 }
 /* A SHORT VIEWPORT TAKES THE PANE'S AIR BEFORE IT TAKES ITS INFORMATION, and it
    starts at 820 rather than 700 because the BAND is not proportional to the
