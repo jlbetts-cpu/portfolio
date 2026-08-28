@@ -499,6 +499,70 @@ body.hmYowHdr .jbNav{
           backdrop-filter:blur(var(--blur-1));
 }
 
+/* ══ THE ROOM REMEMBERS WHO WON.  2026-08-27 ═══════════════════════════════
+   "the background should change to the winning teams color."
+   play-tournament.js publishes the winner as --lgWin, an RGB triple, on every
+   recorded result. The amount is decided HERE because it is a design
+   question: at 4% it is a tint you feel rather than a colour you see, which
+   is what a light, minimal page can carry without the pitch turning into a
+   coloured panel. The heads and the uprights already wear the teams' full
+   colour; the room only leans.
+   IT IS A GRADIENT, NOT A FLAT FILL -- strongest at the foot where the play
+   is and gone by the top, so the bar and the cards stay on paper.
+   No --lgWin (before any result) means no wash at all: the fallback is
+   transparent, not a grey, so nothing shows until something has been won.
+   It cross-fades on the sky's own duration so it reads as the room changing
+   rather than as a repaint. */
+body.hmYowCup .hero::after{
+  content:"";position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,
+    rgba(var(--lgWin,0 0 0),0) 42%,
+    rgba(var(--lgWin,0 0 0),.04) 78%,
+    rgba(var(--lgWin,0 0 0),.07) 100%);
+  transition:background var(--theme-duration,640ms) var(--ease-out);
+}
+@media(prefers-reduced-motion:reduce){
+  body.hmYowCup .hero::after{transition:none}
+}
+
+/* ══ THE WIN, SAID IN THE MIDDLE.  2026-08-27 ═══════════════════════════════
+   "goal indicator remove it because it isnt stylized correctly the '' wins
+   should be shown in the middle when someone scores."
+   The lower third was a broadcast bug -- a face chip and a tag sliding in from
+   the corner, on a mode that has no score to caption. AND AT ONE SCORE IT WAS
+   SAYING THE WRONG THING: a goal here is not an event in a match, it is the
+   END of it. The only sentence worth printing is who won.
+   So it is one line, centred on the pitch, in the page's own ink at the
+   headline rung -- no chip, no ground, no slide, no corner. It arrives on the
+   settle spring and leaves with the celebration.
+   .hmL3Face and the old tag are hidden rather than deleted: the soccer mode
+   still uses that component as a scorer caption, and it is correct there. */
+body.hmYowCup .hmLowerThird{
+  left:50%;right:auto;bottom:auto;top:38%;
+  transform:translate(-50%,-50%) scale(.96);
+  display:block;text-align:center;
+  background:none;box-shadow:none;border:0;padding:0;
+  opacity:0;
+  transition:opacity var(--dur-state) linear,
+             transform var(--sp-settle-dur) var(--sp-settle);
+}
+body.hmYowCup .hmLowerThird.in{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+}
+body.hmYowCup .hmLowerThird .hmL3Face,
+body.hmYowCup .hmLowerThird .hmL3Tag{display:none}
+body.hmYowCup .hmLowerThird .hmL3Txt{display:block}
+body.hmYowCup .hmLowerThird .hmL3Nm{
+  display:block;
+  font-family:var(--sans);font-weight:600;
+  font-size:var(--fs-pagehead);line-height:var(--lh-tight);
+  letter-spacing:var(--tr-head);
+  color:var(--c950);
+  white-space:nowrap;
+}
+
 /* THE MATCH-UP.  The card arrives carrying the board's ground, grain, tilt and
    foot; all of it is turned off here rather than in fourteen places, because
    the card is one element and this is the one selector that travels with it. */

@@ -1356,6 +1356,18 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
      that has been played, which is how a board tells a 2-1 from a 5-0. Side 1 is always
      the fixture's `a` and side 2 its `b` -- cast() built c.side from exactly that. */
   BR.recordWinner(T.br, c.round, c.index, winnerId, scoreR, scoreB);
+  /* ── THE ROOM TAKES THE WINNER'S COLOUR.  2026-08-27 ──────────────────────
+     "the background should change to the winning teams color."
+     It is published as an RGB triple rather than a finished colour so the
+     stylesheet decides how much of it to spend -- the ground wants a wash of
+     a few percent, and a value baked here would hard-code that decision in
+     the wrong file. It persists until the next result, so the colour on
+     screen between fixtures is the last team that actually won something,
+     which is the point of it. */
+  try{
+    var _wt = teamById(winnerId);
+    if (_wt && _wt.col) document.body.style.setProperty('--lgWin', _wt.col);
+  }catch(_){}
   /* SESSION MEMORY: record the pair result by captain slot. The captain is the first entry in
      tm.slots (startFixture builds slots in playersOf() order, captain first), so ka/kb are the
      two captains' head slots and kw is whichever of them just won. */
@@ -2488,7 +2500,24 @@ function buildRound(into, r, nm2){
   head.appendChild(el('p', 'tvEyebrow', rd.label));
   into.appendChild(head);
   var list = el('ol', 'tvTies');
-  rd.matches.forEach(function(m, i){
+  /* ── THE FINAL IS ONE GAME.  2026-08-27 ────────────────────────────────────
+     Jayden: "the final is still 4 games it should only be 1 so clean it up so
+     its just 1."
+     Measured on the Final tab: four ties -- the championship, plus 3rd/4th,
+     5th/6th and 7th/8th. Those three are the placement drains that settle
+     picks 1.03 through 1.08, so they are not noise and they must still be
+     PLAYED; what they are not is the final. A pane headed "Final" listing
+     four fixtures is the screen saying something untrue about the one match
+     that matters most.
+     THEY ARE NOT DELETED, they are just not shown here. They are simulated,
+     never rolled (play-yowmings-contract asserts that), and their outcome
+     surfaces where a draft-order result belongs -- on the Draft board, which
+     names every pick and where it came from. The last round therefore shows
+     the fixture the round is named after; every earlier round is untouched,
+     because there the matches ARE the round. */
+  var isLast = (r === T.br.rounds.length - 1);
+  var shown = (isLast && rd.matches.length > 1) ? [rd.matches[0]] : rd.matches;
+  shown.forEach(function(m, i){
     var decided = (m.winner !== undefined);
     var isNext = !!(nm2 && nm2.round === r && nm2.index === i);
     var tie = el('li', 'tvTie' + (isNext ? ' tvTieNext' : ''));
@@ -3600,6 +3629,7 @@ function stop(){
   try{ if (T.conRetry){ clearTimeout(T.conRetry); T.conRetry = null; } }catch(_){}
   try{ window.__hmYowLeague = false; }catch(_){}
   try{ document.body.classList.remove('hmYowCup'); }catch(_){}
+  try{ document.body.style.removeProperty('--lgWin'); }catch(_){}
   try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');

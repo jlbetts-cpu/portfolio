@@ -3158,8 +3158,13 @@ function teams(){
     hero.appendChild(dropEl);
     void dropEl.offsetWidth;                 /* commit the start state before the class lands */
     dropEl.classList.add("isIn");            /* enter + settle */
+    /* THE ANTICIPATION BEAT. 160ms of taking the weight back before opening --
+       the thing that separates "placed the ball" from "the ball fell". */
     setTimeout(function(){ if(!S.on){ cleanUp(); return; }
-      dropEl.classList.add("isDrop");        /* the ball leaves; the head recoils */
+      dropEl.classList.add("isSet");
+    },600);
+    setTimeout(function(){ if(!S.on){ cleanUp(); return; }
+      dropEl.classList.add("isDrop");        /* the ball leaves; the head rebounds */
       setTimeout(function(){ if(!S.on){ cleanUp(); return; }
         dropEl.classList.add("isOut");       /* and it goes away */
         done();
@@ -4062,7 +4067,13 @@ function teams(){
    var nm=info?info.name:teamName(d.team);
    var faceEl=el.querySelector(".hmL3Face"),img=faceEl.querySelector("img"),nmEl=el.querySelector(".hmL3Nm");
    if(info&&info.cut){img.src=info.cut;faceEl.style.display="";}else{faceEl.style.display="none";}
-   nmEl.textContent=nm;
+   /* ── IN THE LEAGUE THE LINE IS "<NAME> WINS".  2026-08-27 ───────────────
+      "the '' wins should be shown in the middle when someone scores."
+      At one score a goal is not an event in the match, it IS the match, so
+      captioning the scorer understates what just happened. The League prints
+      the sentence that is true -- the winner -- and the soccer mode keeps the
+      scorer caption it was built for, where a goal is one of five. */
+   nmEl.textContent = YOW ? (nm + " wins") : nm;
    if(l3Timer){clearTimeout(l3Timer);l3Timer=null;}
    // Side follows the net that was scored into: netCatch() sends team 1 to goalR
    // (screen right) and team 0 to goalL, so the card lands at the end where it

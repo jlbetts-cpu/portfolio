@@ -928,7 +928,12 @@ body.pHubOn .hmRefl{
    the compositor beside a live match without touching layout once. */
 .hmDropper{
   position:absolute;left:50%;top:0;z-index:48;
-  width:clamp(96px,11vw,150px);
+  /* BIGGER, on his word: "the jayden head should be bigger". It was
+     clamp(96,11vw,150) -- smaller than the heads already standing on the
+     pitch, so the one bringing the ball on read as the least important thing
+     on screen. At clamp(170,19vw,260) it is the largest head in the frame for
+     the second it is there, which is what a ceremony is. */
+  width:clamp(170px,19vw,260px);
   pointer-events:none;
   transform:translate(-50%,-118%);
   opacity:0;
@@ -955,7 +960,21 @@ body.pHubOn .hmRefl{
 /* THE REACTION IS A RECOIL. The weight leaves its hands, so the head lifts and
    tips; the ball accelerates away on an ease-IN, because it is falling and
    gravity does not ease out. */
-.hmDropper.isDrop{transform:translate(-50%,2%) rotate(-4deg);transition:transform var(--dur-press) var(--ease-out)}
+/* ── THE RELEASE IS THREE MOVES, NOT ONE.  2026-08-27 ──────────────────────
+   "the animation should be more realistic."
+   A single tip on release is a puppet. What a body actually does when it lets
+   something heavy go is: settle, take the weight back for an instant
+   (anticipation), open, and then rebound because the load has gone.
+   .isSet is that anticipation -- a 4% dip and a forward tilt, as if looking
+   down at the ball before letting it go. It is the beat that makes the drop
+   read as intended rather than dropped.
+   .isDrop is the rebound: up and back, opposite in sign to the dip, because
+   the mass it was carrying just left. Newton, not choreography.
+   The ball keeps its ease-IN, because gravity does not ease out. */
+.hmDropper.isSet{transform:translate(-50%,10%) rotate(3deg);
+  transition:transform var(--dur-state) var(--ease-out)}
+.hmDropper.isDrop{transform:translate(-50%,0%) rotate(-5deg);
+  transition:transform var(--dur-press) var(--sp-pop)}
 .hmDropper.isDrop .hmDropperBall{transform:translate(-50%,340%) scale(.72);opacity:0}
 .hmDropper.isOut{transform:translate(-50%,-118%);opacity:0;
   transition:transform var(--dur-reveal) var(--ease-out),opacity var(--dur-reveal) linear}
