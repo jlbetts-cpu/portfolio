@@ -884,6 +884,7 @@
    if(grabbed){grabbed=false;root.style.cursor="grab";}
    root.style.pointerEvents="none";
    try{if(typeof busyNow==="function"&&!busyNow()&&typeof eventLock!=="undefined"&&!eventLock){setHold("rest",1100);showFace("rest");browFlash();setTimeout(function(){try{browFlash();}catch(_){}},380);}}catch(_){}}}   // a knockout earns the double-flash
+
  function confettiBurst(cx0,colsIn){try{ // realistic confetti: gravity, sway, tumble.
   // colsIn lets the winner throw THEIR colour -- a tournament final that showers a generic
   // rainbow says nothing about who just won.
@@ -2199,6 +2200,7 @@
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,GH=150,OFF=0,XL=0,XR=0;
+ var goalReflL=null,goalReflR=null,ballRefl=null;
   /* ===== THE YOWMINGS LEAGUE: ONE ENGINE, A DIFFERENT OBJECTIVE =====
      Jayden: "pretty much the exact same but just more catered to fantasy football".
      Taken literally, and that is the whole design. There is no second engine, no second
@@ -2282,6 +2284,32 @@
    // which is exactly the 8px the drop-from-the-title landed off by. Sync the DOM to BR instead.
    if(ball&&ball.style.width!==(2*BR)+"px"){ball.style.width=ball.style.height=(2*BR)+"px";}
    if(ballShadow&&ballShadow.style.width!==(2*BR)+"px"){ballShadow.style.width=(2*BR)+"px";ballShadow.style.height=(BR*0.55).toFixed(1)+"px";}}
+  /* DEFINED IN HERE, AND THAT MATTERS. The first version of this helper landed
+     next to confettiBurst -- which is in a DIFFERENT closure that had already
+     closed by the time soccer() opened -- so every call resolved to nothing and
+     the reflections rendered at transform:none, opacity 0, silently. Nothing
+     threw and the console stayed clean; the only thing that said so was reading
+     the computed transform back off the element. Scope is not a detail here:
+     this file is a stack of IIFEs and a helper is only real inside its own. */
+ /* Mirror about the ground line: the goal occupies [groundY-GH, groundY], so its
+    reflection occupies [groundY, groundY+GH] flipped. transform-origin 0 0 makes
+    that one translate and one scaleY(-1) -- the same arithmetic the head's
+    reflection does, minus the lean a goal does not have. */
+ function reflectGoal(refl,src,x,yGround){
+  if(!refl||!src)return;
+  refl.style.width=src.style.width;refl.style.height=src.style.height;
+  var ub=src.style.getPropertyValue("--upBar");
+  if(ub)refl.style.setProperty("--upBar",ub);else refl.style.removeProperty("--upBar");
+  refl.style.opacity=src.style.opacity||"";
+  /* Y IS THE WATERLINE PLUS THE HEIGHT, NOT THE WATERLINE. With transform-origin
+     0 0, scaleY(-1) maps local y [0,H] to [-H,0], so translate(x,Y) leaves the
+     element occupying [Y-H, Y]. Passing groundY therefore drew the reflection
+     over [groundY-H, groundY] -- exactly on top of the goal, which is why the
+     first run measured goalRefl.top identical to the goal's own top and nothing
+     appeared below the line. Y = groundY + H puts it in the water. */
+  var h9=parseFloat(src.style.height)||src.getBoundingClientRect().height||0;
+  refl.style.transform="translate("+x+"px,"+(yGround+h9)+"px) scaleY(-1)";
+ }
   function dom(){geo();
    /* THE GOAL GRAMMAR camera: ball+shadow and the goals+shadows each live inside their own
       plain wrapper (position:absolute;inset:0, no z-index/transform while idle -- CSS makes
@@ -2299,13 +2327,28 @@
    camFront=document.createElement("div");camFront.className="hmCam hmCamFront";hero.appendChild(camFront);
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camBack.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
+   ballRefl=ball.cloneNode(true);ballRefl.className="hmBall hmBallRefl";ballRefl.setAttribute("aria-hidden","true");
    ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
    var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
    camFront.appendChild(ball);
+   camFront.appendChild(ballRefl);
    goalShL=document.createElement("div");goalShL.className="hmGoalShadow";camBack.appendChild(goalShL);
    goalShR=document.createElement("div");goalShR.className="hmGoalShadow";camBack.appendChild(goalShR);
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";camBack.appendChild(goalL);   // left goal is RED\u2019s to defend
    goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";camBack.appendChild(goalR);
+   /* ── THE GOALS REFLECT, THE WAY THE HEADS DO.  2026-08-27 ──────────────────
+      Jayden: "also goals dont reflect like players do." True, and it was never
+      an oversight in the water -- it is that a head's reflection is an IMAGE
+      (.hmRefl carries background-image:url(data.cut) and is mirrored per frame)
+      and a goal is a stack of divs with gradients on them. There is nothing to
+      put in a background, so the goal reflects by being CLONED and flipped.
+      Cloned once here rather than per frame: a goal's children never change,
+      only its box does, so layout() copies the box across and sets one
+      transform. -webkit-box-reflect was considered and rejected for the same
+      reason the heads rejected it -- it is not standard, and this way the two
+      reflections are one technique. */
+   goalReflL=goalL.cloneNode(true);goalReflL.className="hmGoal hmGoalR hmGoalRefl";goalReflL.setAttribute("aria-hidden","true");camBack.appendChild(goalReflL);
+   goalReflR=goalR.cloneNode(true);goalReflR.className="hmGoal hmGoalB hmGoalRefl";goalReflR.setAttribute("aria-hidden","true");camBack.appendChild(goalReflR);
    /* THE UPRIGHTS RIDE INSIDE THE GOAL, they are not a second pair of elements. Everything
       that already knows how to show, hide, move, tint and flash a goal -- start()'s opacity,
       layout()'s transform, netCatch()'s .hmGoalHit, the camera wrapper -- keeps working
@@ -2444,6 +2487,8 @@
       g0.style.setProperty("--upBar",UPH+"px");});
     goalL.style.transform="translate("+XL+"px,"+(groundY-GH+_gl)+"px)";
     goalR.style.transform="translate("+(XR-UPW)+"px,"+(groundY-GH+_gr)+"px)";
+    reflectGoal(goalReflL,goalL,XL,groundY+_gl);
+    reflectGoal(goalReflR,goalR,(XR-UPW),groundY+_gr);
     /* AND THEY CAST NOTHING. A 60px blur under a 5px pole was never going to read, and the
        site's rule is that only the companion heads stand on something. Subtraction. */
     if(goalShL)goalShL.style.opacity="0";if(goalShR)goalShR.style.opacity="0";
@@ -2455,6 +2500,8 @@
    GH=goalL.offsetHeight||150;
    goalL.style.transform="translate("+XL+"px,"+(groundY-GH+_gl)+"px)";
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-GH+_gr)+"px)";
+   reflectGoal(goalReflL,goalL,XL,groundY+_gl);
+   reflectGoal(goalReflR,goalR,(XR-42),groundY+_gr);
    // The goal shadow is 60px under a 42px goal, so it wants to sit 6px outside it on each side --
    // which is exactly what clipped once the pitch went flush to the viewport edge. Clamp it into the
    // arena rather than insetting the whole pitch to accommodate it: at the edge it slides 6px inboard
@@ -3287,6 +3334,17 @@ function teams(){
    var _by=0;   // the ball, goals, and companion feet render on the same published flat match plane; the planet arc remains decorative scenery only.
    var _drawHalf=BR*bsx*bsp,_drawBx=Math.max(XL+_drawHalf,Math.min(XR-_drawHalf,bx));
    if(ball){ball.style.transform="translate("+(_drawBx-BR).toFixed(1)+"px,"+(by-BR+_by).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates; the painted squash stays inside the arena even while physics contacts the wall
+   /* AND THE FOOTBALL REFLECTS.  "also the football needs the same reflection as
+      everything else."  Same clone-and-flip as the goals: mirrored about the
+      ground line, so the ball's reflection rises to meet it as it lands and
+      falls away as it climbs -- which is the whole reason a reflection reads as
+      water rather than as a decal. It carries the ball's own scale so a squashed
+      ball has a squashed reflection. */
+   if(ballRefl&&ball){
+    ballRefl.style.width=ball.style.width||"";ballRefl.style.height=ball.style.height||"";
+    ballRefl.style.opacity=ball.style.opacity||"";
+    ballRefl.style.transform="translate("+(_drawBx-BR).toFixed(1)+"px,"+(2*groundY-(by-BR+_by)).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+",-"+(bsy*bsp).toFixed(3)+")";
+   }
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
     var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane
