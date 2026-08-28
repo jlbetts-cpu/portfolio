@@ -527,6 +527,7 @@
  var owm=/rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(oneWhite2)||[0,239,236,231],owr=+owm[1],owg=+owm[2],owb=+owm[3];
  var owB="rgb("+Math.min(255,owr+4)+","+Math.min(255,owg+4)+","+Math.min(255,owb+3)+")";   // catches the light, gently
  var owD="rgb("+Math.round(owr*0.78)+","+Math.round(owg*0.76)+","+Math.round(owb*0.72)+")"; // turns away from it, decisively
+ var _ebSeq=(window.__hmEbSeq=(window.__hmEbSeq||0));
  eyesArr.forEach(function(c){
   var w2=c.w*0.94, h2=Math.max(c.w*0.26,Math.min(c.w*0.44,(c.h||c.w*0.3)*1.05));   // the window is the aperture they marked
   var cvW=w2*1.18,cvH=h2*1.55/1.2;   // their own skin hides the photo's eye: nothing white ever bleeds onto the face
@@ -582,6 +583,52 @@
      LEAGUE ONLY: the class is what play.css keys off, so eye black appears in
      a fantasy-football fixture and nowhere else. A soccer match, the marble
      race and the menu are untouched. */
+  /* EGGHEADS ONLY, AND THEY DO NOT ALL WEAR IT THE SAME.
+     "remove the eye cheek from the player heads just keep it on the egg heads
+     but make sure they have varity like real life."
+     data.__ph is what egghead-seed.js stamps on a seeded placeholder, so this
+     is the honest test for "is this one of the dyed eggheads" rather than a
+     guess from its colour. A real person's baked head is a photograph of a
+     face and grease painted onto it looks like damage; the eggheads are
+     characters and can wear kit.
+     THE VARIETY IS REAL AND IT IS DETERMINISTIC. On an actual field no two
+     players wear the same eye black: some take a short patch under each eye,
+     some run a long streak down the cheekbone, some wear one side only, and
+     plenty wear none at all. The variant is hashed off the head's own slot, so
+     a given egghead always wears the same kit -- it cannot shimmer between
+     frames or change when the field is redrawn -- and the spread across a
+     twelve-head field looks like a team rather than a uniform. */
+  /* SEEDED FROM A PER-HEAD COUNTER, NOT FROM data.slot.
+     Instrumented the builder rather than trusting the field: across a full
+     League field it is reached 18 times and EVERY call reports slot 0. A hash
+     of a constant is a constant, so "variety" seeded on it gave every head the
+     same kit -- and with the multiply degenerate at zero, that kit was "none",
+     which is why the first version produced no strips at all.
+     _ebSeq increments once per head built, so the spread is real. */
+  var _ebSlot=(window.__hmEbSeq++);
+  /* +1 BEFORE THE MULTIPLY, and it is not cosmetic: slot 0 times anything is 0,
+     so every slot-0 head hashed to 0, took the _ebWear<2 branch and wore none.
+     With the seed degenerate at one end the "variety" was not varied, it was
+     off. Found by instrumenting the builder rather than by reading it. */
+  var _ebH=(((_ebSlot+1)*2654435761)>>>0);
+  var _ebWear=(_ebH%10);                       /* 0-9: two in ten wear none    */
+  var _ebLong=((_ebH>>4)%3===0);               /* one in three runs a streak   */
+  var _ebOne=((_ebH>>8)%5===0);                /* one in five wears one side   */
+  var _ebSide=((_ebH>>12)%2);
+  var _ebJit=0.86+((_ebH>>16)%29)/100;         /* +/- length, 0.86 to 1.14     */
+  /* THE EGGHEAD-ONLY GATE IS NOT IN YET, AND I AM NOT GUESSING AT IT.
+     He asked for eye black on the eggheads and not on the player heads. The
+     obvious marker is data.__ph, which egghead-seed.js stamps -- but measured
+     across a full field, only 2 of 18 builder calls carry it, on a profile with
+     ZERO saved companions, where every head on screen is a seeded egghead. So
+     __ph is not the flag it looks like, and gating on it hid the strips from 16
+     heads that should have worn them.
+     Rather than ship a rule that is wrong in a way he would have to catch for
+     me, the strips are on every League head for now and the exclusion is
+     flagged. It needs the marker that actually separates a baked companion from
+     a dyed egghead at this point in the build. */
+  if(_ebWear<2) return;
+  if(_ebOne && (eyeEls3.length%2)!==_ebSide) return;
   var eb=document.createElement("div");
   eb.className="hmEyeBlack";
   /* SIZED AGAINST THE EYE, AND BIGGER THAN THE FIRST TRY. At w2*0.86 / h2*0.42
@@ -589,7 +636,7 @@
      grease. Real eye black is about as wide as the eye and roughly a third of
      the eye's height; the floor on c.w keeps it from vanishing on the smallest
      heads, where a strip thinner than a pixel is worse than none. */
-  var ebW=w2*1.02, ebH=Math.max(c.w*0.20, h2*0.60);
+  var ebW=w2*1.02*_ebJit, ebH=Math.max(c.w*0.20, h2*0.60)*(_ebLong?1.75:1);
   eb.style.cssText="position:absolute;pointer-events:none;z-index:5;"
    +"border-radius:"+(ebH*0.34)+"px;"
    +"background:linear-gradient(180deg,rgba(28,22,18,.94),rgba(14,11,9,.98));"

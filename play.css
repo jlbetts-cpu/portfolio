@@ -926,6 +926,49 @@ body.pHubOn .hmRefl{
   letter-spacing:var(--tr-caps);color:var(--c500);
 }
 body:not(.hmYow) .hmStake{display:none}
+/* ── THE WAY OUT LIVES IN THE HEADER.  2026-08-27 ──────────────────────────
+   "put the end game in the header on the right."
+   And the capture shows why it mattered beyond taste: with the race board's
+   rows gone the End control was left alone at x=12, clipped by the viewport
+   edge and half-covered by a racer drifting past it. A control you cannot
+   reliably hit is worse than one you cannot see.
+   BOTH ENGINES' END BUTTONS ARE MOVED BY CSS rather than re-parented in JS.
+   play-engine.js builds one inside .hmScore and the race builds another inside
+   .hmRaceBoard; neither file needs to know where it ends up, and nothing about
+   their behaviour changes. Fixed to the header's own right inset so it lines up
+   with Contact on every other page, and above the pitch's z:47 chrome so a head
+   can never sit on top of it. */
+/* IT IS THE CONTAINER THAT MOVES, NOT THE BUTTON, and that is not a style
+   preference -- it is the only thing that works. Both boards carry a transform
+   of their own (.hmRaceBoard translateY(-50%), .hmScore translateX(-50%)), and
+   a transformed ancestor becomes the containing block for position:fixed, so
+   pinning the BUTTON put it at x=-75, off the left edge. Measured, then fixed
+   at the right level. transform:none is required on each for the same reason. */
+body.hmYowCup .hmRaceBoard,
+body.hmYowCup .hmScore{
+  position:fixed;left:auto;bottom:auto;
+  top:var(--sp-16);right:var(--sp-40);   /* centres a 36px control in the 52px nav row */
+  transform:none;z-index:60;
+  width:auto;padding:0;background:none;border:0;box-shadow:none;
+  pointer-events:none;
+}
+body.hmYowCup .hmRaceBoard button,
+body.hmYowCup .hmScore .hmScoreEnd{
+  pointer-events:auto;margin:0;border-left:0;
+}
+/* ── NO POSITION BOARD IN THE LEAGUE.  2026-08-27 ──────────────────────────
+   THIS is the scoreboard he kept reporting, and I kept fixing the wrong one.
+   .hmRaceBoard is the marble race's running order -- eight numbered rows with
+   head thumbnails down the left edge of the qualifying screen -- and it is a
+   scoreboard by any reading: a live table of who is winning. Every previous
+   pass looked at .hmScore on the football pitch, removed something there, and
+   reported it fixed, which is why he had to say it four times.
+   It is hidden on the CUP class rather than on hmYow, because hmYow only goes
+   on at kickoff and this board is up before any match exists.
+   THE END BUTTON STAYS -- the same trap as the pitch board, where display:none
+   on the parent took the only way out with it. Rows go, control stays. */
+body.hmYowCup .hmRaceRow{display:none}
+body.hmYowCup .hmRaceBoard{background:none;border:0;box-shadow:none;padding:0}
 .hmEyeBlack{display:none}
 body.hmYow .hmEyeBlack{display:block}
 body.hmYow .hmScore{

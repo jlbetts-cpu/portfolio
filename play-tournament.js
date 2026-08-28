@@ -3345,6 +3345,15 @@ function start(yow){
     /* The engine reads this at kickoff and at no other time, so it is set before the first
        fixture can cast and cleared in stop() -- see play-engine.js's start(). */
     try{ window.__hmYowLeague = T.yow; }catch(_){}
+    /* ── A CLASS FOR THE WHOLE CUP, NOT JUST ITS MATCHES.  2026-08-27 ─────────
+       body.hmYow is toggled by play-engine.js at KICKOFF, so it is absent on
+       every League screen that is not a live match -- qualifying, the race, the
+       bracket, the drains. That is why the race's position board survived four
+       rounds of "remove the scoreboard": every rule I wrote was scoped to a
+       class that is not on the body when that board is up.
+       hmYowCup is on from the moment the cup starts until stop() clears it, so
+       League chrome can be styled on any of its screens. */
+    try{ document.body.classList.toggle('hmYowCup', !!T.yow); }catch(_){}
     /* ── THE STAKE, EXPOSED FOR THE PITCH.  2026-08-27 ────────────────────────
        "all the games should make it clear in game what draft pick its for."
        stakeOf() is already the one place that turns a fixture's wp/lp into the
@@ -3399,6 +3408,7 @@ function stop(){
      the drain, fired 450ms later into a screen that has gone. */
   try{ if (T.conRetry){ clearTimeout(T.conRetry); T.conRetry = null; } }catch(_){}
   try{ window.__hmYowLeague = false; }catch(_){}
+  try{ document.body.classList.remove('hmYowCup'); }catch(_){}
   try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');
