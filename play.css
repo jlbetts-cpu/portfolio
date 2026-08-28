@@ -909,7 +909,25 @@ body.pHubOn .hmRefl{
    Nothing is lost that is not said elsewhere: the bracket names the fixture
    before kick-off, the two teams are the only two colours on the pitch, and the
    lower third names the scorer at the moment it matters. */
-body.hmYow .hmScore{display:none}
+body.hmYow .hmScore{
+  /* NOT display:none -- THE END BUTTON LIVES IN HERE.  play-engine.js:2419
+     builds <button class="hmScoreEnd" aria-label="End the match"> as a CHILD of
+     .hmScore, so hiding the board whole took the only way out of a League match
+     with it. Caught by reading the board's markup after the visual pass, not by
+     the gates: nothing asserts that a running match can be quit.
+     So the BOARD's own surface and every counting part of it go, and the
+     control stays and keeps its hit area. */
+  background:none;box-shadow:none;padding:0;pointer-events:none;
+}
+body.hmYow .hmScore .sTeam,
+body.hmYow .hmScore .sR,
+body.hmYow .hmScore .sB,
+body.hmYow .hmScore .sbMeta,
+body.hmYow .hmScore .sBall{display:none}
+body.hmYow .hmScore .hmScoreEnd{
+  pointer-events:auto;
+  margin-left:0;border-left:0;padding-left:var(--sp-12);
+}
 .hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:var(--sp-12);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:var(--sp-8)}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:var(--r-full)}
