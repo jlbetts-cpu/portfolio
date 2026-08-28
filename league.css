@@ -543,10 +543,26 @@ body.hmYowCup .hero::after{
      nothing, which is what pointed at display rather than at colour. */
   content:"";display:block;position:absolute;inset:0;
   pointer-events:none;z-index:0;
+  /* ── STRONGER, BECAUSE .04 WAS NOT A COLOUR ANYONE COULD SEE.  2026-08-27 ─
+     "in the match the color of the background it doesnt look noticable enough
+     and it goes between rounds."
+     The second half turned out not to be true and that is worth recording:
+     --lgWin PERSISTS correctly -- measured 70,167,88 held through the result,
+     the celebration and into the next fixture screen, with the pseudo-element
+     display:block throughout. Nothing was clearing it. It was simply so faint
+     that it read as absent, which is the same complaint in different words.
+     At .04/.07 the floor moved 253,253,253 -> 253,250,237 on a saturated
+     yellow: three levels on one channel. That is inside the noise of the
+     page's own paper. It is .10 rising to .22 now, and the gradient starts at
+     18% instead of 42% so the colour is IN the room rather than pooled at the
+     very bottom edge.
+     STILL A WASH AND NOT A FILL: the top fifth stays paper so the header, the
+     cards and the type never sit on a tint, and the heads keep the only
+     saturated colour on the pitch. */
   background:linear-gradient(180deg,
-    rgba(var(--lgWin,0 0 0),0) 42%,
-    rgba(var(--lgWin,0 0 0),.04) 78%,
-    rgba(var(--lgWin,0 0 0),.07) 100%);
+    rgba(var(--lgWin,0 0 0),0) 18%,
+    rgba(var(--lgWin,0 0 0),.10) 58%,
+    rgba(var(--lgWin,0 0 0),.22) 100%);
   transition:background var(--theme-duration,640ms) var(--ease-out);
 }
 @media(prefers-reduced-motion:reduce){
