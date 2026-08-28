@@ -2392,7 +2392,14 @@
     +   '<div class="sbFoot">'
     +     '<span class="sbRound"></span>'
     +     '<span class="sbMeta"><span class="sbRule">First to ' + S.target + '</span>'
-    +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
+    /* THE SCOREBOARD'S BALL FOLLOWS THE SPORT.  2026-08-27. Jayden: "soccer ball
+       appears sometimes in football mode". This <img> was the one place the ball
+       was hard-coded: --ballSkin swaps the ball ON THE PITCH for the League, and
+       the gold final overrides it, but the little ball beside "First to 5" was a
+       literal soccerball.webp on every screen of every mode. Read off YOW at the
+       moment the board is built, which is per match, so a League board gets a
+       football and a soccer board is unchanged. */
+    +       '<img class="sBall" src="images/' + (YOW ? 'football' : 'soccerball') + '.webp" alt="" draggable="false"></span>'
     +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
     +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
     +       '<path d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2l0-10"/></svg>End</button>'
