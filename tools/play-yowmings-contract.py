@@ -190,6 +190,15 @@ def no_shadow(src):
     # Rule by rule rather than by a slice of the file: the League's block sits directly
     # under soccer's @keyframes hmNet, whose gold flash IS a box-shadow, and a range scan
     # read that as the League casting one. Only rules that this mode actually owns count.
+    # COMMENTS ARE STRIPPED FIRST, AND THAT IS NOT A FORMALITY. 2026-08-27: this
+    # check went red on a rule whose only box-shadow was inside a /* */ comment
+    # EXPLAINING that the glow had been removed because this gate forbids it.
+    # The rule regex is `[^{}]+\{[^{}]*\}`, which cannot tell prose from a
+    # declaration, so a comment that quotes the forbidden value fails the file.
+    # Same shape as the seo-contract bug that stripped scripts before comments.
+    # Now the source is de-commented before any rule is read, so the gate can
+    # only ever fail on something that actually paints.
+    src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
     owned = [r for r in re.findall(r"[^{}]+\{[^{}]*\}", src)
              if re.match(r"[^{]*(body\.hmYow|\.hmUp)", r)]
     if not owned:

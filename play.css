@@ -424,7 +424,15 @@ body.hmYow .hmUpStem{
    onto the layer that is now the goal */
 body.hmYow .hmUpStem::after{
  content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:var(--r-2xs);
- background:currentColor;box-shadow:0 0 7px currentColor;
+ background:currentColor;
+ /* NO GLOW. Soccer's own post carries box-shadow:0 0 7px currentColor and I
+    copied it across with the rest of the post. play-yowmings-contract caught
+    it: that gate walks every rule this mode owns and refuses any box-shadow
+    that is not `none`, because the site's rule is that the companion heads
+    cast the only shadow here. A zero-offset glow is arguably emission rather
+    than elevation -- and the gate is still right to refuse it, because the
+    next one will have an offset and nobody will notice. Subtracted rather than
+    argued with. */
 }
 body.hmYow .hmGoalR .hmUpStem::after{right:-1px}
 body.hmYow .hmGoalB .hmUpStem::after{left:-1px}
