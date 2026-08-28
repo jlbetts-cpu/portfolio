@@ -214,6 +214,40 @@ body.hmTourSim .tvPanel{animation:none}
    ceremony -- it replaces a 1.5s wipe-and-flash sequence, and it is the version
    nobody has to forgive. */
 .tvPanel{animation:tvArrive var(--sp-settle-dur) var(--sp-settle) both}
+
+/* ── THE LEAGUE PANEL IS A MATERIAL, NOT A LID.  2026-08-27 ────────────────
+   Jayden: "a lot of overlapping elements for the league ... the ui for the
+   league is just ugly and not minimal enough."
+   LOOKED AT IT, on a captured fixture screen rather than a forced one. The
+   panel is z:47 and the heads are z:3, so nothing is actually mis-stacked --
+   but .surface paints an OPAQUE ground, so a head that drifts under the card
+   gets sliced clean through by its bottom edge. A head cut in half by a
+   rectangle reads as a collision even when the z-order is correct, and that
+   is what "overlapping" is describing.
+   TRANSLUCENCY IS THE SANCTIONED ANSWER HERE, twice over: CLAUDE.md says this
+   site's chrome separates with hairlines and translucency and never with
+   elevation, and docs/apple-design.md §12 says to build floating chrome as a
+   translucent layer with content passing underneath rather than as an opaque
+   bar that cuts the scene. A head behind glass is behind something; a head
+   behind cardboard is broken.
+   --mat-2 and --blur-2 are the site's own material tokens, so this introduces
+   no new values -- it spends ones that already exist. The rim stays exactly as
+   .surface sets it: the hairline is still what draws the edge.
+   ONE ELEMENT, AND ONLY WHILE A CUP IS UP. backdrop-filter is not free, so it
+   is scoped to body.hmYow .tvPanel rather than to .surface, which would have
+   promoted every panel on the site. */
+body.hmYow .tvPanel.surface{
+  background:var(--mat-2);
+  -webkit-backdrop-filter:blur(var(--blur-2)) saturate(180%);
+          backdrop-filter:blur(var(--blur-2)) saturate(180%);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  /* No blur available: fall back to the opaque ground rather than to a
+     see-through card with sharp heads legible through it, which is worse than
+     the slice it was meant to fix. */
+  body.hmYow .tvPanel.surface{background:var(--surface-ground)}
+}
+
 @keyframes tvArrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){ .tvPanel{animation:none} }
 
