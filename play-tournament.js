@@ -2379,9 +2379,68 @@ function buildTape(A, B, nm2){
    one heading size. Everything else about it is identical, including which cells
    exist, so the two read as the same object at two scales rather than as two
    designs. ---- */
+/* WHERE AN UNFILLED SLOT COMES FROM, read off the bracket the same two ways
+   propagate() fills it: a placement match carries `feed` -- two {r,i,s}
+   descriptors, and `s` is what makes "Loser of Last 8" expressible at all -- and
+   a championship match is fed by the fold, match i of round r taking the winners
+   of matches 2i and 2i+1 of the round before. The opening round is fed by the
+   draw rather than by a fixture, so it has nothing to name and says so by
+   returning empty. Mirroring propagate() rather than inventing a second reading
+   is the point: if the two ever disagree the screen is lying about the draw. */
+function sourceOf(r, i, side){
+  /* ---- AND IT GOES AT 640, on the same rule the tape goes by at 700 and the
+     drain report at 640: at this height it costs more than it carries. Below
+     640 the round pane lays its ties out two-up, which leaves a name column of
+     ~110px -- measured at 320x568, "Winner of 1.01-1.04" truncated to
+     "Winner ..." in all eight cells, which is a label that has stopped being
+     one. The em-dash comes back and the tie's own tag carries the fact, because
+     the tag is the shorter of the two statements and the one a drafter reads. */
+  var shortVp = false; try{ shortVp = innerHeight <= 640; }catch(_){}
+  if (shortVp) return '';
+  var br = T.br; if (!br) return '';
+  var rd = br.rounds[r], m = rd && rd.matches[i]; if (!m) return '';
+  if (m.feed && m.feed[side]){
+    var f = m.feed[side], src = br.rounds[f.r];
+    if (!src) return '';
+    return (f.s === 'w' ? 'Winner of ' : 'Loser of ')
+         + srcName(src, src.matches[f.i]);
+  }
+  var first = br.playIn ? 1 : 0;
+  if (r <= first) return '';
+  var prev = br.rounds[r - 1];
+  var pm = prev && prev.matches[i * 2 + side];
+  return pm ? ('Winner of ' + srcName(prev, pm)) : '';
+}
+/* WHAT TO CALL THE MATCH A SLOT IS WAITING ON, and the round's name is not
+   always enough. The League's last round is four fixtures, and three of them are
+   fed out of the SAME round as the fourth: the 1.05 decider takes the winner of
+   a placement semi that sits in Last 4 beside the championship semis. Labelled
+   by round, two different ties both read "Winner of Last 4" and mean different
+   matches -- which is worse than the dash it replaced, because it is confidently
+   wrong rather than blank.
+   So in the League a source is named by WHAT IT IS PLAYING FOR: its own wp/lp
+   collapsed to the range of picks it covers. "Winner of 1.01-1.04" and "Winner
+   of 1.05-1.08" are two different sentences about two different matches, in the
+   notation the tie tag, the stake line and the draft order all already use.
+   Soccer's cup has no draft slots, so it keeps the round's name. */
+function srcName(rd, m){
+  if (T.yow && m && m.wp && m.lp){
+    var lo = Math.min(m.wp[0], m.lp[0]), hi = Math.max(m.wp[1], m.lp[1]);
+    if (lo !== hi) return slot(lo) + '\u2013' + slot(hi);
+    return 'the ' + slot(lo);
+  }
+  return rd.short;
+}
+
 function sideRow(tm, opts){
   opts = opts || {};
+  /* `tvTBD` IS THE CLASS THE COMMENT BELOW ALWAYS NEEDED. It says "no colour
+     stripe on a slot nobody has qualified for", and that was never true: leaving
+     --tcx unset falls through to .tvChipC's OWN fallback, rgb(117,117,117), so
+     every empty slot wore grey -- eight of them on the League's last round pane.
+     A class is what lets the stylesheet tell the two states apart. */
   var row = el('div', 'tvSide' + (opts.big ? ' tvSideBig' : '')
+                    + (tm ? '' : ' tvTBD')
                     + (opts.won ? ' tvWon' : '') + (opts.lost ? ' tvLost' : ''));
   /* No colour stripe on a slot nobody has qualified for: a grey bar is a team
      wearing grey, and an unplayed semi-final used to show four of them. */
@@ -2392,7 +2451,14 @@ function sideRow(tm, opts){
   var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
   if (cut){ var im = el('img'); im.src = cut; im.alt = ''; im.draggable = false; fc.appendChild(im); }
   row.appendChild(fc);
-  row.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));
+  /* AND AN EMPTY SLOT NAMES WHAT WILL FILL IT. §4 of the League's visual
+     standard asks an undecided side to say something rather than wear grey, and
+     an em-dash on its own is the smallest possible nothing: the League's last
+     round pane was eight of them. The bracket knows the answer -- a placement
+     fixture carries an explicit `feed`, and a championship one is fed by the
+     fold -- so "Winner of Last 4" is read off the draw rather than written
+     beside it, exactly as the stake sentence and the draft order are. */
+  row.appendChild(el('span', 'tvNm', tm ? tm.name : (opts.src || '\u2014')));
   /* Archivo, tabular, on the numeral only -- the one place the broadcast face is
      allowed outside the scoreboard, and the reason a column of scores lines up. An
      unplayed tie prints nothing rather than a dash: an empty score column IS
@@ -2420,13 +2486,37 @@ function buildRound(into, r, nm2){
     var decided = (m.winner !== undefined);
     var isNext = !!(nm2 && nm2.round === r && nm2.index === i);
     var tie = el('li', 'tvTie' + (isNext ? ' tvTieNext' : ''));
-    [[m.a, m.sa], [m.b, m.sb]].forEach(function(pr){
+    [[m.a, m.sa], [m.b, m.sb]].forEach(function(pr, side){
       var tm = teamById(pr[0]);
       var won = decided && tm && m.winner === tm.id;
       tie.appendChild(sideRow(tm, { won: won, lost: decided && tm && !won,
+                                    src: tm ? '' : sourceOf(r, i, side),
                                     score: decided ? pr[1] : undefined,
                                     scoreSlot: true }));
     });
+    /* ===== THE RIGHT-HAND CELL, AND IT SAYS ONE OF TWO THINGS. §3 and §4 of the
+       League's visual standard (play.css). The tinted, rimmed, outdented wash
+       that used to mark the next fixture is gone -- it was a second frame inside
+       the panel and it invented a fourth left edge -- so the mark is a word in
+       the cell the score column vacated when one score started winning.
+
+       WHEN THE TIE IS NOT NEXT AND ITS SLOTS ARE ALREADY DECIDED, the cell says
+       WHICH SLOTS. `wp`/`lp` are the draft picks still reachable by the winner
+       and the loser; a terminal fixture has both collapsed to a single number,
+       and every fixture in the League's last round is one. That pane used to be
+       four ties of two dashes each with nothing to distinguish them -- four
+       different pairs of picks, and not one of them named. Now each row carries
+       the two seats it decides. Non-terminal rounds print nothing: "1.01-1.08"
+       on a quarter-final is the whole field and would be clutter, not a fact.
+
+       Nothing is invented here: slot() is the same function the stake sentence
+       and the draft order already print, so the three cannot disagree. ===== */
+    if (isNext){
+      tie.appendChild(el('span', 'tvTieTag', 'Next'));
+    } else if (T.yow && m.wp && m.lp && m.wp[0] === m.wp[1] && m.lp[0] === m.lp[1]){
+      tie.appendChild(el('span', 'tvTieTag tvTieStake',
+                         slot(m.wp[0]) + ' \u00b7 ' + slot(m.lp[0])));
+    }
     list.appendChild(tie);
   });
   into.appendChild(list);
@@ -2677,7 +2767,13 @@ function buildStory(into){
   if (!T.yow || !T.story || !T.story.length) return;
   var shortVp = false; try{ shortVp = innerHeight <= 640; }catch(_){}
   if (shortVp) return;
-  into.appendChild(el('p', 'tvEyebrow', 'Below the line'));
+  /* NOT `.tvEyebrow`, AND THAT IS §6 RATHER THAN A PREFERENCE. The pane this
+     lands in already has one: buildNext's head prints the round's name in caps
+     at the top of it. A second caps run four lines below the first is two
+     eyebrows arguing about which group they head, and the standard allows one
+     per pane. `.tvStoryL` is the same words as a caption -- sentence case, one
+     rung down, muted -- which is what a label on a report is. */
+  into.appendChild(el('p', 'tvStoryL', 'Below the line'));
   /* ONE PARAGRAPH, NOT N. The pane is a flex column with a gap, so a line per element pays
      that gap between every pair -- and on the FINAL, which also carries the poster, that
      was measured at 294px of content in a 289px pane. Five pixels, but the contract says
@@ -2723,7 +2819,8 @@ function buildDraft(into){
      what the league's hardcoded four did when the field went eight to twelve, and it hid
      half a table silently. */
   list.style.setProperty('--tvDraftRows', String(Math.ceil(rows.length / 2)));
-  var anyDrawn = false, racePart = !!(T.race && T.race.mode === 'partial');
+  var anyDrawn = false, anyRace = false,
+      racePart = !!(T.race && T.race.mode === 'partial');
   rows.forEach(function(row){
     var tm = teamById(row.id);
     var li = el('li', 'tvDraftRow' + (row.tiedFromDraw ? ' tvDrawn' : ''));
@@ -2760,8 +2857,17 @@ function buildDraft(into){
        paragraph costs 30px of a pane that is already 8px short at twelve rows, and
        it bought a distinction the row's own provenance cell already draws -- "Race"
        against a round's name. ---- */
+    /* THE TWO CAUSES ARE COUNTED SEPARATELY, and that is not tidiness. The key
+       below was gated on `racePart` -- whether the race stopped short -- rather
+       than on whether any ROW came out of it, so an eight-head field, which has
+       no tail at all and therefore no marked row, still printed "* not raced to
+       the line" under a list where that dot appears nowhere. A legend for a
+       symbol that is not on the screen is worse than no legend: it makes a
+       reader look for something that is not there. Counted, not inferred. */
     var unearned = row.tiedFromDraw || (racePart && row.fromTail);
-    if (unearned){ anyDrawn = true;
+    if (row.tiedFromDraw) anyDrawn = true;
+    if (racePart && row.fromTail) anyRace = true;
+    if (unearned){
       var d = el('span', 'tvDraftTie', '\u00b7');
       d.setAttribute('title', row.tiedFromDraw
         ? 'Level on goal difference and goals -- separated by the draw'
@@ -2771,7 +2877,7 @@ function buildDraft(into){
   });
   into.appendChild(list);
   /* The key is printed only when there is something to key. */
-  var key = draftKey(anyDrawn, racePart);
+  var key = draftKey(anyDrawn, anyRace);
   if (key) into.appendChild(el('p', 'tvDraftKey', key));
 }
 
@@ -2955,8 +3061,21 @@ function buildChampion(into, champ2){
    the primary slid sideways under the finger that had just armed it. Two short words inside
    a fixed box move nothing, and the accessible name carries the whole phrase in both
    states. */
+/* ---- THE LEAGUE'S SECONDARIES ARE THE LIBRARY'S QUIET VARIANT, NOT ITS
+   OUTLINED ONE.  The League's visual standard (play.css, §1) allows exactly one
+   framed object per screen and that object is the panel. `.ctl--secondary`
+   paints an inset hairline and a ground, so a foot of Leave + Simulate + the
+   primary put THREE rimmed boxes inside a rimmed box -- measured at 1440, three
+   different treatments in a 388px row. `.ctl--quiet` is the same control at the
+   same 44px rung with the ground and the rim taken off, so this is a variant
+   swap out of the shared library rather than a private de-paint: the geometry,
+   the press feedback, the focus ring and the disabled dim all still come from
+   controls.css. The soccer cup keeps the outlined pair -- the standard is the
+   League's and this branch is where it applies. */
+function ctlSecondary(){ return T.yow ? 'ctl ctl--quiet' : 'ctl ctl--secondary'; }
+
 function quitBtn(){
-  var quit = el('button', 'tvQuit ctl ctl--secondary', 'Leave'); quit.type = 'button';
+  var quit = el('button', 'tvQuit ' + ctlSecondary(), 'Leave'); quit.type = 'button';
   quit.setAttribute('aria-label', 'Leave the cup');
   var armed = false, armT = 0;
   quit.addEventListener('click', function(e){
@@ -3000,7 +3119,7 @@ function quitBtn(){
    exists to prevent. The round is named in the accessible name instead, where
    length costs nothing. ---- */
 function simBtn(nm2){
-  var b = el('button', 'tvSim ctl ctl--secondary', simRunning() ? 'Stop' : 'Simulate');
+  var b = el('button', 'tvSim ' + ctlSecondary(), simRunning() ? 'Stop' : 'Simulate');
   b.type = 'button';
   if (simRunning()){
     b.classList.add('tvArmed');
@@ -3079,7 +3198,7 @@ function paintQualify(h){
   /* Only on the rung that has a race to skip. The 'skipped' pane's action is "open the
      cup", which is instant and has nothing to sit through. */
   if (state !== 'skipped'){
-    var sb = el('button', 'tvSim ctl ctl--secondary', simRunning() ? 'Stop' : 'Simulate');
+    var sb = el('button', 'tvSim ' + ctlSecondary(), simRunning() ? 'Stop' : 'Simulate');
     sb.type = 'button';
     if (simRunning()) sb.classList.add('tvArmed');
     sb.setAttribute('aria-label', simRunning() ? 'Stop simulating'

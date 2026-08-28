@@ -1057,6 +1057,95 @@ body.hmYowCup .hmScoreEnd{
 @media(prefers-reduced-motion:reduce){
   .hmDropper,.hmDropper.isIn,.hmDropper.isDrop,.hmDropper.isOut,.hmDropperBall{transition:none}
 }
+/* ══ THE LEAGUE'S VISUAL STANDARD.  2026-08-28 ═══════════════════════
+   "I need a full redesign of most of the components in the yow league. It needs
+    a visual standard that needs to be checked and understood what is minimal and
+    clean and up to apple.md standards and our design system, conveying all the
+    relevant information and look in a clean wrapped frame."
+
+   THIS IS THE STANDARD. Everything the League draws -- the qualifying card, the
+   fixture card, the tabs, the bracket rows, the drain report, the draft order,
+   the champion, and the strip the header carries during a match -- obeys all six
+   rules below. tournament.css implements them for the panel's own components and
+   says so at each rule; this file implements them for the chrome that rides in
+   the site's nav and on the pitch. When the two disagree, this block wins.
+
+   WHAT WAS ACTUALLY WRONG, MEASURED AT 1440 BEFORE A LINE WAS EDITED rather than
+   described, because "it looks unpolished" is not a defect anyone can fix:
+
+     * FOUR FRAMED OBJECTS ON ONE SCREEN, three of them inside the fourth. The
+       panel (r 28, inset hairline .12), the next-tie wash (r 6, inset hairline
+       .12, outdented -8px so it broke the panel's own inset), and the two
+       secondary buttons (r 14, inset hairline .12). "A clean wrapped frame" is
+       ONE frame.
+     * FOUR LEFT EDGES ON THE ROUND PANE: 518 (the wash), 526 (the eyebrow and
+       the colour bar), 537 (the face), 565.7 (the name). A ragged left edge is
+       most of what "muddled" ever describes.
+     * A DEAD COLUMN CARRYING A THIRD WEIGHT. .tvSc computes Archivo 800 and was
+       silenced by `body.hmYow .tvSc` -- a class the engine sets only AT KICKOFF.
+       Between matches, which is when the bracket is actually read, the League's
+       own round panes printed 1 and 0. One score wins: the digit IS the outcome
+       and repeats what the bold name already said. This is the fourth time a
+       League rule has been hung on hmYow instead of hmYowCup.
+     * A GREY SLAB IN THE HEADER. .bcGrain -- the dismantled broadcast board's
+       paper-grain layer, 243x54 -- travels into the nav with the matchup, and it
+       is applied by INLINE style, so `.hmHdrMatch *{background:none}` could never
+       reach it. It is the light rectangle behind the two names in every
+       screenshot of a live League match.
+     * THE FINAL PANE WAS EIGHT GREY BARS AND EIGHT DASHES. sideRow's own comment
+       says "no colour stripe on a slot nobody has qualified for"; .tvChipC's
+       fallback is rgb(117,117,117), so every undecided side wore grey anyway --
+       and four ties for four different pairs of draft picks said nothing at all
+       about which picks. That is the opposite of "conveying all the relevant
+       information".
+
+   ── THE SIX RULES ──────────────────────────────────────────────
+
+   1. ONE FRAME, AND IT IS THE PANEL.  `.tvPanel.surface` is the only framed
+      object the League draws: --r-xl 28, ONE hairline of --theme-rim, --mat-2
+      over blur(--blur-2), and never elevation. 28 is not a size judgement to
+      re-derive -- tokens.css's radius ladder names "the cup panel" at that rung
+      in the same sentence as the work cards and the nav drawer.
+      NOTHING INSIDE IT TAKES A RIM, A FILL, A RADIUS OR A SHADOW. The single
+      exception is a control, because a control is a shared-library object with
+      its own settled geometry, not League chrome -- and the League spends the
+      library's quietest variants so the exception costs one box, not three.
+      On the pitch and in the nav the same rule reads: no ground, no rule, no
+      box, no grain. Chrome separates with hairlines and translucency; the
+      companion heads cast the only shadow on this site.
+
+   2. ONE INK EDGE, ONE NAME EDGE, NEVER A THIRD.  The panel's inline padding is
+      the INK EDGE: the eyebrow, the stake sentence, the tape, the key, the list
+      and the foot all start on it. The NAME EDGE is the ink edge plus the
+      identity gutter -- colour bar, gap, face, gap -- and every name, every `v.`
+      and every draft row sits on it. A negative margin, a row inset or an
+      outdented wash invents a third edge and is forbidden. Two edges, derived
+      from one number, at both of the row's scales.
+
+   3. STATE IS SAID IN INK, NEVER IN A BOX.  Won is 600. Out is --theme-muted
+      with the face at .5. Next is a word in the row's own right-hand cell.
+      Settled against still-moving is the chip filled against hollow. Armed is
+      the label changing and going to ink. None of those draws an object, and
+      that is what keeps rule 1 true while the screen still has five states.
+
+   4. THE TEAM'S COLOUR IS THE ONLY NON-TEXT INK, AND ONLY WHERE THERE IS A TEAM.
+      Grey is not a team. A side nobody has qualified for shows no bar and no
+      portrait -- it holds its cells open and says nothing, and the TIE says what
+      it is worth instead. Never a colour field behind a head: a photographic
+      cut-out on a saturated panel is the esports roster card this site is not.
+
+   5. NO DIGITS.  One score wins, so a score column has nothing left to report,
+      and it is hidden on hmYowCup -- the class that is on for the WHOLE cup --
+      rather than on hmYow. The League prints exactly two numerals: the draft
+      rank and the pick it bought. Archivo 800 (.bcNum) is the broadcast board's
+      register and the board is dismantled here, so it survives only on those two.
+
+   6. FOUR SIZES, TWO WEIGHTS, ONE CAPS RUN PER PANE.  11 micro / 12 label /
+      15 control / 20 name, Geist 400 and 600, tracking off the --tr-* ladder.
+      The eyebrow is the caps run; a second one on the same pane is a second
+      eyebrow competing with the first, which is what the drain report was.
+   ═══════════════════════════════════════════════════════════════════════ */
+
 /* ══ THE LEAGUE'S CHROME, WRITTEN ONCE.  2026-08-27 ═════════════════════════
    "its clearly dark its like you keep ignoring my message ... I asked for a
    redesign not slight tweaks."
@@ -1166,6 +1255,24 @@ body.hmYowHdr .hmHdrEnd{visibility:visible}
 .hmHdrMatch,
 .hmHdrMatch *{background:none;box-shadow:none;border:0}
 .hmHdrMatch,.hmHdrMatch .sbCard,.hmHdrMatch .sbRow{padding:0}
+/* ── AND THE GREY SLAB BEHIND THE NAMES.  §1: no ground, no grain.  2026-08-28
+   The rule directly above says the row brings no ground with it, and it was
+   wrong about one layer. .bcGrain is the broadcast board's paper texture -- a
+   full-bleed div bcGrainOn() appends to the card and paints with an INLINE
+   background-image, so `.hmHdrMatch *{background:none}` (0,2,0, stylesheet) can
+   never win against it. Measured during a live match at 1440: a 243x54 textured
+   rectangle sitting in the nav behind OZZY - BAZ, and it is the light grey box
+   visible behind the matchup in every screenshot this screen has ever produced.
+   The League has no board, so it has no grain; the soccer cup keeps both. */
+body.hmYowCup .bcGrain{display:none}
+/* ── AND THE ROUND SHEDS THE BOARD'S DIVIDER. .sbRound carries
+   `border-right:1px solid rgba(236,233,221,.14)` plus 9px of padding for it --
+   the ledge rule that separated the round from the meta on the dark plate. In
+   the nav that is a stray vertical tick 1px to the right of "1.01" with nothing
+   on the other side of it, which is §1's "no rule" exactly. The hides in this
+   block travel with .hmHdrMatch; this element is its SIBLING in .jbGrpR, so it
+   needs its own line -- the same descendant-selector trap documented above. */
+.sbRound.hmHdrRound{border-right:0;padding-right:0;margin-right:var(--sp-12)}
 .hmHdrEnd{margin-left:var(--sp-8);border-left:0}
 /* The board itself is now an empty shell -- everything it carried lives in the
    header. It keeps no box of its own. */
@@ -1228,7 +1335,16 @@ body.hmYow .hmScore .hmScoreEnd{
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
-.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+/* NO ELEVATION ON THE PODIUM EITHER.  §1, 2026-08-28. It carried
+   `0 12px 24px -11px rgba(22,22,28,.34), 0 2px 5px rgba(22,22,28,.12)` -- two
+   genuine cast shadows, and after .hmPlat lost its one on 2026-08-27 this was
+   the last piece of chrome on any Play screen that stood off the page. The rule
+   is absolute and it is not a style preference: the companion heads cast contact
+   shadows BECAUSE THEY STAND ON SOMETHING, and a shadow under the thing they
+   stand on says the floor is floating too. What survives is the inset top
+   highlight -- that is light catching an edge, not elevation -- and the hairline
+   it already had, which is how everything else here separates. */
+.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92);border:1px solid rgba(22,22,28,.10);opacity:0;pointer-events:none;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:var(--lh-flat)}
 .hmPodium.show{opacity:1}
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */

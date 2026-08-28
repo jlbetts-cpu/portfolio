@@ -470,7 +470,15 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    .tvLost already mutes the losing side's name AND fades its face to .5, and
    both are untouched -- verified against the three rules below rather than
    assumed. */
-body.hmYow .tvSc{display:none}
+/* ── AND IT IS hmYowCup, NOT hmYow.  §5, 2026-08-28 ──────────────────────
+   This shipped scoped to `body.hmYow`, which play-engine.js sets AT KICKOFF and
+   clears at the whistle -- so it was true during a match, when this screen is
+   display:none, and false everywhere the bracket is actually read. Measured at
+   1440 between two fixtures: .tvSc was live, 14.4px wide, Archivo 800, printing
+   1 and 0 down the round panes. That is the same four-round mistake this mode
+   has made three times before, and it is why the standard names the class.
+   hmYowCup is on from the first qualifying screen to the last drain. */
+body.hmYowCup .tvSc{display:none}
 .tvSide.tvLost{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvSc{color:var(--theme-muted,var(--c500))}
 .tvSide.tvLost .tvFaceC img{opacity:.5}
@@ -481,7 +489,17 @@ body.hmYow .tvSc{display:none}
 .tvVs{flex:0 0 auto;display:flex;flex-direction:column;gap:var(--sp-4)}
 .tvSideBig{gap:var(--sp-12);min-height:var(--tvFace)}
 .tvSideBig .tvFaceC{flex:0 0 var(--tvFace);width:var(--tvFace);height:var(--tvFace)}
-.tvSideBig .tvChipC{width:4px;flex:0 0 4px;height:calc(var(--tvFace) * .5);border-radius:var(--r-hair)}
+/* ── THE BIG ROW HAS NO COLOUR BAR.  §4, 2026-08-28 ───────────────────────
+   The bar earns its place in a 21px bracket row, where the portrait beside it is
+   a smudge and the colour is the faster read. At --tvFace it does not: the head
+   is a 48px photographic cut-out ALREADY TINTED IN THE TEAM'S COLOUR -- it is
+   the same fact, said twice, at a size where once is unmissable. Measured, the
+   second saying cost more than the duplication: a 4x24 bar alone on the ink edge
+   at 526 with the face 16px away at 542 read as a stray tick mark rather than as
+   part of the row, and it was the only thing on the ink edge that was not type.
+   Deleted, not shrunk. The name edge is now the ink edge plus the face and one
+   gap, which is §2's identity gutter with one cell in it instead of two. */
+.tvSideBig .tvChipC{display:none}
 .tvSideBig .tvNm{
   font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-auto);
   letter-spacing:var(--tr-sub);
@@ -491,8 +509,11 @@ body.hmYow .tvSc{display:none}
    which is what stops the stack reading as a pile of separate widgets. The old
    column had THREE left edges for five elements at 1440 (x=130, x=211, x=130),
    and a ragged left edge is most of what "muddled mess" describes. */
+/* THE `v.` SITS ON THE NAME EDGE, and the arithmetic follows the row rather than
+   restating it: the gutter is the face plus the row's gap, now that the bar has
+   gone. If the row's cells change, this is the one line that changes with them. */
 .tvV{
-  padding-inline-start:calc(4px + var(--sp-12) + var(--tvFace) + var(--sp-12));
+  padding-inline-start:calc(var(--tvFace) + var(--sp-12));
   font-size:var(--fs-label);line-height:var(--lh-flat);
   letter-spacing:var(--tr-body);color:var(--theme-muted,var(--c500));
 }
@@ -522,6 +543,22 @@ body.hmYow .tvSc{display:none}
 }
 
 /* ---------------------------------------------------------------------------
+   THE DRAIN REPORT'S LABEL -- a caption, not a second eyebrow
+   The consolation set is played without anybody watching and told in sentences,
+   and the line that introduces it used to be `.tvEyebrow` -- a second caps run
+   on a pane whose head already carries the round's name in caps. §6 allows one
+   per pane. Same colour, same left edge, one rung down, sentence case: it reads
+   as the label on the report rather than as a heading arguing with the one four
+   lines above it.
+   --------------------------------------------------------------------------- */
+.tvStoryL{
+  margin:0;flex:0 0 auto;
+  font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);
+  color:var(--theme-muted,var(--c500));
+}
+
+/* ---------------------------------------------------------------------------
    A ROUND PANE -- the bracket, one round at a time
    This is the Gradient Maker's answer to thirty controls and no room: show one
    group, let the visitor pick. It is what makes the whole fixture list reachable
@@ -529,29 +566,86 @@ body.hmYow .tvSc{display:none}
    the format -- at most half the field's fixtures, which is four at eight teams
    and four at twelve.
    --------------------------------------------------------------------------- */
+/* THE GAP CARRIES THE GROUPING NOW THAT THE WASH IS GONE, and it is a ratio
+   rather than a number picked by eye: the two rows of a tie touch (the grid
+   above has no row gap, so they are --tvRow apart) and one tie is --sp-16 from
+   the next -- roughly twice the row's own leading, which is the proximity ratio
+   that reads as "these two, then those two". It was --sp-8 plus the tie's own
+   4px of vertical padding, so the pair is 4px further apart than it was and the
+   whole list is 8px SHORTER at four ties: 4x42 + 3x16 = 216 against 224. Height
+   is the axis this screen runs out on, so that direction matters. */
 .tvTies{
   flex:1 1 auto;min-height:0;list-style:none;margin:0;padding:0;
   display:grid;grid-template-columns:minmax(0,1fr);
-  gap:var(--sp-8);align-content:center;
+  gap:var(--sp-16);align-content:center;
 }
+/* ── A TIE IS TWO ROWS, NOT A CARD.  §1 and §2, 2026-08-28 ────────────────
+   It was `padding:4px 8px; margin-inline:-8px; border-radius:6px`, and the next
+   tie filled that box with a 6% ink wash and an inset hairline. Measured at
+   1440 that put the tie's own left edge at 518 against the eyebrow's 526 and the
+   name's 565.7 -- FOUR left edges on one pane, the outdented one belonging to
+   the loudest object on it. A wash with a rim and a radius inside a panel with a
+   wash and a rim and a radius is two frames, and the brief is one.
+   No box, no outdent, no radius. The pair is read by proximity -- the two rows
+   of a tie touch, and --sp-8 separates one tie from the next -- which is the
+   grouping rule Apple states plainly and the one this list was already using
+   underneath the wash. */
+/* Two cells: the pair of rows, and the one word the tie has to say. `auto` on
+   the second collapses it to nothing when there is no tag, so a round with no
+   right-hand cell is laid out exactly as it was. The tag spans both rows because
+   it belongs to the TIE, not to either side of it. */
 .tvTie{
-  min-width:0;padding:var(--sp-4) var(--sp-8);
-  margin-inline:calc(var(--sp-8) * -1);
-  /* --r-sm, off the settled ladder by the concentric rule: an --r-xl panel with an
-     --sp-16 inset gives its rows a smaller rung, and a two-line row wash is a small
-     container under all of 28 / 20 / 14. Picked from the rung list, not by eye. */
-  border-radius:var(--r-sm);
+  min-width:0;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;column-gap:var(--sp-8);
 }
+.tvTie > .tvSide{grid-column:1;min-width:0}
 /* The tie that is next -- the one the Next pane is about -- is marked so the two
    panes are visibly the same subject. A tinted wash and a hairline, no elevation. */
 /* MIXED OFF THE THEME'S OWN INK rather than taken from --wash-1, which is a fixed
    rgba(9,11,36,.055) -- dark ink at 5.5%, and therefore invisible on a dark page. The
    mix follows --theme-ink in both directions: a whisper of black on white, a whisper of
    white on black, one declaration, no list to join. */
-.tvTie.tvTieNext{
-  background:color-mix(in srgb, var(--theme-ink,#090b24) 6%, transparent);
-  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(9,11,36,.08));
+/* ── AND "NEXT" IS A WORD, NOT A WASH.  §3 ────────────────────────────────
+   The state this marked is worth marking: of four ties in a round, one is the
+   fixture the button at the foot will actually start. Said in ink it costs
+   nothing and reads faster than a tint -- the two names go to full ink at 600
+   while the rest of the round sits at 400, and the tie carries the word in the
+   right-hand cell the score column has just vacated (§5). A tint has to be
+   noticed and then decoded; a word does not. */
+.tvTie.tvTieNext .tvNm{font-weight:600;color:var(--theme-ink,var(--c950))}
+/* SENTENCE CASE, AND THAT IS §6 CATCHING ME. The first build set this in caps,
+   which put two caps runs on one pane -- QUARTER-FINAL heading the round and
+   NEXT hard right of it, arguing about which the eye should read first. The
+   eyebrow is the pane's caps run. This is a mark on a row: 600 at full ink is
+   already the loudest thing in a list of muted 400s and needs no second signal. */
+.tvTieTag{
+  grid-column:2;grid-row:1 / -1;justify-self:end;
+  font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);
+  color:var(--theme-ink,var(--c950));
+  white-space:nowrap;pointer-events:none;
 }
+/* ── WHAT AN UNDECIDED TIE IS WORTH.  §4 ──────────────────────────────────
+   The League's last round is four fixtures for four different pairs of picks,
+   and before any of them is played the pane was eight grey bars and eight
+   dashes -- a table with no rows filled and no columns labelled. The tie knows:
+   `wp`/`lp` are the slot ranges its winner and loser can still reach, and in a
+   terminal fixture both have collapsed to one number. So the tag prints the two
+   seats the tie decides -- 1.03 * 1.04 -- which is the only fact about that row
+   that exists yet, and it is the fact the whole cup is being played for.
+   Muted and at 400, because it is a caption on a fixture rather than a result. */
+.tvTieTag.tvTieStake{
+  font-weight:400;
+  color:var(--theme-muted,var(--c500));
+}
+/* Grey is not a team. .tvChipC's fallback is rgb(117,117,117) and sideRow leaves
+   --tcx unset for a side nobody has qualified for, so every empty slot wore a
+   grey bar -- which sideRow's own comment says it must not. The cells stay in
+   the layout so the name edge does not move between a filled row and an empty
+   one (§2); they simply hold nothing. */
+.tvSide.tvTBD .tvChipC{background:none}
+.tvSide.tvTBD .tvNm{color:var(--theme-muted,var(--c500))}
 
 /* ---------------------------------------------------------------------------
    THE DRAFT ORDER -- the tab the whole tournament is for
@@ -761,10 +855,20 @@ body.hmFinal .tvPanel{
 /* Armed: the second tap ends the cup. Warm, not red-alert -- it is a leave, not a
    delete -- so it borrows the library's own selected appearance rather than
    inventing an alert colour. */
-.tvQuit.tvArmed{
+/* THE ARMED APPEARANCE FOLLOWS THE VARIANT, NOT THE MODE, which is what keeps
+   one rule from having to know which cup is running. An outlined secondary arms
+   by deepening its own ground and rim -- the library's selected appearance,
+   borrowed rather than invented. A QUIET one has no ground and no rim to deepen,
+   and painting one on would put back the box the League's standard §1 just took
+   off, so it arms in INK: full-strength colour at 600, which is §3's "state is
+   said in ink". The word changing from Leave to Sure? is the loud half anyway. */
+.tvQuit.tvArmed:not(.ctl--quiet),
+.tvSim.tvArmed:not(.ctl--quiet){
   background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);
   box-shadow:var(--ctl-rim-strong);
 }
+.tvQuit.tvArmed.ctl--quiet,
+.tvSim.tvArmed.ctl--quiet{color:var(--ctl-ink-strong);font-weight:600}
 /* SIMULATE, and it is the same fixed box for the same measured reason as Leave:
    "Simulate" and "Stop" are different widths and this one ALSO sits directly beside
    the primary, so a label swap would slide Kick off under the finger. 92px holds
@@ -775,12 +879,25 @@ body.hmFinal .tvPanel{
    is still the widest thing in the row at every size, which is the requirement: Kick
    off has to stay obviously the main action. */
 .tvSim{flex:0 0 auto;min-width:92px;justify-content:center}
-/* Running: it is now Stop, and it borrows the library's selected appearance exactly
-   as the armed Leave does rather than inventing a state colour. One material. */
-.tvSim.tvArmed{
-  background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);
-  box-shadow:var(--ctl-rim-strong);
+/* ── AND THE PRIMARY DOES NOT GO GREY WHILE THE CRANK TURNS.  §1 and §3.
+   `.ctl[disabled]` dims to --ctl-disabled-o, which on a solid ink primary is a
+   204px mid-grey slab -- measured, and by a distance the loudest object on the
+   panel at the one moment nothing on it is pressable. A disabled control should
+   recede, and dimming a FILL does the opposite: it turns a confident black
+   button into a broken-looking grey one.
+   So in the League the disabled primary drops its fill and keeps its box: the
+   row does not change shape under a finger (the reason it is disabled rather
+   than absent), "Simulating..." still says what is happening, and the only ink
+   left in the foot is Stop -- which is the only thing there is to press. The
+   soccer cup keeps the library's dim; this is the League's standard. */
+body.hmYowCup .tvGo:disabled,
+body.hmYowCup .tvGo[aria-disabled="true"]{
+  opacity:1;background:none;box-shadow:none;
+  color:var(--theme-muted,var(--c500));
 }
+/* Running: it is now Stop, and it takes the armed appearance defined with Leave
+   above -- the two are the same state on the same rung and had two copies of one
+   rule between them. */
 
 /* ---------------------------------------------------------------------------
    THE ENDING
@@ -822,6 +939,22 @@ body.hmFinal .tvPanel{
   padding-top:calc(var(--tvChamp) * 0.16);
 }
 :root{--tvChamp:clamp(72px, 16svh, 168px)}
+/* ---- AND THE PORTRAIT PAYS FOR THE REPORT, WHICH IS THIS FILE'S OWN ORDER:
+   air first, pictures last, information never.
+   The consolation set that lands WITH the final -- third, fifth and seventh
+   place -- has no fixture left to sit beside, so its three lines arrive on the
+   champion screen. buildStory's note says that screen "has the room". Measured
+   at 1440x900 it does not: the band is 434px, the panel's chrome takes 145 of
+   them, and the pane's 289 has to hold a 195px head-plus-crown, a 28px name and
+   ~60px of report. It overran by 25px and `justify-content:safe center` pushed
+   the whole pane to flex-start, so the first sentence was drawn UNDER the Leave
+   button and the other two were not on screen at all. Three facts about three
+   draft picks, silently dropped on the one screen a drafter actually acts on.
+   The head is the thing that gives, because it is the only element here whose
+   MEANING does not change with its size -- a crowned portrait at 104px is the
+   same statement as one at 168. Same clamp shape, one rung down, and only when
+   there is a report to make room for. */
+.tvPane:has(.tvStoryL){--tvChamp:clamp(56px, 10svh, 104px)}
 /* ---- AND IT COMES DOWN A RUNG BELOW 760px OF HEIGHT, because the pane the champion
    lives in is NOT proportional to the viewport: it is `--tvGround - --tvTop` less the
    panel's fixed chrome, and --tvTop is a constant 88. So the pane shrinks faster than
@@ -943,6 +1076,17 @@ body.hmFinal .tvPanel{
    thing on a screen whose only real problem is height. */
 @media(max-height:640px){
   :root{--tvFace:clamp(34px, 5.4svh, 56px)}
+  /* ---- AND THE CHAMPION COMES DOWN ONE MORE RUNG, because at 320 the sentence
+     under the head is two lines and the budget above counts one. Measured at
+     320x568: the pane is 139px and it was holding 145 -- a 12px eyebrow, a 69.5px
+     head-and-crown, a 48px two-line name and 12px of gaps -- so "League" was
+     drawn on top of the Leave the cup button. The name is what a visitor reads
+     and the button is what they press; the picture is the only one of the three
+     that says the same thing at any size, so it is the one that gives.
+     8svh puts the head at 45.4 and the wrap at 61.8, which lands the pane on
+     133.8 of its 139 with the two-line name intact. The contract's assertion at
+     this exact size -- head and crown inside their own clip -- only gets easier. */
+  :root{--tvChamp:clamp(40px, 8svh, 96px)}
   .tvPanel{gap:var(--sp-6)}
   .tvPane{gap:var(--sp-6)}
   .tvVs{gap:var(--sp-2)}
@@ -967,7 +1111,7 @@ body.hmFinal .tvPanel{
 @media(max-height:640px){
   .tvTies{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-12)}
   .tvTie .tvFaceC{display:none}
-  .tvTie{padding-inline:var(--sp-6);margin-inline:calc(var(--sp-6) * -1)}
+  /* the tie's own inset went with its box -- see .tvTie above */
   /* ---- THE POSTER STAYS DOWN HERE NOW, AND THAT IS ARITHMETIC RATHER THAN A REVERSAL.
      It used to be `display:none`, and the reasoning was right for the shape it had: "at
      320x568 the pane has a measured ~136px and the two captains need 105 of them, so a
