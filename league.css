@@ -528,7 +528,20 @@ body.hmYowHdr .jbNav{
    It cross-fades on the sky's own duration so it reads as the room changing
    rather than as a repaint. */
 body.hmYowCup .hero::after{
-  content:"";position:absolute;inset:0;
+  /* display:block IS THE WHOLE FIX, and it took a pixel test to find.
+     play.html carries `body.playViewportOwned .hero::after{display:none}` --
+     the play screen hides this pseudo-element outright, and playViewportOwned
+     is on throughout a cup. My rule set content, position, inset and the
+     gradient and never touched display, so everything about it computed
+     correctly (content:"", the right background-image, the right box) and it
+     painted nothing at all.
+     THAT IS WHY THE VARIABLE TEST PASSED AND THE SCREEN DID NOT CHANGE:
+     --lgWin was set, getComputedStyle returned the gradient, and the floor
+     pixels read 253,253,253 before and after. Reading the computed style of a
+     display:none element tells you what it WOULD look like. Only sampling the
+     rendered pixels caught it -- a loud red !important test still painted
+     nothing, which is what pointed at display rather than at colour. */
+  content:"";display:block;position:absolute;inset:0;
   pointer-events:none;z-index:0;
   background:linear-gradient(180deg,
     rgba(var(--lgWin,0 0 0),0) 42%,
