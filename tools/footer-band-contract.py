@@ -230,15 +230,22 @@ def check_bleed(page, name, fails):
     if abs(box["l"]) > 1 or abs(box["l"] + box["w"] - box["vw"]) > 1:
         fails.append("%s: band is not full bleed -- spans %.1f..%.1f of a %.0f viewport"
                      % (name, box["l"], box["l"] + box["w"], box["vw"]))
-    # THE BITMAP ASSERTION LEFT WITH THE BITMAP.  2026-08-27.
-    # There were two canvases here once, then one, and now none: .footBandMark
-    # went with the wordmark and .footBandField went with the ASCII treatment
-    # ("lowkey think it might look cleaner without it"). What it checked -- that
-    # a backing store sized off ResizeObserver's contentRect is a picture
-    # stretched 1.24x -- has no subject any more, so it is gone rather than
-    # relaxed. THE FULL-BLEED CHECK ABOVE STAYS: that is about the BAND, which
-    # is still here and is still CSS, and it is the one that fails if the band
-    # stops reaching the viewport's edges.
+    # THE BITMAP MUST BE THE BOX. Both canvases are inset:0 / 100%x100%, so
+    # they cover the band's PADDING box. Size the backing store from anything
+    # smaller -- ResizeObserver's contentRect is the one that is right there and
+    # excludes padding-block -- and the browser scales the bitmap up to fit. It
+    # does not error, it does not clip, and the component's own probe reports a
+    # canvas that "fitted". What you get is the whole picture stretched, and at
+    # 249 against 201 that is 1.24x: the wordmark reads as out of focus and
+    # every other number on this page still passes.
+    for label, cw, ch in (("field", box["fw"], box["fh"]),):
+        want_w, want_h = box["padW"] * box["dpr"], box["padH"] * box["dpr"]
+        if abs(cw - want_w) > 2 or abs(ch - want_h) > 2:
+            fails.append("%s: the %s canvas is %dx%d device px for a %.0fx%.0f box at dpr %g "
+                         "-- the bitmap does not match the element, so the picture is scaled "
+                         "(%.3fx vertically)"
+                         % (name, label, cw, ch, want_w, want_h, box["dpr"],
+                            (want_h / ch) if ch else 0))
     # THE WORDMARK IS GONE AND MUST STAY GONE. Jayden asked for the name off the
     # bottom of the site; a page that gets its .footMark back would render a
     # 200px string with no rule left to size or colour it. Checked per page,
@@ -454,8 +461,28 @@ def check_one_footer(page, name, want, fails):
     return h
 
 
+def check_grain(page, name, fails):
+    probe = page.evaluate("()=>window.FooterBand&&window.FooterBand.probe"
+                          "?window.FooterBand.probe():null")
+    if not probe:
+        fails.append("%s: footer-band.js is not running, so the band's grain cannot "
+                     "be measured" % name)
+        return
+    cell, h = probe["cell"], probe["h"]
+    if h < cell * MIN_CELL_ROWS:
+        fails.append("%s: the band is %dpx on a %dpx cell -- %.1f rows of the glyph "
+                     "field, and %d whole rows is the floor. At 2.0 rows (the 42px the "
+                     "phone shipped for a few hours on 2026-08-20) both rows are clipped "
+                     "by the band's edges and it reads as a sliver of noise rather than "
+                     "as a floor." % (name, h, cell, h / float(cell), MIN_CELL_ROWS))
 
 
+# THE SEVEN STATES, AND WHAT EACH ONE HAS TO BE. Read as painted mean luma at
+# 1440 on about.html. The ladder is the Hero's own -- hero-time.css measured the
+# mean sky luminance where its glyph field lands at .63/.57/.54/.49/.47/.02 for
+# sunrise/daytime/sunset/dusk/pre-dawn/night, and the band quotes that sky, so
+# this is the same sequence and not a taste call. "off" is not an hour and sits
+# outside the ladder as a hueless neutral.
 # "off" IS DARK, AND IT IS DARK BY INSTRUCTION. The first pass at this made it a
 # pale grey on the argument that a state meaning "no time of day" should not be
 # the most dramatic band on the site. Jayden overruled it the same day -- "keep
@@ -466,9 +493,24 @@ def check_one_footer(page, name, want, fails):
 # THE FLOOR AND CEILING ARE GENEROUS ON PURPOSE. These are not pinned values --
 # the palette is meant to be tunable by eye and a +/-28 window leaves room for
 # that. What they pin is the SHAPE: a lit hour is light and night is dark.
+# DUSK MOVED 155 -> 185 ON 2026-08-27, AND IT IS THE PALETTE THAT MOVED, NOT THE
+# BAR. Jayden: "make sure the colors match the hero gradient though for the
+# footer gradient please." The stops are now SAMPLED from hero-time.css instead
+# of hand-picked, and the hero's dusk sky has no dark stop in it -- its five are
+# #ffb36a=193, #dfa0d8=185, #9da8e4=172, #ccd5f0=213, #f1f3fa=243, so the
+# darkest thing dusk owns is 172. The old 155 was reachable only with
+# #5e627d (luma 100), a slate blue that appears nowhere in that hour's sky, and
+# holding the number would have meant keeping the mismatch he just asked me to
+# fix. The BAND is what it says on the tin -- "a slice of that hour's hero sky"
+# -- so when the sky is the source of truth the slice follows it.
+# This is not a relaxation: the window is still +/-28, every other hour is
+# unchanged, and the three assertions that give this check its teeth (the >=100
+# span, the sunset-vs-pre-dawn temperature spread, and "off carries no hue")
+# all still bite. What would now fail: a dusk band painted in the old slate.
 BAND_LUMA = {"off": 40, "pre-dawn": 140, "sunrise": 194, "daytime": 179,
-             "dusk": 155, "sunset": 171, "night": 35}
+             "dusk": 185, "sunset": 171, "night": 35}
 LUMA_TOL = 28
+
 
 def check_hour(page, fails):
     """THE BAND IS THE HOUR'S SKY, AND EVERY CLAIM HERE IS MADE IN PIXELS.
@@ -524,26 +566,27 @@ def check_hour(page, fails):
           const m=/rgba?\(([^)]+)\)/.exec(c);
           const p=m[1].split(/[\s,\/]+/).map(Number); return [p[0],p[1],p[2]];
         }""")
-        # ONE SCREENSHOT NOW, AND NO FRAME TO PIN.  2026-08-27.
-        # This used to take the band twice -- lit, then again with
-        # --foot-band-strength:0 -- and difference them, because the only way to
-        # measure the GLYPHS' own contribution is to subtract the sky they sit
-        # on. It also had to pin FooterBand.frameAt(6), because the mesh drifted
-        # and two screenshots of "the band" were two different pictures.
-        # Both were field mechanics and the field is gone. What is left is pure
-        # CSS that does not move, so one shot is the whole measurement and the
-        # same t is trivially the same picture.
-        shot = list(png(el.screenshot()).getdata())
-        n = len(shot)
-        mean = [sum(q[i] for q in shot) / n for i in range(3)]
+        page.evaluate("()=>window.FooterBand.frameAt(6)")
+        lit = list(png(el.screenshot()).getdata())
+        page.evaluate("""()=>{const b=document.querySelector('.footBand');
+          b.style.setProperty('--foot-band-strength','0');
+          window.FooterBand.frameAt(6);}""")
+        bare = list(png(el.screenshot()).getdata())
+        page.evaluate("""()=>{const b=document.querySelector('.footBand');
+          b.style.removeProperty('--foot-band-strength');
+          window.FooterBand.frameAt(6);}""")
+        n = len(lit)
+        mean = [sum(q[i] for q in lit) / n for i in range(3)]
         # THE PALEST PIXEL, NOT THE MEAN, for the floor test: a band whose mean
         # is comfortably under the page can still have its lit corner sitting on
         # top of it. p99 rather than the maximum, because one antialiased glyph
         # edge is not a surface.
-        pale = sorted(shot, key=lum)[int(n * .99)]
+        pale = sorted(bare, key=lum)[int(n * .99)]
+        d = sorted(abs(lum(lit[i]) - lum(bare[i])) for i in range(n))
         read[state] = {"mean": mean, "lum": lum(mean),
                        "rb": mean[0] - mean[2],
-                       "gap": max(abs(pale[i] - ground[i]) for i in range(3))}
+                       "gap": max(abs(pale[i] - ground[i]) for i in range(3)),
+                       "peak": d[int(n * .999)]}
 
     # 1. THE LADDER
     for state, want in BAND_LUMA.items():
@@ -586,14 +629,134 @@ def check_hour(page, fails):
                          "ground; a floor you cannot distinguish from the room is not a "
                          "floor" % (state, r["gap"]))
 
-    # ASSERTION 4 WAS "THE GLYPHS STILL READ" AND IT LEFT WITH THEM.
-    # It was two-sided -- a floor at 24 so the texture is not invisible, a
-    # ceiling at 150 so it is grain in a sky rather than a screen of characters
-    # -- and both ends were about a field that no longer exists. Deleted rather
-    # than relaxed: a bound of 0..inf on a thing that is not drawn is a gate
-    # that cannot fail, which is the failure mode this file's own header warns
-    # about. The three assertions above are the band's and they all still bite.
+    # 4. THE GLYPHS STILL READ. Two-sided, like hero-ascii-field-contract's own
+    #    dL band: under the floor is a texture nobody can see, over the ceiling
+    #    is a screen of characters rather than grain in a sky. The floor is set
+    #    at 24 because the Hero's approved field peaks at ~35 over its palest
+    #    sky and 24 is comfortably under it; the ceiling at 150 is just over what
+    #    night reaches (91) plus the old near-ink band's 130.
+    for state, r in read.items():
+        if r["peak"] < 24:
+            fails.append("in %r the glyph field peaks at %.1f levels over its own ground; "
+                         "the band got brighter than its ink can carry and the field has "
+                         "gone invisible. --foot-band-glyph has to move with the sky."
+                         % (state, r["peak"]))
+        elif r["peak"] > 150:
+            fails.append("in %r the glyph field peaks at %.1f levels over its own ground; "
+                         "that is not grain in a sky, it is a screen of characters on top "
+                         "of one" % (state, r["peak"]))
 
+    page.evaluate("()=>window.SiteTheme.setMode('daytime')")
+    page.wait_for_timeout(900)
+
+
+def check_reduced(page, base, prefix, fails):
+    """Still means STILL, and it also means the picture does not change shape.
+    Two frames 1.4s apart must be byte-identical, and the glyphs must NOT have
+    snapped back onto the 21px cell grid -- a frozen jitter is grain, a zeroed
+    one is a lattice."""
+    open_page(page, base, "about.html", prefix, reduced=True)
+    el = page.query_selector(".footBand")
+    a = el.screenshot()
+    page.wait_for_timeout(1400)
+    b = el.screenshot()
+    if a != b:
+        fails.append("reduced motion: the band repainted between two frames 1.4s apart")
+    probe = page.evaluate("()=>window.FooterBand?window.FooterBand.probe(false):null")
+    if probe and probe["running"]:
+        fails.append("reduced motion: the rAF loop is still scheduled")
+    # A ZEROED JITTER AND A FROZEN ONE ARE BOTH PERFECTLY STATIC, so the diff
+    # above cannot tell them apart -- and they are not the same picture. Frozen
+    # at t=6 the term is a fixed per-glyph offset and the field reads as grain;
+    # zeroed, every glyph sits exactly on the 21px cell and the still frame is a
+    # lattice with countable rows and columns. It cannot be read off the pixels
+    # either, because the mesh underneath is opaque everywhere and swamps any
+    # column statistic (a first cut measured the width of its own sampling
+    # window and reported 0.357 for both). So the renderer banks the mean
+    # absolute offset it actually applied: 2 * (2/pi) * 2.2 = 2.80 for the real
+    # thing, exactly 0 for the injected one.
+    if probe and probe.get("jitter", 0) < 1.2:
+        fails.append("reduced motion: the mean per-glyph jitter is %.2fpx (frozen is ~2.8). "
+                     "It has been zeroed rather than frozen, and the still frame is a "
+                     "countable 21px lattice rather than grain"
+                     % probe.get("jitter", 0))
+
+
+def check_observer(page, base, prefix, fails):
+    """The band is below the fold on all eight pages. Off screen it must not
+    merely pause -- it must not be scheduled at all."""
+    page.goto(base + prefix + "about.html", wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(1200)
+    page.evaluate("window.scrollTo(0,0)")
+    page.wait_for_timeout(700)
+    top = page.evaluate("()=>window.FooterBand?window.FooterBand.probe(false):null")
+    if not top:
+        fails.append("no window.FooterBand probe")
+        return
+    if top["running"]:
+        fails.append("the loop is running while the band is off screen; an "
+                     "IntersectionObserver is supposed to stop it")
+    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    page.wait_for_timeout(700)
+    bottom = page.evaluate("()=>window.FooterBand.probe(true)")
+    if not bottom["running"]:
+        fails.append("the loop did not restart when the band came back on screen")
+
+
+def check_kill_switch(page, fails):
+    """--foot-band-strength:0, one line, the same switch the Hero field has."""
+    page.evaluate("""()=>{
+      document.querySelector('.footBand').style.setProperty('--foot-band-strength','0');
+      window.FooterBand.rebuild();
+    }""")
+    page.wait_for_timeout(400)
+    p = page.evaluate("()=>window.FooterBand.probe(false)")
+    if p["strength"] != 0:
+        fails.append("--foot-band-strength:0 did not reach the renderer")
+    if p["glyphs"] != 0:
+        fails.append("--foot-band-strength:0 still painted %d glyphs" % p["glyphs"])
+    if p["running"]:
+        fails.append("--foot-band-strength:0 left the rAF loop scheduled")
+    page.evaluate("""()=>{
+      document.querySelector('.footBand').style.removeProperty('--foot-band-strength');
+      window.FooterBand.rebuild();
+    }""")
+
+
+def check_cost(page, fails):
+    """THE DRAW IS TIMED OFF THE rAF CLOCK, DELIBERATELY. Headless Chromium
+    rasterises in software and throttles rAF, so wall-clock frame timings out of
+    it are noise -- the same band measured p95 4.7ms on one run and 12.5ms on the
+    next with nothing changed, at 12fps instead of 30. What is being bounded here
+    is the cost of ONE draw, so it is called directly, sixty times, back to back:
+    no scheduler, no compositor, one variable. The loop's own rate is checked
+    separately and loosely, because that IS the thing headless cannot measure."""
+    live = page.evaluate("""()=>{ window.FooterBand.probe(true); return 1; }""")
+    page.wait_for_timeout(3000)
+    p = page.evaluate("()=>window.FooterBand.probe(false)")
+    if p["drawn"] < 20:
+        fails.append("only %d frames drawn in 3s; the loop is not running" % p["drawn"])
+    cost = page.evaluate("""()=>{
+      const ts=[];
+      for(let i=0;i<60;i++){
+        const a=performance.now();
+        window.FooterBand.frameAt(20 + i*0.001);
+        ts.push(performance.now()-a);
+      }
+      ts.sort((a,b)=>a-b);
+      return {p50:ts[30], p95:ts[56], max:ts[59]};
+    }""")
+    if cost["p50"] > MEDIAN_BUDGET_MS:
+        fails.append("one draw costs a median of %.1fms against a budget of %.1f "
+                     "(p95 %.1f, worst %.1f)"
+                     % (cost["p50"], MEDIAN_BUDGET_MS, cost["p95"], cost["max"]))
+    if cost["max"] > WORST_BUDGET_MS:
+        fails.append("the worst of 60 draws took %.1fms against a ceiling of %.1f "
+                     "(median %.1f)" % (cost["max"], WORST_BUDGET_MS, cost["p50"]))
+    p["p50"] = cost["p50"]
+    p["p95"] = cost["p95"]
+    p["worstMs"] = cost["max"]
+    return p
 
 
 def check_theme_walk(page, fails):
@@ -624,44 +787,75 @@ def check_theme_walk(page, fails):
                      "palette is not following the theme at all" % (day, night))
         return
 
-    # THE TWEEN IS CSS'S NOW, SO THIS READS CSS.  2026-08-27.
-    # It used to read FooterBand.probe(false).palDur -- the duration the canvas
-    # scheduled for its own palette tween. The canvas is gone and the sky stops
-    # are @property-registered with a transition instead, so the same invariant
-    # is asserted against the thing that now implements it.
-    # THE INVARIANT IS UNCHANGED AND STILL THE POINT: the band must TRAVEL
-    # between hours rather than cut, because everything else in this footer
-    # cross-fades and a band that snaps reads as a bug. This check earned its
-    # keep the day the canvas was deleted -- removing it took the cross-fade
-    # with it, and this is what said so.
-    # Counting painted frames would measure the HOST, which is why the original
-    # stopped doing that; distinct COMPUTED values over a fixed wall-clock does
-    # not, because the transition is sampled by style resolution rather than by
-    # paint.
-    walk = page.evaluate("""async () => {
-      const bd = document.querySelector('.footBand');
-      const read = () => getComputedStyle(bd).getPropertyValue('--foot-band-sky-low').trim();
-      window.SiteTheme.setMode('night');
-      await new Promise(r => setTimeout(r, 1200));
-      const from = read();
+    # WHAT IS ASSERTED IS THE SCHEDULED DURATION, NOT A FRAME COUNT. The walk
+    # runs on --ease-out (cubic-bezier(.22,1,.36,1)), the sky's curve, which
+    # spends most of its travel in the first third; the band draws at 30fps, and
+    # a loaded machine drops the whole page to 8. Counting intermediate frames
+    # therefore measures the HOST -- the same build read 5 distinct values on an
+    # idle machine, 3 on a busy one and 0 on a busier one. The invariant is that
+    # a tween of the theme's own length is SCHEDULED, which is one number and is
+    # readable on the same tick as the theme change. The regression it exists to
+    # catch -- settling the palette on the same call that starts it -- sets that
+    # number to 0.
+    walk = page.evaluate("""() => {
       window.SiteTheme.setMode('daytime');
-      const seen = new Set();
-      for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 60)); seen.add(read()); }
-      await new Promise(r => setTimeout(r, 1200));
-      return {from: from, to: read(), steps: seen.size};
+      const p = window.FooterBand.probe(false);
+      const r = getComputedStyle(document.documentElement)
+                  .getPropertyValue('--theme-duration');
+      const want = /ms/.test(r) ? parseFloat(r) : parseFloat(r) * 1000;
+      return {dur: p.palDur, want: want};
     }""")
-    if walk["from"] == walk["to"]:
-        fails.append("the band's sky stop is %s at both night and daytime; the palette is "
-                     "not following the hour at all" % walk["from"])
-    elif walk["steps"] < 2:
-        fails.append("the band's sky went %s -> %s with %d intermediate value(s): it is "
-                     "SNAPPING between two grounds while every other colour in the footer "
-                     "cross-fades. An unregistered custom property cannot interpolate, so "
-                     "check the @property registrations before the transition."
-                     % (walk["from"], walk["to"], walk["steps"] - 1))
+    if walk["dur"] <= 1:
+        fails.append("the band scheduled a %.0fms palette tween on a theme change; it is "
+                     "snapping between two grounds while every other colour in the footer "
+                     "cross-fades over %.0fms" % (walk["dur"], walk["want"]))
+    elif abs(walk["dur"] - walk["want"]) > 1:
+        fails.append("the band's palette tween is %.0fms against --theme-duration %.0fms; "
+                     "the band and the type it sits behind are travelling at different "
+                     "speeds" % (walk["dur"], walk["want"]))
     page.wait_for_timeout(600)
 
 
+def check_scripts(prefix, fails):
+    """Static: every footer-bearing page loads the component."""
+    for name in PAGES:
+        path = ROOT / (prefix + name)
+        if not path.exists():
+            fails.append("%s: missing" % (prefix + name))
+            continue
+        src = path.read_text(encoding="utf-8")
+        if 'src="footer-band.js"' not in src:
+            fails.append("%s does not load footer-band.js" % (prefix + name))
+        if 'class="footBand"' not in src:
+            fails.append("%s has no .footBand in its footer markup" % (prefix + name))
+        if 'class="footBandMark"' in src or 'class="footMark"' in src:
+            fails.append("%s still carries a wordmark element in its footer" % (prefix + name))
+    # ── AND NOW THE SHADOW RULE, WHOLE ──────────────────────────────────────
+    # This used to be two assertions that pulled against each other: no shadow on
+    # the FIELD context, and a source-atop composite on the MARK context so the
+    # inner shadow could not escape the letterforms. That was the shape of the
+    # rule while Jayden's inner shadow was a sanctioned exception to it -- he
+    # asked for it by name, "some inner shadow so it has some depth".
+    # He has now asked for it to go ("the insert shadow wasnt that much it just
+    # feels too strong"), and the letters it shaded went with it, so the
+    # exception is spent and the site's absolute rule applies with nothing carved
+    # out of it: the companion heads cast a contact shadow and NOTHING else does.
+    # A single assertion replaces both, and it is strictly stronger -- it binds
+    # every context in the file, not just the one that was known to be dangerous.
+    # It is a source check because there is no longer a shape to measure a shadow
+    # against: an escaped shadow used to be visible as darkening beside a
+    # letterform, and a band with no ink in it has no beside.
+    js = source_of("footer-band.js")
+    for bad in sorted(set(re.findall(r"\b\w+\.shadow(?:Color|Blur|OffsetX|OffsetY)\b", js))):
+        fails.append("footer-band.js sets %s. Nothing this file paints may carry a "
+                     "shadow of any kind: the companion heads cast a contact shadow "
+                     "and nothing else on this site does, and the one exception -- "
+                     "the wordmark's inner shading -- was deleted with the wordmark."
+                     % bad)
+    css = source_of("footer.css")
+    if "overflow-x:clip" in re.search(r"(?m)^\.siteFoot\s*\{([^}]*)\}", css).group(1):
+        fails.append(".siteFoot clips overflow again; the full-bleed band is cut off at "
+                     "the page measure on the six pages whose footer sits in .wrap")
 
 
 def run(prefix, patch=None, quiet=False):
@@ -670,6 +864,7 @@ def run(prefix, patch=None, quiet=False):
     base = "http://127.0.0.1:%d/" % PORT
     fails = []
     try:
+        check_scripts(prefix, fails)
         try:
             _drive(base, prefix, fails)
         except Exception as err:            # noqa: BLE001 -- a page that will not
@@ -701,9 +896,13 @@ def _drive(base, prefix, fails):
                 check_height(page, 1440, name, fails)
             open_page(page, base, "about.html", prefix)
             check_surface(page, "about.html", fails)
+            check_grain(page, "about.html at 1440", fails)
             check_hour(page, fails)
+            check_observer(page, base, prefix, fails)
             open_page(page, base, "about.html", prefix)
             STATS.clear()
+            STATS.update(check_cost(page, fails) or {})
+            check_kill_switch(page, fails)
             check_theme_walk(page, fails)
             ctx.close()
 
@@ -729,6 +928,7 @@ def _drive(base, prefix, fails):
                     open_page(ppage, base, name, prefix)
                     check_height(ppage, pw_, name, fails)
                     check_surface(ppage, name, fails)
+                    check_grain(ppage, "%s at %d" % (name, pw_), fails)
                 # ONE FOOTER ON EIGHT PAGES, MEASURED AT 390 ONLY. This is the
                 # width where a page's own phone media query can reach into the
                 # component, and the one where nobody was looking. about.html is
@@ -748,6 +948,7 @@ def _drive(base, prefix, fails):
                                   reduced_motion="reduce")
             rpage = rctx.new_page()
             rpage.on("pageerror", lambda e: fails.append("page error: %s" % e))
+            check_reduced(rpage, base, prefix, fails)
             rctx.close()
             br.close()
 

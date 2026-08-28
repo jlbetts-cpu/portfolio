@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/strata/daytime-1200.webp" imagesrcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="tokens.css?v=b41e473c04">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -762,18 +762,15 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    "spacing is off" half of it. */
 .content :is(.playerStage,.tv.tvPhone .tvFrame){padding-block:var(--sp-16-24)}
 
-/* ── IT HAS TO READ AS AN IPHONE.  His words: "needs to be a clear iphone there
-   needs to be border on the screen."  The reference does NOT frame its phones,
-   and this is one of the places he and it disagree -- he wins, as always.
-   The screenshots already include the status bar, so the picture IS the screen;
-   what was missing was the device around it. A dark bezel and a device corner
-   is the whole of it. NOT A SHADOW: the companion heads cast the only shadow on
-   this site, and a phone lying on a sky is not standing on anything. */
-.content :is(.playerStage,.tv .tvFrame,.shot.phone,.baPhone)>img{
- border:5px solid #0f1116;
- border-radius:30px;
- background:#0f1116;
-}
+/* THE BEZEL IS OUT AGAIN, SAME DAY IT WENT IN. He asked for it -- "needs to be
+   a clear iphone there needs to be border on the screen" -- looked at it, and
+   said no: "i dont like the border either around the phone doesnt look clean
+   and on brand with the portfolio."
+   He is right and the reference agreed with him before he did: trungvo.xyz
+   frames nothing. A drawn bezel is a second object competing with the screen it
+   surrounds, and this site separates with hairlines rather than with edges.
+   The screenshots keep their own --rim-1, which is the hairline, and that is
+   the whole treatment. Do not re-add a frame without asking. */
 
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
@@ -974,12 +971,13 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="controls.css?v=b41e473c04">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=c7ac5b9c20">
-<link rel="stylesheet" href="footer.css?v=c7ac5b9c20">
-<link rel="stylesheet" href="site-theme.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="header.css?v=b41e473c04">
+<link rel="stylesheet" href="footer.css?v=b41e473c04">
+<link rel="stylesheet" href="site-theme.css?v=b41e473c04">
 <script src="header.js" defer></script>
+<script src="footer-band.js" defer></script>
 </head>
 <body data-nav="work" data-theme-page="case-study">
 <a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
@@ -1254,7 +1252,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     </div>
    </nav>
   </div>
-  <div class="footBand"></div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
  </footer>
 </div>
 

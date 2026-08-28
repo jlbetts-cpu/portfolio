@@ -1043,6 +1043,83 @@
    them in applySnapshot and tweens the pair itself on the sky's own 640ms
    curve. A getComputedStyle inside the draw loop would be 60 forced style
    recalcs a second on the page performance-idle-contract measures at 56. */
+/* ── THE GLYPH FIELD ─────────────────────────────────────────────────────────
+   Ported from the ASCII band on the Workspace app. That version is a full-bleed
+   field of white glyphs screened over a mid-blue mesh, and it works there
+   because the band is ONE colour of one lightness. This sky is six, running
+   from #f8fafd at the top of sunrise to #060a13 at the top of night, so a
+   single white field would be invisible on five of them and the only thing on
+   screen on the sixth.
+   TWO DECISIONS MAKE IT ONE TREATMENT ACROSS SIX SKIES.
+
+   1. THE FIELD LIVES WHERE THE LIGHT IS. Every one of the six gradients puts
+      its focal point at 50% / ~104% -- bottom centre, off the floor -- and
+      fades to the page colour by 60%. So the glyph density is multiplied by an
+      ellipse anchored on that same point. Above it the field is not dimmed, it
+      is NOT DRAWN: nothing paints on the flat page white at the top, where a
+      texture would read as dirt on the page rather than grain in the sky. It
+      also means the count the loop pays for scales with the lit area, not the
+      viewport.
+   2. THE GLYPHS ARE THE PAGE, NOT THE TYPE. Jayden: "make ascii the background
+      color." They are --theme-page's own near-white, 253 253 253, on every
+      sky -- which is what the Workspace original does (rgba(255,255,255,a) over
+      a saturated band) and it is a different picture from the one this port
+      shipped with. Ink glyphs sit ON the sky; ground glyphs sit IN it. The
+      first pass read as specks of dirt scattered over approved artwork, most
+      obviously on sunrise where a .30-alpha ink dot on a #ffc977 band is just a
+      dark speck. The same dot in page-white reads as light catching a surface,
+      which is the thing the band is a picture OF.
+      Night keeps 244 247 255 and was NOT changed. That value is the starfield's
+      own #f4f7ff and it is within two levels of the dark theme's --theme-ink
+      (#F4F5F7) -- it was already the ground colour of the theme it is drawn in,
+      so "make ascii the background color" was already true there. Rebinding it
+      to 253 253 253 would have moved it off the starfield it shares a sky with
+      for no gain anyone can see.
+      It is not --accent and it never rebinds it: the ink is a fixed literal
+      here, per state, exactly like the per-state rim colours above.
+   THE STRENGTHS ARE ALL HIGHER, AND THEY ARE HIGHER FOR TWO SEPARATE REASONS.
+   1. LIGHT-ON-LIGHT IS NOT DARK-ON-LIGHT. A ground glyph's whole available
+      contrast is (.976 - L_sky); an ink glyph's was L_sky itself. Measured mean
+      sky luminance where glyphs actually land: daytime .57, sunset .54, sunrise
+      .63, pre-dawn .47, dusk .49, night .02. So the flip costs the brightest
+      skies the most -- sunrise has .35 of headroom where daytime has .41 -- and
+      the shipped ink numbers could not be carried across in either direction.
+   2. HE SAID IT WAS TOO FAINT. "make sure it's more visible." The first
+      ground pass matched the ink field's peak dL and was still hard to see,
+      because a dark speck on a pale sky is easier to find than a pale mark on
+      a bright one at the same delta. Swept .50/.70/.90/1.10 on sunrise and
+      .37/.55/.70/.85 on daytime, rendered at device scale 2 and LOOKED at.
+      .90 and .70 are where each stops being a suggestion. Past those the
+      blanks in the ramp start closing and it becomes a screen of characters.
+        state      shipped(ink)  now(ground)   peak dL now   coverage now
+        pre-dawn       .34           .70          .141          .0037
+        sunrise        .42           .90          .157          .0053
+        daytime        .30           .70          .135          .0036
+        dusk           .38           .78          .156          .0037
+        sunset         .38           .76          .155          .0049
+        night          .52           .64          .108          .0050
+      Night moved least on purpose. It was already the sky that read, it is the
+      only one with real stars to share the frame with, and it is the one state
+      where the glyphs have the whole range to themselves.
+      All six sit inside hero-ascii-field-contract's [.035, .300] peak-dL band
+      and its [.0012, .0120] coverage band, which are the two-sided limits for
+      "a frame nobody can see" and "dirt on approved artwork".
+   THE VALUES ARE READ ONCE PER HOUR CHANGE, NOT PER FRAME. hero-time.js reads
+   them in applySnapshot and tweens the pair itself on the sky's own 640ms
+   curve. A getComputedStyle inside the draw loop would be 60 forced style
+   recalcs a second on the page performance-idle-contract measures at 56. */
+.heroTimeAscii{
+ position:absolute;inset:0;z-index:2;width:100%;height:100%;
+ pointer-events:none;opacity:1
+}
+.hero[data-time-state]{--ascii-ink:253 253 253;--ascii-strength:0}
+.hero[data-time-state="off"]{--ascii-strength:0}
+.hero[data-time-state="daytime"]{--ascii-strength:.70}
+.hero[data-time-state="pre-dawn"]{--ascii-strength:.70}
+.hero[data-time-state="dusk"]{--ascii-strength:.78}
+.hero[data-time-state="sunset"]{--ascii-strength:.76}
+.hero[data-time-state="sunrise"]{--ascii-strength:.90}
+.hero[data-time-state="night"]{--ascii-ink:244 247 255;--ascii-strength:.64}
 .hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
 .hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
 .hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}

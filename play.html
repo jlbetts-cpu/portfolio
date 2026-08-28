@@ -26,7 +26,7 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="tokens.css?v=b41e473c04">
 <link rel="stylesheet" href="play.css">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
@@ -1252,11 +1252,12 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=c7ac5b9c20">
-<link rel="stylesheet" href="footer.css?v=c7ac5b9c20">
-<link rel="stylesheet" href="controls.css?v=c7ac5b9c20">
-<link rel="stylesheet" href="site-theme.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="header.css?v=b41e473c04">
+<link rel="stylesheet" href="footer.css?v=b41e473c04">
+<link rel="stylesheet" href="controls.css?v=b41e473c04">
+<link rel="stylesheet" href="site-theme.css?v=b41e473c04">
 <script src="header.js" defer></script>
+<script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
 <a class="skipLink ctl ctl--secondary" id="playSkip" href="#games">Skip to games</a>
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
@@ -1495,7 +1496,7 @@
     </div>
    </nav>
   </div>
-  <div class="footBand"></div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
  </footer>
 <!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
      shuffle and the live __hmTeamPreview channel); this is only the mount point, so the

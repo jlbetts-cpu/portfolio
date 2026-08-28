@@ -319,14 +319,10 @@ assert "text-align" not in site_foot, ".siteFoot must not set text-align"
 # updated with its reasoning, never relaxed.)
 assert 'class="footMark"' not in HTML, "play.html still carries the closing wordmark"
 assert 'class="footBandMark"' not in HTML, "play.html still carries the knockout canvas"
-# and the band it ends on is still there, now with NO canvas. 2026-08-27: the
-# field canvas went with the ASCII treatment ("lowkey think it might look
-# cleaner without it"), so the band is the CSS wrapper and nothing else. Both
-# canvas assertions above still stand and are still the ones with teeth -- they
-# say no canvas may come back to this band -- and this one is now their positive
-# half: the wrapper itself must survive, because the sky is painted on it.
-assert '<div class="footBand"></div>' in HTML, "play.html lost the footer band wrapper"
-assert 'footBandField' not in HTML, "play.html grew the field canvas back"
+# and the band it ends on is still there, still one canvas. It was briefly
+# removed on 2026-08-27 and asked back the same day -- "I miss the footer could
+# you bring it back please" -- so this assertion is the original, restored.
+assert '<div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>' in HTML
 
 # ══ THE COLUMN, THE RAILS AND THE WALLS ═══════════════════════════════════════════
 # Added 2026-08-20 with the Stripe-style margin rails. Three of these guard bugs that
