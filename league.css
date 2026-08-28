@@ -553,6 +553,56 @@ body.hmYowCup .hero::after{
   body.hmYowCup .hero::after{transition:none}
 }
 
+/* ══ THE MATCH-UP: TWO TEAMS, IN THEIR COLOURS, BREATHING.  2026-08-27 ══════
+   Three things he asked for, and they solve each other.
+
+   1. "the spacing is a bit off like the secound name is a bit too far."
+      Measured: every gap in the row was the same 10px -- face, name, dash,
+      name, face. With uniform gaps the row is five things in a line and
+      nothing groups, so the dash reads as belonging to the second name and
+      that name looks pushed out. A team is a FACE AND A NAME: 6px inside a
+      team, 18px either side of the dash. Same total width, and now the eye
+      sees two objects with a separator instead of five evenly spaced items.
+
+   2. "the color of the teams should show in the header." --tc is already on
+      each .sbTeam (the engine writes it per fixture), so the name simply
+      takes it. It is the only colour in the bar, which is what makes it read
+      as identity rather than decoration -- the round and End stay muted ink.
+      Against paper a raw team colour can fall under 3:1, so it is mixed 12%
+      toward ink: enough to hold contrast at 12px, not enough to stop being
+      the team's colour.
+
+   3. "header should do the glowing effect like the old scoreboard did that
+      pulsing light effect."
+      THE OLD ONE IS A BOX-SHADOW RING (@keyframes sbFlashPulse) AND THIS MODE
+      MAY NOT SPEND box-shadow -- the heads cast the only shadow on this site,
+      and play-yowmings-contract fails on any value that is not `none`. So the
+      light is a radial gradient behind the row instead: same read, no
+      elevation, and it tints itself from the same --tc the names use.
+      It breathes rather than flashes -- 3.2s, and only while a match is live
+      (hmYowHdr), because a pulse on a static screen is a distraction rather
+      than a sign of life. */
+/* The spacing and the team colour are set on the CANONICAL rules further down
+   rather than here: those are the same specificity and later in the file, so a
+   second block up here would simply lose. Only the glow lives at this point,
+   because nothing competes with it. */
+
+/* The glow. A pseudo-element so it sits behind the row without touching it,
+   and a gradient so no shadow is spent. */
+body.hmYowHdr .hmHdrMatch{position:relative}
+body.hmYowHdr .hmHdrMatch::before{
+  content:"";display:block;position:absolute;
+  left:-12%;right:-12%;top:-40%;bottom:-40%;
+  z-index:-1;pointer-events:none;border-radius:var(--r-pill);
+  background:radial-gradient(60% 100% at 50% 50%,
+    rgba(var(--lgWin,17,18,20),.10), rgba(var(--lgWin,17,18,20),0) 72%);
+  animation:lgBreathe 3.2s var(--ease-out) infinite;
+}
+@keyframes lgBreathe{0%,100%{opacity:.45}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+  body.hmYowHdr .hmHdrMatch::before{animation:none;opacity:.7}
+}
+
 /* ══ THE WIN, SAID IN THE MIDDLE.  2026-08-27 ═══════════════════════════════
    "goal indicator remove it because it isnt stylized correctly the '' wins
    should be shown in the middle when someone scores."
@@ -605,14 +655,33 @@ body.hmYowHdr .hmHdrMatch{
    "Player 7Final . 1.01". Screenshotted 2026-08-28. Air on both sides, so the
    three fields read as three fields at every width. */
 body.hmYowHdr .jbGrpC{padding-inline:var(--sp-16)}
-body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-10);padding:0}
-body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-8);min-width:0}
+/* ── A TEAM IS A FACE AND A NAME.  2026-08-27 ─────────────────────────────
+   "the spacing is a bit off like the secound name is a bit too far."
+   Measured: every gap in the row was 10px -- face, name, dash, name, face --
+   so nothing grouped and the dash read as belonging to the second name, which
+   made that name look pushed out. Tight INSIDE a team, wide either side of the
+   separator: the eye then sees two objects and a divider instead of five
+   evenly spaced items. Same total width. */
+body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-16);padding:0}
+body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-6);min-width:0}
 /* Sentence case at the bar's own type size.  It was 12px caps at .09em letter-
    spacing -- the dark board's label voice, printed on white chrome beside a
    nav that sets everything else at --fs-nav. */
 body.hmYowHdr .hmHdrMatch .sbNm{
   font-weight:600;font-size:var(--fs-nav);line-height:var(--lh-flat);
   letter-spacing:var(--tr-body);text-transform:none;
+  /* ── THE NAME STAYS INK; THE COLOUR IS A RING ROUND THE FACE.  2026-08-27 ─
+     "the color of the teams should show in the header."
+     I tried the name IN the team's colour first and measured it: mixing 12%
+     toward ink took a purple team from 6.05:1 to 7.07:1, fine -- and a light
+     blue team from 1.57:1 to only 2.01:1, still under 3:1 and unreadable at
+     12px. There is no single mix that is safe for every team, because the
+     roster's colours run from near-black to near-white; any value dark enough
+     for the blue destroys the identity of the dark ones.
+     SO THE COLOUR GOES WHERE IT CANNOT HURT LEGIBILITY: a 2px ring around the
+     head, which is the element that already IS the team. The name keeps full
+     ink at 18.4:1, the colour is unmissable next to it, and it works for every
+     team in the roster including the pale ones. */
   color:var(--theme-ink,var(--c950));
 }
 body.hmYowHdr .hmHdrMatch .sbVs{
@@ -625,7 +694,15 @@ body.hmYowHdr .hmHdrMatch .sbVs{
    were indistinguishable and the ring was the only thing readable.  The names
    are right beside them and the site's premise is that the head says who is
    playing, so the ring goes and the portrait stays. */
-body.hmYowHdr .hmHdrMatch .sbFace{flex:0 0 26px;width:26px;height:26px}
+body.hmYowHdr .hmHdrMatch .sbFace{
+  flex:0 0 26px;width:26px;height:26px;
+  /* THE TEAM'S COLOUR, on the one element that is already the team. A ring
+     rather than a fill, so the face stays a face. */
+  border-radius:var(--r-full);
+  box-shadow:none;
+  outline:2px solid rgb(var(--tc,148,163,184));
+  outline-offset:1px;
+}
 body.hmYowHdr .hmHdrMatch .sbFace img{filter:none}
 body.hmYowHdr .hmHdrMatch .sbDot{flex:0 0 12px;width:12px;height:12px}
 /* Everything the board carries that the bar has no room for. */
