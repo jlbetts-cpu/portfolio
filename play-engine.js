@@ -2904,8 +2904,46 @@ function teams(){
     dropEl=document.createElement("div");
     dropEl.className="hmDropper";
     dropEl.setAttribute("aria-hidden","true");
-    dropEl.innerHTML='<img class="hmDropperHead" src="images/neutral.webp" alt="" draggable="false">'
-                    +'<img class="hmDropperBall" src="images/football.webp" alt="" draggable="false">';
+    /* ── IT IS A REAL HEAD, CLONED, NOT A FLAT PLATE.  2026-08-27 ───────────
+       "the jayden head that drops in isnt the actual animated head its like a
+       weird decoy without iris'."
+       He is right and it was a shortcut: the first version pointed an <img> at
+       images/neutral.webp, which is a face PLATE -- no eye apertures, no
+       irises, no lids, none of the layers the live head is built from. Beside
+       eight heads that all have eyes, a blank one reads as a stand-in, which
+       is exactly what it was.
+       So the dropper borrows a real one. The live heads are the DIVs under
+       .stagewrap, each carrying its own .stage with eyes, irises, glints and
+       lids already constructed; a deep clone brings every layer with it. The
+       PHOTO head is preferred over a dyed egghead -- it is the one he means by
+       "the Jayden head" -- and is found by asking which head has no team tint
+       on it rather than by matching a colour.
+       The clone is inert: it is a snapshot, so it does not consume the gaze
+       loop or get animated per frame. It only has to be a face, held for a
+       second, and then gone. */
+    var src=null;
+    try{
+      var live=[].slice.call(document.querySelectorAll(".stagewrap > div"))
+                 .filter(function(n){return n.querySelector(".eye");});
+      for(var i=0;i<live.length;i++){
+        if(!live[i].querySelector("[style*='--tcx'],[style*='filter']")){ src=live[i]; break; }
+      }
+      if(!src&&live.length) src=live[0];
+    }catch(_){}
+    if(src){
+      var head=src.cloneNode(true);
+      head.className="hmDropperHead";
+      head.removeAttribute("id");
+      head.style.cssText="position:relative;left:auto;top:auto;transform:none;width:100%;height:auto";
+      dropEl.appendChild(head);
+    }else{
+      var fb=document.createElement("img");
+      fb.className="hmDropperHead"; fb.src="images/neutral.webp"; fb.alt=""; fb.draggable=false;
+      dropEl.appendChild(fb);
+    }
+    var bl=document.createElement("img");
+    bl.className="hmDropperBall"; bl.src="images/football.webp"; bl.alt=""; bl.draggable=false;
+    dropEl.appendChild(bl);
     hero.appendChild(dropEl);
     void dropEl.offsetWidth;                 /* commit the start state before the class lands */
     dropEl.classList.add("isIn");            /* enter + settle */

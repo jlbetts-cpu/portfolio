@@ -425,8 +425,25 @@ body.hmYow .hmUpPost,body.hmYow .hmUpStem{
  background-image:linear-gradient(90deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
 body.hmYow .hmUpBar{
  background-image:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
+/* ── THE CROSSBAR IS CLAMPED AT THE WALL, NOT OVERHANGING IT.  2026-08-27 ──
+   "the marble race needs to be side o side it cuts off on the left", and the
+   same reading of the pitch: the outer upright looked sliced.
+   THE PITCH BEING FLUSH IS HIS DECISION AND IS NOT THE BUG. geo() sets
+   XL=-OFF / XR=innerWidth-OFF deliberately -- "Goals still look like they
+   aren't flush against the wall on mobile" -- so the goal box legitimately
+   starts at x=0 and ends at x=innerWidth. Measured: goals at 0..72 and
+   1208..1280 on a 1280 viewport, exactly as intended.
+   WHAT CLIPS IS MINE. The field-goal crossbar was drawn --upW/2 wider than the
+   goal box at BOTH ends, so at the wall it ran to x=-4 and x=1284 and the
+   browser cut it. That is the same fault the goal SHADOW had, and the comment
+   in geo() records the fix that was chosen then: clamp the graphic into the
+   arena rather than inset the pitch. So the overhang is kept on the field side,
+   where it reads as a real crossbar sitting proud of its posts, and removed on
+   the wall side, where there is nothing for it to sit proud of. */
 body.hmYow .hmUpBar{left:calc(var(--upW) / -2);right:calc(var(--upW) / -2);top:var(--upBar);
  height:var(--upBarH);margin-top:calc(var(--upBarH) / -2)}
+body.hmYow .hmGoalR .hmUpBar{left:0}
+body.hmYow .hmGoalB .hmUpBar{right:0}
 body.hmYow .hmUpPost{top:0;height:calc(var(--upBar) + var(--upBarH) / 2);width:var(--upW)}
 body.hmYow .hmUpStem{top:var(--upBar);bottom:0;width:var(--stemW);left:50%;
  margin-left:calc(var(--stemW) / -2)}
