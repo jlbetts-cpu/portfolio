@@ -220,7 +220,13 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    site's stroked .gIco set -- tokens.css's .gIco{fill:none} would erase them --
    so the icon box stays here, on the library's own --ico-md rung. */
 .abLink svg{width:var(--ico-md);height:var(--ico-md);flex:none}
-.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing */font-size:var(--fs-tab);color:var(--ctl-ink-mute);transition:transform var(--dur-state) var(--ease-out)}
+.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing *//* 1em, NOT --fs-tab.  2026-08-27, the About component pass. Measured every
+    visible size on this page and it ran 26 / 18 / 17 / 15 / 12 -- and the 17
+    was THIS, an arrow glyph, alone on a rung of its own because --fs-tab
+    clamps to 17 at 1440. A decorative mark that sets its own size is a type
+    rung the page has to carry forever. At 1em it is whatever the link is, so
+    it can never drift and it stops counting. */
+ font-size:1em;color:var(--ctl-ink-mute);transition:transform var(--dur-state) var(--ease-out)}
 .abLink:hover .abLinkArrow{transform:translate(2px,-2px)}
 .abLink.ctl--primary .abLinkArrow{color:var(--ctl-primary-ink)}
 @media(prefers-reduced-motion:reduce){.abLinkArrow{transition:none}}
@@ -337,7 +343,12 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    writes the same value as a literal 0). At 15px the change is 0.15px per
    character. Adding a rung for one call site is the drift the ladder exists to
    prevent, so the call site joins the family instead. */
-.abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-flat);
+.abCap{font-family:var(--sans);font-weight:400;/* --fs-label, not --fs-small.  The caption was the page's fifth size AND its
+    third paragraph signature -- 15px on 22.5 leading in --c500 at 520px wide,
+    against a body of 18 on 27 in ink at 616. One caption, one rung, one width,
+    all to itself. It joins .amsHint on the label rung, which is what every
+    other small piece of furniture on this site uses. */
+ font-size:var(--fs-label);letter-spacing:var(--tr-flat);
  line-height:var(--lh-body);color:var(--c500);margin:var(--sp-8) 0 0;filter:url(#inkSm);
  transition:opacity 520ms var(--ease-out),transform 680ms var(--ease-out)}
 .abCap.swapping{opacity:0;transform:translateY(6px)}
