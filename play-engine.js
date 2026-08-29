@@ -1108,9 +1108,32 @@
   if(flipV!==0){try{if(typeof browFlash==="function")browFlash();}catch(_){}}   // it stuck the somersault: he notices
   flipA=0;flipV=0;
   if(shakeAfter){shakeAfter=false;setTimeout(function(){if(!grabbed&&!perched&&!air&&st==="idle"){wig={t:0.45,dur:0.45,type:"shake"};wigP=0;}},260+Math.random()*160);}   // dog-style shake-off after a rough ride
-  if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}
+  /* ===== "THE PLAYERS SOMETIMES STILL DONT MOVE" -- THIS IS IT, AND IT IS A DEAD STATE =====
+     hopsLeft belongs to the HOP state and to nothing else: every one of the six places that
+     sets it (decide()'s wander, the leapfrog, the curiosity approach, the two cheer walks and
+     the off-screen recovery) writes `st="hop"` in the same statement, and the continuation
+     scheduled below refuses to run unless `st==="hop"` still holds.
+     This branch did not ask. So a head that still had hops owing when a match started --
+     nothing clears the counter at kickoff -- took its next leap from the SOCCER AI, which
+     sets `st="fall"`, landed here with hopsLeft>0, and fell into the hop branch: `st` was
+     never returned to "idle", and the continuation then declined because `st` was "fall".
+     The result is `st="fall"` with `air===false`, which no branch in this engine can leave:
+     the soccer AI needs st==="idle", the physics needs air, and neither will ever be true
+     again. The head stands there until something knocks it into the air often enough to
+     count hopsLeft back down to zero, one landing at a time.
+     MEASURED at 1512x850, eight heads, eight 45s League matches at real speed with the head
+     state published: 22 spells of a head moving under 6px for 1.5s or more, 5.1% of all
+     head-time, worst 5.07s -- and HALF of every frozen sample was in exactly this state,
+     `st=fall air=0 hopsLeft>0`, with counters as high as 9. It is not the AI standing still:
+     the same run shows the AI asking to move for the whole spell in the longest cases.
+     The fix is to make the branch say what it always meant. A hop chain continues only while
+     the head is hopping; anything else lands back in "idle", where every AI in the file can
+     reach it, and the stale counter is cleared so it cannot wedge a later leap either.
+     Nothing is calmed by this -- it puts heads BACK in the scrum that were standing out of
+     it. ===== */
+  if(st==="hop"&&hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}
   else if(bounceN>0){bounceN--;st="idle";setTimeout(function(){if(!grabbed&&!perched&&st==="idle"&&!air){air=true;st="fall";vy=-(370+Math.random()*130);vx=dir*(10+Math.random()*24);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}},170+Math.random()*130);}
-  else st="idle";
+  else{hopsLeft=0;st="idle";}
   if(me.__lobbyThrown){me.__lobbyThrown=false;root.setAttribute("data-hm-lobby-throw","settled");}
   if(st==="idle"&&pendingHide&&!grabbed){var dx3=pendingHide.x-x;   // homing in on the hiding spot
    if(Math.abs(dx3)<40){var ph2=pendingHide;pendingHide=null;startHide(ph2);}
@@ -3610,6 +3633,32 @@ function teams(){
    try{if(window.__hmGoalL3Teardown)window.__hmGoalL3Teardown();}catch(_){}
    if(window.PlayViewportOwner)window.PlayViewportOwner.leave("soccer");}   // THE GOAL GRAMMAR: a goal scored just before the match ended must not leave its lower-third floating over the emptied stage
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
+  /* ===== THE CROSSBAR IS ROUND, SO WHAT LANDS ON IT ROLLS OFF. 2026-08-29 =====
+     Jayden: "the ball will bounce in the goal post area and not count as a goal all the time."
+     The bar spans the whole aperture depth, so its top face is a SHELF -- and there is no
+     rolling resistance up there, because that only exists on the pitch. A ball that arrives
+     above the bar (kicked over the posts from the field, or put back on the face by the
+     depenetration in the bar block) lands on the shelf, bounces at e=0.72 between it and the
+     glass behind it, and rattles until it happens to fall off the near end.
+     MEASURED at 1512x850, 60 League matches, 10.3 minutes of play: the ball's centre sat
+     inside the aperture for a quarter-second or more 26 times and 21 of those were awarded
+     nothing -- 20 of the 21 having entered vertically rather than through a post. That is the
+     picture he is describing, and it is a shelf, not a scoring rule.
+     A real crossbar is a round bar and sheds what lands on it. The only side it can shed
+     toward is the field, because the other side is the glass -- so the top face returns a HIGH
+     ball into play for somebody to strike at the posts. Same move and same reasoning as the
+     padded base of the upright further down: fix it at the SURFACE, tell no head anything,
+     move nobody, and let the pile follow the ball out.
+     IT CANNOT INVENT A GOAL. It only ever pushes AWAY from the net, and it does not run at all
+     for a ball that is already through the uprights -- that ball has passed the near post and
+     its business is with the net, not with the frame it has cleared. The ceiling stops it
+     accumulating while a head leans on the ball, so the shelf empties without the bar becoming
+     a trampoline. ===== */
+  function barShed(){if(YTHRU!==0)return;
+   var _o9=(bx<(XL+XR)/2)?1:-1;
+   if(bvx*_o9>=430)return;   // already leaving fast enough -- do not stack another kick on it
+   bvx+=_o9*(170+Math.random()*90);
+   bw+=(Math.random()*240-120);}   // and it comes off spinning, so the first touch is unpredictable
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;
    dt*=(window.__hmSlow||1);   // broadcast slow-mo: the WORLD slows (ball physics), DOM/CSS animations elsewhere keep normal speed
@@ -3818,8 +3867,37 @@ function teams(){
        S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}
       }else if(_barY-_pby>=_bSurf&&_barY-by<_bSurf&&bvy>0){  // dropping onto the top
        by=_barY-_bSurf;bvy=-Math.abs(bvy)*0.72;S.barHits=(S.barHits||0)+1;S.barOver=(S.barOver||0)+1;
-       bvx*=0.92;bw+=(Math.random()*200-100);
+       bvx*=0.92;bw+=(Math.random()*200-100);barShed();
        S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}
+      }else if(by-_barY<_bSurf&&_barY-by<_bSurf){
+       /* ── THE BALL WALKS THROUGH THE CROSSBAR, AND A SWEPT TEST CANNOT SEE IT. 2026-08-29 ──
+          Jayden: "the ball will bounce in the goal post area and not count as a goal all the
+          time." Both swept branches above require the ball to have STARTED the frame clear of
+          the bar (_pby a full _bSurf away from the plane). Three things move the ball without
+          consulting this block, and all three run AFTER it: the head-vs-ball collision loop,
+          the confinement pop and the scramble pop. Each can leave the ball already overlapping
+          the bar, and from there neither sweep can ever fire -- so the ball drifts straight
+          through the crossbar and ends up above it, inside the uprights, having crossed no
+          post plane. It is correctly refused a goal and it looks exactly like one.
+          MEASURED at 1512x850 over 5.4 minutes of clock-cranked League play: the ball's centre
+          crossed the bar plane UPWARD inside the aperture with no deflection at all 20 times,
+          3.71 a minute. Over 10.3 minutes, 21 of the 26 times the ball sat in the window for
+          a quarter-second or more it never scored, and 20 of those 21 had entered vertically.
+          So resolve the overlap the sweeps cannot: put the ball back on the face it came from
+          -- _pby is last frame's centre, so its side of the plane is where the ball was pushed
+          FROM -- and take away the speed heading into the bar. No new surface is invented and
+          the aperture does not move: this is the same crossbar, made solid in the one case the
+          crossing test is blind to. The 'woodwork' broadcast is held back for a real impact,
+          because a ball being leaned on by a head resolves every frame and a reaction on every
+          one of those frames would be a stutter, not a moment. */
+       var _bs9=(_pby<_barY)?-1:1;by=_barY+_bs9*_bSurf;
+       S.barHits=(S.barHits||0)+1;S.barPush=(S.barPush||0)+1;
+       var _bhard=false;
+       if(_bs9<0){if(bvy>150)_bhard=true;if(bvy>0)bvy=-Math.abs(bvy)*0.72;barShed();}
+       else if(bvy<0){if(bvy<-150)_bhard=true;bvy=Math.abs(bvy)*0.72;}
+       if(_bhard){bvx*=0.92;bw+=(Math.random()*200-100);
+        var _kb2=Math.min(0.12,Math.abs(bvy)*0.00012);bsyP=1-_kb2;bsxP=1/(1-_kb2);bsT=0.12;
+        S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}}
       }
      }
      var _npL=XL+UPW,_npR=XR-UPW,_tc,_yc;               // the two near-post planes -- where the drawn upright is
@@ -5354,15 +5432,45 @@ function teams(){
       the lattice's clearance inside it), still the fast line, and now takes a slightly
       larger share of the field, which is the direction the split wants -- the point is
       two lines with different speeds, not a lottery that only one racer in six enters. */
+   /* ── AND THE DIVIDER CANNOT STAND IN THE MOUTH OF THE CHOKE ABOVE IT. ──────
+      `chw*2` is 2.9 head diameters measured in from a RAIL, and the throat above is
+      offset from the centre by up to 8% of the width, so on a narrow course the two
+      land on top of each other. Measured at 390x844 in the League: choke two's tube
+      ran x=121..209 (88px, 1.49 diameters) and the chevron capping the divider sat at
+      x=171, r=18, FOURTEEN pixels below the tube's exit -- gaps of 32px and 20px
+      against a 59px head. That is not a split, it is a lid on the choke, and it is the
+      shape this file says it must never contain: narrower than a head, wide enough to
+      hold one. Over 120 seeded League races every stall was in one 10% band of the
+      descent, on that tube, and COMPLETE read 47% at 390x844, 28% at 360x780 and 75%
+      at 430x932. The defect is invisible from 540px up, where 2.9 diameters in from a
+      rail is nowhere near a throat, which is why every number this course was tuned on
+      missed it.
+      So the divider is asked the same question every peg on this course is asked --
+      does a whole head still fit between it and everything already built -- with
+      room(), which measures to a segment PERPENDICULAR and so cannot repeat the
+      horizontal-clearance mistake the funnel splitter already made. The chevron is the
+      test point because it is the highest and the fattest part. If the other side
+      clears, the split goes there; if neither does, this stretch is left to the
+      lattice, exactly as sweeper() and bumps() already do when there is no room for
+      the piece they were going to build.
+      Measured, League, 120 seeds a size: COMPLETE 28/47/75% -> 100/100/100% at
+      360/390/430, and nothing moved toward order -- SPREAD 3.37/3.38/3.35 ->
+      3.41/3.39/3.38, DECIDED 48/38/45% -> 37/38/42%, REACH 68/73/70% -> 77/82/79%,
+      CHUTE p95 unchanged to the tenth. Nothing changes at 540px and above, where both
+      candidate positions clear by hundreds of pixels. */
    function split(){var chw=DM*1.45,dep=H*0.34,side=(Math.random()<0.5?-1:1);
     var dx=(side<0)?(X0+chw*2):(W-chw*2);                  // the divider: fast channel on `side`, the wide pegged one opposite
+    var cy=y-D*0.36,cr=D*0.30;                             // the chevron: the highest and fattest point of the piece, so it is the one to clear
+    if(!room(dx,cy,cr)){var alt=(side<0)?(W-chw*2):(X0+chw*2);
+     if(room(alt,cy,cr)){dx=alt;side=-side;}
+     else{fspan(y,y+dep,X0,W,X0,W);y+=dep;fopen(y+D*0.5);y+=D*0.5;return;}}
     seg(dx,y,dx,y+dep);
     /* THE CHEVRON ON TOP OF THE DIVIDER. A bare divider edge is a coin balanced on its
        rim -- a racer arriving dead on it wedges rather than picks. A fat peg capping it
        makes the choice a deflection, which is the Sand Rally drophole's own trick of
        putting "a pin or block... just beyond the hole" so the obstacle cannot be
        no-oped by whoever arrives at the wrong speed. */
-    pegs.push({x:dx,y:y-D*0.36,r:D*0.30,split:1});
+    pegs.push({x:dx,y:cy,r:cr,split:1});
     fspan(y,y+dep,X0,W,X0,W);fx=(side<0)?(dx+(W-dx)/2):(X0+dx)/2;fw=Math.max(DM,(side<0)?(W-dx)/2:(dx-X0)/2);
     y+=dep;fopen(y+D*0.5);y+=D*0.5;}
    function sweeper(w2){var sr=D*0.34,cy=y+H*0.10;
@@ -5478,7 +5586,37 @@ function teams(){
    mangle();                    // 8  THE MANGLE -- twin counter-rotating wheels...
    bumps();                     //    ...and the bumper row under them
    gate();                      // 9  THE GATE II
-   funnel(1.30,H*0.18);         //    CHOKE THREE
+   /* CHOKE THREE IS THE ONE CHOKE THE FIELD ARRIVES AT AS A SOLID PACK, AND IT WAS
+      STOPPING THE RACE OUTRIGHT. Jayden: "i caught an obstical where nobody was able to
+      finish", and that is literal -- races here end with ZERO of twelve across the line.
+      Measured over 400 seeded League races at 1366x768, sampling every racer every
+      1/60s: 10 races wrapped up with nobody home, and in every one the whole field was
+      arched at this throat by t=24s with the deepest head pinned at 79.5% of the
+      descent and not a pixel of progress for the next eighteen seconds. 232 of the 260
+      non-finishers collected across five viewports were in the same 10% band. Same
+      defect at 1280x800 (5 in 300) and 1180x820 (2 in 400); NOT visible at 1440x900 or
+      1512x850, where 300-400 races lose nobody -- which is why every number this course
+      was tuned on missed it.
+      The mechanism is stacking, not this funnel: GATE II is directly above it and is by
+      measurement the strongest re-gatherer on the course, so it hands this throat a
+      solid twelve-head pack, and a 1.32-diameter outlet fed a pack arches -- Zuriguel's
+      own result, which the note in funnel() already cites in its own defence. The other
+      three chokes get a field that is strung out and drain fine.
+      So this ONE choke opens: throat 1.30 -> 1.40, and its tube goes, because a tube is
+      a parallel-walled pipe under the outlet and a head standing in it is what the arch
+      above stands on. Both halves were measured separately and together over 400 paired
+      seeds at 1366x768: races with NOBODY finishing 10 -> 2 (tube alone), -> 3 (throat
+      alone), -> 1 (both). At 1280x800, 5/300 -> 0/400.
+      AND IT DOES NOT BUY THAT WITH ORDER, which is the only way this change could be
+      wrong. At 1440x900 over 300 seeds COMPLETE stays 100% while every chaos guard
+      moves AWAY from order: SPREAD 3.35 -> 3.39 (3.45 is pure randomness), DECIDED 43%
+      -> 39% against a 45% ceiling, |RHO| 0.029 -> 0.002, CHUTE p95 17.5 -> 17.5, REACH
+      69% -> 69%. The choke that was gathering hardest was gathering the race to a stop.
+      THE PRICE, STATED: at 1512x850 COMPLETE goes 100% -> 98% over 400 seeds -- eight
+      races lose ONE straggler where none did before, and no race loses its field. A
+      straggler still gets a finishing position (standings() ranks the unfinished by
+      depth, so the cup is still seeded); a race nobody finishes does not. */
+   funnel(1.40,0);              //    CHOKE THREE -- wider and tube-less: see above
    spinner(3,1.35,0.15);        //    the six-armed star: a different machine from the wheel at 3
    sweeper(1);                  // 10 THE DRIFT -- obstacles that will not stay put
    sweeper(1.25);               //    the second sweeper, faster

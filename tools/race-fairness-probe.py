@@ -78,6 +78,26 @@ tally above answered Jayden's first complaint and was blind to his next two.
 Both are behind the same ?wraf=1 dev flag: play-engine.js carries the lead-change
 counter, and chutes() in this file rasterises the course out of the live arrays.
 
+ONE VIEWPORT IS NOT A MEASUREMENT. Every number in this file was taken at 1440x900
+until 2026-08-29, and the two worst defects this course has had were both invisible
+there. The course's DEPTHS are fractions of the viewport height and its THROATS are
+multiples of a head, and the head barely changes with the screen -- so the course is a
+different course, in head diameters, at every size, and 1440x900 happens to be a good
+one. Measured over 18 sizes x 60 seeded League races:
+
+    360x780   COMPLETE  27%      1024x768   98%      1512x850  100%
+    390x844             47%      1180x820   97%      1728x1117 100%
+    430x932             73%      1366x768   93%      2560x1440   0%
+    540x900            100%      1440x900  100%
+
+Two separate defects, and seven races in that sweep ended with NOBODY across the line.
+Both are fixed (see split() and CHOKE THREE in play-engine.js); the 2560x1440 column is
+not -- at 1440px of height the descent is 128 head diameters against 81 at the
+reference, the winner arrives at 44s, and the wrap-up abandons half the field. So:
+
+    SWEEP MORE THAN ONE SIZE, and always include a short one (768-820px tall) and a
+    narrow one (<=430px wide). --viewport is what does it.
+
     python3 tools/race-fairness-probe.py                  # 120 seeds
     python3 tools/race-fairness-probe.py --seeds 400
     python3 tools/race-fairness-probe.py --json out.json  # for a before/after diff
@@ -917,8 +937,17 @@ def main():
                          "inside it, so CW differs by ~96px and every choke derived "
                          "from it moves. Everything tuned here before 2026-08-28 was "
                          "measured on the standalone course only.")
+    ap.add_argument("--viewport", metavar="WxH",
+                    help="measure at this viewport instead of 1440x900. A defect can be "
+                         "nearly invisible at one size and obvious at another: the funnel "
+                         "splitter park showed at 1512x850 (a 14in MacBook) and hardly at "
+                         "all at 1440x900. Sweep more than one size.")
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
+    if args.viewport:
+        global VIEWPORT
+        w, h = args.viewport.lower().split("x")
+        VIEWPORT = (int(w), int(h))
 
     if args.self_test:
         n = args.seeds if args.seeds != 120 else CONTRACT_SEEDS

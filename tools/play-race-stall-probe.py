@@ -124,7 +124,7 @@ RUN = r"""
 """
 
 
-def collect(seeds):
+def collect(seeds, league=False):
     from playwright.sync_api import sync_playwright
     srv = ThreadingHTTPServer(("127.0.0.1", 0), partial(FAIR.Handler, directory=str(ROOT)))
     Thread(target=srv.serve_forever, daemon=True).start()
@@ -137,10 +137,17 @@ def collect(seeds):
                                          "height": FAIR.VIEWPORT[1]}).new_page()
             pg.goto(base + "/play.html", wait_until="load")
             pg.evaluate(FAIR.SEED_HEADS, FIELD)
+            if league:
+                # BEFORE the load that boots the race: rails() reads the flag
+                # inside buildCourse(). The League is a DIFFERENT COURSE.
+                pg.add_init_script("window.__hmYowLeague = true;")
             pg.goto(base + "/play.html?wraf=1", wait_until="load")
             pg.wait_for_timeout(2400)
             if not pg.evaluate("() => !!(window.__race && window.__race.sim)"):
                 raise SystemExit("play-engine.js exposed no __race.sim under ?wraf=1")
+            if league and not pg.evaluate("() => !!window.__hmYowLeague"):
+                raise SystemExit("--league did not survive the navigation; the course "
+                                 "measured would be the standalone one.")
             for i in range(0, len(seeds), 5):
                 chunk = seeds[i:i + 5]
                 out.extend(pg.evaluate(RUN, [chunk, SIM_SECONDS, SLICE]))
@@ -212,22 +219,60 @@ def report(d, title):
                 print("             %-6s %.1f" % (k, d["touch"][k]))
 
 
+def worst(records, n):
+    """The individual worst parks, named. A distribution says a defect exists; a seed
+    with a place on the course is what you can go and look at."""
+    rows = []
+    for r in records:
+        if r.get("err"):
+            continue
+        c = r["course"]
+        top = c["H"] * 0.42
+        depth = max(1.0, c["finishY"] - top)
+        for b in r["balls"]:
+            rows.append((b["stall"], r["seed"], b["lane"], not b["fin"],
+                         (b["sy"] - top) / depth, (b["sx"] - c["X0"]) / max(1.0, c["CW"]),
+                         b["nud"], b.get("touch") or {}))
+    rows.sort(reverse=True)
+    if not rows:
+        return
+    print("\n  WORST PARKS   (depth%% down the descent, x%% across the course)")
+    print("    stall   seed  lane  dnf   depth      x   nud   held by")
+    for s, seed, lane, dnf, fy, fx, nud, t in rows[:n]:
+        held = " ".join("%s+%d" % (k, v) for k, v in sorted(t.items(), key=lambda kv: -kv[1]) if v)
+        print("   %6.1fs %6d %5d %5s  %5.0f%% %5.0f%% %5d   %s"
+              % (s, seed, lane, "DNF" if dnf else "-", 100 * fy, 100 * fx, nud, held or "nothing"))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=60)
     ap.add_argument("--json")
     ap.add_argument("--compare", nargs=2)
     ap.add_argument("--label", default="race stalls")
+    ap.add_argument("--start", type=int, default=1)
+    ap.add_argument("--league", action="store_true",
+                    help="measure the YOWMINGS LEAGUE course, which is a different "
+                         "course from the standalone one -- see race-fairness-probe.py")
+    ap.add_argument("--viewport", metavar="WxH",
+                    help="measure at this viewport instead of 1440x900")
+    ap.add_argument("--worst", type=int, default=8,
+                    help="print this many worst individual stalls, with seed and place")
     a = ap.parse_args()
+    if a.viewport:
+        w, h = a.viewport.lower().split("x")
+        FAIR.VIEWPORT = (int(w), int(h))
     if a.compare:
         for path in a.compare:
             report(digest(json.load(open(path))), Path(path).stem)
         return 0
-    recs = collect(list(range(1, a.seeds + 1)))
+    recs = collect(list(range(a.start, a.start + a.seeds)), league=a.league)
     if a.json:
         json.dump(recs, open(a.json, "w"))
         print("  wrote %s" % a.json)
-    report(digest(recs), a.label)
+    report(digest(recs), "%s  [%dx%d%s]"
+           % (a.label, FAIR.VIEWPORT[0], FAIR.VIEWPORT[1], ", LEAGUE" if a.league else ""))
+    worst(recs, a.worst)
     return 0
 
 
