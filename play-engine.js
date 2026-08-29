@@ -2513,8 +2513,11 @@
   /* YTHRU is the whole scoring rule now: -1 the ball is through the LEFT end's near post
      and still inside its window, +1 the right end's, 0 it is not through anything. _pbx/_pby
      are last frame's ball centre, which is what makes the crossing a SWEPT test rather than a
-     sample -- see the note at the predicate itself. */
-  var YTHRU=0,_pbx=0,_pby=0,_ythP=0;
+     sample -- see the note at the predicate itself.
+     _yOF is the OVER-THE-FIELD latch, and it exists so that the second way of arming the
+     ball (dropping in over the post tops) cannot be used by the wall-climber. See the note
+     at that predicate. */
+  var YTHRU=0,_pbx=0,_pby=0,_ythP=0,_yOF=0;
   /* ===== DEV-ONLY: THE PITCH READING =====
      Jayden: "there is still a lot of bundling up in the soccer mode lots of people in
      the goal and the 'goalie' of the other team just stands there." Both halves of that
@@ -3918,7 +3921,46 @@ function teams(){
      var _npL=XL+UPW,_npR=XR-UPW,_tc,_yc;               // the two near-post planes -- where the drawn upright is
      if(_pbx>_npL&&bx<=_npL){_tc=(_pbx-_npL)/Math.max(1e-6,_pbx-bx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=-1;}
      else if(_pbx<_npR&&bx>=_npR){_tc=(_npR-_pbx)/Math.max(1e-6,bx-_pbx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=1;}
-     if(YTHRU<0&&(bx>_npL||by>=gt||by<=gt-UPH))YTHRU=0;   // it came back out, dropped under the bar, or went over the tops
+     /* ── AND A BALL THAT DROPS IN OVER THE POST TOPS IS THROUGH TOO.  2026-08-29 ────────
+        Jayden: "the ball will bounce in the goal post area and not count as a goal all the
+        time." Measured at 1512x850 over 100 matches, of the 29 times the ball sat between
+        the uprights above the bar for a quarter-second or more and was awarded nothing, 15
+        had arrived from ABOVE -- kicked over the posts from the field and dropped back down
+        between them. Every one of those is a ball the viewer watched fall INTO the goal.
+        Only the near-post plane could arm the ball, so none of them could ever score.
+
+        THE OBVIOUS FIX IS TO DELETE THE CEILING, AND IT IS DISPROVED. Letting the uprights
+        run unbounded upward -- which is the real football rule -- was built and measured.
+        It fixes this number outright (19 unscored window visits per 100 matches -> 1) and
+        costs two things that are worse than the bug. The posts are DRAWN UPH tall, so the
+        graphic stops describing the rule: 28% of goals were then awarded with the ball
+        above the drawn uprights, p90 204px against posts 100px tall, and opening the award
+        frames shows a ball in open sky, clear of the post tops, while the scoreboard ticks
+        -- "looks like a miss, counts", which is Jayden's own complaint inverted and three
+        times more frequent. And the scoring rate nearly doubles (5.9 -> 10.8 goals/min at
+        1512x850), which halves a fixture, because a non-final League fixture is ONE score:
+        median time-to-first-goal 6.8s -> 3.3s on desktop and 3.5s -> 1.0s on a phone. A
+        draft order settled by one second of play is a coin toss.
+
+        So the aperture keeps its ceiling and the DESCENT is armed instead. A ball that
+        crosses the post-top plane downward, between the uprights, has visibly entered the
+        drawn window -- and it still has to reach the far post to score, so this is the same
+        traversal, entered through the top face instead of the front one.
+
+        THE LATCH IS THE WHOLE CARE HERE. Without it this hands the aperture straight back
+        to the WALL-CLIMBER -- the ball popped up inside the goal's own column, which rises
+        through the window, clears the tops and falls back in, and which is exactly what the
+        traversal rule was written to kill (it made the mode a 9.0 goals/min score-fest).
+        _yOF is only set while the ball is ABOVE the tops AND horizontally OUTSIDE both
+        goals' columns, and it is cleared the moment the ball is below the tops. So a ball
+        that went up inside the column and came back down was never out over the field and
+        cannot arm. The read happens before the clear, because on the crossing frame the
+        ball is already below the plane. */
+     var _tp=gt-UPH;
+     if(_pby<=_tp&&by>_tp&&_yOF){var _td=(_tp-_pby)/Math.max(1e-6,by-_pby),_xc=_pbx+(bx-_pbx)*_td;
+      if(_xc>XL&&_xc<_npL)YTHRU=-1;else if(_xc>_npR&&_xc<XR)YTHRU=1;}
+     if(by<=_tp){if(bx<=XL||(bx>=_npL&&bx<=_npR)||bx>=XR)_yOF=1;}else _yOF=0;
+     if(YTHRU<0&&(bx>_npL||by>=gt||by<=gt-UPH))YTHRU=0;   // it came back out, dropped under the bar, or went back over the tops
      if(YTHRU>0&&(bx<_npR||by>=gt||by<=gt-UPH))YTHRU=0;
      inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);   // over the bar, under the tops, and it got there BY GOING THROUGH THE POSTS
      /* ===== AND THE VIEWER HAS TO BE ABLE TO SEE IT. Jayden, watching a live cup: "i cant

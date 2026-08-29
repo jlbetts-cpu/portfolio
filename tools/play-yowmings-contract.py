@@ -110,6 +110,19 @@ def objective(src):
       * the height is interpolated at the crossing,
       * the latch is cleared the moment the ball leaves that window at either end,
       * and soccer's own test is byte-for-byte what it was.
+
+    THE CEILING IN `by>gt-UPH` IS DELIBERATE AND IS ITSELF A MEASURED DECISION. Removing it
+    -- letting the uprights run unbounded upward, which is the real football rule -- was
+    built and measured on 2026-08-29. It fixes the miss rate outright (19 unscored window
+    visits per 100 matches -> 1) and costs two worse things: the posts are DRAWN UPH tall, so
+    28% of goals were then awarded with the ball above the drawn uprights (p90 204px against
+    100px posts, and the award frames show a ball in open sky while the scoreboard ticks),
+    and the rate nearly doubled, halving a fixture -- median time-to-first-goal 6.8s -> 3.3s
+    on desktop and 3.5s -> 1.0s on a phone, for a mode whose non-final fixture is ONE score.
+    Do not delete this bound. The case it was refusing is served by the descent route, which
+    the next check owns.
+
+    The SECOND way in is asserted separately, immediately below.
     """
     return ("inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);" in src
             and "inG=by>groundY-GH;" in src
@@ -120,6 +133,45 @@ def objective(src):
             and "if(YTHRU>0&&(bx<_npR||by>=gt||by<=gt-UPH))YTHRU=0;" in src
             # and no speed gate came back in under another name
             and "YKICK" not in src)
+
+
+@check("the-descent-is-armed-and-the-climber-is-not", "engine",
+       "if(_pby<=_tp&&by>_tp&&_yOF){",
+       "if(_pby<=_tp&&by>_tp){")
+def descent(src):
+    """A ball dropping in over the post tops is through -- unless it climbed there itself.
+
+    WHY THIS EXISTS. Jayden: "the ball will bounce in the goal post area and not count as a
+    goal all the time." Measured at 1512x850 over 100 matches, of the 29 window visits that
+    scored nothing, 19 had arrived from ABOVE -- kicked over the posts from the field and
+    dropped back down between them, which every viewer reads as a goal. Only the near-post
+    plane could arm the ball, so not one of them could score. Arming the DESCENT took the
+    unscored visits 29 -> 12 and turned that group from 19 refused into 4 scored / 2 refused,
+    with 0% of goals awarded above the drawn posts at either size.
+
+    THE INJECTION IS THE LATCH, BECAUSE THE LATCH IS THE WHOLE DANGER. Without `_yOF` this
+    hands the aperture back to the WALL-CLIMBER: a ball popped up inside the goal's own
+    column rises through the window, clears the tops, falls back in and scores having crossed
+    no post -- which is exactly what the traversal rule was written to kill, and what made
+    this mode a 9.0 goals/min score-fest. Nothing on screen would look wrong for weeks.
+    `_yOF` is set only while the ball is ABOVE the tops AND horizontally OUTSIDE both goals'
+    columns, and cleared the moment it is below them, so a ball that went up inside the
+    column was never out over the field and cannot arm. Measured over 100 matches by
+    reconstructing the latch from the frame stream: 46 descents into the window from over the
+    field, 41 armed; 11 wall-climber descents, 0 armed.
+
+    So dropping `&&_yOF` must fail this check.
+    """
+    return ("var _tp=gt-UPH;" in src
+            and "if(_pby<=_tp&&by>_tp&&_yOF){" in src
+            # the crossing x is interpolated, and it is bounded by the SAME post planes the
+            # near-post route uses -- so the horizontal bound cannot drift between the two doors
+            and "var _td=(_tp-_pby)/Math.max(1e-6,by-_pby),_xc=_pbx+(bx-_pbx)*_td;" in src
+            and "if(_xc>XL&&_xc<_npL)YTHRU=-1;else if(_xc>_npR&&_xc<XR)YTHRU=1;}" in src
+            # the latch itself, verbatim: set only above the tops and outside both columns
+            and "if(by<=_tp){if(bx<=XL||(bx>=_npL&&bx<=_npR)||bx>=XR)_yOF=1;}else _yOF=0;" in src
+            # and it is still a traversal: the descent arms, it does not score on its own
+            and "inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);" in src)
 
 
 @check("no-keeper-and-the-leash-is-untouched", "engine",
