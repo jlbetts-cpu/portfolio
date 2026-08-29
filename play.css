@@ -1641,3 +1641,25 @@ body.hmYow .hmUpStem::after{
    structure. The wall side is already clamped flush. */
 body.hmYow .hmGoalR .hmUpBar{border-radius:0 var(--r-hair) var(--r-hair) 0}
 body.hmYow .hmGoalB .hmUpBar{border-radius:var(--r-hair) 0 0 var(--r-hair)}
+
+/* ── THE GOLDEN BALL, FOR THE FINAL ONLY.  2026-08-29 ──────────────────────
+   Jayden sent a gold football for the final. It is a token swap, not a branch
+   in the engine, because --ballSkin already is one -- the same seam soccer's
+   own gold final uses.
+
+   SPECIFICITY IS THE WHOLE OF THIS RULE. Three declarations compete for
+   --ballSkin in a League final and all three are live at once:
+     tournament.css   body.hmFinal                  (0,2,0)  gold SOCCER ball
+     play.css         body.hmYow.hmYow              (0,3,0)  the brown football
+     here             body.hmYow.hmYow.hmFinal      (0,4,0)  the gold football
+   The doubled .hmYow above exists precisely because tournament.css links after
+   this file and would otherwise hand a fantasy-football final a gold soccer
+   ball; adding .hmFinal on top is the same trick one rung further, and keeps
+   the fix in the file that owns the League's pitch rather than reaching into
+   one this lane does not own. No !important anywhere in the chain.
+
+   images/football-gold.webp is baked from the shipping football by
+   tools/assets/bake-football-gold.py, so it is the same silhouette and the
+   same alpha byte for byte -- the engine positions it identically and only
+   the hue changes. */
+body.hmYow.hmYow.hmFinal{--ballSkin:url(images/football-gold.webp)}
