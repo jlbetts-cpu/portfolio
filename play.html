@@ -1597,6 +1597,11 @@ window.__hmGames=true;</script>
 <script src="play-engine.js"></script>
 <script src="play-games.js"></script>
 <script src="play-tournament.js"></script>
+<!-- THE LEAGUE'S BED AND ITS MUTE. Loaded AFTER play-tournament because it waits
+     on body.hmYowCup, which that file owns: the cup's whole lifetime is already
+     published as a class, so the audio starts and stops off the same signal every
+     other League chrome does, and no ending path can forget to silence it. -->
+<script src="league-audio.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a
      televised competition puts one, which is what this screen is pretending to be. -->

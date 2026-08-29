@@ -509,7 +509,13 @@ body.hmYowHdr .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}
 body.hmYowHdr .jbGrpC > a,
 body.hmYowHdr .jbGrpC > button:not(.hmHdrMatch),
 body.hmYowHdr .jbGrpR > a,
-body.hmYowHdr .jbGrpR > button:not(.hmHdrEnd),
+/* .lgMute is exempt for the same reason .hmHdrEnd is: it BELONGS to the bar.
+   This sweep clears the site's own nav controls out of the League header, and
+   it is written as "every button that is not End" -- so the sound control, a
+   button the League itself puts there, was swept out with them and measured
+   display:none / 0x0 while its audio played on with no way to silence it.
+   2026-08-28. */
+body.hmYowHdr .jbGrpR > button:not(.hmHdrEnd):not(.lgMute),
 /* ── THE SITE'S CONTROLS STAND DOWN FOR THE WHOLE CUP, NOT JUST A MATCH.
    2026-08-27. These were scoped to hmYowHdr, which only exists during a
    fixture -- so on the QUALIFYING RACE the bar still showed Contact and the
@@ -866,3 +872,100 @@ body.hmYowHdr .hmHdrMatch .sbNm{
     white-space:normal;line-height:1.15;text-align:right}
   body.hmYowHdr .hmHdrEnd{min-height:44px;min-width:44px;padding-inline:var(--sp-8)}
 }
+
+/* ══ THE AUDIT PASS.  2026-08-28 ═══════════════════════════════════════════
+   Four things off one screenshot, all of them subtraction. */
+
+/* 1. THE WASH BEHIND THE SCOREBOARD.
+   "idk if theres like a gradient on the scoreboard but remove that."
+   Measured: .sbCard::before is a radial-gradient(60% 100%, rgba(17,18,20,.1),
+   transparent 72%) drawn at 350x139 behind a card that is 282x78 -- a dark
+   halo half again the size of the thing it sits behind, bleeding onto white
+   paper on both sides. It is elevation by another name, and this site
+   separates with hairlines and translucency, never with a glow. */
+body.hmYowHdr .hmHdrMatch::before,
+body.hmYowHdr .sbCard::before{display:none}
+
+/* 2. THE LINE ACROSS THE HEADER.
+   "remove the line across from the header I just want it to be clear."
+   It is not a border: the header's own box-shadow, rgba(9,11,36,.1) 0 1px 0,
+   drawn the full 1512 across. On the play screen the bar already sits on
+   paper with nothing under it to divide from. */
+/* It is on .jbStick, the sticky wrapper -- 1512x97 -- not on <header> and not
+   on .jbNav, both of which measured box-shadow:none. Targeting the wrong two
+   elements first is why the line survived a pass. */
+body.hmYowCup .jbStick,
+body.hmYowHdr .jbStick{box-shadow:none;border-bottom:0}
+
+/* 3. THE WORDMARK, LOUDER.
+   "make the logo in the top left more prominent." It was a 22px mark in the
+   nav's muted ink -- the quietest thing on a bar whose whole job is to say
+   whose league this is. Bigger and in full ink; it stays a wordmark, not a
+   badge, so nothing is added around it.
+
+   The mark sits in a BUTTON.jbHome.ctl.ctl--nav and controls.css sizes it
+   through that variant, so a bare `.jbGrpL svg` (0,1,1) set the colour and
+   lost the width -- which is why it stayed 22px through the first attempt.
+   Naming the button wins it. The button was also 44x38, six short of the
+   site's own tap floor, so it takes that here too.
+
+   AND THIS COMMENT ATE THE RULE BELOW IT ONCE. The first version closed with
+   `*/` after "nothing is added around it", so the five lines that followed
+   parsed as a SELECTOR and the stray `*/` swallowed the declaration block --
+   the wordmark measured 22x30 and the button 44x38 with rules sitting right
+   there in the file that read perfectly and never ran. CLAUDE.md's line:
+   a stylesheet that reads correctly is not one that runs correctly. Proven
+   live off document.styleSheets below, not by reading it again. */
+/* AND THE SIZE IS A TRANSFORM, NOT A WIDTH. Measured after the comment was
+   repaired: `width:30px` on the svg still rendered 22x30 -- the height took and
+   the width did not, so controls.css is holding that axis through the .ctl--nav
+   variant and out-specifying a (0,4,1) selector. Rather than escalate to
+   !important against the library -- which is the "patch a control property by
+   property" move CLAUDE.md names -- scale it. A transform is composited, owes
+   nothing to the cascade, and cannot be out-specified. 22 -> 30 is 1.36.
+   The button's own height needed a third attempt. min-height:44px did nothing,
+   then padding-block:11px did nothing -- because .ctl--nav sets an explicit
+   `height` and the box is border-box, so padding is ABSORBED rather than added
+   and a min-height under the used height never binds. The property that is
+   actually in play is `height`, so that is the one to set. */
+body.hmYowCup .jbGrpL .jbHome,
+body.hmYowHdr .jbGrpL .jbHome{color:var(--theme-ink,var(--c950));opacity:1;height:44px}
+body.hmYowCup .jbGrpL .jbHome svg,
+body.hmYowHdr .jbGrpL .jbHome svg{transform:scale(1.36);transform-origin:50% 50%;
+  color:var(--theme-ink,var(--c950));opacity:1}
+
+/* 4. NO DISCO ON A LEAGUE FINAL.
+   "remove the disco animation from the end it doesnt look that good in this
+   mode so just keep it clean like the rest of the wins."
+   The championship kept the dark, the spotlight and the ball. Every other
+   result in this cup is announced on white; the final should read like the
+   rest of them, only bigger. party.js builds #party and #discoWrap and turns
+   them on with .on, so shutting them off here needs no JS and cannot leave a
+   half-lit room behind if the class ever sticks. */
+body.hmYowCup #party,
+body.hmYowCup #discoWrap,
+body.hmYowCup #party.on,
+body.hmYowCup #discoWrap.on{display:none !important}
+
+/* ── THE SOUND CONTROL.  2026-08-28 ────────────────────────────────────────
+   "a mute button in the header at all times put in a clean way that matches
+   the token."
+
+   It is a .ctl and inherits everything -- height, radius, press feedback, the
+   44px floor -- from controls.css, which is the rule: do not rebuild a button
+   privately and do not patch one toward the system property by property. What
+   is declared here is only the two things the library has no opinion about:
+   the icon's stroke, which the site owns centrally rather than baking into
+   each SVG, and the muted state's quieter ink. */
+.lgMute.ctl{display:inline-flex;align-items:center;justify-content:center;
+  /* Icon-only, so the library's text padding would leave a 51x38 lozenge round
+     a 19px glyph -- wide, short, and six under the site's own tap floor. Square
+     it off at the floor instead: measured 51x38 before, 44x44 after. */
+  min-height:44px;min-width:44px;padding-inline:var(--sp-10)}
+/* .lgMute alone is (0,1,0) and ties with .ctl--sm, which sets the 38px
+   height; league.css links last so a tie went my way -- but .ctl.ctl--sm is
+   (0,2,0) and does not, which is why the first attempt still measured 51x38.
+   Naming .ctl here settles it rather than relying on link order. */
+.lgMute svg{width:19px;height:19px;stroke-width:1.7}
+.lgMute.isMuted{color:var(--theme-muted,var(--c500))}
+body:not(.hmYowCup) .lgMute{display:none}
