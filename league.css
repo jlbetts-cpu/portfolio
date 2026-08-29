@@ -768,16 +768,19 @@ body.hmYowHdr .hmHdrRound{
    A split-flap still reads as one with a hairline seam; it is the thing the
    site already uses to separate chrome. So the seam stays, at 1px and 10%,
    and the axle goes. Subtraction, not a tune. */
-body.hmYowHdr .hmHdrMatch .bcCell::after{display:none}
-body.hmYowHdr .hmHdrMatch .bcCell::before{display:none}
+/* ── AND THE HARDWARE CAME BACK.  2026-08-28 ──────────────────────────────
+   "the old scorecards looked better I just wanted to change the green glow on
+   them."
 
-/* THE SEAM WENT TOO, AND THAT IS THE WHOLE FIX. A hairline at 10% was the
-   first attempt and it still failed the picture: at 28.8px the seam is not a
-   detail on the card, it is a line drawn across the digit, and it overran the
-   plate on both sides into the white bar. Counting said 1px/10%; looking said
-   strikethrough. A split-flap still reads as one from the flip itself -- the
-   top half rotating is the mechanic, the painted-on hinge was only its
-   costume. Premium is subtraction. */
+   I removed the hinge and the axle as well as the glow. That was over-reach:
+   he asked for ONE thing off these cards and I took three. The hinge and the
+   axle are restored exactly as they were -- the split-flap reads as a
+   split-flap because of them, which is his point and not mine.
+
+   What stays removed is only the green: the emerald edge on .bcCell, which
+   marked match point, and at a target of one every plate is permanently match
+   point, so it was lit in every frame of every fixture and marked nothing.
+   That rule lives above with the rest of the bar. */
 
 /* SPACING. The plate is 29x46 inside a 54px-tall .sR, so the card was
    floating in 8px of dead box; and the em dash carried the same 16px gap as
@@ -805,3 +808,27 @@ body.hmYowHdr .hmHdrEnd svg{display:none}
    CLAUDE.md is inline prose links, not buttons. Height only; the bar is 86px
    so nothing below it moves. */
 body.hmYowHdr .hmHdrEnd{min-height:44px}
+
+/* ── THE SECOND HEAD SAT TOO FAR OUT.  2026-08-28 ──────────────────────────
+   "why is the secound head so far aways."
+
+   .sbNm was `flex:1 1 auto` with `text-align:start`, so the two name boxes
+   grow to the SAME width whatever they contain -- measured 28.36px each for
+   "Fitz" and "Dot" -- and the shorter name's slack sits to the RIGHT of its
+   text. On the left team that slack falls harmlessly between the name and the
+   score. The right team is mirrored, so on that side it falls between the name
+   and the FACE, and the head is pushed out by exactly the difference in name
+   lengths. With his MALBERT vs DAD that is ~40px, which is the gap he saw.
+
+   The name should be as wide as the name. flex:0 0 auto sizes each box to its
+   own text, so the only thing between a name and its head is the 6px gap, on
+   both sides. `overflow:hidden` alone was also cutting long names with no
+   ellipsis, so a real cap replaces the shared-growth one. */
+body.hmYowHdr .hmHdrMatch .sbNm{
+  flex:0 0 auto;
+  width:auto;
+  max-width:120px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
