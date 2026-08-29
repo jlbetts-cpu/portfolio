@@ -85,18 +85,28 @@ multiples of a head, and the head barely changes with the screen -- so the cours
 different course, in head diameters, at every size, and 1440x900 happens to be a good
 one. Measured over 18 sizes x 60 seeded League races:
 
-    360x780   COMPLETE  27%      1024x768   98%      1512x850  100%
-    390x844             47%      1180x820   97%      1728x1117 100%
-    430x932             73%      1366x768   93%      2560x1440   0%
-    540x900            100%      1440x900  100%
+                       was   now                    was   now                was  now
+    360x780   COMPLETE  27%  100%     1024x768    98%   93%     1512x850  100%  99%
+    390x844             47%  100%     1180x820    97%  100%     1600x900  100%  98%
+    430x932             73%  100%     1280x800    93%   97%     1920x1080  97% 100%
+    540x900            100%  100%     1366x768    93%   92%     2560x1440   0% 100%
 
-Two separate defects, and seven races in that sweep ended with NOBODY across the line.
-Both are fixed (see split() and CHOKE THREE in play-engine.js); the 2560x1440 column is
-not -- at 1440px of height the descent is 128 head diameters against 81 at the
-reference, the winner arrives at 44s, and the wrap-up abandons half the field. So:
+Three separate defects, and 22 races in that sweep ended with NOBODY across the line:
+the split's divider planted in a choke's mouth on a narrow course, CHOKE THREE arching
+under GATE II on a short one, and the gate's fixed-size opening parking the entire field
+on a wide one. All three are fixed (see split(), CHOKE THREE and gate() in
+play-engine.js) and the sweep now has no race in it that nobody finishes.
 
-    SWEEP MORE THAN ONE SIZE, and always include a short one (768-820px tall) and a
-    narrow one (<=430px wide). --viewport is what does it.
+A TALL SCREEN NEEDS A BIGGER --sim THAN THE 70s DEFAULT, or you will read a long race as
+an unfinished one: at 2560x1440 the winner arrives at 41s and the race runs 65s, so the
+default budget reported COMPLETE 0% for races that all resolved. Use --sim 200 above
+1000px of height. What is still out of range there, and is NOT completion: the course is
+26 head diameters wide with set pieces sized in heads, so REACH reads 61% and CHUTE p95
+29. The race finishes, is fair (0.90) and has SPREAD 3.35; the COURSE is under-furnished
+for that width. That is the next thing to look at.
+
+    SWEEP MORE THAN ONE SIZE, and always include a short one (768-820px tall), a
+    narrow one (<=430px wide) and a wide one (>=1920). --viewport is what does it.
 
     python3 tools/race-fairness-probe.py                  # 120 seeds
     python3 tools/race-fairness-probe.py --seeds 400

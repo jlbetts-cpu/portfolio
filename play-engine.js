@@ -5366,7 +5366,55 @@ function teams(){
       median gate delay is unchanged at 5.3s.
       The door's own speed is not the lever and was measured in both directions -- see the
       note on gt.ph below. ---- */
-   function gate(){var ow=DM*1.5,gy=y+H*0.15;
+   /* ── THE GATE IS THE ONLY PIECE ON THIS COURSE THAT IS NOT SCALE-FREE IN X, AND ON
+      A WIDE SCREEN THAT PARKED THE WHOLE FIELD. ────────────────────────────────────
+      Jayden runs a real draft off this; someone will put it on a big monitor. Measured
+      at 2560x1440 in the League, 40 seeded races, every racer sampled every 1/60s: only
+      18% resolved their twelve, the mean was 2.9 finishers, and of 238 non-finishers
+      235 had gained under 60px in the four seconds before the wrap-up. They were not
+      abandoned mid-descent -- they were STOPPED, and every one of them was resting on a
+      gate bar. Seed 7016 ends with all twelve on the two bars, eight strung along one of
+      them.
+      The bar length (CW*0.3), the travel ((CW-ow)*0.5) and the tilt band (dv, off
+      CW*0.3) are all fractions of the course width, so the gate is geometrically
+      similar at any size -- except the OPENING, which was a fixed 1.5 head diameters.
+      At the reference that hole is 10.4% of the width; at 2560 it is 5.8%. The wall
+      doubles and the hole does not, so a head waits twice as long for it, and there are
+      two gates.
+      AND THE DOOR GETS FASTER, WHICH THIS FILE HAS ALREADY MEASURED AS THE WORSE HALF.
+      `ph` advances at a fixed ANGULAR rate, so the door's LINEAR speed is proportional
+      to travel: at 2560 it sweeps 1.79x the tuned px/s. The note on gt.ph below records
+      what that costs, measured, on this very course -- at 0.58 against the shipped 0.32
+      "parks went 6.0 -> 8.4 a race with a worst of 29.3s", because "a racer needs the
+      opening to linger long enough to fall THROUGH it". A wide screen was quietly
+      running the door at that speed.
+      So both are pinned to the reference: the opening never falls below 10.35% of the
+      width, and the door's linear speed never exceeds the tuned one. BOTH ARE EXACTLY
+      INACTIVE AT OR BELOW 1440 WIDE -- CW*0.1035 is 149.0 at 1440 and DM*1.5 is 149.0,
+      and DM*6.4 (636) is above the reference travel (633) -- so nothing at or under the
+      reference width moves by a pixel, which the paired sweep confirms.
+      Measured at 2560x1440, 60 seeds, with a simulation budget long enough to let the
+      race actually end:
+                                   before   opening   + door speed
+        COMPLETE                      18%      100%          100%
+        mean finishers               2.92     12.00         12.00
+        races with NOBODY home         15         0             0
+        DECIDED                         --       52%           33%    (45% ceiling)
+        SPREAD                          --      3.41          3.36
+      The door-speed cap is what keeps it a race rather than a procession: with the
+      opening alone the gate stops holding anybody and DECIDED goes over the ceiling.
+      WHAT THIS DOES NOT FIX, and it is pre-existing: at 2560 the course is 26 head
+      diameters wide with set pieces sized in heads, so CHUTE p95 reads 29 and REACH
+      62%. The RACE is complete, fair (0.89) and unpredictable there; the COURSE is
+      under-furnished for that width. That is the next thing, and it is not this.
+      A DEPTH CAP WAS TRIED FIRST AND REJECTED, on the theory that the descent should be
+      constant in head diameters. Holding every depth at the reference (min(H,900)) does
+      fix the clock (winner p50 46s -> 38s) and the free fall (CHUTE p95 28.8 -> 17.9),
+      but it flattens the funnels -- a 900-deep V across 2560 of width is a 20-degree
+      hopper against the reference's 35 -- and completion went to 18%, three racers a
+      race left on the hill. Sparing the funnel drop and capping everything else got 60%.
+      The descent was never the defect; the gate was. */
+   function gate(){var ow=Math.max(DM*1.5,CW*0.1035),gy=y+H*0.15;
     /* BOTH BARS FALL TOWARD THE DOOR, EACH PIVOTED ON ITS OWN MIDPOINT. dv is half the
        band the pair may occupy and it is FIXED -- the ends are set once and only x moves
        after that, so the gate never reaches outside gy +- dv however long or short a bar
@@ -5377,7 +5425,8 @@ function teams(){
     var dv=(CW*0.3-2)*0.5*Math.tan(4*Math.PI/180);   // 4, not 8: see the note above -- 8 evicts more and costs DECIDED
     var gl={x1:X0+2,y1:gy-dv,x2:X0+CW*0.3,y2:gy+dv,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy+dv,x2:W-2,y2:gy-dv,e:0.28,cls:"gate"};
     segs.push(gl);segs.push(gr);
-    gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
+    var tv=(CW-ow)*0.5-12;   // the door's LINEAR speed is travel*0.32*spd, so a wider course ran it faster; DM*6.4 is the reference travel, and the cap is exactly inactive at or below it
+    gates.push({l:gl,r:gr,y:gy,ow:ow,travel:tv,ph:rnd(0,6.28),spd:rnd(2.4,3.4)*Math.min(1,DM*6.4/Math.max(1,tv))});
     fto(gy,CC,CW/2);                                        // a gate sweeps the whole width, so everything under it is in play
     y=gy+H*0.17;fopen(y);}
    /* THE SWEEPER. A fat peg that will not stay put -- it slides back and forth across
