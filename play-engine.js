@@ -3307,6 +3307,21 @@ function teams(){
    // still flying, so the line-up was never actually seen. This is the only dead time added
    // anywhere in this pass, it is a quarter of a second, and the ball is visibly curving in
    // to the centre spot throughout it.
+   /* ── AND HE COMES BACK FOR EVERY RESTART, NOT JUST THE FIRST.  2026-08-29 ──
+      "for the final make sure the jayden head is coming back to drop off the
+      head not just once."
+      He was never dropping it more than once because there was nowhere for him
+      to: headDropIn() is called from kickoffCountdown(), and kickoffCountdown()
+      is called from start() and from nowhere else -- once per match. THIS is
+      the after-a-goal restart, and it had no countdown by design ("the ball
+      just drops back in"), so in a first-to-three final the head opened the
+      match and then the next four restarts happened without him.
+      Gated on YOW rather than on hmFinal on purpose: it is the League that
+      opens with the head, and every other League fixture is a single score, so
+      there is no second restart for this to fire on. Writing it as "the final"
+      would encode a match length rather than a mode, and the match length has
+      already changed once tonight. */
+   if(YOW){ headDropIn(function(){ if(!S.on)return; bvy=30; S.phase="play"; }); return; }
    setTimeout(function(){if(S.on)S.phase="play";},900);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
