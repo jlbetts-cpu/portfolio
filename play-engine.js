@@ -6458,6 +6458,29 @@ function teams(){
 
  // mini-Jayden: when a game has an ODD number of players, the big head shrinks in to even the sides (and makes a 1-head game playable)
  var fillerActive=false,FSLOT=9001,fillerCut=null;
+ /* ── THE BAKE MOVES HIS FACE DOWN THE FRAME. THE FEATURE MARKS HAD NOT MOVED WITH IT.
+    "his big head sometimes has four eyes, a second pair up on his hair." It is one head,
+    not two, and the second pair is his own eye RIG standing 0.185 of his box above the
+    face it is meant to sit on.
+    bakeMiniCut() draws the square portrait into a 5:6 frame and then RE-DRAWS it shifted
+    down by (target - last) so his chin lands on the shared foot plane -- measured live at
+    1512x850, the square's ink ran 57..448 of the frame and the bake's ran 168..559, a
+    shift of 111px = 0.185 of the frame. fillerData()'s eyes and marks below were written
+    for the UNSHIFTED draw ("mapped square->5:6 by dividing y by 1.2"), so every one of
+    them pointed 0.185 too high: his eye rig landed at 0.431 of the box while his drawn
+    eyes are at 0.616. On a 196px head that is 36px -- his forehead and the front of his
+    hair, which is exactly where the extra pair appears.
+    NORMALLY IT IS INVISIBLE, WHICH IS WHY IT IS INTERMITTENT. spawnCompanion() hides this
+    whole rig for a __mirror head and shows the live clone of the big head instead, so the
+    stale marks only reach the screen on the fallback -- when the clone cannot be built
+    (no #stage to clone) or the flag does not survive to the spawn. Measured on the
+    fallback: rig at fy 0.431/0.439 against the bake's real eyes at 0.616/0.624.
+    THE SHIFT IS NOT A CONSTANT and must never be written as one: it is derived from the
+    live artwork's ink bottom and from window.__hmFOOT, which measured 0.9318 rather than
+    the 0.945 default the moment this was instrumented. bakeMiniCut() publishes what it
+    actually applied and fillerData() maps through it, so a re-cut portrait or a changed
+    foot plane moves the marks with the face. ── */
+ var bakeShiftY=0;   // the last bake's downward shift, as a fraction of the 5:6 frame
  /* ---- Mini-Jayden stands on his CHIN, not on his frame. The big head is a SQUARE cutout
    with its own transparent margin below the chin, so drawing it at (0,0,500,500) into a
    500x600 frame put his ink bottom at 0.748 of the box. Every other head is a headmaker
@@ -6469,21 +6492,29 @@ function teams(){
 function bakeMiniCut(img){
  var W=500,H=600,c=document.createElement("canvas");c.width=W;c.height=H;
  var g=c.getContext("2d");g.drawImage(img,0,0,W,W);
+ bakeShiftY=0;   // published for fillerData(): what this bake actually moved his face by
  try{var d=g.getImageData(0,0,W,H).data,last=-1,y,x;
   for(y=H-1;y>=0&&last<0;y--){for(x=0;x<W;x++){if(d[(y*W+x)*4+3]>24){last=y;break;}}}
   var target=Math.round(H*(window.__hmFOOT||0.945));
-  if(last>0&&Math.abs(target-last)>1){g.clearRect(0,0,W,H);g.drawImage(img,0,target-last,W,W);}
+  if(last>0&&Math.abs(target-last)>1){g.clearRect(0,0,W,H);g.drawImage(img,0,target-last,W,W);bakeShiftY=(target-last)/H;}
  }catch(_){}
  var u=c.toDataURL("image/webp",0.92);
  return u.indexOf("data:image/webp")===0?u:c.toDataURL("image/png");}
 function fillerData(){   // split out so the TOURNAMENT can field him as a captain, not just spawn him
   var face=document.getElementById("face");if(!face||!face.complete||!face.naturalWidth)return null;
   // the big head is a SQUARE cutout; bake it into a 5:6 frame at its true aspect (never stretched) so the mini-Jayden reads exactly like him, just smaller
-  try{fillerCut=bakeMiniCut(face);}catch(_){fillerCut=face.src;}
-  // his REAL feature positions (from FACES.rest), mapped square->5:6 by dividing y by 1.2
+  // K maps a SQUARE-space y into the 5:6 frame; B is the chin-seating shift bakeMiniCut just
+  // applied. The fallback (no canvas) keeps the raw square, which the head box stretches to
+  // 5:6 on its own -- no letterbox and no shift, so that mapping is the identity.
+  var K=500/600,B=0;
+  try{fillerCut=bakeMiniCut(face);B=bakeShiftY;}catch(_){fillerCut=face.src;K=1;B=0;}
+  function fy(y){return +(y*K+B).toFixed(4);}   // a POSITION: scaled and shifted
+  function fh(h){return +(h*K).toFixed(4);}     // a HEIGHT: scaled only, the shift cancels
+  // his REAL feature positions, in the SQUARE portrait's own coordinates (eyes from
+  // FACES.rest in hero-engine.js), mapped through the bake rather than assumed
   var data={cut:fillerCut,__filler:true,__mirror:true,   // __mirror: it IS the big head, cloned and shrunk -- same face, same eyes, same expressions
-   eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
-   marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // (eyes/marks kept as a fallback + for the cut-based masks)
+   eyes:[{x:0.400,y:fy(0.5169),w:0.100,h:fh(0.048),ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:fy(0.5269),w:0.100,h:fh(0.048),ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
+   marks:{BL:{x:0.375,y:fy(0.4704)},BR:{x:0.625,y:fy(0.4776)},M:{x:0.500,y:fy(0.7584)},N:{x:0.500,y:fy(0.6240)}}};   // (eyes/marks kept as a fallback + for the cut-based masks)
   return data;}
  window.__hmFillerData=fillerData;
  window.__hmFillerAdd=function(){if(fillerActive)return;var data=fillerData();if(!data)return;
