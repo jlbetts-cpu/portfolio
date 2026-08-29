@@ -1841,9 +1841,33 @@
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
   if(mjClone&&mjBigFace){   // MIRROR the live big head onto the clone: same expression, same blink, same gaze, every frame -- for free
    var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye"),_rat=mjBigW?HW/mjBigW:0.25;   // his gaze is in HIS pixels; scale it to the mini so the iris moves the same FRACTION of the eye, not the same pixels (which flew the iris right out of the tiny eye)
-   if(_bE.length&&_cE.length<_bE.length){   // EYES-LOAD SAFETY: buildEyes() wipes + re-adds his eyes on every setFace, so a clone snapshotted in that gap comes up EYELESS. Graft the current pair in (ink filter stripped, like the rest of the clone) so his eyes always load -- self-heals the next frame his eyes exist.
-    for(var _gi=_cE.length;_gi<_bE.length;_gi++){var _ge=_bE[_gi].cloneNode(true);_ge.style.filter="none";var _gd=_ge.querySelectorAll("*");for(var _gj=0;_gj<_gd.length;_gj++){try{_gd[_gj].style.filter="none";}catch(_){}}mjClone.appendChild(_ge);}
+   /* ── A GRAFT REPLACES, IT DOES NOT PILE UP.  2026-08-28 ───────────────────
+      "jayden head has a random eye on top of his head" -- on the pitch, on him
+      and on nobody else.
+      The safety below self-heals TOO FEW eyes and had no answer for too many.
+      buildEyes() wipes and re-adds his pair on every setFace, which is the very
+      reason it exists, so a frame landing mid-rebuild reads one eye against the
+      big head's two, grafts one, and then the rebuild appends its own second:
+      three. The mirror loop only ever indexes _cE[0.._bE.length-1], so the
+      third is never positioned, never scaled to the mini and never hidden -- it
+      just sits at the big head's own coordinates. bakeMiniCut seats his
+      portrait on the shared foot, leaving the top fifth of his box empty above
+      his hair, and that is precisely where a stale eye lands. Hence "on top of
+      his head", and hence only him: he is the one head whose box is not full of
+      face.
+      Trimming afterwards by count was tried and is WRONG, because every such
+      test has to be gated on _bE.length and the big head is hidden with its
+      eyes torn down for the whole match -- measured `#stage > .eye` = 0
+      mid-match, so a count-based trim never runs when it is needed. Clearing
+      last frame's grafts BEFORE grafting again needs no such gate: the graft
+      becomes idempotent, and three eyes stop being reachable at all. */
+   var _gOld=mjClone.querySelectorAll("[data-mjgraft]");
+   if(_gOld.length){for(var _gk=0;_gk<_gOld.length;_gk++){try{_gOld[_gk].parentNode.removeChild(_gOld[_gk]);}catch(_){}}
     _cE=mjClone.querySelectorAll(".eye");}
+   if(_bE.length&&_cE.length<_bE.length){   // EYES-LOAD SAFETY: buildEyes() wipes + re-adds his eyes on every setFace, so a clone snapshotted in that gap comes up EYELESS. Graft the current pair in (ink filter stripped, like the rest of the clone) so his eyes always load -- self-heals the next frame his eyes exist.
+    for(var _gi=_cE.length;_gi<_bE.length;_gi++){var _ge=_bE[_gi].cloneNode(true);_ge.setAttribute("data-mjgraft","1");_ge.style.filter="none";var _gd=_ge.querySelectorAll("*");for(var _gj=0;_gj<_gd.length;_gj++){try{_gd[_gj].style.filter="none";}catch(_){}}mjClone.appendChild(_ge);}
+    _cE=mjClone.querySelectorAll(".eye");}
+
    var _bClosed=_bE[0]&&_bE[0].classList.contains("eclosed");
    // his OWN grin: the big head is hidden mid-game, so his personality has to be driven from game events. smileT is set when he scores, wins, or is last one standing (see the soccer/battle hooks above).
    var _grin=filler&&smileT>0;
