@@ -1602,6 +1602,14 @@ window.__hmGames=true;</script>
      published as a class, so the audio starts and stops off the same signal every
      other League chrome does, and no ending path can forget to silence it. -->
 <script src="league-audio.js" defer></script>
+<!-- THE PHOTOGRAPHS AT THE END OF A TIE, and the loser's getting torn in half.
+     Same standalone shape as the bed above: it wraps window.__hmTourWin, which is
+     the one place a decided fixture exists as data, so play-tournament.js and the
+     engine are untouched. The stylesheet is linked HERE rather than in <head> for
+     the same reason league.css links last -- it is the final word on its own
+     object, and a <link> is body-ok. -->
+<link rel="stylesheet" href="league-photos.css">
+<script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a
      televised competition puts one, which is what this screen is pretending to be. -->

@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   league-photos.css -- the two photographs that go up when a cup tie is
+   decided, and the loser's getting torn in half.
+
+   Jayden: "you know how everyone uploading there picture I think it would be
+   funny to just put up the photo after they win like two photos the winner and
+   looser and the losers photo gets torn up realistically and turns black and
+   white like they died lol and then the winner photo and then they disapeear
+   and its onto the next match."
+
+   WHY THIS SHEET LINKS FROM THE BODY, AFTER league.css.
+   league.css is the League's final word on League screens and it is owned by
+   another lane. This is a separate object with its own `.lgPhoto*` namespace,
+   so it collides with nothing -- but a <link> in the body still guarantees
+   source order without editing a file this lane does not own, which is the
+   whole reason the League's own sheet links last in the first place.
+
+   AND EVERY SELECTOR NAMES body.hmYowCup, which is belt and braces rather than
+   necessity: league-photos.js only ever builds these nodes inside a cup, so
+   nothing here can be reached from another screen. But the League's chrome
+   contract asks for the constraint to be DECLARED and not just true, and it is
+   the cheaper of the two guarantees to check. Prefixing every rule shifts every
+   specificity by the same (0,1,1), so the cascade order between these rules is
+   exactly what it was.
+
+   WHAT IS DELIBERATELY NOT HERE.
+   No shadow. Nothing on this site casts one except a companion head standing on
+   something, and two photographs hanging in mid-air are standing on nothing.
+   The cards separate from the pitch the way the rest of the chrome does: a
+   hairline, in the team's own colour, at a low alpha. No labels either -- you
+   have just watched these two play and their faces are on the scoreboard; a
+   name under each would be the third time the same fact was stated.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The stage. `position:fixed` with an inline `top` set from the hero's own rect,
+   because the band this has to live in is the empty upper third of the PITCH,
+   not of the window -- the header owns the first ~92px and the heads own the
+   bottom. pointer-events:none all the way down: End must stay pressable
+   underneath it at every moment of the beat. */
+body.hmYowCup .lgPhotos{
+  position:fixed;left:0;right:0;
+  z-index:60;                       /* over the pitch and the big call (44), under
+                                       the engine's celebration canvas (62) */
+  pointer-events:none;
+  display:flex;justify-content:center;align-items:flex-end;
+  gap:var(--sp-24);
+  --lgpH:clamp(132px, 23svh, 200px);
+  --lgpW:calc(var(--lgpH) * 0.78);  /* a photographic print, not a square avatar */
+}
+
+/* One card. The canvas inside is painted by league-photos.js -- paper, hairline
+   and head in one pass -- so the winner and the loser are rendered by the same
+   code and cannot drift apart. */
+body.hmYowCup .lgPhoto{
+  position:relative;flex:0 0 auto;
+  width:var(--lgpW);height:var(--lgpH);
+  animation:lgpIn 400ms var(--sp-settle) both;
+}
+body.hmYowCup .lgPhoto.isB{animation-delay:70ms}
+body.hmYowCup .lgPhoto canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+@keyframes lgpIn{
+  from{opacity:0;transform:translate3d(0,12px,0) scale(.94)}
+  to  {opacity:1;transform:none}
+}
+@keyframes lgpOut{
+  from{opacity:1;transform:none}
+  to  {opacity:0;transform:translate3d(0,-10px,0) scale(.97)}
+}
+/* The winner flinches when the other one goes. 3.5% and 320ms -- it is the
+   difference between two pictures that happen to be side by side and two
+   pictures that are in the same room. */
+@keyframes lgpSnap{
+  0%  {transform:none}
+  38% {transform:scale(1.035)}
+  100%{transform:none}
+}
+body.hmYowCup .lgPhoto.isSnap{animation:lgpSnap 320ms var(--sp-pop) both}
+body.hmYowCup .lgPhoto.isGone{animation:lgpOut var(--dur-state-out) var(--ease-exit) both}
+
+/* ── THE TWO HALVES ───────────────────────────────────────────────────────────
+   Both are full-card canvases stacked exactly on top of each other, each
+   holding only its own side of a jagged clip. That is why there is no swap and
+   no pop at the moment of the tear: the picture was always two objects, they
+   just had not moved yet. Each turns about the centre of its OWN half, which is
+   what makes them fall like two pieces of paper instead of one hinged flap. */
+body.hmYowCup .lgTear{position:absolute;inset:0}
+body.hmYowCup .lgTear .hL{transform-origin:25% 46%}
+body.hmYowCup .lgTear .hR{transform-origin:75% 46%}
+
+/* linear, with the gravity written into the keyframe positions: barely anything
+   for the first tenth (the paper is still parting), then 26px, then 178px. An
+   eased curve would have made it float. The grayscale lands at 40% -- the colour
+   goes while it is still turning, not after it has landed, because the joke is
+   that the picture dies as it comes apart.
+
+   AND IT BLEACHES AS WELL AS DESATURATING, which is not decoration -- it is the
+   only thing that works on every head. The site's photographs are already
+   greyscale (images/smile.webp measures a mean chroma of 0.0); only the eggheads
+   carry colour, because __hmTint puts it there. grayscale(1) alone therefore did
+   nothing at all to mini-Jayden's picture -- his half fell in exactly the colour
+   it started. contrast(.84) brightness(1.1) is a print left in the sun, and it
+   is visible on a photograph that was black and white to begin with. */
+@keyframes lgpFallL{
+  0%  {transform:translate3d(0,0,0) rotate(0deg);filter:grayscale(0) contrast(1);opacity:1}
+  12% {transform:translate3d(-7px,-5px,0) rotate(-2.6deg)}
+  40% {filter:grayscale(1) contrast(.84) brightness(1.1)}
+  45% {transform:translate3d(-19px,26px,0) rotate(-8.5deg)}
+  78% {opacity:1}
+  100%{transform:translate3d(-48px,178px,0) rotate(-21deg);
+       filter:grayscale(1) contrast(.84) brightness(1.1);opacity:0}
+}
+@keyframes lgpFallR{
+  0%  {transform:translate3d(0,0,0) rotate(0deg);filter:grayscale(0) contrast(1);opacity:1}
+  12% {transform:translate3d(7px,-4px,0) rotate(2.2deg)}
+  40% {filter:grayscale(1) contrast(.84) brightness(1.1)}
+  45% {transform:translate3d(27px,23px,0) rotate(9.5deg)}
+  78% {opacity:1}
+  100%{transform:translate3d(70px,182px,0) rotate(24deg);
+       filter:grayscale(1) contrast(.84) brightness(1.1);opacity:0}
+}
+body.hmYowCup .lgTear.isFalling .hL{animation:lgpFallL 1000ms linear both}
+body.hmYowCup .lgTear.isFalling .hR{animation:lgpFallR 1000ms linear both}
+
+/* ── REDUCED MOTION ───────────────────────────────────────────────────────────
+   The site's answer everywhere else is to keep the information and drop the
+   travel, so that is what happens here: the picture still goes grey and still
+   goes away, it just does not fall. league-photos.js also skips generating the
+   tear entirely in this mode and paints one whole card, so the halves below are
+   a second line of defence for a preference that changes mid-beat. */
+@keyframes lgpFade{
+  from{filter:grayscale(0);opacity:1}
+  to  {filter:grayscale(1) contrast(.84) brightness(1.1);opacity:0}
+}
+@keyframes lgpFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes lgpFadeOut{from{opacity:1}to{opacity:0}}
+
+/* --dur-enter, NOT --dur-reveal, and the difference is the whole rung. --dur-reveal
+   is an alias for --sp-settle-dur, and tokens.css collapses every spring duration
+   to 1ms inside this same media query -- so a "crossfade" written against it is a
+   cut. Reduced motion asks for no large movement, not for no time. */
+body.hmYowCup .lgPhotos.isRm .lgPhoto{animation:lgpFadeIn var(--dur-enter) var(--ease-out) both}
+body.hmYowCup .lgPhotos.isRm .lgPhoto.isTorn{animation:lgpFade var(--dur-enter) var(--ease-out) both}
+body.hmYowCup .lgPhotos.isRm .lgPhoto.isGone{animation:lgpFadeOut var(--dur-enter) var(--ease-out) both}
+@media(prefers-reduced-motion:reduce){
+  body.hmYowCup .lgPhoto{animation:lgpFadeIn var(--dur-enter) var(--ease-out) both}
+  body.hmYowCup .lgPhoto.isSnap{animation:none}
+  body.hmYowCup .lgPhoto.isGone{animation:lgpFadeOut var(--dur-enter) var(--ease-out) both}
+  body.hmYowCup .lgTear.isFalling .hL,
+  body.hmYowCup .lgTear.isFalling .hR{animation:lgpFade var(--dur-enter) var(--ease-out) both}
+}
