@@ -440,11 +440,36 @@ body.hmYowCup .hmScore,
 body.hmYowCup .hmStake,
 body.hmYowCup .battleCount,
 body.hmYowCup .hmRaceRow,
-body.hmYowCup .hmRaceBoard{display:none}
+/* transform:none IS LOAD-BEARING HERE. The board carries
+   matrix(1, 0, 0, 1, 0, 0) -- an IDENTITY transform, which changes nothing
+   visually and still creates a containing block for position:fixed. So the
+   End button inside it computed `right:126px` correctly and was measured
+   off-screen at -114, because "fixed" resolved against the board rather than
+   the viewport. An identity matrix counts; that is the whole trap and it is
+   the fifth time this containing-block rule has bitten in this mode. */
+body.hmYowCup .hmRaceBoard{display:none;transform:none}
 /* The race board's own End button is the way out of qualifying and must survive
    its container -- it is re-shown in the bar rather than pinned to the viewport
    corner, where a racer drifting past used to sit on top of it. */
-body.hmYowCup .hmRaceBoard button{display:inline-flex}
+/* ── THE RACE'S END SITS WHERE CONTACT SITS.  2026-08-27 ───────────────────
+   "the end button should be where the contact is."
+   Measured: it was at left=12, top=432 -- pinned to nothing, halfway down the
+   left edge, because .hmRaceBoard is display:none and the button was left to
+   whatever containing block it inherited. There is no nav row to move it into
+   on the race screen, so it is placed rather than re-parented.
+   THE INSET IS THE NAV'S COLUMN, NOT THE VIEWPORT'S EDGE. The bar is a centred
+   1200px column, so on a wide screen Contact sits (100vw-1200)/2 in from the
+   glass -- 120px at 1440 -- while a flat right:40px would put End 80px outside
+   the line every other control in the header aligns to. That mismatch is
+   exactly what he caught in the match bar earlier. max() keeps the 40px
+   gutter on screens narrower than the column. */
+body.hmYowCup .hmRaceBoard button{
+  display:inline-flex;
+  position:fixed;
+  top:var(--sp-16);
+  right:max(var(--sp-40), calc((100vw - 1200px) / 2 + var(--sp-6)));
+  z-index:60;pointer-events:auto;margin:0;border-left:0;
+}
 body.hmYowCup .bcGrain{display:none}
 
 /* ---------------------------------------------------------------------------
@@ -485,9 +510,22 @@ body.hmYowHdr .jbGrpC > a,
 body.hmYowHdr .jbGrpC > button:not(.hmHdrMatch),
 body.hmYowHdr .jbGrpR > a,
 body.hmYowHdr .jbGrpR > button:not(.hmHdrEnd),
+/* ── THE SITE'S CONTROLS STAND DOWN FOR THE WHOLE CUP, NOT JUST A MATCH.
+   2026-08-27. These were scoped to hmYowHdr, which only exists during a
+   fixture -- so on the QUALIFYING RACE the bar still showed Contact and the
+   time button, and the race's own End was placed at exactly the inset Contact
+   occupies. Two controls in one slot, and the screenshot shows Contact
+   winning. Same scope error as the disappearing header: hmYowCup is the class
+   that means "a cup owns this screen". */
+body.hmYowCup .jbContactBtn,
+body.hmYowCup .heroTime,
+body.hmYowCup #heroTimeBtn,
 body.hmYowHdr .jbContactBtn,
 body.hmYowHdr .heroTime,
 body.hmYowHdr #heroTimeBtn{display:none}
+/* On a race screen there is no matchup to put in the centre, so the site's own
+   links stay where they are; only the two right-hand controls step aside. */
+body.hmYowCup:not(.hmYowHdr) .jbGrpC > a{display:inline-flex}
 body.hmYowHdr .hmHdrMatch,
 body.hmYowHdr .hmHdrRound,
 body.hmYowHdr .hmHdrEnd{visibility:visible}
@@ -538,10 +576,18 @@ body.hmYowHdr .jbNav{
 body.hmYowCup::after{
   content:"";display:block;position:fixed;inset:0;
   z-index:0;pointer-events:none;
+  /* FIVE STOPS, NOT THREE. "gradient is still not full screen it looks odd"
+     -- and the box was already fixed:inset:0, so it WAS full screen. What
+     read as odd is the ramp: 0 to .10 across thirty percent of the height is
+     steep enough to show as a band with a visible top edge, which looks like
+     a panel rather than light in a room. Spread over five stops from a third
+     of the way down, no edge is locatable anywhere. */
   background:linear-gradient(180deg,
-    rgba(var(--lgWin,0 0 0),0) 46%,
-    rgba(var(--lgWin,0 0 0),.10) 76%,
-    rgba(var(--lgWin,0 0 0),.22) 100%);
+    rgba(var(--lgWin,0 0 0),0) 30%,
+    rgba(var(--lgWin,0 0 0),.03) 52%,
+    rgba(var(--lgWin,0 0 0),.08) 70%,
+    rgba(var(--lgWin,0 0 0),.15) 86%,
+    rgba(var(--lgWin,0 0 0),.24) 100%);
   transition:background var(--theme-duration,640ms) var(--ease-out);
 }
 @media(prefers-reduced-motion:reduce){ body.hmYowCup::after{transition:none} }
