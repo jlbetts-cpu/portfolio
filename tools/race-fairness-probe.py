@@ -846,7 +846,7 @@ def compare(a, b):
           "\n  narrows the finishing order has broken the point of the race.")
 
 
-def collect(seeds, sim_seconds, inject=None):
+def collect(seeds, sim_seconds, inject=None, league=False):
     from playwright.sync_api import sync_playwright
 
     Handler.inject = inject
@@ -864,8 +864,15 @@ def collect(seeds, sim_seconds, inject=None):
             try:
                 pg.goto(base + "/play.html", wait_until="load")
                 pg.evaluate(SEED_HEADS, FIELD)
+                if league:
+                    # BEFORE load, not after: rails() reads the flag inside
+                    # buildCourse(), which runs on the race's own boot.
+                    pg.add_init_script("window.__hmYowLeague = true;")
                 pg.goto(base + "/play.html?wraf=1", wait_until="load")
                 pg.wait_for_timeout(2600)
+                if league and not pg.evaluate("() => !!window.__hmYowLeague"):
+                    raise SystemExit("--league did not survive the navigation; the "
+                                     "course measured would be the standalone one.")
                 have = pg.evaluate("() => !!(window.__race && window.__race.sim)")
                 if not have:
                     raise SystemExit(
@@ -902,6 +909,14 @@ def main():
                     help="assert the fairness/pace/chaos thresholds and exit non-zero on any failure")
     ap.add_argument("--self-test", action="store_true",
                     help="re-inject each known defect; the contract must fail on every one")
+    ap.add_argument("--league", action="store_true",
+                    help="measure the YOWMINGS LEAGUE course (left rail at the screen "
+                         "edge, standings board down) instead of the standalone one. "
+                         "These are DIFFERENT COURSES: rails() reserves 104px on the "
+                         "left for the standings board outside the League and 8px "
+                         "inside it, so CW differs by ~96px and every choke derived "
+                         "from it moves. Everything tuned here before 2026-08-28 was "
+                         "measured on the standalone course only.")
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -912,7 +927,8 @@ def main():
             print("\n--- re-injecting: %s" % key)
             f = Findings(False)
             try:
-                d = digest(collect(list(range(args.start, args.start + n)), args.sim, key))
+                d = digest(collect(list(range(args.start, args.start + n)), args.sim, key,
+                                   league=args.league))
                 contract(d, f)
             except Exception as exc:                     # a crash is not a detection
                 print("  the injected build threw: %s" % exc)
@@ -927,7 +943,8 @@ def main():
 
     if args.contract:
         n = args.seeds if args.seeds != 120 else CONTRACT_SEEDS
-        d = digest(collect(list(range(args.start, args.start + n)), args.sim))
+        d = digest(collect(list(range(args.start, args.start + n)), args.sim,
+                           league=args.league))
         report(d, "race fairness contract")
         f = Findings(args.verbose)
         print()
@@ -949,7 +966,7 @@ def main():
         return 0
 
     seeds = list(range(args.start, args.start + args.seeds))
-    records = collect(seeds, args.sim)
+    records = collect(seeds, args.sim, league=args.league)
     if args.raw:
         Path(args.raw).write_text(json.dumps(records))
     d = digest(records)

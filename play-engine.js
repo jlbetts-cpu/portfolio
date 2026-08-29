@@ -4481,7 +4481,20 @@ function teams(){
      One function, called by both, so the grid and the course can never again be
      laid out against different rails. */
   function rails(){var yow=false;try{yow=!!window.__hmYowLeague;}catch(_){}
-   X0=(W<=640||yow)?8:104;CW=W-X0;CC=(X0+W)/2;}   // the LEFT RAIL is reserved for the standings -- outside the League, where that board is up, the whole course lives to the right of it so the chips are never buried under a peg field
+   /* THE LEFT RAIL SITS ON THE EDGE IN THE LEAGUE, because the RIGHT one always
+      did.  2026-08-28. The right rail is `W` -- the screen edge -- in every
+      branch, and rail pegs are centred ON the rail, so a right-hand scallop is
+      a half-circle cut by the edge of the screen. The left rail was 8px in, so
+      its scallops stopped 8px short and nothing ever reached the edge on that
+      side. Measured over 14 frames of a live League race, 330 bands with ink:
+      the right margin hit 0px in 77 bands, the left hit 0 in NONE -- its
+      minimum was exactly 8, every time. That 8px is the whole of "the
+      obstacles arent touching the left side": not a coverage problem (the
+      medians are 246 vs 258, even), an EDGE-CONTACT one.
+      The 104 outside the League stays: that lane really does have the
+      standings board over it, and 8 stays on a phone outside the League for
+      the same reason it was chosen -- a thumb rail. */
+   X0=yow?0:((W<=640)?8:104);CW=W-X0;CC=(X0+W)/2;}   // the LEFT RAIL is reserved for the standings -- outside the League, where that board is up, the whole course lives to the right of it so the chips are never buried under a peg field
   function buildCourse(){pegs.length=0;segs.length=0;spins.length=0;gates.length=0;mvPegs.length=0;
    refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;   // `mob` is the LATTICE's phone threshold (pitch, bumper count), not the rail's -- rails() owns that one now
    rails();
@@ -4801,8 +4814,8 @@ function teams(){
         diameter proud of the edge of the stream, because the outside of a stream still
         clips what is just outside it -- and because a peg on the boundary is what
         widens the stream, which is the job. */
-     if(row%2===0){for(c=1;c<L.k-1;c++){px=X0+L.p2*(c+0.5)+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&inFlow(px,py,L.pr*2)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}
-     else{for(c=1;c<L.k;c++){px=X0+L.p2*c+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&inFlow(px,py,L.pr*2)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}}}
+     if(row%2===0){for(c=1;c<L.k-1;c++){px=X0+L.p2*(c+0.5)+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&inFlow(px,py,L.pr*3)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}
+     else{for(c=1;c<L.k;c++){px=X0+L.p2*c+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&inFlow(px,py,L.pr*3)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}}}
    /* =====================================================================
       THE OBSTACLE VOCABULARY
       =====================================================================
