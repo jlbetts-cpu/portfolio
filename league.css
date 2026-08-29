@@ -832,3 +832,37 @@ body.hmYowHdr .hmHdrMatch .sbNm{
   overflow:hidden;
   text-overflow:ellipsis;
 }
+
+/* ── THE MATCH BAR ON A PHONE.  2026-08-28 ─────────────────────────────────
+   "is all the ui for the yowmings league mobile friendly."  It was not.
+
+   Measured at 390x844 in a real mobile context, mid-match:
+     .jbGrpL   x=  22..66    the wordmark
+     .jbGrpC   x=  74..394   the matchup, already 4px past the edge
+     .jbGrpR   x= 402..580   the round and End -- ENTIRELY off-screen
+   The End button started at x=499 on a 390px viewport, so on a phone there
+   was no way to end a League match at all, and the round read "QUA".
+   Total wanted 542px of 390. Nothing shrank because the three groups are
+   flex items at their natural width.
+
+   Everything in the bar is information he asked to keep, so this shrinks
+   rather than drops: the faces, the names, the cards and the round label each
+   take a phone size, and the centre group is allowed to shrink at all. The one
+   thing that does NOT shrink is the End button's 44px tap floor. */
+@media (max-width:640px){
+  body.hmYowHdr .jbGrpC{min-width:0;flex:0 1 auto;overflow:visible}
+  body.hmYowHdr .jbGrpR{min-width:0;flex:0 0 auto}
+
+  body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-4)}
+  body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-4)}
+  body.hmYowHdr .hmHdrMatch .sbFace{width:22px;height:22px;min-width:22px}
+  body.hmYowHdr .hmHdrMatch .sbNm{font-size:10px;max-width:52px;letter-spacing:.02em}
+  body.hmYowHdr .hmHdrMatch .bcCell{font-size:20px}
+  body.hmYowHdr .hmHdrMatch .sbScore,
+  body.hmYowHdr .hmHdrMatch .sR,
+  body.hmYowHdr .hmHdrMatch .sB{margin:0}
+
+  body.hmYowHdr .hmHdrRound{font-size:9px;letter-spacing:.04em;max-width:74px;
+    white-space:normal;line-height:1.15;text-align:right}
+  body.hmYowHdr .hmHdrEnd{min-height:44px;min-width:44px;padding-inline:var(--sp-8)}
+}

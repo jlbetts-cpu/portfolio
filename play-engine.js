@@ -2551,7 +2551,7 @@
      inherit the header's own alignment instead of being told coordinates.
      Nothing is cloned: the real nodes move, and they move back when the cup
      ends, so the engine keeps updating the same elements it always did. */
-  var hdrHome=null;
+  var hdrHome=null,hdrTries=0;
   function headerBuild(on){
    try{
     var navC=document.querySelector(".jbGrpC"), navR=document.querySelector(".jbGrpR");
@@ -2569,10 +2569,27 @@
        "elements that shouldnt be there are shown on the play screen".
        Looking in the document as well finds the same single element in either
        place, which is what all three of these fixes have turned out to be. */
-    var row=board.querySelector(".sbRow")||board.querySelector(".sbCard")
-            ||document.querySelector(".hmHdrMatch");
-    var rnd=board.querySelector(".sbRound")||document.querySelector(".hmHdrRound");
-    var end=board.querySelector(".hmScoreEnd")||document.querySelector(".hmHdrEnd");
+    /* ── AND WHEREVER THEY ARE INCLUDES "NOT BUILT YET".  2026-08-28 ───────
+       "theres also like a glitch where the header never appears some cups."
+       Every fallback below was a class headerBuild ITSELF adds, so on a FIRST
+       build for a cup they are all null by construction -- the chain could
+       only ever recover a bar it had already built once. If `board` is not the
+       score board at that instant the lookup returns nothing, and the code
+       then went on to add hmYowHdr anyway: league.css un-hides .jbGrp* on that
+       class, so the play screen's own `body.hmYow .jbGrpC{visibility:hidden}`
+       is lifted off three groups that nothing was ever moved into. An EMPTY
+       header, for the rest of the cup, with no path back -- which is the shape
+       already written down at league.css:495 ("End 0 -- entirely empty").
+       Two changes: look the nodes up in the document by the class they are
+       BORN with, not the one they are given; and do not claim the bar unless
+       the matchup actually landed in it (see the verify below). */
+    var row=(board&&(board.querySelector(".sbRow")||board.querySelector(".sbCard")))
+            ||document.querySelector(".hmHdrMatch")
+            ||document.querySelector(".hmScore .sbRow")||document.querySelector(".hmScore .sbCard");
+    var rnd=(board&&board.querySelector(".sbRound"))||document.querySelector(".hmHdrRound")
+            ||document.querySelector(".hmScore .sbRound");
+    var end=(board&&board.querySelector(".hmScoreEnd"))||document.querySelector(".hmHdrEnd")
+            ||document.querySelector(".hmScore .hmScoreEnd");
     if(on){
      if(!hdrHome){
       hdrHome={row:row&&row.parentNode, rowNext:row&&row.nextSibling,
@@ -2590,14 +2607,27 @@
      if(end&&end.parentNode!==navR){ end.classList.add("hmHdrEnd");
        end.classList.add("ctl"); end.classList.add("ctl--quiet"); end.classList.add("ctl--sm");
        navR.appendChild(end); }
-     document.body.classList.add("hmYowHdr");
+     /* THE CLASS IS A CLAIM THAT THE BAR EXISTS, so only make it if it does.
+        hmYowHdr is what lifts the play screen's visibility:hidden off the nav
+        groups; adding it after a failed move is what turns "no bar" into "an
+        empty bar with the real nav hidden behind it". If the matchup did not
+        land, leave the ordinary nav alone and try again on the next frame --
+        the usual cause is being a tick ahead of dom(), which is a wait, not a
+        failure. Bounded, because a retry that cannot give up is a spinner. */
+     if(row&&row.parentNode===navC){
+      document.body.classList.add("hmYowHdr");
+      hdrTries=0;
+     }else if(hdrTries<12){
+      hdrTries++;
+      try{ requestAnimationFrame(function(){ headerBuild(true); }); }catch(_){}
+     }
     }else if(hdrHome){
      if(row&&hdrHome.row){ row.classList.remove("hmHdrMatch"); hdrHome.row.insertBefore(row,hdrHome.rowNext||null); }
      if(rnd&&hdrHome.rnd){ rnd.classList.remove("hmHdrRound"); hdrHome.rnd.insertBefore(rnd,hdrHome.rndNext||null); }
      if(end&&hdrHome.end){ end.classList.remove("hmHdrEnd");
        end.classList.remove("ctl"); end.classList.remove("ctl--quiet"); end.classList.remove("ctl--sm");
        hdrHome.end.insertBefore(end,hdrHome.endNext||null); }
-     hdrHome=null;
+     hdrHome=null;hdrTries=0;
      document.body.classList.remove("hmYowHdr");
     }
    }catch(_){}
