@@ -1522,3 +1522,122 @@ body.hmFinal .sbRound{color:#e8b347}
 .mhX:hover,.mhX:focus-visible{color:var(--ctl-ink-strong);border-color:transparent}
 @media(pointer:coarse){.mhX{width:100%;height:var(--sp-28);top:auto;right:auto;
  font-size:var(--fs-label)}}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE UPRIGHTS, RE-LIT.  2026-08-29
+   "goal posts need another realistic design changes some elements arent pixel
+   perfect and the shades of the diffenrnt parts are a bit unaccurate how
+   lighting actually would work on the object and the geometry has to feel
+   truely cohesive."
+
+   The members were each individually correct and collectively wrong. Every one
+   carried a single cylinder gradient and nothing else, which is enough to make
+   ONE tube read round and not enough to make FOUR tubes read as one welded
+   object. Three things were missing, and they are the three this adds.
+
+   1. ONE LIGHT, AGREED ON BY EVERY MEMBER. The vertical members were lit from
+      the left and the crossbar from directly above -- 90deg and 180deg -- which
+      describes two different light sources on the same object. A key that is up
+      AND to the left puts the bar's highlight up-left, so the bar is 172deg and
+      its terminator now lands on the same side as the posts'.
+
+   2. THE JOINTS. Nothing darkened where one member meets another, so the parts
+      floated rather than welded. Ambient occlusion goes where the post rises
+      out of the bar (at the post's BOTTOM) and where the stem hangs beneath it
+      (at the stem's TOP) -- opposite ends, because they meet the bar from
+      opposite sides. This is the single cue that was doing the most damage.
+
+   3. SKY. Outdoor metal is brighter up top because it faces more sky and
+      darker near the ground. A vertical falloff on the tall members, and the
+      uprights get domed caps with a highlight across them, because a tube cut
+      off square reads as a rectangle no matter how it is shaded.
+
+   PIXEL PERFECT, where it was not: the far post was `calc(var(--upW) - 2px)`,
+   a magic 2 that stopped being a perspective ratio the moment --upW changed at
+   the 880px breakpoint (8->6 makes it 6->4, a 0.75 ratio becoming 0.67). It is
+   proportional now. The pad's radius was a raw `5px 5px 3px 3px`; it takes the
+   radius ladder.
+
+   NOTHING HERE CASTS A SHADOW ONTO THE PITCH. Every gradient below is shading
+   ON the object, which is what a picture of a metal post has; the site's rule
+   that only a companion head casts a contact shadow is untouched.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* The two vertical members share the cylinder and the sky, and differ only in
+   which end their joint is at. Layers are listed top-most first. */
+body.hmYow .hmUpPost{
+  background-image:
+    linear-gradient(0deg,   rgba(24,14,0,.30), rgba(24,14,0,0) 9px),
+    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,0) 46%),
+    linear-gradient(90deg,  rgba(255,255,255,.34), rgba(255,255,255,0) 52%, rgba(24,14,0,.20));
+  border-radius:var(--upW) var(--upW) var(--r-2xs) var(--r-2xs);
+}
+body.hmYow .hmUpStem{
+  background-image:
+    linear-gradient(180deg, rgba(24,14,0,.26), rgba(24,14,0,0) 11px),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 38%),
+    linear-gradient(90deg,  rgba(255,255,255,.34), rgba(255,255,255,0) 52%, rgba(24,14,0,.20));
+}
+/* The cap. A tube cut square is a rectangle; the dome above plus this band of
+   light across it is what turns the end back into a pipe. */
+body.hmYow .hmUpPost::before{
+  content:"";position:absolute;left:14%;right:14%;top:1px;height:var(--upW);
+  border-radius:50%;pointer-events:none;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0));
+}
+/* The crossbar agrees with the key now: up and to the left, not straight down. */
+body.hmYow .hmUpBar{
+  background-image:linear-gradient(172deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20));
+}
+/* The far post is a PROPORTION of the near one, not a fixed 2px less, so the
+   perspective holds when --upW drops at the phone breakpoint. */
+body.hmYow .hmUpPostF{width:calc(var(--upW) * 0.78)}
+/* And the pad joins the radius ladder. */
+body.hmYow .hmUpStem::after{border-radius:var(--r-sm) var(--r-sm) var(--r-2xs) var(--r-2xs)}
+
+/* ── AND THEN I LOOKED AT IT.  2026-08-29 ──────────────────────────────────
+   The pass above fixed the LIGHT and the render showed the problem was the
+   GEOMETRY, which is the whole of "the geometry has to feel truely cohesive"
+   and exactly why counting is not looking.
+
+   THE POSTS APPEARED TO POKE THROUGH THE BAR. Each upright runs down to the
+   crossbar's centre line -- correct, that is how you weld a tube into another
+   tube -- but it carried a 3px radius on its BOTTOM corners, so the rounded
+   end drew inside the bar and read as a pipe pushed through and left proud
+   rather than one entering and stopping. A tube that enters another tube has
+   no visible end at all. Square it: the joint is hidden by the bar itself,
+   which is what makes the two read as one welded frame.
+
+   THE PAD WAS A CRAYON. 2.3x the pole's width and 44% of its height, in the
+   team colour, so it read as a separate object stuck onto the post instead of
+   foam wrapped round its base. Real base padding is barely wider than the pole
+   and about a third of its height. 1.68x and 34%. */
+body.hmYow .hmUpPost{border-radius:var(--upW) var(--upW) 0 0}
+body.hmYow .hmUpStem::after{width:calc(var(--stemW) * 1.68);height:34%}
+
+/* ── THE PAD, THIRD LOOK.  2026-08-29 ──────────────────────────────────────
+   Slimming it from 2.3x to 1.68x fixed the proportion and the render showed
+   the other half of the problem: it is `background-color:currentColor`, the
+   TEAM colour, and against a yellow team it came out a flat bright sleeve with
+   no form at all -- the cylinder gradient it carries is nearly invisible when
+   the foam and the metal are the same hue.
+
+   Foam is not metal and should not be lit like it. Its highlight is broad and
+   dull where the post's is a narrow specular, and it is a shade DARKER than the
+   pole it wraps, not brighter -- padding is matt vinyl over a gloss tube. So:
+   1.35x the pole, 30% of its height, a wider and softer terminator, and a
+   flat multiply over the whole thing to seat it under the metal's value.
+   A hairline of occlusion at its top edge marks where foam meets pole, which
+   is the join that says these are two materials and not one moulding. */
+body.hmYow .hmUpStem::after{
+  width:calc(var(--stemW) * 1.35);height:30%;
+  background-image:
+    linear-gradient(180deg,rgba(24,14,0,.30),rgba(24,14,0,0) 6px),
+    linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 44%,rgba(24,14,0,.26)),
+    linear-gradient(0deg,rgba(24,14,0,.12),rgba(24,14,0,.12));
+}
+/* The crossbar's field-side overhang is a CUT TUBE, not a bud. At --r-2xs on a
+   10px bar the end was rounding to a stub; a tube sawn off square reads as
+   structure. The wall side is already clamped flush. */
+body.hmYow .hmGoalR .hmUpBar{border-radius:0 var(--r-hair) var(--r-hair) 0}
+body.hmYow .hmGoalB .hmUpBar{border-radius:var(--r-hair) 0 0 var(--r-hair)}
