@@ -16,13 +16,18 @@
    coming off, which is more coverage than a hand-placed hook would get.
 
    THE SOURCE, AND WHY THERE ARE TWO.
-   `audio/league-loop.m4a` is HIS voice memo. It arrived as an iOS
-   item-provider temp path that macOS had already cleaned up, so there was no
-   file to import. Rather than ship a player with nothing to play, the fallback
-   `audio/league-loop-baked.m4a` is a distant-stadium bed baked by
-   tools/assets/bake-league-loop.py. The moment his file is saved at the first
-   name it wins, with no code change: the element carries both <source>s in
-   priority order and the browser takes the first that loads.
+   `audio/league-loop.m4a` is the one that plays. His voice memo arrived as an
+   iOS item-provider temp path that macOS had already cleaned up, so there was
+   no file to import; that name currently holds a distant-stadium bed baked by
+   tools/assets/bake-league-loop.py. REPLACING THAT ONE FILE IS THE WHOLE
+   HANDOVER -- drop his memo there and it plays, with no code change.
+
+   `audio/league-loop-baked.m4a` is the same bed under its own name, kept as
+   the second <source> so that overwriting the first with a file the browser
+   cannot decode falls back to something rather than to silence. Both names
+   existing is also why the page no longer 404s on every load: the first
+   version shipped only the -baked file and left the primary missing, so every
+   visit fetched a URL that was not there before falling through.
 
    AUTOPLAY. Browsers refuse audio that no gesture asked for, and rightly. The
    cup can only start from a click, so the first play() is inside that gesture's
