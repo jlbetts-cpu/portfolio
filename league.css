@@ -691,3 +691,117 @@ body.hmYowCup .hmLowerThird .hmL3Nm{
 }
 
 
+
+/* ══ THE MATCH BAR, SETTLED.  2026-08-27 ═══════════════════════════════════
+   These are at the END of the sheet on purpose. Every one of them has been
+   fixed once already and come back, because the rules that undo them live
+   further down league.css at the same specificity -- so the fix has to be the
+   last word rather than an earlier opinion.
+
+   1. THE NAMES WERE ILLEGIBLE, and it is the same fault as the first time:
+      .sbNm computes rgb(236,233,221) -- the ink the near-black broadcast
+      board was built for -- printed on white paper. About 1.1:1. "the matchup
+      isnt legible."
+
+   2. "remove the One score wins". It is said on the fixture card before
+      kick-off and by the round line beside it; a third copy in the bar is the
+      clutter he keeps asking me to take out.
+
+   3. "remove the green outline around the score". .sbClutch paints an emerald
+      edge on the plate whose NEXT goal ends the match -- match point. AT ONE
+      SCORE EVERY PLATE IS ALWAYS MATCH POINT, so the state is on from kick-off
+      for both teams and marks nothing. A signal that is always true is not a
+      signal. It goes in this mode only; the soccer cup still earns it.
+
+   4. He likes the score cards and wants them to sit better: the row gets the
+      header's own rhythm -- 6px inside a team, 16px around the pair, and the
+      plates take the gap between them rather than crowding the dash. */
+body.hmYowHdr .hmHdrMatch .sbNm{
+  color:var(--theme-ink,var(--c950));
+}
+body.hmYowHdr .hmHdrMatch .sbFoot,
+body.hmYowHdr .hmHdrMatch .sbRule,
+body.hmYowHdr .hmHdrMatch .sbMeta{display:none}
+body.hmYowHdr .hmHdrMatch .sbClutch .bcCell,
+body.hmYowHdr .hmHdrMatch .bcCell{box-shadow:none;outline:0}
+body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-16)}
+body.hmYowHdr .hmHdrMatch .sbTeam{gap:var(--sp-6)}
+body.hmYowHdr .hmHdrMatch .sbScore,
+body.hmYowHdr .hmHdrMatch .sR,
+body.hmYowHdr .hmHdrMatch .sB{display:inline-flex;margin:0 var(--sp-4)}
+
+/* ── NO TROPHY, BELT AND BRACES.  2026-08-27 ───────────────────────────────
+   "also make sure the trophy isnt there."
+   play-engine's handTrophy() already returns early on YOW, and that is the
+   real guard. But the trophy has now come back twice by routes that had
+   nothing to do with that function -- once as .sbTrophy riding into the nav
+   inside the card headerBuild() moves, where body.hmFinal .sbTrophy (0,2,1)
+   beat the bar's hide (0,2,0). A CSS backstop costs nothing and closes every
+   route at once, including any the engine guard does not sit on. */
+body.hmYowCup .sbTrophy,
+body.hmYowCup .hmTrophyFly,
+body.hmYowCup .tvTrophy,
+body.hmYowHdr .sbTrophy,
+body.hmFinal.hmYowCup .sbTrophy{display:none}
+
+/* ── THE ROUND LINE, LEGIBLE.  2026-08-27 ──────────────────────────────────
+   Measured on a live match: .hmHdrRound computed rgb(185,182,168) against
+   paper -- 2.00:1, under the 3:1 floor and the same dark-board ink that made
+   the names invisible. .sbRound carries a component rule of its own, so a
+   bare .hmHdrRound (0,1,0) loses to it; both classes together settle it. */
+.sbRound.hmHdrRound,
+body.hmYowHdr .hmHdrRound{
+  color:var(--theme-muted,var(--c500));
+}
+
+/* ── THE SCORE CARDS.  2026-08-27 ──────────────────────────────────────────
+   "i actually do like the score cards there but I do want them to fit the
+   spacing a bit better."
+
+   Kept: the cream plate and the split-flap flip. That IS the card he likes.
+   Subtracted: the hardware. Measured on a live bar, .bcCell::after is a
+   32.39px axle across a 28.80px plate -- it pokes 1.8px out of BOTH sides,
+   and at bar size those two stubs read as stray tick marks, not as a hinge
+   pin. And ::before is a 2px bar in rgb(34,31,24) straight through the middle
+   of the digit, which at 29px wide is a strikethrough on the score.
+
+   A split-flap still reads as one with a hairline seam; it is the thing the
+   site already uses to separate chrome. So the seam stays, at 1px and 10%,
+   and the axle goes. Subtraction, not a tune. */
+body.hmYowHdr .hmHdrMatch .bcCell::after{display:none}
+body.hmYowHdr .hmHdrMatch .bcCell::before{display:none}
+
+/* THE SEAM WENT TOO, AND THAT IS THE WHOLE FIX. A hairline at 10% was the
+   first attempt and it still failed the picture: at 28.8px the seam is not a
+   detail on the card, it is a line drawn across the digit, and it overran the
+   plate on both sides into the white bar. Counting said 1px/10%; looking said
+   strikethrough. A split-flap still reads as one from the flip itself -- the
+   top half rotating is the mechanic, the painted-on hinge was only its
+   costume. Premium is subtraction. */
+
+/* SPACING. The plate is 29x46 inside a 54px-tall .sR, so the card was
+   floating in 8px of dead box; and the em dash carried the same 16px gap as
+   the name did, which put the two cards 60px apart on a 290px bar. Pull the
+   pair together and let each name sit against its own card. */
+body.hmYowHdr .hmHdrMatch .sbInner{gap:var(--sp-10)}
+body.hmYowHdr .hmHdrMatch .sbScore,
+body.hmYowHdr .hmHdrMatch .sR,
+body.hmYowHdr .hmHdrMatch .sB{margin:0 var(--sp-2)}
+body.hmYowHdr .hmHdrMatch .bcNum{line-height:1}
+
+/* ── THE END BUTTON, WORD ONLY.  2026-08-27 ────────────────────────────────
+   The stop square is a rounded rect at 14px on a white bar, sitting to the
+   left of a word, and in the render it reads as an unchecked CHECKBOX rather
+   than a stop control -- the same "why is the black box still there" shape he
+   has already pulled me up on once. Everything else in this bar is a word:
+   the wordmark, the two team names, QUARTER-FINAL. "End" alone is the one
+   that matches, and it is one fewer thing on screen.
+
+   Scoped to the League bar on purpose: soccer's own scoreboard keeps the
+   icon, where it sits on the dark plate it was drawn for. */
+body.hmYowHdr .hmHdrEnd svg{display:none}
+
+/* And it was 55x38 measured, under the site's 44px floor -- the exception in
+   CLAUDE.md is inline prose links, not buttons. Height only; the bar is 86px
+   so nothing below it moves. */
+body.hmYowHdr .hmHdrEnd{min-height:44px}

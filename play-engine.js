@@ -3291,7 +3291,24 @@ function teams(){
           stepped up is sourced (CS Majors, VALORANT, TI) and he never asked to
           change it -- this branch is the League only, and a standalone
           kickabout still runs first-to-5. */
-       if(YOW){ t=1; }
+       /* ── THE FINAL IS FIRST TO THREE.  2026-08-27 ────────────────────────
+          "also the final game make it to three points."
+          Every other League fixture is one score -- that is the format and it
+          is what makes the cup watchable in the time he wanted. The FINAL is
+          the one match that should be worth sitting through, and a single
+          score deciding the 1.01 is a coin-flip ending to eight matches of
+          build-up. Three gives it a shape: a lead, a reply, and a decider.
+          THE STEP-UP IS THE SAME SOURCED MOVE the soccer cup already makes --
+          CS Majors, VALORANT Champions and TI all lengthen the grand final --
+          it is just a different pair of numbers here.
+          Win-by-two stays off: cap === target, so first to three ends it. */
+       if(YOW){
+         var _isFinal=false;
+         try{ var _T2=window.__hmTour;
+           _isFinal = !!(_T2&&_T2.live&&_T2.br&&_T2.cur
+                         && _T2.cur.round === _T2.br.rounds.length-1); }catch(_){}
+         t = _isFinal ? 3 : 1;
+       }
      }catch(_){}
      /* cap = target+2, not +3. Win-by-two is what makes a close match worth watching, but at
         +3 a first-to-3 could grind to 6-5 -- one measured fixture took 69s against a 16s

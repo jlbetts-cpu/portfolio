@@ -2313,7 +2313,13 @@ function matchLength(round){
      same order, for the same reason the ladder below is mirrored -- the label
      must never state a rule the engine is not running. play-screens-contract
      checks this against a LIVE match, so the two cannot drift silently. */
-  if (window.__hmYowLeague) return 1;
+  if (window.__hmYowLeague)
+    /* The final is first to three; every other League fixture is one score.
+       Mirrored from play-engine.js's start() in the same order, for the same
+       reason the stepped ladder below is mirrored -- this label must never
+       state a rule the engine is not running, and play-screens-contract
+       checks the two against each other on a live match. */
+    return (T.br && round === T.br.rounds.length - 1) ? 3 : 1;
   var left = (T.br.rounds.length - 1) - (round | 0);
   return (left <= 0) ? 5 : (left === 1 ? 4 : 3);
 }
@@ -2390,7 +2396,17 @@ function buildTape(A, B, nm2){
        overall" -- the same sentence twice on the one screen that matters most.
        Screenshotted at 1440 on 2026-08-28. The League has a stake line of its own,
        so the tape says only the thing the stake line does not: how the match ends. */
-    line((_len <= 1 ? 'One score wins.' : 'First to ' + _len + ', win by two.')
+    /* WIN BY TWO IS NOT A MODE, IT IS A CONSEQUENCE OF THE TARGET.  Corrected
+       2026-08-27, the same day the final went to three. play-engine's one line
+       is `S.cap=(t<=1)?t:t+2`, which does not ask what mode it is in -- it asks
+       whether there is a deuce to have. While every League fixture was one
+       score that read as "the League has no win-by-two", and this lane was
+       branched on __hmYowLeague to match. The final is first to three now, so
+       its cap is five and win-by-two IS live there; the branch would have made
+       the card understate the one match that matters most. Follow the engine's
+       actual condition, not the mode. */
+    line((_len <= 1 ? 'One score wins.'
+          : 'First to ' + _len + ', win by two.')
          + (T.yow ? '' : ' ' + stakesLine(nm2.round)));
   } }catch(_){}
   try{ line(formLine(A, B)); }catch(_){}
