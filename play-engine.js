@@ -1539,6 +1539,16 @@
      // at the whistle. Same element came back next match still wearing the crown.
      team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
+    /* AND THE IDLE WANDER'S COOLDOWN DOES NOT SURVIVE THE WHISTLE. decideAt is ONE clock shared
+       by decide() and the soccer AI below, and decide() sets it 2.1 to 5.5 SECONDS out on the
+       home screen -- a deliberately slow rhythm for heads with nothing to do. A head that was
+       partway through one of those waits when the match started could not take its first soccer
+       decision until it expired, which is up to five and a half seconds of standing on a live
+       pitch. Measured at real speed with the state published, the wait still ran to 3.1s inside
+       a frozen spell after the land() fix below, on 32% of frozen samples. Clearing it here is
+       the honest place: the head has just joined a match, so the last thing the lobby told it
+       is stale by definition. It can only make a head act SOONER. */
+    decideAt=now;
     var tcol=(window.__hmTeamCol&&window.__hmTeamCol[team])||(team===1?"224,90,78":"90,160,216");   // The engine only ever fields TWO sides, so the tournament does not need N-team plumbing: the
    // bracket decides which two teams are playing and hands their colours down here for the match.
    // Absent that (exhibition), this is the same red/blue it has always been.
@@ -3653,7 +3663,26 @@ function teams(){
      for a ball that is already through the uprights -- that ball has passed the near post and
      its business is with the net, not with the frame it has cleared. The ceiling stops it
      accumulating while a head leans on the ball, so the shelf empties without the bar becoming
-     a trampoline. ===== */
+     a trampoline.
+
+     TWO WAYS OF MAKING THE BAR MORE SOLID ARE DISPROVED, AND THE LEAK THEY CHASE IS STILL HERE.
+     The reason an unarmed ball is up there at all is usually that it walked THROUGH the bar:
+     both swept branches above require the ball to have started the frame clear of it, and the
+     head-vs-ball loop, the confinement pop and the scramble pop all run afterwards and can
+     leave it already overlapping. Measured at 1512x850, that leak fires 3.71 times a minute.
+       * Depenetrating on a BAND ("the centre is anywhere within _bSurf of the plane") closes it
+         completely -- 3.71/min to 0.00 -- and destroys the mode: goals fell 5.6/min to 0.36/min
+         over 24 matches and matches stopped finishing inside four minutes. The aperture is only
+         UPH=100px tall here and _bSurf is 34 of it, and the lower third is where most goals go,
+         because a head strikes the ball up from in front of the posts and it skims the bar.
+       * Narrowing that to a two-way CROSSING test, pushing out by the bar's own half-thickness,
+         still stalled balls that were legitimately through: 4 of 12 window visits were armed
+         balls sitting 30-37px short of the net. Restricting it further to the upward crossing
+         alone measured 0 of 13 window visits scoring against 5 of 22 without it.
+     So the leak is left alone and its CONSEQUENCE is fixed instead, which is this function. The
+     ball no longer has anywhere to sit: measured over 40 matches, the longest a ball spent in
+     the window without scoring went 1.73s to 0.90s and the median 0.57s to 0.37s. If someone
+     wants the leak itself, the honest place is the head-vs-ball loop, not another bar test. */
   function barShed(){if(YTHRU!==0)return;
    var _o9=(bx<(XL+XR)/2)?1:-1;
    if(bvx*_o9>=430)return;   // already leaving fast enough -- do not stack another kick on it
@@ -3869,35 +3898,6 @@ function teams(){
        by=_barY-_bSurf;bvy=-Math.abs(bvy)*0.72;S.barHits=(S.barHits||0)+1;S.barOver=(S.barOver||0)+1;
        bvx*=0.92;bw+=(Math.random()*200-100);barShed();
        S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}
-      }else if(by-_barY<_bSurf&&_barY-by<_bSurf){
-       /* ── THE BALL WALKS THROUGH THE CROSSBAR, AND A SWEPT TEST CANNOT SEE IT. 2026-08-29 ──
-          Jayden: "the ball will bounce in the goal post area and not count as a goal all the
-          time." Both swept branches above require the ball to have STARTED the frame clear of
-          the bar (_pby a full _bSurf away from the plane). Three things move the ball without
-          consulting this block, and all three run AFTER it: the head-vs-ball collision loop,
-          the confinement pop and the scramble pop. Each can leave the ball already overlapping
-          the bar, and from there neither sweep can ever fire -- so the ball drifts straight
-          through the crossbar and ends up above it, inside the uprights, having crossed no
-          post plane. It is correctly refused a goal and it looks exactly like one.
-          MEASURED at 1512x850 over 5.4 minutes of clock-cranked League play: the ball's centre
-          crossed the bar plane UPWARD inside the aperture with no deflection at all 20 times,
-          3.71 a minute. Over 10.3 minutes, 21 of the 26 times the ball sat in the window for
-          a quarter-second or more it never scored, and 20 of those 21 had entered vertically.
-          So resolve the overlap the sweeps cannot: put the ball back on the face it came from
-          -- _pby is last frame's centre, so its side of the plane is where the ball was pushed
-          FROM -- and take away the speed heading into the bar. No new surface is invented and
-          the aperture does not move: this is the same crossbar, made solid in the one case the
-          crossing test is blind to. The 'woodwork' broadcast is held back for a real impact,
-          because a ball being leaned on by a head resolves every frame and a reaction on every
-          one of those frames would be a stutter, not a moment. */
-       var _bs9=(_pby<_barY)?-1:1;by=_barY+_bs9*_bSurf;
-       S.barHits=(S.barHits||0)+1;S.barPush=(S.barPush||0)+1;
-       var _bhard=false;
-       if(_bs9<0){if(bvy>150)_bhard=true;if(bvy>0)bvy=-Math.abs(bvy)*0.72;barShed();}
-       else if(bvy<0){if(bvy<-150)_bhard=true;bvy=Math.abs(bvy)*0.72;}
-       if(_bhard){bvx*=0.92;bw+=(Math.random()*200-100);
-        var _kb2=Math.min(0.12,Math.abs(bvy)*0.00012);bsyP=1-_kb2;bsxP=1/(1-_kb2);bsT=0.12;
-        S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}}
       }
      }
      var _npL=XL+UPW,_npR=XR-UPW,_tc,_yc;               // the two near-post planes -- where the drawn upright is
