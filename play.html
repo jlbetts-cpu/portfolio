@@ -1602,6 +1602,11 @@ window.__hmGames=true;</script>
      published as a class, so the audio starts and stops off the same signal every
      other League chrome does, and no ending path can forget to silence it. -->
 <script src="league-audio.js" defer></script>
+<!-- THE REFEREE'S CAP. Standalone for the same reason as the bed above: nothing
+     in the DOM marks the mini-Jayden, so it finds him structurally -- the one
+     head root carrying a cloned `.stage` -- rather than by a class the engine
+     would have to grow while two other agents are working in it. -->
+<script src="league-hat.js" defer></script>
 <!-- THE PHOTOGRAPHS AT THE END OF A TIE, and the loser's getting torn in half.
      Same standalone shape as the bed above: it wraps window.__hmTourWin, which is
      the one place a decided fixture exists as data, so play-tournament.js and the

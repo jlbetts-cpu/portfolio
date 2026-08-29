@@ -969,3 +969,53 @@ body.hmYowCup #discoWrap.on{display:none !important}
 .lgMute svg{width:19px;height:19px;stroke-width:1.7}
 .lgMute.isMuted{color:var(--theme-muted,var(--c500))}
 body:not(.hmYowCup) .lgMute{display:none}
+
+/* ── THE REFEREE'S CAP.  2026-08-29 ────────────────────────────────────────
+   Positioned by league-hat.js against the head's own box; everything about how
+   it LOOKS lives here.
+
+   The art is baked with its own key light from the upper left, matching the
+   head plates', so nothing here re-lights it -- the only thing this adds is
+   the shade the brim throws onto the brow, which a real peak does and which is
+   the difference between a hat sitting ON a head and a sticker over one.
+
+   THAT SHADE IS ON HIS FACE, NOT ON THE PITCH. CLAUDE.md: only a companion
+   head standing on something casts a contact shadow, and chrome never does.
+   This is neither -- it is shading inside a picture of a head, the same
+   licence the goalposts' own gradients have. Nothing falls on the ground. */
+.lgRefHat{
+  position:absolute;
+  /* NO z-index, AND THAT IS LOAD-BEARING. A positioned element with a z-index is
+     a stacking context, and a stacking context ISOLATES blending: with z-index:2
+     here the shade below multiplied against the cap's own artwork and nothing
+     else, so it was invisible on his brow. Two screenshots with the shade
+     display:none'd and shown were pixel-identical. Without it the cap still
+     paints over the face -- it is the last positioned child of the clone, and
+     they are all z-index:auto, so DOM order decides -- and the shade now reaches
+     the skin. */
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+  pointer-events:none;
+  /* He tumbles, and the cap tumbles with him: it is a descendant of the head
+     root, so it inherits the root's own transform and needs no maths of its own.
+     Box size is written by league-hat.js in percentages of his mirrored face
+     box, so one write covers every head size and every viewport. */
+}
+/* The brow shade -- the whole of "keeping in mind realistic shadow", and the only
+   part of this that is not the picture of a hat.
+   It starts at 87% of the cap's own height, which is just inside the peak's front
+   edge at 88.1%, so the band is tucked under the brim rather than starting below
+   it with a gap. It is inset 19% from the cap's sides because the PEAK IS WIDER
+   THAN THE FACE IT SHADES: at full width it would have run past his temples and
+   multiplied the pitch. Proven by painting it solid black and looking -- the band
+   stays inside his silhouette on every side.
+   Multiplied rather than painted, so it darkens his skin instead of greying it,
+   and its ink is gone by 78% of its own height, which lands just above his eyes:
+   his brows read shaded, his eyes stay open. */
+.lgRefHatShade{
+  position:absolute;left:19%;right:19%;top:87%;height:24%;
+  display:block;pointer-events:none;
+  border-radius:50% 50% 42% 42% / 70% 70% 30% 30%;
+  background-image:linear-gradient(180deg,rgba(18,14,8,.42),rgba(18,14,8,.17) 40%,rgba(18,14,8,0) 78%);
+  mix-blend-mode:multiply;
+}
