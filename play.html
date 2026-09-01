@@ -1258,6 +1258,17 @@
     and dims one child. .ctl already owns the opacity ramp and the no-press rule for
     [aria-disabled], so this only has to stop the pointer. */
  .pCards .pCard[aria-disabled="true"] .pCardGo{cursor:default;pointer-events:none}
+    /* TWO LAUNCHERS ON ONE PICTURE (the Soccer cell, 2026-09-01). The pair takes the
+       corner the single button owns and the buttons inside it fall back into flow, so
+       the one absolute rule above still describes every other cell. The labelled
+       variant only lets go of the fixed width: same height, same ground, same circle
+       ends. And a launcher gated ON ITS OWN -- play-games.js writes aria-disabled to
+       #goMatch while #goTour stays open -- needs the pointer stopped at the button, which
+       the cell-level rule above cannot do. */
+ .pCard .pCardGos{position:absolute;right:var(--sp-12);bottom:var(--sp-12);z-index:2;display:flex;gap:var(--sp-8)}
+ .pCard .pCardGos .pCardGo{position:static}
+ .pCard .pCardGo--lbl{width:auto;padding:0 var(--sp-16) 0 var(--sp-12);gap:var(--sp-4)}
+ .pCards .pCardGo[aria-disabled="true"]{cursor:default;pointer-events:none}
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
  /* 12px, not 11. §3 lists the six sizes that carry the whole home page -- 44 · 18 · 15 ·
     13 · 12 · 11 -- and its 11 is a 600-weight LABEL at +.01em tracking (.csInfoLabel). An
@@ -1831,13 +1842,18 @@
        THE ORDER IS THE ONLY GROUPING, because a heading or a divider here would be exactly
        the chrome this page has had removed from it twice. The sequence is games first,
        then the makers, then his own app:
-           League · Play a match · Tournament · Add your head · Make a gradient · Workspace
+           League · Soccer · Strata · Add your head · Make a gradient · Workspace
+       (Soccer was two doors, "Play a match" and "Tournament", until 2026-09-01; both
+       opened engine.html. They are one cell with two launchers now and Strata took the
+       freed slot, so the count is still six -- see the notes on those two cells.)
        Nothing is labelled. A visitor reads down the column and the sorting is obvious;
        that is what "premium is subtraction" buys you when it works.
        (The old note claimed the ROWS carried the grouping. At six cards in two columns
        they do not -- Tournament and Add your head share a row and are different kinds --
        so the sequence is the honest description. Do not reorder to make rows agree: the
        three games have to come first, and that is what decides it.)
+       (Since 2026-09-01 the rows DO agree -- League and Soccer, Strata and Add your head,
+       Make a gradient and Workspace -- but that is luck, not the rule.)
 
        ═══ EVERY CELL IS A THUMBNAIL NOW.  2026-09-01, Jayden: "we replace the menu on the
        play page and just put the thumbnails. when clicking on it it will open the case
@@ -1849,11 +1865,8 @@
        plus time-aware-thumbnails.js, which is the file that already owns that behaviour.
        So a card here and the same project's card on Home are one picture at one hour, and
        the play page changes with the clock like every other surface.
-       TOURNAMENT IS THE ONE STATIC PICTURE and it is deliberate: it shares engine.html
-       with "Play a match", and two cells in the same band showing one photograph is worse
-       than one cell that does not follow the sun. It takes the engine study's own
-       tournament plate instead, which is the picture that says "a cup" rather than "a
-       pitch". If a variant series is ever built for it, this is the one line to change.
+       (The Tournament cell that once took a static plate is gone -- it and "Play a match"
+       are one cell since 2026-09-01, and that cell follows the sun like the rest.)
 
        THE ICON WENT WITH THE PICTURE. A 22px line glyph above a 552px photograph of the
        same thing is the second, weaker statement of it -- the same argument that took the
@@ -1867,29 +1880,42 @@
    <a class="pCardOpen pCardT" href="yowmings.html">Yowmings League</a>
    <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
   </div>
-  <div class="pCard" id="pcExped">
+  <!-- ═══ ONE DOOR FOR THE SOCCER ENGINE, TWO BUTTONS ON IT.  2026-09-01, Jayden: "play a
+       match and tournament can be the same case study they dont need two differnt case
+       studies they just need two button inside the case study. to keep it to 6 boxes."
+       Both cells opened engine.html and the second one showed the same engine from a
+       different angle, so the two cells were one door drawn twice. The cell keeps the
+       engine's own time-of-day cover; the two launchers sit where the one play button
+       sat, LABELLED, because two identical play glyphs on one picture is a coin toss.
+       play-games.js binds the launchers by THEIR ids (goMatch, goTour) now, not the
+       cell's, and gates them one at a time: a match needs a head on the planet and a cup
+       does not, so dimming the whole cell would have shut the door that always works.
+       The LABEL on the second button stays "Tournament": it is the word he uses for
+       this door and the same word on the game menu row. ═══════════════════════════ -->
+  <div class="pCard" id="pcEngine">
    <div class="pCardShot">
     <img class="pCardImg" data-time-thumbnail="engine" src="images/cs/study/engine/cover.webp" width="1600" height="800" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="Cut-out heads strung out across a pitch with the ball loose between them and a scoreboard above." loading="lazy" decoding="async" draggable="false">
-    <button class="pCardGo ctl ctl--primary" type="button" aria-label="Pick sides and play a match now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+    <span class="pCardGos">
+     <button class="pCardGo pCardGo--lbl ctl ctl--primary" id="goMatch" type="button" aria-label="Pick sides and play a match now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Match</button>
+     <button class="pCardGo pCardGo--lbl ctl ctl--primary" id="goTour" type="button" aria-label="Start a tournament now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Tournament</button>
+    </span>
    </div>
-   <a class="pCardOpen pCardT" href="engine.html">Play a match</a>
-   <span class="pCardD">Split the heads into two teams and watch them play soccer. You pick the teams first.</span>
+   <a class="pCardOpen pCardT" href="engine.html">Soccer</a>
+   <span class="pCardD">Split the heads into two teams for one match, or let eight of them knock each other out in a cup. Lose and you are gone.</span>
   </div>
-  <div class="pCard" id="pcTour">
+  <!-- ═══ STRATA IS A GAME HE BUILT, SO IT IS ON THIS MENU.  2026-09-01, Jayden: "I
+       lowkey think the Strata case study should also be in play I think the game itself
+       should be on its own page you can open like the rest." The title opens the case
+       study, the play button opens strata-play.html -- the real Lovable build framed as
+       a phone, the way the two makers open on a page of their own. The picture is the
+       same time-of-day series the home page's Strata card runs on. ══════════════════ -->
+  <div class="pCard" id="pcStrata">
    <div class="pCardShot">
-    <img class="pCardImg" data-time-thumbnail="tournament" src="images/cs/study/tournament/cover.webp" width="1600" height="800" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="The cup's next-fixture panel: two heads named as opponents, the round above them, and Kick off, Simulate and Leave under them." loading="lazy" decoding="async" draggable="false">
-    <button class="pCardGo ctl ctl--primary" type="button" aria-label="Start a tournament now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+    <img class="pCardImg" data-time-thumbnail="strata" src="images/cs/variants/time/strata/daytime-1200.webp" width="1200" height="600" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="Strata: a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async">
+    <a class="pCardGo ctl ctl--primary" href="strata-play.html?from=play" aria-label="Play Strata now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></a>
    </div>
-   <a class="pCardOpen pCardT" href="engine.html">Tournament</a>
-   <!-- THE SENTENCE FOLLOWS THE FORMAT, AND THE FORMAT WENT BACK. It briefly read
-        "Twelve heads, a league table, three matchdays" because the cup had briefly
-        become a league; Jayden: "I still did like the one game elimination format."
-        So this says what the cup is again -- one game, you lose, you are out -- and
-        names the option he actually asked for in the same breath, because a card is
-        where a visitor decides whether to open the door. The LABEL stays "Tournament":
-        it is the word he uses for this door, it is the same word on the Play menu row,
-        and one command in two menus must read identically. -->
-   <span class="pCardD">Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.</span>
+   <a class="pCardOpen pCardT" href="strata.html">Strata</a>
+   <span class="pCardD">A habit builder where your wins stack into a tower, with sound, photos and XP. It opens on a new page.</span>
   </div>
   <div class="pCard" id="pcHead">
    <div class="pCardShot">
@@ -1954,11 +1980,12 @@
  </div>
 </section>
  <!-- ═══ THE CARD'S TWO ROUTES DO NOT BOTH FIRE ═══════════════════════════════════════
-      play-games.js binds the three in-page games to the CELL by id (pcYow, pcExped,
-      pcTour) and has since the cell WAS the launcher. The cell's own destination is the
-      case study now, so without this a click on the card body would navigate to the study
-      AND start a game behind it -- and for Expedition it would open the team screen over a
-      page that is already leaving.
+      play-games.js binds the League to the CELL by id (pcYow) and has since the cell WAS
+      the launcher. (The match and the cup were bound the same way until 2026-09-01; they
+      share one cell now and are bound to their own buttons, #goMatch and #goTour, so this
+      only matters for the League.) The cell's own destination is the case study now, so
+      without this a click on the card body would navigate to the study AND start a game
+      behind it.
 
       THE PLAY BUTTON IS UNTOUCHED BY THIS AND THAT IS THE POINT. It is a descendant of the
       same cell, so its clicks still bubble into exactly the handler that used to receive

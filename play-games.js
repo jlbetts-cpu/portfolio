@@ -195,11 +195,14 @@
      cell leaves the control a screen reader actually lands on announcing itself as
      enabled. The cell's attribute is what .pCard[aria-disabled="true"] dims and what
      takes pointer-events off, so both are written, not one moved. */
-  function gate(id,off){var cell=document.getElementById(id);if(!cell)return;
-   cell.setAttribute("aria-disabled",off?"true":"false");
-   var go=cell.querySelector(".pCardGo");if(go)go.setAttribute("aria-disabled",off?"true":"false");}
-  gate("pcExped",few);
-  gate("pcTour",false);
+  function gate(id,off){var el=document.getElementById(id);if(!el)return;
+   el.setAttribute("aria-disabled",off?"true":"false");
+   var go=el.classList.contains("pCardGo")?null:el.querySelector(".pCardGo");if(go)go.setAttribute("aria-disabled",off?"true":"false");}
+  /* THE MATCH AND THE CUP SHARE A CELL SINCE 2026-09-01 and are gated by their own
+     button ids: a match needs a head, a cup does not, and dimming the cell would have
+     closed both. gate() writes to a button directly when it is handed one. */
+  gate("goMatch",few);
+  gate("goTour",false);
   /* The League is the cup with a different objective and it fields the same dyed eggheads,
      so it is ungated for exactly the reason Tournament is: it works on an empty planet. */
   gate("pcYow",false);
@@ -419,7 +422,7 @@
  function startTour(){if(gameOn())return;
   try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();}   // the tournament builds its own squads, so no mini-Jayden top-up here
  if(tg)tg.addEventListener("click",startTour);
- var pcT=document.getElementById("pcTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
+ var pcT=document.getElementById("goTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
  /* THE LEAGUE IS THE SAME DOOR WITH THE OTHER GLOBAL. play-tournament.js exposes
     __hmTourStart and __hmYowStart as two names on one start(); nothing here knows they
     share a function, and nothing here knows what a football is. */
@@ -442,7 +445,7 @@
  (function(){
   var m=/[?&]play=([a-z]+)/.exec(String(location.search||""));
   if(!m)return;
-  var CARDS={yowmings:"pcYow",league:"pcYow",match:"pcExped",soccer:"pcExped",tournament:"pcTour",cup:"pcTour"};
+  var CARDS={yowmings:"pcYow",league:"pcYow",match:"goMatch",soccer:"goMatch",tournament:"goTour",cup:"goTour"};
   var el=document.getElementById(CARDS[m[1]]||"");
   if(!el)return;
   /* One frame after load, so the roster has been read and the cards have had their
@@ -739,7 +742,7 @@
      the mode. Same openTray the corner icon calls, so there is one screen, not two.
      (Naming: the codebase calls this mode "Exhibition" in play-engine.js:776 and
      index.html:7704. Not renamed either way this pass -- see the report.) */
-  var exp=document.getElementById("pcExped");
+  var exp=document.getElementById("goMatch");
   if(exp)exp.addEventListener("click",function(e){e.stopPropagation();if(open)closeTray();else openTray("soccer");});
   window.__hmTeamScreen={open:function(){openTray("soccer");},close:closeTray};
  })();

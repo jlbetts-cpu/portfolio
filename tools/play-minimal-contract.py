@@ -75,7 +75,21 @@ assert HTML.index('class="hero" id="playArena"') < HTML.index('id="games"')
 # list held seven -- the draft board was appended without the sentence being reread. The
 # board is gone now ("lets remove the draft guide actually i dont think i want it on the
 # site"), so the count and the prose agree for the first time since it arrived.
-assert parser.card_ids == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork"]
+# SIX DOORS, STILL, AND TWO OF THEM CHANGED ON 2026-09-01. Jayden: "play a match and
+# tournament can be the same case study ... they just need two button inside the case
+# study. to keep it to 6 boxes" and "the Strata case study should also be in play".
+# pcExped + pcTour became ONE cell, pcEngine, carrying two launchers (#goMatch,
+# #goTour) that play-games.js binds and gates by their own ids; Strata took the freed
+# slot as pcStrata, whose play button opens strata-play.html. The order is still the
+# rule the nav's own note gives: games first, then the makers, then his app.
+assert parser.card_ids == ["pcYow", "pcEngine", "pcStrata", "pcHead", "pcGrad", "pcWork"]
+assert HTML.count('id="goMatch"') == 1 and HTML.count('id="goTour"') == 1, \
+    "the Soccer cell carries exactly two launchers, one per game"
+assert 'gate("goMatch",few)' in GAMES and 'gate("goTour",false)' in GAMES, \
+    "the two launchers are gated one at a time -- a cup works on an empty planet, a match does not"
+for retired_id in ("pcExped", "pcTour"):
+    assert retired_id not in HTML and retired_id not in GAMES, \
+        f"{retired_id} is back: the match and the cup share one cell since 2026-09-01"
 # TWO COLUMNS AND AN ODD COUNT LEAVES A HOLE, and a hole in this flush grid is not white
 # space -- it is the container's --rule ground showing through as a solid block. Exactly one
 # cell must span when the count is odd, and none may when it is even. Asserted as the
@@ -86,7 +100,9 @@ assert wide == (len(parser.card_ids) % 2), \
 assert wide == 0 or '.pCardWide{grid-column:1/-1}' in HTML
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
-    "Split the heads into two teams and watch them play soccer. You pick the teams first.",
+    "Split the heads into two teams for one match, or let eight of them knock each other out in a cup. Lose and you are gone.",
+    "A habit builder where your wins stack into a tower, with sound, photos and XP. It opens on a new page.",
+    'href="strata-play.html?from=play"',
     # 2026-08-11, SECOND MOVE: the cup became a twelve-team league and has been put
     # back. Jayden: "I still did like the one game elimination format." So the
     # sentence describes a knockout again, and it names the option he did ask for --
@@ -95,7 +111,6 @@ for fragment in (
     # the word on the Play menu row; one command in two menus must read identically.
     # This assertion is UPDATED rather than removed: the point of it is that the card
     # cannot silently disagree with the format again, which is what it caught here.
-    "Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.",
     # And the words the league brought with it must not survive it anywhere on the page.
 
     "Dial a planet of coloured light on a new page, and leave with the image and the code.",

@@ -51,6 +51,9 @@
 <link rel="preload" as="image" href="images/cs/variants/time/engine/daytime-1200.webp" imagesrcset="images/cs/variants/time/engine/daytime-1200.webp 1200w, images/cs/variants/time/engine/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
 <link rel="stylesheet" href="tokens.css?v=5329e3e78b">
 <style>
+/* .csTry carries two controls on this page only; controls.css owns its margin. */
+.csTry--pair{display:flex;flex-wrap:wrap;gap:var(--sp-8)}
+
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
    play.html were rendering in SF Pro because of exactly this pattern).
@@ -1493,7 +1496,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
            three games have no URL of their own, so the link comes back to play.html with
            ?play=<mode> and play-games.js clicks that game's card -- see the deep-link
            block there for why it clicks the card instead of calling the engine. -->
-    <p class="csTry"><a class="ctl ctl--primary" href="play.html?play=match">Play a match</a></p>
+    <!-- TWO DOORS, ONE STUDY. 2026-09-01, Jayden: "play a match and tournament can be the
+         same case study ... they just need two button inside the case study." The Play
+         menu's two cells became one that day and the second launcher lives here instead:
+         the cup is the same engine with a bracket round it, and the deep link is the one
+         play-games.js already answered for the old Tournament cell. -->
+    <p class="csTry csTry--pair"><a class="ctl ctl--primary" href="play.html?play=match">Play a match</a><a class="ctl ctl--secondary" href="play.html?play=tournament">Start a tournament</a></p>
 
     <figure class="cover media media--full" id="cover"><img data-time-thumbnail="engine" src="images/cs/variants/time/engine/daytime-1200.webp" srcset="images/cs/variants/time/engine/daytime-1200.webp 1200w, images/cs/variants/time/engine/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="The cast of the games: a row of coloured cut-out heads standing under a large black and white portrait." loading="eager" decoding="async"></figure>
     <script src="time-aware-thumbnails.js"></script>

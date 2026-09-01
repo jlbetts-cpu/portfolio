@@ -342,7 +342,9 @@ def run_layout(browser, base_url, width, height, reduced=False):
     # updated that day while THIS list was not, so the smoke has been red on a
     # removed feature ever since. Found while running the full play suite over an
     # unrelated change, which is the argument for running the whole suite.
-    assert data["cards"] == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork"], data
+    # 2026-09-01: pcExped and pcTour are one cell (pcEngine) with two launchers, and Strata
+    # took the freed slot. See play-minimal-contract.py for the whole note.
+    assert data["cards"] == ["pcYow", "pcEngine", "pcStrata", "pcHead", "pcGrad", "pcWork"], data
     assert data["canonical"] == [1, 1, 1] and data["gameIds"], data
     assert abs(data["header"]["top"]) <= 1 and abs(data["header"]["height"] - 72) <= 1, data
     assert abs(data["navTop"] - 8) <= 1, data
@@ -520,10 +522,10 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker):
     page.wait_for_timeout(850)
     prelaunch = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
     page.evaluate("""() => {window.__ownerMutations=[];const push=value=>{value=value||'';if(window.__ownerMutations.at(-1)!==value)window.__ownerMutations.push(value);};new MutationObserver(records=>{records.forEach(record=>push(record.oldValue));push(document.body.dataset.playViewportOwners||'');}).observe(document.body,{attributes:true,attributeOldValue:true,attributeFilter:['data-play-viewport-owners']});}""")
-    launch = "pcExped" if picker else "workBtn"
+    launch = "goMatch" if picker else "workBtn"
     if picker:
-        page.locator("#pcExped").focus()
-        page.locator("#pcExped").dispatch_event("click")
+        page.locator("#goMatch").focus()
+        page.locator("#goMatch").dispatch_event("click")
         page.wait_for_selector("body.pTeamOn")
         assert_viewport_owner(page, "picker")
         page.evaluate("window.__ownerMutations=[]")
@@ -568,17 +570,17 @@ def run_picker_and_tournament_ownership(browser, base_url):
     page.locator("#workBtn").click()
     page.wait_for_timeout(850)
     before = page.evaluate("scrollY")
-    page.locator("#pcExped").focus()
-    page.locator("#pcExped").dispatch_event("click")
+    page.locator("#goMatch").focus()
+    page.locator("#goMatch").dispatch_event("click")
     page.wait_for_selector("body.pTeamOn")
     assert_viewport_owner(page, "picker")
     page.locator(".pBtnBack").click()
     page.wait_for_function("!document.body.classList.contains('playViewportOwned')")
     page.wait_for_function("y => Math.abs(scrollY-y) <= 2", arg=before)
-    assert page.evaluate("document.activeElement&&document.activeElement.id") == "pcExped"
+    assert page.evaluate("document.activeElement&&document.activeElement.id") == "goMatch"
 
-    page.locator("#pcTour").focus()
-    page.locator("#pcTour").dispatch_event("click")
+    page.locator("#goTour").focus()
+    page.locator("#goTour").dispatch_event("click")
     page.wait_for_selector("body.hmTour")
     assert_viewport_owner(page, "tournament")
     page.locator(".tvGo").click()
@@ -588,11 +590,11 @@ def run_picker_and_tournament_ownership(browser, base_url):
     page.locator('.hmScoreEnd[aria-label="End the match"]').click()
     page.wait_for_function("!document.body.classList.contains('hmSoccer')")
     assert_viewport_owner(page, "tournament")
-    assert page.evaluate("document.activeElement&&document.activeElement.id") != "pcTour"
+    assert page.evaluate("document.activeElement&&document.activeElement.id") != "goTour"
     page.evaluate("window.__hmTourStop()")
     page.wait_for_function("!document.body.classList.contains('playViewportOwned')")
     page.wait_for_function("y => Math.abs(scrollY-y) <= 2", arg=before)
-    assert page.evaluate("document.activeElement&&document.activeElement.id") == "pcTour"
+    assert page.evaluate("document.activeElement&&document.activeElement.id") == "goTour"
     assert not errors, errors
     context.close()
 

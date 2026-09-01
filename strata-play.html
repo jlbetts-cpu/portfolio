@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="site-theme-state.js"></script>
+<script src="site-theme.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Strata · Jayden Betts</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<meta name="description" content="Strata, the habit builder Jayden Betts designed and built: stack a block, hear it land, add a photo. The real app, playable here.">
+<meta name="author" content="Jayden Betts">
+<!-- NOINDEX, like play.html and gradientlab.html: this page is a frame round an app
+     that lives at its own address, and the page with the words is strata.html. -->
+<meta name="robots" content="noindex,follow">
+<link rel="stylesheet" href="tokens.css?v=5329e3e78b">
+<link rel="stylesheet" href="controls.css?v=5329e3e78b">
+<link rel="stylesheet" href="header.css?v=5329e3e78b">
+<link rel="stylesheet" href="site-theme.css?v=5329e3e78b">
+<style>
+/* ═══ STRATA, ON A PAGE OF ITS OWN.  2026-09-01, Jayden: "the game itself should be on
+   its own page you can open like the rest." The Play menu's Strata cell opens this;
+   the head maker and the gradient lab open the same way. The header is the site's,
+   copied byte for byte from headmaker.html (Back goes to play.html), and the page
+   has no footer for the same reason those two have none: it is an app, not a read.
+
+   THE PHONE IS THE STUDY'S PHONE. strata.html frames the same Lovable build in a
+   390/844 shell with the device's own corner (clamp(22px,2.4vw,30px), a picture of a
+   phone and not a rung on the ladder -- the note beside .demoPhone there says why).
+   Here the shell is sized off the HEIGHT that is left under the bar, so the whole
+   app is on screen with nothing to scroll, and on a phone it simply is the phone:
+   no shell, no corner, edge to edge under the bar.
+
+   NO POSTER, NO PLAY-WITH-SOUND STEP. On the study the iframe waits for a click so a
+   reader who never plays never fetches it. Here the visitor already clicked to come,
+   so the app loads at once. Sound is the app's own business. */
+.skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;
+ display:inline-flex;align-items:center;min-height:var(--tap-min);
+ padding:0 var(--sp-16);background:var(--mat-3-solid);color:var(--c950);
+ box-shadow:var(--rim-2);border-radius:var(--r-md);corner-shape:var(--corner);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-flat);text-decoration:none;
+ transform:translateY(calc(-100% - var(--sp-16)));
+ transition:transform var(--ease-out-dur) var(--ease-out)}
+.skipLink:focus{transform:translateY(0);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+@media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
+/* the UA's 8px body margin, which headmaker.html zeroes in its own sheet too */
+body{margin:0}
+.stApp{box-sizing:border-box;min-height:calc(100svh - var(--bar-h));display:grid;place-items:center;padding:var(--sp-24) var(--sp-16)}
+.stPhone{height:min(844px,calc(100svh - var(--bar-h) - 2 * var(--sp-24)));width:auto;max-width:100%;aspect-ratio:390/844;
+  border-radius:clamp(22px,2.4vw,30px);overflow:hidden;background:var(--c50);box-shadow:var(--rim-1)}
+.stFrame{display:block;width:100%;height:100%;border:0}
+@media(max-width:640px){
+ .stApp{padding:0;min-height:0}
+ .stPhone{width:100%;height:calc(100svh - var(--bar-h));aspect-ratio:auto;border-radius:0;box-shadow:none}
+}
+</style>
+<script src="header.js" defer></script>
+</head>
+<body data-nav="games" data-theme-page="strata-play">
+<a class="skipLink" href="#main">Skip to content</a>
+<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
+     2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
+     grid (Back / wordmark / Contact), which could not read as a bar because its
+     three children sat at three unrelated x-positions. The lockup IS the back
+     affordance now -- Back and the wordmark went to the same URL, so two of the
+     four old slots were doing one job. Design + the measured lockup:
+     .superpowers/sdd/2026-08-02-play-page/header-report.md
+     The lockup, Home and About all go to index.html; Games names this page's
+     own URL, so it is the site's only aria-current="page". -->
+ <div class="jbStick">
+  <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <!-- BACK *REPLACES* THE MARK, ON THE LEFT, AND GOES TO play.html. Jayden,
+        twice: "the back button should just replace the logo" and "why is the
+        back button on games on the right side? that's a bit confusing" — so the
+        leading slot holds exactly one control and never both. header.css §
+        already ships this exact control for the five case studies; nothing in
+        header.css changes to get it here. Byte-identical to the one
+        gradientlab.html carries, deliberately: two builders, one control.
+        NO .backlink CLASS. That is not decoration — each case study's own
+        script binds it to set sessionStorage csReturn, which is what makes
+        index.html's work rail emerge from white on return. This page does not
+        go to index.html and carries no such script, so the class would be both
+        inert and untrue.
+        UNCONDITIONAL, NOT GATED ON ?from=play. play.html links here as
+        headmaker.html?from=play from its card, but the Play menu's other route
+        to this page carries no query at all — so a gated Back would appear from
+        one entrance and vanish from the other, and a reload, a bookmark or a
+        shared URL would lose it. One control, one destination, always present,
+        is also what keeps the leading slot's geometry identical on all nine
+        pages. The query is left alone: not read, not stripped, still harmless. -->
+   <span class="jbGrp jbGrpL">
+    <a class="jbBack" href="play.html" aria-label="Back to Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></a>
+   </span>
+   <span class="jbGrp jbGrpC" id="jbNavMid">
+    <a data-nav-item="home" href="index.html" aria-label="Home"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="jbLbl">Home</span></a>
+    <a data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
+    <a data-nav-item="games" href="play.html" aria-label="Play" aria-current="true"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
+    <!-- WORKSPACE LEFT THE BAR, 2026-08-26. Jayden: "for workspace instead of
+        being a whole tab please add it to the play page as well I feel like that
+        makes more sense." It is his own tool rather than a case study, and Play
+        is where the things he built live; play.html carries it as a card now.
+        /workspace/ is untouched and still reachable. It was also the widest
+        label in the bar (98px at 1440, 44 as a glyph on a phone), and the bar
+        needed exactly that back: the time-of-day switch had just taken the
+        seventh slot, which at 320 does not exist. -->
+   </span>
+   <span class="jbGrp jbGrpR" id="jbNavEnd">
+   <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+         Jayden, 2026-08-26: "the time of day button should be in the header since
+         it affects all the pages." It writes data-theme-mode / data-theme-state on
+         <html>; every page reads them. It used to live in index.html's Hero rail.
+         THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+         <script> in <head>, so :root carries data-theme-state before this markup is
+         parsed, and header.css shows the matching <g> off it. No first-paint hole
+         and nothing to fetch -- the paths are inline for the same reason header.js
+         inlines the nav's: an external <use> renders nothing until its document
+         resolves, which is the blank-glyph bug this bar has already had once.
+         header.js owns opening it, the roulette of aria-checked, and the keyboard.
+        WHY IT IS ON THIS SIDE AND NOT AMONG THE TABS. Jayden: "I feel like the
+        time of day should be sorta on the contact side of the screen like maybe
+        right to the left I dont think it should sit right in the middle thats
+        for sure with the other main options." The centred zone is DESTINATIONS
+        -- places you can go. Contact is an ACTION. This is a utility that
+        changes how the site looks, so sitting it between Home and Play said it
+        was a fourth place to go. Beside Contact it joins the things that DO
+        something, and the pair balances the mark on the left.
+        NO DIVIDER BETWEEN THEM, and it is not an omission: the two are already
+        distinguishable by kind. Contact is .ctl--secondary -- a paper chip with
+        a rim, the loudest thing in the bar after the mark -- and this is a bare
+        .ctl--nav glyph, so the quieter one reads as attached to the louder one
+        rather than as its equal. A rule between two adjacent controls is the one
+        separator this site does not use anywhere else. -->
+    <div class="heroTime" id="heroTime">
+     <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+     </div>
+    </div>
+    <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
+        Jayden asked for a Contact that is noticeable but does not compete with the
+        hero's "View work"; .ctl--secondary is that kind in this system, and it is
+        the same treatment as the sun button beside it.
+        WHAT WENT WITH THE DROPDOWN: the .jbDisc wrapper, #jbContactMenu and its
+        three rows, aria-haspopup / aria-expanded / aria-controls, the chevron, and
+        header.js's whole disclosure block -- a listener bound to markup that no
+        longer ships is the defect, not the leftover, and aria-expanded on a link
+        with nothing to expand is a lie a screen reader reads out loud.
+        The three destinations are not lost: the footer carries LinkedIn, Instagram
+        and Email in the same order on every page, which is where the panel's own
+        round-10 note already said the fallback lived. -->
+    <a class="jbContactBtn ctl ctl--nav ctl--secondary" data-nav-item="contact" href="mailto:jaydenlbetts@gmail.com" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
+   </span>
+  </nav>
+ </div>
+<main class="stApp" id="main" tabindex="-1">
+ <div class="stPhone">
+  <iframe class="stFrame" src="https://stratahabit.lovable.app?playsinline=1" title="Strata, live and interactive" allow="autoplay; fullscreen"></iframe>
+ </div>
+</main>
+</body>
+</html>
