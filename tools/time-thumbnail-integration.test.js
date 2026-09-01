@@ -16,7 +16,6 @@ const originals = {
   strata: "images/cs/strata-cover.webp",
   cluster: "images/cs/cluster/cluster-cover.webp",
   ucdavis: "images/cs/ucrec/cover.webp",
-  r3shore: "images/cs/r3shore.webp",
   workspace: "images/cs/study/workspace/cover.webp",
   headmaker: "images/cs/study/headmaker/cover.webp",
   gradientlab: "images/cs/study/gradientlab/cover.webp",
@@ -44,7 +43,15 @@ function image(project) {
 function flush() { return new Promise(resolve => setImmediate(resolve)); }
 
 (async function () {
-  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster", "ucdavis", "r3shore",
+  // R3SHORE LEFT THE ROSTER ON 2026-09-01, and this assertion is how you find out.
+  // Jayden asked for the placeholder card to go: a `.csItem wip` in Case Studies
+  // with no page behind it, reading "In progress, case study coming soon", and he
+  // had already said he does not want placeholders. Card, copy entry and registry
+  // lines all went. THE PLATES ARE STILL ON DISK, at images/cs/r3shore.webp and
+  // images/cs/variants/time/r3shore/, and build-missing-time-thumbnails.py still
+  // rebuilds them, so writing that study later costs one card and three registry
+  // lines rather than a re-shoot.
+  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster", "ucdavis",
                                 "workspace", "headmaker", "gradientlab", "engine", "yowmings"]);
   assert.deepEqual(Object.keys(originals).sort(), T.PROJECTS.slice().sort());
   for (const project of T.PROJECTS) {

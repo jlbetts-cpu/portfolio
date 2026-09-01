@@ -41,7 +41,7 @@
     would ALSO match a plain link to the tool at gradientlab.html; declaring the
     attribute is what keeps that from being luck. "workspace" does not match
     workspace-study.html at all, so its card MUST keep data-slug="workspace". */
- var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis","r3shore",
+ var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis",
                              "workspace","headmaker","gradientlab","engine","yowmings"]);
  /* Off. Each is the SAME picture as that project's six states with no grade
     applied, so switching the clock off changes the light and nothing else.
@@ -53,7 +53,6 @@
   strata:"images/cs/strata-cover.webp",
   cluster:"images/cs/cluster/cluster-cover.webp",
   ucdavis:"images/cs/ucrec/cover.webp",
-  r3shore:"images/cs/r3shore.webp",
   workspace:"images/cs/study/workspace/cover.webp",
   headmaker:"images/cs/study/headmaker/cover.webp",
   gradientlab:"images/cs/study/gradientlab/cover.webp",
@@ -62,7 +61,7 @@
  });
  var VARIANT_DIRS=Object.freeze({
   bearings:"bearings",apollo:"apollo",strata:"strata",cluster:"cluster",
-  ucdavis:"ucrec",r3shore:"r3shore",
+  ucdavis:"ucrec",
   workspace:"workspace",headmaker:"headmaker",gradientlab:"gradientlab",
   engine:"engine",yowmings:"yowmings"
  });
