@@ -1926,8 +1926,8 @@ function pitUndoRemove(){if(!_pitUndo)return;var cur=readPit();
    retirement, what just happened. Same eight seconds the Undo tile lives for. */
 var _retiredT=0,_retiredName="";
 function pitTitle(n){var h=document.getElementById("hmPitTitle");if(!h)return;
- if(_retiredT&&Date.now()-_retiredT<8000){h.textContent="Your heads — "+(_retiredName?("“"+_retiredName+"” "):"the oldest ")+"retired to make room";return;}
- h.textContent=(n>=HM_MAX)?("Your heads — "+n+" of "+HM_MAX+", full"):"Your heads";}
+ if(_retiredT&&Date.now()-_retiredT<8000){h.textContent="Your heads: "+(_retiredName?("“"+_retiredName+"” "):"the oldest ")+"retired to make room";return;}
+ h.textContent=(n>=HM_MAX)?("Your heads: "+n+" of "+HM_MAX+", full"):"Your heads";}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
  var all=readPit();
  pitTitle(all.length);if(_retiredT)setTimeout(function(){if(Date.now()-_retiredT>=8000){_retiredT=0;pitTitle(readPit().length);}},8100);
