@@ -1597,11 +1597,12 @@ window.__hmGames=true;</script>
 <script src="play-engine.js"></script>
 <script src="play-games.js"></script>
 <script src="play-tournament.js"></script>
-<!-- THE LEAGUE'S BED AND ITS MUTE. Loaded AFTER play-tournament because it waits
-     on body.hmYowCup, which that file owns: the cup's whole lifetime is already
-     published as a class, so the audio starts and stops off the same signal every
-     other League chrome does, and no ending path can forget to silence it. -->
-<script src="league-audio.js" defer></script>
+<!-- THE LEAGUE'S BED IS OFF FOR NOW.  2026-08-29, at his request: "remove the
+     audio for now". The module and both loops are still in the repo and still
+     work; this one line is the whole switch, so turning it back on is putting
+     it back. The mute control goes with it -- a mute button beside silence is
+     a control for nothing. -->
+<!-- <script src="league-audio.js" defer></script> -->
 <!-- THE REFEREE'S CAP. Standalone for the same reason as the bed above: nothing
      in the DOM marks the mini-Jayden, so it finds him structurally -- the one
      head root carrying a cloned `.stage` -- rather than by a class the engine
