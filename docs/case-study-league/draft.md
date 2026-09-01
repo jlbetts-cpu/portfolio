@@ -126,14 +126,11 @@ the winner still is not the halfway leader in two races out of three.
   every frozen frame"). The precise figures live in the commit history if anyone
   asks; the page does not need them.
 - No "open defects" section, per his note.
-- `players-01-frozen.png` is captured, from the tree BEFORE the fix (912a643^),
-  since freezes are 0.12 a match now. Five frames: the leftmost head holds the
-  same position while the cluster beside it moves.
-  **Honest note — it is a weak image.** A still cannot show absence of motion, so
-  it only reads with a caption telling you where to look. My first version drew a
-  ring on the frozen head and the ring landed a head-height low (these heads
-  carry transforms, so the sampled rect is not where they paint), and a
-  misplaced circle is worse than none. Worth deciding whether this section is
-  better with the strip plus a caption, or with no image at all.
+- **The players section carries no image, by his decision.** A still cannot show
+  absence of motion; it only read with a caption telling you where to look, and
+  a section that needs a caption to make its picture work is better without the
+  picture. The detector that finds a frozen head survives as
+  `tools/assets/find-frozen-player.py` — it is a QA tool for the engine, not
+  only a case-study errand.
 - `head-02-drop-sequence.png` must be **recaptured** — the current frames have
   the missing-iris bug in them, which is fixed as of `d3cd492`.
