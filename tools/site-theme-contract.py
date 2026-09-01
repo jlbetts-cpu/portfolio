@@ -276,7 +276,14 @@ def check_portfolio_adapters():
     # dark adapter owes them is legible ink, not a surface to sit on.
     assert_semantic_rule(source,"Case-study comparison labels",('body[data-theme-page="case-study"]', '.baLabel'),"color:var(--theme-muted)")
     assert '.baCol.isAfter .baLabel' not in source, "the After label must not take a filled chip"
-    assert_semantic_rule(source,"Case-study demo caption",('body[data-theme-page="case-study"]', '.demoLabel'),"color:var(--theme-muted)")
+    # THE DEMO IS GONE, so this adapter has nothing to address. strata.html was the only
+    # page with an embedded playable build, and on 2026-09-01 it moved to its own page --
+    # "why is there the playable version still on the strata page". The markup, its CSS
+    # and its driver went with it, so .demoLabel and .demoPoster are dead classes, and
+    # dark-legibility-contract independently flagged both in site-theme.css. Third time
+    # this file has required a dark rule for something the redesign deleted (see "About
+    # facts" and the chapter rail above); the two gates cannot both be satisfied and the
+    # one asking for the rule to exist is the one that is wrong.
     # The cover boundary is width-independent, so it remains present when the
     # existing mobile sheet makes the cover full-width. An outer shadow keeps
     # every authored image pixel untouched and does not affect box geometry.

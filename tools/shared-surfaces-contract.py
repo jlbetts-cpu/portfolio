@@ -407,11 +407,18 @@ def main():
     assert "scene-swap-target" in carousel_js
     assert "touch-action:pan-y" in carousel_css
 
-    assert ".demoPoster:hover .demoPlay{transform:scale" not in (ROOT / "strata.html").read_text(encoding="utf-8")
-
-    strata = parse("strata.html")
-    assert {"ctl", "ctl--media-large"} <= classes(first(strata, "demoPlay")[1])
-    assert {"ctl", "ctl--media-large"} <= classes(first(strata, "demoMute")[1])
+    # THE STRATA DEMO'S CONTROLS ARE GONE WITH THE DEMO. It was the only embedded
+    # playable build on a case study, and on 2026-09-01 it moved to its own page --
+    # "why is there the playable version still on the strata page" -- taking its markup,
+    # its CSS and its driver with it. These asserted that its play and mute buttons came
+    # from the shared control system, which was the right thing to check while they
+    # existed; there is nothing left for them to address, and first() raises StopIteration
+    # rather than failing with a sentence.
+    # WHAT REPLACES THEM is the same requirement on the page that now owns the control:
+    # strata-play.html's poster button is .ctl, not a privately-built one.
+    strata_play = (ROOT / "strata-play.html").read_text(encoding="utf-8")
+    assert 'class="spPlay ctl ctl--primary"' in strata_play, \
+        "strata-play.html's poster button is no longer the system's control"
 
     audited_media = {
         "bearings.html": (("cmpBoard", "media--full"), ("photoPair", "media--full")),

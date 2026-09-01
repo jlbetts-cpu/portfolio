@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/strata/daytime-1200.webp" imagesrcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=faebb97241">
+<link rel="stylesheet" href="tokens.css?v=8459b2ee38">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -605,8 +605,6 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 
 @media (prefers-reduced-motion:reduce){}
-.demoWrap{margin:var(--sp-24-40) 0 0}
-.demoLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);margin:0 auto 16px;max-width:680px}
 /* ── 30px IS NOT OFF THE LADDER, IT IS A PICTURE OF A PHONE ──────────────────
    clamp(22px,2.4vw,30px) here and on .demoFrame is the DEVICE's corner, drawn to
    scale with the render inside it. The radius ladder governs surfaces the site
@@ -619,21 +617,9 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    case studies' radius sweep and not beside the rules it exempts, so every census
    run since has re-found 30px as an off-ladder value and had to re-derive it.
    Restated in place so the next one stops. */
-.demoPhone{display:block;margin-inline:auto;width:min(380px,86vw);aspect-ratio:390/844;border-radius:clamp(22px,2.4vw,30px);overflow:hidden;background:var(--c50);box-shadow:var(--rim-1);position:relative}
-.demoFrame{width:100%;height:100%;border:0;display:block;border-radius:clamp(22px,2.4vw,30px)}
-@media(max-width:880px){.demoPhone{width:min(340px,84vw)}}
 .videoWrap{margin:var(--sp-24-40) 0 0}
 .videoFrame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;box-shadow:var(--rim-1);background:var(--c100)}
 .videoFrame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.demoPoster{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--c950);cursor:pointer;z-index:2;border-radius:inherit}
-.demoPoster.hidden{display:none}
-.demoPlay{width:66px;height:66px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c50);color:var(--c950);display:grid;place-items:center;cursor:pointer;transition:transform var(--dur-state) var(--ease-out)}
-.demoPoster:hover .demoPlay{color:var(--c950)}
-.demoPlay svg{width:26px;height:26px;margin-left:4px}
-.demoPosterLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c50)}
-.demoMute{position:absolute;top:12px;right:12px;z-index:3;display:none;align-items:center;gap:4px;padding:8px 16px 8px 8px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,243,243,.25)}
-.demoMute.show{display:inline-flex}
-.demoMute svg{width:14px;height:14px}
 .photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-24-40) 0 0;width:100%}
 .photoPair figure{margin:0}
 .photoPair img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;box-shadow:var(--rim-1);background:var(--c100)}
@@ -1246,9 +1232,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     .playerStage,.tvFrame,.baPhone,.sketch)>img,
 .content :is(.closeShot,.darlings,.photoRow,.shot,.shot.phone,.buildStage,.stepShot,.photoPair,
     .playerStage,.tvFrame,.baPhone,.sketch) figure>img{box-shadow:var(--rim-3)}
-.videoFrame,.demoPhone{box-shadow:var(--rim-3)}
+.videoFrame{box-shadow:var(--rim-3)}
 .videoFrame:fullscreen,.videoFrame iframe:fullscreen,
-.demoPhone:fullscreen,.demoFrame:fullscreen{border-radius:0!important;box-shadow:none}
 /* ── THE SIZE CLASS .photoFig NEVER HAD ─────────────────────────────────────
    The ladder above assigns radius by the BOX's width, boundary measured at ~900px,
    and every width in it "was read off the rendered page at 1440". That is exactly
@@ -1340,11 +1325,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=faebb97241">
+<link rel="stylesheet" href="controls.css?v=8459b2ee38">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=faebb97241">
-<link rel="stylesheet" href="footer.css?v=faebb97241">
-<link rel="stylesheet" href="site-theme.css?v=faebb97241">
+<link rel="stylesheet" href="header.css?v=8459b2ee38">
+<link rel="stylesheet" href="footer.css?v=8459b2ee38">
+<link rel="stylesheet" href="site-theme.css?v=8459b2ee38">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -1530,18 +1515,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     </div>
    </section>
 
-   <figure class="demoWrap">
-    <div class="demoLabel">Play it, don&rsquo;t just read it</div>
-    <div class="demoPhone" id="demoPhone">
-     <iframe class="demoFrame" id="demoFrame" data-src="https://stratahabit.lovable.app?playsinline=1" title="Strata, live and interactive" allow="autoplay; fullscreen"></iframe>
-     <div class="demoPoster" id="demoPoster">
-      <button class="demoPlay ctl ctl--primary ctl--media-large is-icon" id="demoPlay" type="button" aria-label="Play Strata with sound"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
-      <span class="demoPosterLabel">Play Strata, with sound</span>
-     </div>
-     <button class="demoMute ctl ctl--secondary ctl--media-large" id="demoMute" type="button" aria-label="Mute and stop the demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>Mute</button>
-    </div>
-    <figcaption class="cap">The real Strata, the Lovable build. Stack a block, hear it land, add a photo, everything here works.</figcaption>
-   </figure>
+   <!-- THE PLAYABLE BUILD MOVED OUT. It was a phone-shaped iframe of the Lovable app
+        here, two thirds down the page. On 2026-09-01 it got its own page --
+        strata-play.html, reachable from the Try now button at the top of this study and
+        from the Play grid -- and he asked why a second playable copy was still sitting
+        here. One app, one door. The study is the argument; the page is the thing. -->
+
 
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
@@ -1996,72 +1975,10 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </script>
 <script>
 </script>
-<script>
-(function(){var p=document.getElementById('demoPhone');if(!p)return;var fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),pl=document.getElementById('demoPlay'),mu=document.getElementById('demoMute');var src=fr.getAttribute('data-src');
-function load(){fr.src=src;po.classList.add('hidden');mu.classList.add('show');}
-function stop(){if(fr.src){fr.removeAttribute('src');}po.classList.remove('hidden');mu.classList.remove('show');}
-pl.addEventListener('click',function(e){e.stopPropagation();load();});
-po.addEventListener('click',load);
-mu.addEventListener('click',function(e){e.stopPropagation();stop();});
-if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting&&fr.getAttribute('src'))stop();});},{threshold:0.12});io.observe(p);}
-})();
+<!-- The demo driver went with the embed it drove. It was already inert -- it
+     returns early when #demoPhone is absent -- but a listener bound to nothing
+     is a thing the next reader has to work out. -->
 
-/* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
-(function(){
-  var boxes=[].slice.call(document.querySelectorAll('.scrollbox'));
-  boxes.forEach(function(box){
-    if(box.parentElement && box.parentElement.classList.contains('sbWrap')) return;
-    var wrap=document.createElement('div'); wrap.className='sbWrap';
-    box.parentNode.insertBefore(wrap, box); wrap.appendChild(box);
-    var nav=document.createElement('div'); nav.className='sbNav';
-    function mk(dir,label){
-      var b=document.createElement('button'); b.type='button'; b.className='sbBtn ctl ctl--internal'; b.setAttribute('aria-label',label);
-      b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 6 15 12 9 18')+'"/></svg>';
-      b.addEventListener('click',function(){
-        if(box.classList.contains('flow')){
-          box.dispatchEvent(new KeyboardEvent('keydown',{key:dir<0?'ArrowLeft':'ArrowRight',bubbles:true}));
-          return;
-        }
-        var shots=[].slice.call(box.querySelectorAll('.shot'));
-        var max=box.scrollWidth-box.clientWidth,t;
-        if(shots.length){
-          var bl=box.getBoundingClientRect().left,cur=box.scrollLeft;
-          var pad=parseFloat(getComputedStyle(box).paddingLeft)||0;
-          var pos=shots.map(function(sh){return sh.getBoundingClientRect().left-bl+cur-pad;});
-          if(dir>0){t=pos.filter(function(x){return x>cur+8;})[0];if(t==null)t=max;}
-          else{var rev=pos.filter(function(x){return x<cur-8;});t=rev.length?rev[rev.length-1]:0;}
-        }else{
-          t=box.scrollLeft+dir*Math.round(box.clientWidth*0.8);
-        }
-        t=Math.max(0,Math.min(t,max));
-        if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches){box.scrollLeft=t;return;}
-        cancelAnimationFrame(box.__pg);clearTimeout(box.__pgf);
-        var s0=box.scrollLeft,d0=t-s0,t0=performance.now(),landed=false;
-        box.__pgf=setTimeout(function(){if(!landed){box.scrollLeft=t;upd();}},600);
-        (function fr(now){
-          var p=Math.min(1,(now-t0)/380),e=1-Math.pow(1-p,3);
-          box.scrollLeft=s0+d0*e;
-          if(p<1)box.__pg=requestAnimationFrame(fr);
-          else{landed=true;clearTimeout(box.__pgf);upd();}
-        })(t0);
-      });
-      nav.appendChild(b); return b;
-    }
-    var prev=mk(-1,'Previous screens'),next=mk(1,'Next screens');
-    wrap.appendChild(nav);
-    function upd(){
-      var max=box.scrollWidth-box.clientWidth;
-      nav.style.display=(max>8)?'':'none';
-      prev.disabled=box.scrollLeft<=4;
-      next.disabled=box.scrollLeft>=max-4;
-    }
-    box.addEventListener('scroll',upd,{passive:true});
-    window.addEventListener('resize',upd);
-    [].slice.call(box.querySelectorAll('img')).forEach(function(im){ if(!im.complete) im.addEventListener('load',upd); });
-    setTimeout(upd,400); setTimeout(upd,1200); upd();
-  });
-})();
-</script>
 <script>
 /* a tiny visitor: if you made your own head in Extras, it peeks in once while you read */
 (function(){try{

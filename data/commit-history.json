@@ -1487,5 +1487,22 @@
   "4": 4
  },
  "first": "2025-08-31",
- "last": "2026-09-01"
+ "last": "2026-09-01",
+ "usage": {
+  "note": "output is what Claude wrote; cacheRead is context re-read on every turn and is deliberately NOT the headline",
+  "output": 85600818,
+  "input": 3667933,
+  "cacheWrite": 905975481,
+  "cacheRead": 35674039144,
+  "turns": 114080,
+  "sessions": 449,
+  "models": [
+   "claude-opus-5",
+   "claude-opus-4-8",
+   "claude-fable-5",
+   "claude-sonnet-5"
+  ],
+  "first": "2026-07-19",
+  "last": "2026-09-01"
+ }
 }

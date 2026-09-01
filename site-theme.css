@@ -175,7 +175,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.baBody,.baCap,.playerNote,.baNote){
  color:var(--theme-ink-soft);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.hmwLabel,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.hmwLabel,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.secBody,.ovBody,.role,.lede,.baBody) strong,
@@ -223,7 +223,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 /* Media rims live outside the authored bitmap. No width, height, radius,
    object-fit, margin, opacity, filter, or blend behavior changes here. */
 :root[data-theme="dark"] body[data-theme-page="case-study"] .cover,
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.wide,.cmp,.closeShot img,.darlings img,.photoRow img,.shot img,.buildStage img,.stepShot img,.photoPair img,.playerStage img,.tvFrame img,.baPhone img,.sketch img,.videoFrame,.demoPhone,.demoPoster){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.wide,.cmp,.closeShot img,.darlings img,.photoRow img,.shot img,.buildStage img,.stepShot img,.photoPair img,.playerStage img,.tvFrame img,.baPhone img,.sketch img,.videoFrame,.demoPhone){
  box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
 }
 
@@ -380,7 +380,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 /* Theme changes transition as one system only after synchronous bootstrap. */
 .theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal),
 .theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p),
-.theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.demoLabel,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
+.theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
  transition-property:color,background-color,border-color,box-shadow,text-decoration-color;
  transition-duration:var(--theme-duration);
  transition-timing-function:var(--ease-out);

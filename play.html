@@ -26,8 +26,8 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=faebb97241">
-<link rel="stylesheet" href="play.css?v=faebb97241">
+<link rel="stylesheet" href="tokens.css?v=8459b2ee38">
+<link rel="stylesheet" href="play.css?v=8459b2ee38">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
      remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
@@ -35,7 +35,7 @@
      ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
      is a printed artifact whose materials were settled in the broadcast spec and must not be
      re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
-<link rel="stylesheet" href="tournament.css?v=faebb97241">
+<link rel="stylesheet" href="tournament.css?v=8459b2ee38">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
@@ -707,6 +707,13 @@
     The sentence on the left, the ramp key on the right, both on the --fs-label rung and
     both ending on the column's own edges. It wraps to two lines rather than shrinking:
     at the width where the key will not sit beside the sentence, it goes under it. */
+ /* The usage figure is a SECOND stat block on the same rungs as the first -- same
+    eyebrow, same --fs-lead 600 figure, same muted note. It is separated from the
+    calendar by space alone: this section already spends the page's one new structural
+    rule on its own top seam, and a second line inside it would be a box. */
+ .pGitSecond{margin:var(--sp-32) 0 0}
+ .pGitSecond .pGitHead{margin:0 0 var(--sp-6)}
+
  .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
   gap:var(--sp-8) var(--sp-16);margin:var(--sp-16) 0 0}
  .pGitNote{margin:0;flex:1 1 260px;max-width:100ch;font-family:var(--sans);font-weight:400;
@@ -1288,6 +1295,19 @@
     attribute onto the cell AND onto .pCardGo (both, deliberately), so this reads the cell
     and dims one child. .ctl already owns the opacity ramp and the no-press rule for
     [aria-disabled], so this only has to stop the pointer. */
+ /* THE HOVER GOES DARKER, NOT LIGHTER, AND ONLY HERE.
+    --ctl-primary-ground-hover is #686b73, and it is right for the shape it was chosen
+    for: a rectangular primary sitting on paper, where lifting toward grey reads as the
+    button coming forward. This button is a black disc on a PHOTOGRAPH, and there the same
+    move reads as the opposite -- it washes out and looks disabled, which is what he was
+    seeing ("the hover and actual button wasnt designed well").
+    So this one placement takes --accent-press, the site's own next step down from the
+    ink, and gets MORE solid under the cursor instead of less. Measured against the white
+    icon: 18.4:1 at rest, 15.1:1 on hover, where the shared token gave 5.2:1.
+    ONE PROPERTY, and the rest of the control is untouched -- the geometry override above
+    is the only other thing this placement changes, for the reason written there. */
+ .pCard .pCardGo:hover,
+ .pCard .pCardGo:focus-visible{background:var(--accent-press)}
  .pCards .pCard[aria-disabled="true"] .pCardGo{cursor:default;pointer-events:none}
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
  /* 12px, not 11. §3 lists the six sizes that carry the whole home page -- 44 · 18 · 15 ·
@@ -1665,15 +1685,15 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=faebb97241">
-<link rel="stylesheet" href="footer.css?v=faebb97241">
-<link rel="stylesheet" href="controls.css?v=faebb97241">
-<link rel="stylesheet" href="site-theme.css?v=faebb97241">
+<link rel="stylesheet" href="header.css?v=8459b2ee38">
+<link rel="stylesheet" href="footer.css?v=8459b2ee38">
+<link rel="stylesheet" href="controls.css?v=8459b2ee38">
+<link rel="stylesheet" href="site-theme.css?v=8459b2ee38">
 <!-- league.css LINKS LAST, AND THAT IS THE POINT. controls.css and site-theme.css
      both come after this page's own <style> block, so an equal-specificity rule
      written earlier loses on source order and loses SILENTLY -- four League rules
      were lost that way. The League owns the final word on its own screens. -->
-<link rel="stylesheet" href="league.css?v=faebb97241">
+<link rel="stylesheet" href="league.css?v=8459b2ee38">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1892,10 +1912,10 @@
        ═══════════════════════════════════════════════════════════════════════════════ -->
   <div class="pCard" id="pcYow">
    <div class="pCardShot">
-    <img class="pCardImg" data-time-thumbnail="yowmings" src="images/cs/study/yowmings/cover.webp" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" width="1200" height="600" alt="A head in a striped referee cap drops the ball in at kickoff, with cut-out heads waiting on the pitch below and a set of uprights at each end." loading="lazy" decoding="async" draggable="false">
-    <button class="pCardGo ctl ctl--primary" type="button" aria-label="Play the Yowmings League now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+    <img class="pCardImg" data-time-thumbnail="yowmings" src="images/cs/study/yowmings/cover.webp" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" width="1200" height="600" alt="A Fantasy Draft Order quarter-final in play: the scoreboard reads one nil, cut-out heads in team colours chase a football between two sets of uprights, and the winners have picked up crowns." loading="lazy" decoding="async" draggable="false">
+    <button class="pCardGo ctl ctl--primary" type="button" aria-label="Play the Fantasy Draft Order now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
    </div>
-   <a class="pCardOpen pCardT" href="yowmings.html">Yowmings League</a>
+   <a class="pCardOpen pCardT" href="yowmings.html">Fantasy Draft Order</a>
    <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
   </div>
   <!-- ONE DOOR FOR BOTH MATCH AND CUP. 2026-09-01: "play a match and tournment can be
@@ -1995,6 +2015,25 @@
   <div class="pGitFoot">
    <p class="pGitNote" id="pGitNote"></p>
    <p class="pGitKey" aria-hidden="true"><span class="pGitKeyW">Less</span><i class="pGitCell" data-l="0"></i><i class="pGitCell" data-l="1"></i><i class="pGitCell" data-l="2"></i><i class="pGitCell" data-l="3"></i><i class="pGitCell" data-l="4"></i><span class="pGitKeyW">More</span></p>
+  </div>
+  <!-- ══ THE SECOND FIGURE ══════════════════════════════════════════════════════════
+       2026-09-01: "the github doesnt say the token use which i feel like would be useful
+       to show i am vibe coding and learning that."
+       THIS WAS PARKED ONCE, ON 2026-08-11, and one of the three arguments then was that a
+       token figure hands a skeptic "the AI built this". He has answered that himself: he
+       is claiming the tooling as a skill rather than hiding it, and that is his call to
+       make. The second argument was mechanical and DID have to be solved -- there is no
+       API for personal Claude usage, so the number would be hardcoded and ageing. It is
+       computed from Claude Code's own transcripts by the same tool that writes the
+       calendar, carries the same `generated` stamp, and is one command to refresh.
+       IT HEADLINES OUTPUT, NOT THE RAW SUM. The four counters total 36.7 BILLION, but
+       35.7B of that is cache_read -- the same conversation re-read on every turn, which
+       measures session length rather than work. Output is the only counter that cannot
+       be inflated that way, so it is the one on the page. -->
+  <div class="pGitSecond" id="pGitUsage" hidden>
+   <p class="pGitEyebrow">Built with Claude</p>
+   <h3 class="pGitHead"><span id="pGitTokens">&nbsp;</span></h3>
+   <p class="pGitNote" id="pGitUsageNote"></p>
   </div>
   <p class="pGitStamp" id="pGitStamp"></p>
  </div>
@@ -2121,7 +2160,7 @@ window.__hmGames=true;</script>
      engine are untouched. The stylesheet is linked HERE rather than in <head> for
      the same reason league.css links last -- it is the final word on its own
      object, and a <link> is body-ok. -->
-<link rel="stylesheet" href="league-photos.css?v=faebb97241">
+<link rel="stylesheet" href="league-photos.css?v=8459b2ee38">
 <script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a

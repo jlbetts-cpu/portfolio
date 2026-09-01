@@ -46,6 +46,7 @@ caption could only say "not a commit count".  This tool has the real numbers.
 """
 import argparse
 import collections
+import glob
 import json
 import os
 import re
@@ -159,6 +160,92 @@ def build_github():
         "levels": {str(k): histogram.get(k, 0) for k in range(5)},
         "first": days[0]["d"],
         "last": days[-1]["d"],
+        "usage": claude_usage(),
+    }
+
+
+TRANSCRIPTS = os.path.expanduser("~/.claude/projects/**/*.jsonl")
+
+
+def claude_usage():
+    """Token usage summed from Claude Code's own transcripts on this machine.
+
+    WHY THIS IS DERIVED AND NOT TYPED IN.  When the panel was first proposed on
+    2026-08-11 it was parked, and one of the three arguments was mechanical and still
+    stands: there is no API for personal Claude usage, so a figure would be hardcoded
+    and would age silently on a page people check.  It does not have to be.  Every
+    assistant turn Claude Code writes carries a `usage` object, so the number is
+    computable, re-computable by re-running this, and stamped with `generated` like
+    everything else in this file.
+
+    WHICH NUMBER, AND WHY NOT THE BIG ONE.  Four counters are recorded and they are not
+    interchangeable:
+
+        output          85.6M     what Claude actually wrote
+        input            3.7M     what was sent that was not already cached
+        cache write    906.0M     context written into the prompt cache
+        cache read      35.7B     context RE-READ out of that cache
+
+    The raw sum is 36.7 BILLION and it is meaningless as a headline: cache_read counts
+    the same conversation again on every single turn, so it measures how long the
+    sessions were, not how much was done.  Publishing it would be the "looks live, is
+    nonsense" failure in a new costume.  The page headlines OUTPUT -- the tokens that
+    became code and prose -- which is the one counter that cannot be inflated by
+    re-reading context, and the rest are kept in the JSON so the choice is visible.
+
+    IT IS THIS MACHINE'S HISTORY.  The tool is his, it runs where the transcripts are,
+    and if they are absent it returns None and the section simply does not render.
+    """
+    totals = {"output": 0, "input": 0, "cacheWrite": 0, "cacheRead": 0}
+    turns = 0
+    models = collections.Counter()
+    first = last = None
+    files = glob.glob(TRANSCRIPTS, recursive=True)
+    if not files:
+        return None
+    for path in files:
+        try:
+            with open(path, encoding="utf-8", errors="ignore") as fh:
+                for line in fh:
+                    if '"usage"' not in line:
+                        continue
+                    try:
+                        row = json.loads(line)
+                    except ValueError:
+                        continue
+                    message = row.get("message") or {}
+                    usage = message.get("usage") or row.get("usage")
+                    if not isinstance(usage, dict):
+                        continue
+                    totals["output"] += usage.get("output_tokens") or 0
+                    totals["input"] += usage.get("input_tokens") or 0
+                    totals["cacheWrite"] += usage.get("cache_creation_input_tokens") or 0
+                    totals["cacheRead"] += usage.get("cache_read_input_tokens") or 0
+                    turns += 1
+                    if message.get("model"):
+                        models[message["model"]] += 1
+                    stamp = row.get("timestamp")
+                    if stamp:
+                        if first is None or stamp < first:
+                            first = stamp
+                        if last is None or stamp > last:
+                            last = stamp
+        except OSError:
+            continue
+    if not turns:
+        return None
+    return {
+        "note": ("output is what Claude wrote; cacheRead is context re-read on every "
+                 "turn and is deliberately NOT the headline"),
+        "output": totals["output"],
+        "input": totals["input"],
+        "cacheWrite": totals["cacheWrite"],
+        "cacheRead": totals["cacheRead"],
+        "turns": turns,
+        "sessions": len(files),
+        "models": [m for m, _ in models.most_common(4)],
+        "first": (first or "")[:10],
+        "last": (last or "")[:10],
     }
 
 

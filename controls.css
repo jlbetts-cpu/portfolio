@@ -1118,3 +1118,19 @@
    shrinking, so a narrow phone stacks them at full height instead of squeezing two
    44px targets into one line. */
 .csTry{display:flex;flex-wrap:wrap;gap:var(--sp-8);margin:0 0 var(--sp-24)}
+
+/* ══ AN ICON INSIDE A CONTROL TAKES THAT CONTROL'S INK ═══════════════════════════════
+   2026-09-01: "the play button btw on the play screen like it looks off like when i
+   hover it looks weird". Measured, and it was worse than off -- the icon DISAPPEARED.
+   play.css carries `.gIco{color:var(--ctl-ink)}` as a page default for its game rows.
+   Inheritance loses to any matching rule, so that grey also won inside .pCardGo, whose
+   own colour is --ctl-primary-ink #fdfdfd. The play triangle was therefore #686b73 on a
+   #111214 button at rest -- already poor -- and --ctl-primary-ground-hover is #686b73,
+   the SAME VALUE, so on hover the icon and its background were byte-identical: 1.00:1,
+   an empty circle.
+   THE FIX IS THE RELATIONSHIP, NOT THE COLOUR. An icon inside a control is part of that
+   control and must be whatever ink the control is using -- primary, secondary, nav or
+   disabled -- so it can never be pinned to one grey by a page that knows nothing about
+   which variant it landed in. Two classes deep, so it outranks a bare .gIco rule
+   outright rather than by load order. */
+.ctl .gIco{color:inherit}

@@ -130,7 +130,7 @@ LAYOUTS = {
     "gradientlab": "study/gradientlab/builder.webp",
     "engine": "study/engine/soccer.webp",
     # The kickoff, which is the screen he named: "put the kickoff on a real pitch photo".
-    "yowmings": "yowmings/card-1200.webp",
+    "yowmings": "yowmings/play-1600.webp",
     "tournament": "study/engine/tournament.webp",
 }
 # How much of the screen to keep, top and bottom as fractions of its height.
@@ -168,7 +168,16 @@ WINDOW_BOX = {}
 # THEY GET A CONTACT SHADOW, and that is not an exception to this site's shadow rule, it
 # IS the rule: the companion heads cast contact shadows because they are standing on
 # something, and here they are standing on a pitch.  Nothing else in the plate casts.
-MATTE = {"yowmings"}
+# EMPTIED ON 2026-09-01, and the reason is worth keeping because it went back and forth.
+# The kickoff capture was matted out of its white ground and stood on the turf directly,
+# because in a window it looked like a glitch. It did -- but the fault was the CAPTURE,
+# not the construction: that frame is a pre-kickoff screen that is mostly empty white, so
+# a window around it framed nothing. He was explicit about what he wanted instead: "I want
+# a new screenshot of the heads playing on a background with corner roundness not no
+# cutout of the heads on a background literally like every other thumbnail we have."
+# So the plate is a real mid-match frame -- scoreboard, quarter-final, crowns, both
+# uprights -- in the same rounded window every other cover uses. Nothing is matted now.
+MATTE = set()
 MATTE_SCALE = .90       # so the uprights at the capture's edges land inside the frame
 MATTE_SHADOW = (7, 9, .34)   # blur px, drop px, opacity
 RADIUS = .014           # the shipped R3SHORE corner: 17px at 1200, 34px at 2400

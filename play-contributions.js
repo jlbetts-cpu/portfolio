@@ -73,6 +73,13 @@
 
   function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
 
+  /* 85600818 -> "85.6M". One decimal below 100M and none above it, so the figure never
+     runs to five characters and never implies a precision a token count does not have. */
+  function millions(n) {
+    var m = n / 1e6;
+    return (m >= 100 ? Math.round(m) : Math.round(m * 10) / 10) + "M";
+  }
+
   /* "2026-08-31" -> weekday index, 0 = Sunday. Computed rather than parsed, for the
      same reason human() splits: new Date("2026-08-31") is UTC midnight and its local
      getDay() is the PREVIOUS day west of Greenwich, which would rotate the whole
@@ -204,6 +211,24 @@
     note.textContent = commas(commits) + " contributions on " + active +
       " days in the last year. Each square is a day. The longest unbroken run is " +
       plural(longest, "day") + ".";
+
+    /* ══ THE USAGE FIGURE ═══════════════════════════════════════════════════════════
+       Same guard as the calendar's: no data, no block. It renders OUTPUT tokens, and the
+       caption says so in words rather than leaving "tokens" to be read as a raw total --
+       the file also carries cacheRead, which is 400x larger and means something else
+       entirely. If a later pass wants a bigger number on the page, the honest one is
+       output + input + cacheWrite; cacheRead is not a candidate. */
+    var usage = data.usage;
+    var box = document.getElementById("pGitUsage");
+    if (box && usage && usage.output) {
+      var fig = document.getElementById("pGitTokens");
+      var un = document.getElementById("pGitUsageNote");
+      if (fig) fig.textContent = millions(usage.output) + " tokens written";
+      if (un) un.textContent = "Across " + commas(usage.turns) + " turns in " +
+        commas(usage.sessions) + " sessions since " + humanShort(usage.first) +
+        ", from Claude Code's own logs.";
+      box.hidden = false;
+    }
 
     root.hidden = false;
     /* One frame, so the class lands as a transition rather than as the initial

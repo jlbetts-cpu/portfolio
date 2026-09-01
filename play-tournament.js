@@ -221,7 +221,7 @@ function propagate(br) {
    third-place playoff was removed because "nothing asked for it" and Jayden's "too much
    random unnecessary elements" was aimed at a group whose winner goes on to nothing. Both
    were true of the SOCCER cup and remain true of it: none of this is built there. It is
-   gated on opts.place, which only the Yowmings League passes, and in the League the third
+   gated on opts.place, which only the Fantasy Draft Order passes, and in the League the third
    place match's winner goes on to the 1.03, which is the opposite of nothing.
 
    THE FEED IS EXPLICIT because a consolation match is fed by a LOSER and propagate()'s
@@ -1177,7 +1177,7 @@ function buildTeams(cb){
 var ADVANCE = 8;          // how many the race sends into the knockout
 /* ---- AND HOW MANY IT SENDS THROUGH FOR A GIVEN FIELD. Soccer's cup only ever races when
    there are more heads than places, so ADVANCE was a constant and this was arithmetic
-   nobody had to do. The Yowmings League races EVERY time -- see start() for why -- and with
+   nobody had to do. The Fantasy Draft Order races EVERY time -- see start() for why -- and with
    eight heads there are exactly eight places, so the race stops eliminating anybody and
    becomes pure seeding. One expression covers both: you cannot advance more than the field.
    Everything downstream (`whole`, the tail, seedDraw) reads this rather than the constant,
@@ -3634,7 +3634,7 @@ function start(yow){
        mattering. Publishing the string rather than the numbers keeps the
        vocabulary in one place: the pitch cannot invent its own phrasing. */
     try{ window.__hmStakeNow = ''; }catch(_){}
-    T.cup = T.yow ? 'Yowmings League' : (CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup');
+    T.cup = T.yow ? 'Fantasy Draft Order' : (CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup');
     var idKey=T.yow ? 'Yowmings' : T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
     document.body.style.setProperty('--cupPaint',T.id.paint);
