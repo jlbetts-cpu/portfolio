@@ -799,6 +799,30 @@
 .toTop.ctl.show{opacity:1;pointer-events:auto}
 .toTop.ctl svg{transition:color var(--dur-state) var(--ease-out)}
 .sbNav,.playerTicks{gap:var(--gap-item)}
+
+/* ── THE SCROLL TRAY'S PADDLES REACH THE TAP FLOOR.  2026-09-01 ───────────
+   .scrollbox and its prev/next paddles have shipped in all five case studies
+   since the skeleton landed, and until yowmings.html nothing had ever USED
+   one -- so nothing had ever measured them. Measured on first use: 32 x 44,
+   twelve px under the site's 44px floor.
+
+   The control is not the fault. .ctl's own padding is 16 a side, so a .ctl
+   with a real icon in it computes 46 wide on its own. The fault is that the
+   paddle's <svg> is BUILT BY SCRIPT with a viewBox and no size, while the
+   stylesheet gives `.sbMore svg` a width and never gave the paddle's one. A
+   zero-width icon inside correct padding is a 32px button.
+
+   So the ICON is sized and the button reaches the floor from the system's own
+   padding. Nothing here re-declares .sbBtn: patching a control toward the
+   system property by property is exactly what CLAUDE.md forbids, and it is how
+   .reelTap ended up with four private rules bolted onto it.
+
+   It lives HERE, once, rather than in six inline <style> blocks. controls.css
+   links after every case study's inline block (verified on all six: inline at
+   line 53, controls.css at 997-1026), so it wins a tie the same way the rest
+   of the library does, and one fix covers every page that has ever carried the
+   component -- including the five that were shipping it broken and unused. */
+.sbNav svg{width:14px;height:14px}
 .playerBar{gap:0}
 .scene-swap-target{
  display:block;contain:layout paint;transition:filter var(--scene-cut-duration) var(--scene-cut-ease),
