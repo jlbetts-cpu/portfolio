@@ -37,7 +37,7 @@ WHAT ELSE IS HELD HERE, and each one is a mistake that was actually made:
     square onto a row of its own the first day the repo gains one, and nothing
     errors, so nobody notices for a month.
 
-  * NO SHADOW, NO BORDER, NO RULE.  The companion heads cast the only shadow on
+  * NO SHADOW, AND EXACTLY ONE SEAM.  The companion heads cast the only shadow on
     this site, and tools/structure-rule-contract.py caps how many lines it draws.
 
   * FIVE LEVELS HAVE TO STAY FIVE LEVELS AT EVERY HOUR.  2026-09-01 the ramp started
@@ -95,15 +95,20 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 
 def static_contract():
-    # 1 ── THE SECTION IS THERE, AND IT IS BETWEEN THE HERO AND THE DOORS.
-    # "under the hero ... before all the options" is the whole request; a section
-    # that drifts below the cards has stopped being the thing he asked for.
+    # 1 ── THE SECTION IS THERE, AND IT SITS BELOW THE GAMES.
+    # It used to assert hero < band < hub, from his first request: "under the
+    # hero ... before all the options". On 2026-09-01 he moved it: "the github i
+    # think should be under the games and it needs to be structured better." So
+    # the ordering flipped and this assertion flipped with it, rather than being
+    # relaxed to "somewhere on the page" -- the position is the point either way,
+    # and a band that drifts back above the doors has stopped being what he asked
+    # for just as surely as one that drifted below them did before.
     assert '<section class="pGit" id="pGit"' in LIVE, "play.html no longer ships the commit band"
     hero = LIVE.index('class="hero" id="playArena"')
     band = LIVE.index('<section class="pGit" id="pGit"')
     hub = LIVE.index('<section class="pHub" id="games"')
-    assert hero < band < hub, \
-        "the band is not between the hero and the games band (hero %d, band %d, hub %d)" % (hero, band, hub)
+    assert hero < hub < band, \
+        "the band is not below the games (hero %d, hub %d, band %d)" % (hero, band, hub)
 
     # 2 ── IT SHIPS HIDDEN.  With no JS, no JSON or no date there is nothing to show,
     # and a heading over an empty box is the stale-dashboard failure in another costume.
@@ -153,19 +158,36 @@ def static_contract():
          "has lost its fallback -- an unresolvable var() computes to `unset`, and "
          "grid-template-columns:none stacks every day into one very tall column")
 
-    # 8 ── NO SHADOW AND NO BORDER, IN SOURCE.  The companion heads cast the only
-    # shadow on this site; chrome separates with hairlines and translucency. The
-    # computed check below catches an inherited one; this catches a declared one.
+    # 8 ── NO SHADOW, EVER.  The companion heads cast the only shadow on this site;
+    # chrome separates with hairlines and translucency.  That rule is absolute and is
+    # the one this assertion protects.  The computed check below catches an inherited
+    # shadow; this catches a declared one.
     for rule in re.findall(r"[^{}]*\.pGit[^{}]*\{([^}]*)\}", css):
         assert "box-shadow" not in rule, ("the band has taken a shadow", rule)
-        assert not re.search(r"(?<!-)border\s*:", rule) and "border-top" not in rule \
-            and "border-block" not in rule, ("the band has taken a border", rule)
 
-    # 9 ── IT DOES NOT DRAW A STRUCTURAL LINE EITHER.  The hero's own bottom edge and
-    # .pCards' border-block-start already bound it, and tools/structure-rule-contract.py
-    # caps how many lines this site may draw. A rule added here spends that budget.
-    assert "var(--rule)" not in "".join(re.findall(r"[^{}]*\.pGit[^{}]*\{[^}]*\}", css)), \
-        "the band is drawing a structural rule; it is bounded by lines that already exist"
+    # 9 ── EXACTLY ONE SEAM, AND IT IS THE CARDS' OWN LINE.
+    # This used to read "no border, no rule at all", because while the band sat between
+    # the hero and the games it was bracketed by two lines that already existed:
+    # .hero::after's bottom edge above it and .pCards' border-block-start below it.  On
+    # 2026-09-01 he moved it -- "the github i think should be under the games and it
+    # needs to be structured better" -- and the move took both of those away: .pCards'
+    # rule is above the CARDS, and under the band there is only the footer.  Bare, it
+    # read as loose content trailing the last card instead of as a section.
+    #
+    # So the assertion is NARROWED rather than relaxed, and it still fails on the thing
+    # it was built to catch.  The band may draw ONE line; it must be the block-start
+    # (a seam closing the cards above it, not a box around itself); and it must be the
+    # cards' own --rule-w/--rule, so this is the same line continued rather than a new
+    # kind of line.  A literal colour, a second side, or a box shorthand all still fail.
+    band = "".join(re.findall(r"[^{}]*\.pGit[^{}]*\{[^}]*\}", css))
+    sides = re.findall(r"border-(block-start|block-end|top|bottom|left|right|inline-\w+)\s*:", band)
+    assert not re.search(r"(?<!-)border\s*:", band), \
+        "the band is drawing a border box; it may have a block-start seam and nothing else"
+    assert sides == ["block-start"], \
+        ("the band draws %d border side(s), expected exactly ['block-start']: %s" % (len(sides), sides))
+    seam = re.search(r"border-block-start\s*:([^;]*)", band).group(1)
+    assert "var(--rule-w)" in seam and "var(--rule)" in seam, \
+        ("the seam is not the cards' own line; it must be var(--rule-w) solid var(--rule)", seam)
 
     # 9.5 ── THE HOUR COMES FROM THE SITE'S CLOCK, NOT A SECOND ONE.  site-theme.js
     # writes data-theme-state on <html> on every page and rewrites it when the picker
@@ -194,7 +216,7 @@ def static_contract():
     # which is also why the caption may not name a direction of shade -- see §11 below.
     assert re.search(r':root\[data-theme="dark"\]\s*\.pGit\{', css), \
         "the band has no dark ramp; ink at 92% alpha on a night page is invisible"
-    print("  static: this repo's log, band between hero and doors, ships hidden, "
+    print("  static: this repo's log, band below the doors, ships hidden, "
           "guards the date, counts from the data, casts nothing")
 
 
@@ -461,11 +483,17 @@ def browser_contract(base, patched_js=None, patched_css=None):
             assert abs(m["cellW"] - m["cellH"]) < 0.6, \
                 ("%d: a day is not square (%.1f x %.1f)" % (width, m["cellW"], m["cellH"]))
 
-            # UNDER THE HERO, BEFORE THE DOORS -- measured, not just in source order.
-            assert m["heroBottom"] <= m["bandTop"] + 1 < m["cardsTop"], \
-                ("%d: the band is not between the hero and the cards (hero ends %.0f, "
-                 "band starts %.0f, cards start %.0f)"
-                 % (width, m["heroBottom"], m["bandTop"], m["cardsTop"]))
+            # UNDER THE DOORS -- measured, not just in source order.  This read
+            # hero <= band < cards until 2026-09-01, from his first ask for the section:
+            # "under the hero ... before all the options".  He then moved it: "the github
+            # i think should be under the games."  The position is still the point, so the
+            # assertion moved with it rather than being softened to "somewhere below the
+            # hero" -- a band that drifts back above the cards fails here exactly as one
+            # that drifted below them used to.
+            assert m["heroBottom"] <= m["cardsTop"] and m["cardsTop"] < m["bandTop"], \
+                ("%d: the band is not below the games (hero ends %.0f, cards start %.0f, "
+                 "band starts %.0f)"
+                 % (width, m["heroBottom"], m["cardsTop"], m["bandTop"]))
 
             # NOTHING ELEVATES.  The heads cast the only shadow on this site.
             assert m["shadows"] == "none|none|none", \
@@ -511,7 +539,7 @@ def browser_contract(base, patched_js=None, patched_css=None):
         page.close()
         browser.close()
     print("  browser: date is the file's own at 3 widths, %d columns folding to %d, "
-          "no page scroll, on the column, no shadow, ramp follows the theme"
+          "no page scroll, on the column, one seam, no shadow, ramp follows the theme"
           % (total, math.ceil(total / 2)))
 
 

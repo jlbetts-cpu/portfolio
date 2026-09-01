@@ -27,7 +27,7 @@
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
 <link rel="stylesheet" href="tokens.css?v=57fb92263c">
-<link rel="stylesheet" href="play.css">
+<link rel="stylesheet" href="play.css?v=57fb92263c">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
      remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
@@ -35,7 +35,7 @@
      ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
      is a printed artifact whose materials were settled in the broadcast spec and must not be
      re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
-<link rel="stylesheet" href="tournament.css">
+<link rel="stylesheet" href="tournament.css?v=57fb92263c">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
@@ -520,10 +520,15 @@
     site's ink (#090b24), at five stepped alphas on the page's own ground. Same ink as the
     type, same radius ladder, same 4px grid -- the graph is drawn BY this design system
     rather than quoted from another one.
-    NO CARD, NO BORDER, NO SHADOW. The heads cast the only shadow on this site. The band
-    is separated above by .hero::after's own edge and below by .pCards' border-block-start,
-    both of which already exist; it draws no line of its own and adds nothing to the
-    structural-rule budget.
+    NO CARD AND NO SHADOW -- the heads cast the only shadow on this site -- BUT IT NOW
+    OWNS ONE SEAM. That is a consequence of the move, not a change of mind. While the band
+    sat between the hero and the games it was bracketed by two rules that already existed,
+    .hero::after's edge above and .pCards' border-block-start below, so it drew nothing.
+    Under the games on 2026-09-01 it has neither: .pCards' rule is above the CARDS, and
+    below the band there is only the footer. Left bare it read as loose content trailing
+    the last card rather than as a section. So it takes ONE border-block-start, in the
+    same --rule-w / --rule the cards' own top edge and inter-card seams are drawn in --
+    the same line continued, not a new kind of line, and still no elevation.
 
     A LINE, NOT A CALENDAR. 44 days is six weeks: a seven-row weekday grid needs a year
     before its rows mean anything, and at this length it is a lumpy block whose shape is an
@@ -547,8 +552,15 @@
 
     IT GOES WHEN A GAME TAKES THE VIEWPORT, on the same flag .siteFoot and the margin rails
     use. A pitch has no column and no side-matter. ═══════════════════════════════════════ */
+ /* NO HORIZONTAL INSET OF ITS OWN. It used to carry --col-inset because it was a
+    top-level section between the hero and the hub, and it had to build the page's gutter
+    itself. On 2026-09-01 he moved it under the games -- "the github i think should be
+    under the games" -- so it is now a CHILD of .pHub, which already insets the column.
+    Keeping the inset applied it twice and put the strip 24px inside the cards it is
+    supposed to share an edge with. The vertical padding is still this element's job. */
  .pGit{position:relative;z-index:40;width:100%;box-sizing:border-box;
-  padding:var(--sp-32-64) var(--col-inset) var(--sp-24-32);
+  border-block-start:var(--rule-w) solid var(--rule);
+  padding:var(--sp-32-64) 0 var(--sp-24-32);
   /* THE RAMP. --accent is #090b24 and is never rebound -- these are new names carrying its
      value, so the tokens page still owns the colour and this owns only the five steps.
      0 is a ground the eye reads as the grid rather than as data; 1-4 are fixed buckets of
@@ -1679,7 +1691,7 @@
      both come after this page's own <style> block, so an equal-specificity rule
      written earlier loses on source order and loses SILENTLY -- four League rules
      were lost that way. The League owns the final word on its own screens. -->
-<link rel="stylesheet" href="league.css">
+<link rel="stylesheet" href="league.css?v=57fb92263c">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1806,23 +1818,6 @@
      tools/build-commit-calendar.py and the section re-describes itself.
      The element ships `hidden`; the script reveals it only after a successful render with a
      `generated` date in hand. ═════════════════════════════════════════════════════════ -->
-<section class="pGit" id="pGit" aria-labelledby="pGitHead" hidden>
- <div class="pGitIn">
-  <div class="pGitTop">
-   <h2 class="pGitHead" id="pGitHead">Building this site</h2>
-   <p class="pGitStamp" id="pGitStamp"></p>
-  </div>
-  <!-- THE STRIP AND ITS CAPTION SHARE A ROW. See .pGitRow in the stylesheet for why:
-       a 612px strip and a 1200px column left the right half of this band empty, and the
-       caption was the thing that belonged in it. Wrapper only -- both elements keep their
-       ids, their order and their roles, so play-contributions.js writes into exactly what
-       it wrote into before. -->
-  <div class="pGitRow">
-   <div class="pGitGraph" id="pGitGraph" role="img" aria-label="Commit history for this site"></div>
-   <p class="pGitNote" id="pGitNote"></p>
-  </div>
- </div>
-</section>
 <!-- The four established launchers now sit below the Hero in normal document flow. -->
 <section class="pHub" id="games" tabindex="-1" aria-label="Games">
  <!-- NO HERO BLOCK, NO CROWD STRIP. Both were built and both came out on Jayden's call:
@@ -1977,6 +1972,23 @@
    <span class="pCardD">The app I run my life on: timeline, memory, mindset, books and kitchen. It opens on a new page.</span>
   </div>
  </nav>
+<section class="pGit" id="pGit" aria-labelledby="pGitHead" hidden>
+ <div class="pGitIn">
+  <div class="pGitTop">
+   <h2 class="pGitHead" id="pGitHead">Building this site</h2>
+   <p class="pGitStamp" id="pGitStamp"></p>
+  </div>
+  <!-- THE STRIP AND ITS CAPTION SHARE A ROW. See .pGitRow in the stylesheet for why:
+       a 612px strip and a 1200px column left the right half of this band empty, and the
+       caption was the thing that belonged in it. Wrapper only -- both elements keep their
+       ids, their order and their roles, so play-contributions.js writes into exactly what
+       it wrote into before. -->
+  <div class="pGitRow">
+   <div class="pGitGraph" id="pGitGraph" role="img" aria-label="Commit history for this site"></div>
+   <p class="pGitNote" id="pGitNote"></p>
+  </div>
+ </div>
+</section>
  <!-- ═══ THE CARD'S TWO ROUTES DO NOT BOTH FIRE ═══════════════════════════════════════
       play-games.js binds the three in-page games to the CELL by id (pcYow, pcExped,
       pcTour) and has since the cell WAS the launcher. The cell's own destination is the
@@ -2099,7 +2111,7 @@ window.__hmGames=true;</script>
      engine are untouched. The stylesheet is linked HERE rather than in <head> for
      the same reason league.css links last -- it is the final word on its own
      object, and a <link> is body-ok. -->
-<link rel="stylesheet" href="league-photos.css">
+<link rel="stylesheet" href="league-photos.css?v=57fb92263c">
 <script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a
