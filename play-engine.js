@@ -3238,8 +3238,30 @@ function teams(){
        head" -- found by asking which head carries no team tint. */
     var borrowed=null, borrowHome=null, borrowNext=null, borrowStyle="";
     try{
-      var live=[].slice.call(document.querySelectorAll(".stagewrap > div"))
-                 .filter(function(n){return n.querySelector(".eye");});
+      /* ── FIND HIM BY HIS BODY, NOT BY HIS EXPRESSION.  2026-08-31 ──────────
+         "in the sequence it shows the big jayden head in a glitch where he has
+         no iris visible I noticed that can you fix that throughout."
+         The filter here was `n.querySelector(".eye")` -- "has a live eye rig".
+         That is an EXPRESSION test wearing a structure test's clothes.
+         hero-engine's FACES table gives `smile` `eyes:[]` and `noIris:true`,
+         because images/smile.webp has his real eyes painted into the bitmap;
+         buildEyes() therefore DELETES every .eye div the moment he smiles. And
+         he is smiling exactly when this runs, because the restart that calls it
+         is the one that follows a goal.
+         So the test rejected the only head on the page, `live` came back empty,
+         and the ceremony fell through to the flat plate below -- which is the
+         one face on this site with no irises in it. MEASURED over a full cup at
+         1512x850: 10 drops, 3 of them on the flat plate, every one of those
+         three with the head showing images/smile.webp.
+         He is now recognised by what is true of him in every expression: he is
+         the DIV under .stagewrap holding a .stage with the portrait in it. The
+         old `.eye` test is kept as a second pass, so a host whose markup does
+         not match still finds a head rather than none. */
+      var _pick=function(test){
+        return [].slice.call(document.querySelectorAll(".stagewrap > div")).filter(test);
+      };
+      var live=_pick(function(n){return n.querySelector(".stage img.face");});
+      if(!live.length) live=_pick(function(n){return n.querySelector(".eye");});
       for(var i=0;i<live.length;i++){
         if(!live[i].querySelector("[style*='--tcx']")){ borrowed=live[i]; break; }
       }
@@ -3252,8 +3274,18 @@ function teams(){
       }
     }catch(_){ borrowed=null; }
     if(!borrowed){
+      /* ── AND THE LAST RESORT IS THE ONE FACE THAT HAS EYES IN IT.  2026-08-31
+         images/neutral.webp is a face PLATE: measured off its own bitmap, the
+         eye apertures are flat pale ovals, because the irises, glints and lids
+         are DOM layers the live rig draws on top of it. Pointed at by a bare
+         <img> it is a blank-eyed stare -- which is the glitch reported above,
+         and the same mistake the note further up already records making once.
+         images/smile.webp is the only portrait in FACES that bakes its own eyes
+         (`eyes:[]`, `noIris:true`), so it is the only one that is a complete
+         face standing alone. The borrow should now always succeed; if it ever
+         cannot, at least he is not eyeless. */
       var fb=document.createElement("img");
-      fb.className="hmDropperHead"; fb.src="images/neutral.webp"; fb.alt=""; fb.draggable=false;
+      fb.className="hmDropperHead"; fb.src="images/smile.webp"; fb.alt=""; fb.draggable=false;
       dropEl.appendChild(fb);
     }
     var bl=document.createElement("img");
