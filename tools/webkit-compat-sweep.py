@@ -53,6 +53,7 @@ PORT = 8349
 PAGES = [
     "index.html", "about.html", "play.html", "headmaker.html", "gradientlab.html",
     "apollo.html", "bearings.html", "cluster.html", "strata.html", "ucdavis.html",
+    "yowmings.html",
 ]
 
 # (label, width, height, is_mobile)

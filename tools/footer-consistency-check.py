@@ -53,6 +53,7 @@ PAGES = [
     "cluster.html",
     "strata.html",
     "ucdavis.html",
+    "yowmings.html",
     # play.html is here for the same reason as everything above it: it scrolls,
     # so it gets the footer. It was the last waived page, and it was waived on a
     # misreading -- see LEGACY_FOOTER_SHA256 below. play.css:650 hides the footer

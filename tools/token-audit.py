@@ -96,7 +96,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # page the 2026-08-08 adoption audit measured at 0% component adoption. The two
 # facts were related: nothing below its header was checked by anything.
 SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
-                 'bearings.html', 'cluster.html', 'strata.html', 'ucdavis.html',
+                 'bearings.html', 'cluster.html', 'strata.html', 'ucdavis.html', 'yowmings.html',
                  'headmaker.html', 'gradientlab.html']
 # draft.html was here from 2026-08-26 and is GONE as of 2026-08-27, with the
 # page and draft-data.js: "lets remove the draft guide actually i dont think i

@@ -8,7 +8,7 @@ import sys
 ROOT=Path(__file__).resolve().parent.parent
 SHIPPING=(
     "index.html","about.html","apollo.html","bearings.html","cluster.html",
-    "strata.html","ucdavis.html","play.html","headmaker.html","gradientlab.html",
+    "strata.html","ucdavis.html","yowmings.html","play.html","headmaker.html","gradientlab.html",
 )
 INTERNAL={
     "accent-swatches.html","button-system.html","header-prototype.html",
@@ -22,6 +22,7 @@ PORTFOLIO_PAGES={
     "bearings.html":"case-study",
     "cluster.html":"case-study",
     "strata.html":"case-study",
+    "yowmings.html":"case-study",
     "ucdavis.html":"case-study",
 }
 AUTHORED_MEDIA=re.compile(r"(?:\bimg\b|\bpicture\b|\bvideo\b|\bcanvas\b|\.face\b|\.case(?:Media|-media)\b|\.buildStage\b|\.shot\b|\.playerStage\b|\.game-artwork\b|\.arena\b)",re.I)
@@ -316,7 +317,10 @@ def check_shared_theme_transitions():
 
 def main():
     try:
-        assert len(SHIPPING)==10 and len(set(SHIPPING))==10, "shipping routes must be exactly ten unique pages"
+        # ELEVEN AS OF 2026-09-01, when yowmings.html joined the case studies.
+        # The number is here to catch a page being dropped from the list, not to
+        # cap the site at ten; it moves with SHIPPING and must always equal it.
+        assert len(SHIPPING)==11 and len(set(SHIPPING))==11, "shipping routes must be exactly eleven unique pages"
         assert not set(SHIPPING)&INTERNAL, "internal prototypes cannot be shipping routes"
         assert all((ROOT/page).is_file() for page in SHIPPING), "a shipping page is missing"
         check_theme_stylesheet()

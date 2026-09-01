@@ -97,7 +97,7 @@ PORT = 4231
 # compute overflow:hidden and cannot scroll to one; footer-consistency-check
 # owns that list and this one must not drift from it.
 PAGES = ["index.html", "about.html", "apollo.html", "bearings.html",
-         "cluster.html", "strata.html", "ucdavis.html", "play.html"]
+         "cluster.html", "strata.html", "ucdavis.html", "yowmings.html", "play.html"]
 
 # The band is the largest animated surface on the site and it is on every page,
 # so its frame cost is a standing tax. Measured 2026-08-19 on the band at 1440

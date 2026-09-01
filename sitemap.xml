@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Eight URLs: every page that carries <meta name="robots" content="index,follow">.
+  Nine URLs: every page that carries <meta name="robots" content="index,follow">.
 
   It used to carry two -- the home page and bearings.html -- so about.html and four
   of the five case studies were absent, and about.html is the single most
@@ -89,6 +89,17 @@
       <image:loc>https://jaydenbetts.design/images/cs/cluster.webp</image:loc>
       <image:title>Cluster, a product design case study by Jayden Betts</image:title>
       <image:caption>Cluster, a campus club-discovery app designed by Jayden Betts</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://jaydenbetts.design/yowmings.html</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/cs/yowmings-cover.webp</image:loc>
+      <image:title>Yowmings League, a product design case study by Jayden Betts</image:title>
+      <image:caption>The Yowmings League, a browser football game designed and built by Jayden Betts</image:caption>
     </image:image>
   </url>
   <url>

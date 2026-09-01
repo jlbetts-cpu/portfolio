@@ -48,7 +48,7 @@ import argparse, json, subprocess, sys, threading, time, http.server, socketserv
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WIDTHS = [1440, 1280, 390]
 NAV_PAGES = ["index.html", "about.html", "bearings.html", "apollo.html",
-             "cluster.html", "ucdavis.html", "strata.html"]
+             "cluster.html", "ucdavis.html", "strata.html", "yowmings.html"]
 
 # The three injections. Each is CSS or JS that reinstates exactly one shipped bug.
 INJECT = {

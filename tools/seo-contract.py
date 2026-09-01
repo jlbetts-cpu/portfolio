@@ -51,7 +51,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ORIGIN = "https://jaydenbetts.design"
 
 PAGES = ["index.html", "about.html", "play.html", "headmaker.html", "gradientlab.html",
-         "apollo.html", "bearings.html", "cluster.html", "strata.html", "ucdavis.html"]
+         "apollo.html", "bearings.html", "cluster.html", "strata.html", "ucdavis.html",
+         "yowmings.html"]
 
 PERSON_ID = f"{ORIGIN}/#person"
 # Properties that make a Person node useful for a name query. Not schema.org

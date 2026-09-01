@@ -7,7 +7,8 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES = ("bearings.html", "apollo.html", "cluster.html", "strata.html", "ucdavis.html")
+CASES = ("bearings.html", "apollo.html", "cluster.html", "strata.html", "ucdavis.html",
+         "yowmings.html")
 SHARED_ASSETS = {
     "tokens.css", "controls.css", "header.css", "footer.css", "site-theme.css", "hero-time.css",
 }

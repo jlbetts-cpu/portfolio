@@ -63,7 +63,7 @@ def rule(source, selector, occurrence=0):
 # the loop that asserts the time control, because that control is another lane's
 # to add there and this gate must not fail on a file it cannot fix.
 SHARED_PAGES = ("index.html", "about.html", "apollo.html", "bearings.html",
-                "cluster.html", "strata.html", "ucdavis.html",
+                "cluster.html", "strata.html", "ucdavis.html", "yowmings.html",
                 "headmaker.html", "gradientlab.html", "play.html")
 
 

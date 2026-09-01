@@ -246,7 +246,8 @@ def check_no_dead_theme_selectors(failures, self_test):
     shipped = set()
     sources = []
     for name in ("index.html", "about.html", "apollo.html", "bearings.html", "cluster.html",
-                 "strata.html", "ucdavis.html", "play.html", "headmaker.html", "gradientlab.html"):
+                 "strata.html", "ucdavis.html", "yowmings.html", "play.html", "headmaker.html",
+                 "gradientlab.html"):
         sources.append(html_comment.sub("", (ROOT / name).read_text()))
     for js in sorted(ROOT.glob("*.js")):
         sources.append(js_comment.sub("", js.read_text()))

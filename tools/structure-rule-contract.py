@@ -100,12 +100,19 @@ class QuietServer(ThreadingHTTPServer):
 # the next such blind spot -- they held ZERO var(--rule) references before this
 # round, so the cap has never seen them, and the first line to arrive there would
 # have arrived the same way play's did.
+# ROUND 17, 2026-09-01: A SIXTH CASE STUDY JOINS THE COUNT AND THE BUDGET DOES
+# NOT MOVE. yowmings.html is built on the same skeleton, so it carries the same
+# single `.content>.sec{border-top:...}` -- one occurrence, N-1 painted lines --
+# and the count goes 12 -> 13 against a cap of 14. The slack is 1 now and it was
+# 2; that is the cap doing its job rather than a reason to raise it. It is ADDED
+# to OWNED rather than left out for the reason rounds 15 and 16 give above: a
+# page the cap cannot see is a page structural lines arrive on uncounted.
 RULE_BUDGET = 14
 
 OWNED = ("tokens.css", "header.css", "controls.css", "index.html",
          "hero-time.css", "play.html", "play.css",
          "apollo.html", "bearings.html", "cluster.html", "strata.html",
-         "ucdavis.html")
+         "ucdavis.html", "yowmings.html")
 
 
 def compact(value):
@@ -317,6 +324,7 @@ COLUMN_PAGES = {
     "cluster.html": ".layout",
     "strata.html": ".layout",
     "ucdavis.html": ".layout",
+    "yowmings.html": ".layout",
     "headmaker.html": ".mkApp",
     "gradientlab.html": ".lab",
 }
