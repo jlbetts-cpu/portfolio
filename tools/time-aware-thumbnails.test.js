@@ -239,7 +239,19 @@ async function test(name,run){
   const html=fs.readFileSync(require.resolve("../index.html"),"utf8");
   assert.equal((html.match(/data-time-thumbnail="bearings"/g)||[]).length,2);
   assert.equal((html.match(/data-time-thumbnail="apollo"/g)||[]).length,2);
-  assert.equal((html.match(/<script src="time-aware-thumbnails\.js" defer><\/script>/g)||[]).length,1);
+  /* THE TAG LOST ITS defer AND MOVED, and this assertion was still pinned to the
+     old one -- it has been failing against HEAD since the script was moved to sit
+     immediately after the last cover (see the note at the top of
+     time-aware-thumbnails.js: defer would re-open the 721ms gap that move closes).
+     What is worth asserting is not the attribute, it is the POSITION: the script
+     must come after the last .csItem, because a card parsed below it is a card the
+     controller never sees. That is the failure this file should be able to catch,
+     and it is the one that actually happened -- five covers stuck on their daytime
+     plate after cards were appended under the tag. */
+  const tag=/<script src="time-aware-thumbnails\.js"[^>]*><\/script>/g;
+  assert.equal((html.match(tag)||[]).length,1);
+  assert.ok(html.search(tag)>html.lastIndexOf('class="csItem'),
+   "time-aware-thumbnails.js must be loaded BELOW the last .csItem");
   assert.equal((html.match(/<img class="csImg"[^>]*data-time-thumbnail=/g)||[]).length,4);
  });
 

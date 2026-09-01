@@ -1559,18 +1559,25 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Yowmings League: a game that settles a real draft has to be one nobody can argue with."><span class="eyebrow">Yowmings League</span>A game that settles a real draft has to be one nobody can argue with.</h1>
 
-    <!-- ── THIS COVER DOES NOT TAKE THE HOUR, AND THAT IS A GAP, NOT A DECISION ──
-         The other five covers each ship TWELVE files -- six time-of-day states at
-         1200 and 2400 -- under images/cs/variants/time/<slug>/, and swap with the
-         site's clock through data-time-thumbnail. This one is a single still.
-         WHY IT IS NOT FAKED: the variants are photographs graded per hour, and a
-         recoloured sixth would be the one thing the series is not. So the plate
-         is honest about being one plate, and time-aware-thumbnails.js is not
-         loaded here -- "yowmings" is not in its PROJECTS list, so the swapper
-         would find nothing to swap and the fetch would buy nothing.
-         WHAT IT WOULD TAKE: six graded captures of a match and one line in
-         PROJECTS/ORIGINALS/VARIANT_DIRS. Until then this page is the only case
-         study whose cover holds still, and the home-page card holds still with it.
+    <!-- ── THE PLATE TAKES THE HOUR NOW, AND THIS HERO IS THE LAST ONE THAT DOES NOT ──
+         Corrected 2026-09-01. This comment used to say the cover could not take
+         the hour and that faking it would be the one thing the series is not.
+         Both halves stopped being true in 3562b34: images/cs/variants/time/yowmings/
+         ships the same TWELVE files every other cover ships -- six time-of-day
+         states at 1200 and 2400 -- and "yowmings" is in time-aware-thumbnails.js's
+         PROJECTS, ORIGINALS and VARIANT_DIRS, so the Home card swaps with the
+         site's clock through its .csItem[data-slug].
+         IT IS NOT A RECOLOUR, WHICH IS WHY IT WAS BUILDABLE. The other ten covers
+         separate a photograph from a product and grade only the photograph; this
+         plate has no photograph, so the separation is between the game's flat 253
+         PITCH, which takes the hour, and its INK -- every head, both sets of
+         uprights, the ball and the score bar -- which comes back byte-identical
+         over the graded ground in all six states. Same rule, applied to a plate
+         whose environment happens to be drawn rather than photographed.
+         WHAT IS STILL A GAP: this page does not load time-aware-thumbnails.js and
+         its hero carries no data-time-thumbnail, so the picture below holds still
+         while the card the visitor clicked to get here does not. That is one
+         attribute and one script tag, not a decision.
          THE FRAME IS THE SERIES' FRAME AND SO IS THE PLATE NOW. .cover is 12/5 on
          desktop and 8/5 below 560. The plate used to be the match's own 16/9 in its
          own pair of files; it is the 2:1 card plate the other five case studies use,

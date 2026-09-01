@@ -5,7 +5,7 @@ WHAT THIS IS.  The five covers that already ship are a photograph with the
 product standing on top of it, and only the PHOTOGRAPH takes the hour -- the
 mockup pixels are byte-identical in all six states.  That preservation is the
 whole reason those plates read as one picture at six times of day instead of six
-filters.  This builds Lifeline, Head Maker, Gradient Lab and the games engine to
+filters.  This builds Workspace, Head Maker, Gradient Lab and the games engine to
 the same construction, and it deliberately imports nothing from
 build-missing-time-thumbnails.py except the numbers: PALETTES, atmosphere() and
 grade() are copied verbatim so a new cover is graded by the identical curve the
@@ -20,7 +20,7 @@ already reads as sunset cannot be graded to pre-dawn without looking tinted.
 Sources, all Unsplash (licence permits commercial use without attribution;
 credited here so the credit exists if he ever wants it):
 
-  lifeline     Eddie Lau        YjVNM-F-XuQ  Lake Pukaki under Aoraki: calm
+  workspace    Eddie Lau        YjVNM-F-XuQ  Lake Pukaki under Aoraki: calm
                blue-teal water and a long level horizon, which is what a
                timeline is.
   headmaker    Jake Kling       8PPrRG9xT_c  a vermilion sandstone ridge --
@@ -82,7 +82,7 @@ PALETTES = {
 # height.  The offset is the only per-photograph tuning: it decides where the
 # horizon lands, and the horizon is what the atmosphere gradient reads against.
 SCENES = {
-    "lifeline": ("https://images.unsplash.com/photo-1655476284454-ca64e462532d", .55),
+    "workspace": ("https://images.unsplash.com/photo-1655476284454-ca64e462532d", .55),
     "headmaker": ("https://images.unsplash.com/photo-1778110858872-5bde317d0272", .55),
     "gradientlab": ("https://images.unsplash.com/photo-1611613042541-21b1afcae5fd", .55),
     "engine": ("https://images.unsplash.com/photo-1719469202552-3a86b1bf5ff0", .55),
@@ -94,7 +94,7 @@ SCENES = {
 # race-late.webp -> race-finish.webp).  The tool therefore fails loudly on a
 # missing screen rather than quietly falling back to a different one.
 LAYOUTS = {
-    "lifeline": "study/lifeline/timeline.webp",
+    "workspace": "study/workspace/timeline.webp",
     "headmaker": "study/headmaker/step3.webp",
     "gradientlab": "study/gradientlab/builder.webp",
     "engine": "study/engine/soccer.webp",
@@ -218,43 +218,187 @@ def foreground(slug, size):
 # The league's cover is not a photograph with a product on it; it is a capture
 # of a match on the game's own flat 253 pitch, and it is the plate the Home card
 # and the case-study hero both already load.  It is NOT rebuilt here and NOT
-# replaced.  What it gets is the same separation the other five get: the GROUND
+# replaced.  What it gets is the same separation the other ten get: the GROUND
 # takes the hour, the INK does not.  Every head, both sets of uprights, the ball
 # and the score bar come back byte-identical over the graded pitch, so this is
 # the series' rule applied to a plate whose environment happens to be drawn
 # rather than photographed -- not a recolour of the picture, which is the one
 # thing the series is not.
 #
-# THE MASK IS MEASURED, NOT GUESSED.  Ground is (253,253,253): darkness 2,
-# saturation 0.  The soft reflections under the eggheads run to darkness ~9 and
-# are part of the pitch's surface, so they must grade WITH it -- a shadow on a
-# blue pitch is a darker blue -- and the ramp therefore starts above them, at
-# 22.  A head reads darkness 222 and saturation 124; the black score bar reads
-# darkness ~220 at saturation 0, which is why darkness and saturation are taken
-# together rather than either alone.  Saturation is weighted 1.6 so a bright
-# yellow upright (light, but strongly coloured) clears the ramp on colour.
+# THE FIRST BUILD OF THIS SEPARATION WAS A THRESHOLD, AND A THRESHOLD CANNOT DO
+# IT.  2026-09-01, looked at rather than measured: at night the referee's
+# photographic face was stained purple across both cheeks, the chin and the
+# forehead, his cap's white stripes went purple with it, and the soft reflection
+# under every egghead inverted into a bright white ghost sitting ON the dark
+# pitch.  All three are the same mistake.  The old mask was
+# strength = max(darkness, 1.6*saturation) ramped from 22 to 62, and:
+#
+#   * INK IS NOT ALWAYS DARK OR COLOURED.  His skin, his teeth, the cap's white
+#     stripes and the ball's laces are bright and neutral, so they scored below
+#     the ramp and took the hour like ground.  A photograph of a person is ink.
+#   * REFLECTIONS ARE NOT INK.  They reach darkness ~88 near the head, well over
+#     the ramp's ceiling of 62, so their strongest part was held byte-identical
+#     as light grey while their faint tail graded -- which is why they inverted.
+#     A reflection is the pitch's own surface and has to grade WITH it.
+#
+# SO THE MATTE IS BUILT FROM SHAPE, NOT FROM BRIGHTNESS.  Three steps, and each
+# one exists because the step before it is not enough on its own:
+#
+#   1. SILHOUETTE.  Threshold low (22) to catch every antialiased outer edge,
+#      then fill every enclosed hole by flooding the OUTSIDE of the frame.  This
+#      is what makes a bright cheek ink: it is not dark, it is INSIDE something.
+#   1b. CUT AT THE GROUND LINE.  A reflection TOUCHES the head it belongs to, so
+#      step 2 cannot drop it on connectivity, and it cannot be dropped on
+#      brightness either: it reaches darkness ~88 under the head while the
+#      referee's face is sealed by an outline of only ~53, so no single
+#      threshold clears both.  What separates them is that nothing which is ink
+#      extends below the lowest core-strength pixel in its own column.  Without
+#      this cut every head grew a hard white pedestal at night -- the top of its
+#      own reflection, promoted to ink and un-matted to white.
+#   2. KEEP ONLY WHAT HAS A CORE.  Filling holes also keeps the reflections,
+#      which are solid blobs of their own.  A morphological reconstruction from
+#      strength >= 130 -- a level no reflection pixel reaches, measured max 90 --
+#      keeps exactly the silhouettes that contain real ink and drops the rest.
+#      A flood fill alone will not do this: the referee's temples are bare skin
+#      against bare pitch with no dark outline, so the fill leaks straight into
+#      his face and carves out the eyes.
+#   3. UN-MATTE THE EDGE.  An antialiased edge pixel is a blend of ink and the
+#      WHITE pitch.  Replayed unchanged over a night-blue ground it is a bright
+#      rim, and that rim was visible around every head.  The ink's own colour is
+#      recovered as (pixel - 253*(1-a)) / a before it is composited back.
+#
+# AND THE REFLECTIONS BECOME SHADING RATHER THAN PIXELS.  They are applied to
+# the graded ground as a MULTIPLY -- pitch/253 -- so a reflection on a blue
+# pitch is a darker blue and on a sunset pitch a darker sunset.  That is what
+# the first build said it wanted and did not do.
+#
+# WHAT THIS DOES NOT FIX, AND CANNOT.  86.4% of the plate is bare 253 pitch, so
+# there is nothing in it to carry depth.  Measured over the six states, its
+# internal contrast is sd 32.2 against 61.6 for the next flattest cover and ~76
+# for the series, while its mean swings 156.9 levels against 40-76 for every
+# photograph -- it does not take too LITTLE hour, it takes far too much of it
+# with nothing underneath.  That is the crop, not the grade, and the lever is
+# composition: the same capture cropped to the action measures sd 65.7, inside
+# the series' range.  No texture is invented here to close that gap.
 YOWMINGS = ROOT / "images/cs/yowmings"
-INK_FLOOR, INK_RAMP, INK_SAT = 22, 40, 1.6
+PITCH = 253             # the game's own ground, measured: (253,253,253) flat
+INK_FLOOR, INK_RAMP, INK_SAT = 22, 40, 1.6   # the outer edge, unchanged
+INK_CORE = 130          # strength only real ink reaches; reflections peak at 90
 
 
-def ink_layer(plate):
-    """The parts of the match that must not take the hour, with soft edges."""
+def _strength(plate):
+    """Darkness and saturation together: ink is dark OR strongly coloured."""
     red, green, blue = plate.split()
     low = ImageChops.darker(ImageChops.darker(red, green), blue)
     high = ImageChops.lighter(ImageChops.lighter(red, green), blue)
     darkness = ImageChops.invert(low)
     saturation = ImageChops.subtract(high, low).point(lambda v: min(255, round(v * INK_SAT)))
-    strength = ImageChops.lighter(darkness, saturation)
-    mask = strength.point(
+    return ImageChops.lighter(darkness, saturation)
+
+
+def _fill_holes(binary):
+    """Everything not reachable from outside the frame is inside something."""
+    padded = Image.new("L", (binary.width + 2, binary.height + 2), 0)
+    padded.paste(binary, (1, 1))
+    ImageDraw.floodfill(padded, (0, 0), 128)
+    return padded.point(lambda v: 0 if v == 128 else 255).crop(
+        (1, 1, binary.width + 1, binary.height + 1))
+
+
+def _reconstruct(cores, silhouette, step=4, limit=400):
+    """The components of `silhouette` that contain a core, and only those."""
+    kernel = 2 * step + 1
+    current = ImageChops.multiply(cores, silhouette)
+    for _ in range(limit):
+        grown = ImageChops.multiply(current.filter(ImageFilter.MaxFilter(kernel)), silhouette)
+        if ImageChops.difference(grown, current).getbbox() is None:
+            return grown
+        current = grown
+    raise RuntimeError("yowmings: the ink reconstruction did not settle")
+
+
+def _unmatte(plate, alpha):
+    """The ink's own colour, with the white pitch divided back out of the edge."""
+    out = plate.copy()
+    pixels, mask, target = plate.load(), alpha.load(), out.load()
+    width, height = plate.size
+    for y in range(height):
+        for x in range(width):
+            weight = mask[x, y]
+            if weight == 0 or weight == 255:
+                continue                      # ground, or ink already itself
+            share = weight / 255.0
+            target[x, y] = tuple(
+                min(255, max(0, round((value - PITCH * (1 - share)) / share)))
+                for value in pixels[x, y])
+    return out
+
+
+def _standing(strength):
+    """Everything at or above the lowest real ink in its own column.
+
+    A REFLECTION TOUCHES THE HEAD IT BELONGS TO, so hole-filling and
+    reconstruction cannot tell them apart on connectivity alone -- and they
+    cannot be told apart on brightness either, because a reflection reaches
+    darkness ~88 right under the head while the referee's own face is sealed by
+    an outline of only ~53.  Any single threshold that keeps the reflection out
+    lets the flood into his face, and vice versa; that collision is measured and
+    it is why this exists.  What DOES separate them is that a reflection is
+    always below the thing casting it: nothing that is ink extends past the
+    lowest core-strength pixel in its column.  The small margin gives each
+    object back its own soft bottom edge, and is in image pixels so 1200 and
+    2400 are cut in the same place.
+    """
+    width, height = strength.size
+    margin = max(2, round(height / 300))
+    standing = Image.new("L", (width, height), 0)
+    reading, writing = strength.load(), standing.load()
+    for x in range(width):
+        floor = -1
+        for y in range(height - 1, -1, -1):
+            if reading[x, y] >= INK_CORE:
+                floor = y
+                break
+        if floor < 0:
+            continue
+        for y in range(min(height - 1, floor + margin) + 1):
+            writing[x, y] = 255
+    return standing
+
+
+def ink_matte(plate):
+    """(alpha, ink): what must not take the hour, and its own colour."""
+    strength = _strength(plate)
+    edge = strength.point(
         lambda v: 0 if v <= INK_FLOOR else 255 if v >= INK_FLOOR + INK_RAMP
         else round((v - INK_FLOOR) * 255 / INK_RAMP)
-    )
-    # A sub-pixel feather only: the capture's own antialiasing is already soft,
-    # and anything wider would leave a pale halo around every head.
-    mask = mask.filter(ImageFilter.GaussianBlur(.6))
-    layer = plate.convert("RGBA")
-    layer.putalpha(mask)
-    return layer
+    ).filter(ImageFilter.GaussianBlur(.6))
+    standing = _standing(strength)
+    silhouette = ImageChops.multiply(_fill_holes(edge.point(lambda v: 255 if v else 0)), standing)
+    solid = _reconstruct(strength.point(lambda v: 255 if v >= INK_CORE else 0), silhouette)
+    # Solid inside, the measured ramp at the edge, nothing more than a pixel
+    # outside the silhouette, and nothing at all below the ground line.
+    alpha = ImageChops.multiply(
+        ImageChops.multiply(
+            ImageChops.lighter(solid.filter(ImageFilter.MinFilter(5)), edge),
+            solid.filter(ImageFilter.MaxFilter(3)),
+        ),
+        standing,
+    ).filter(ImageFilter.GaussianBlur(.5))
+    return alpha, _unmatte(plate, alpha)
+
+
+def pitch_shading(plate, alpha):
+    """The pitch's own reflections, as a multiply, neutralised under the ink."""
+    lift = plate.convert("L").point(lambda v: min(255, round(v * 255 / PITCH)))
+    gap = ImageChops.subtract(Image.new("L", plate.size, 255), lift)
+    return ImageChops.add(lift, ImageChops.multiply(gap, alpha))
+
+
+def yowmings_state(plate, alpha, ink, shading, state):
+    ground = grade(Image.new("RGB", plate.size, (PITCH, PITCH, PITCH)), state)
+    lit = ImageChops.multiply(ground, Image.merge("RGB", (shading, shading, shading)))
+    return Image.composite(ink, lit, alpha)
 
 
 def build_yowmings():
@@ -265,11 +409,11 @@ def build_yowmings():
             raise FileNotFoundError(f"yowmings: the shipped plate moved: {source}")
         plate_image = Image.open(source).convert("RGB")
         assert plate_image.size == (width, width // 2), (source, plate_image.size)
-        ink = ink_layer(plate_image)
+        alpha, ink = ink_matte(plate_image)
+        shading = pitch_shading(plate_image, alpha)
         for state in STATES:
-            composed = grade(plate_image, state).convert("RGBA")
-            composed.alpha_composite(ink)
-            written.append(save(composed.convert("RGB"), "yowmings", state, width))
+            written.append(save(yowmings_state(plate_image, alpha, ink, shading, state),
+                                "yowmings", state, width))
     return written
 
 
@@ -330,9 +474,24 @@ def product_drift(slug, folder=None):
     frames = [Image.open(folder / f"{state}-1200.webp").convert("RGB") for state in STATES]
     if slug == "yowmings":
         # The ink is scattered over the whole plate rather than sitting in one
-        # rectangle, so the sample is every pixel the mask holds fully opaque.
-        opaque = ink_layer(Image.open(YOWMINGS / "card-1200.webp").convert("RGB")).getchannel("A")
-        opaque = opaque.point(lambda v: 255 if v == 255 else 0)
+        # rectangle, so the sample is taken through a mask instead of a crop --
+        # and the mask is the ink's SILHOUETTE, not the pixels the matte happens
+        # to hold fully opaque.  That difference is the whole point: the first
+        # build's matte was opaque only where the plate was dark or coloured, so
+        # sampling its opaque pixels asked "did the parts I already protected
+        # stay protected", which is a question that cannot fail.  The referee's
+        # cheeks were inside the ink and turning purple, and this check passed.
+        # Sampling the silhouette asks the question that matters -- did anything
+        # INSIDE a head move -- and the injection below proves it can fail.
+        plate = Image.open(YOWMINGS / "card-1200.webp").convert("RGB")
+        strength = _strength(plate)
+        opaque = _reconstruct(
+            strength.point(lambda v: 255 if v >= INK_CORE else 0),
+            ImageChops.multiply(
+                _fill_holes(strength.point(lambda v: 255 if v > INK_FLOOR else 0)),
+                _standing(strength),
+            ),
+        ).filter(ImageFilter.MinFilter(5))
         void = Image.new("RGB", frames[0].size)
         samples = [Image.composite(frame, void, opaque) for frame in frames]
     else:
@@ -379,9 +538,43 @@ def self_test():
           f"threshold {PRODUCT_DRIFT_MEAN}. OK")
 
 
+def self_test_yowmings():
+    """Re-inject the matte the league's plate shipped with, and prove it fails.
+
+    The bug is the whole first construction: one threshold on darkness and
+    saturation, the ink replayed unchanged over the graded ground.  It looks
+    reasonable and it passed the old check, because the old check sampled the
+    pixels that matte held opaque -- the ones it had already got right.  Against
+    the silhouette the failure is obvious: the referee's face is inside a head
+    and it moves.
+    """
+    scratch = CACHE / "self-test-yowmings"
+    scratch.mkdir(parents=True, exist_ok=True)
+    plate = Image.open(YOWMINGS / "card-1200.webp").convert("RGB")
+    strength = _strength(plate)
+    threshold = strength.point(
+        lambda v: 0 if v <= INK_FLOOR else 255 if v >= INK_FLOOR + INK_RAMP
+        else round((v - INK_FLOOR) * 255 / INK_RAMP)
+    ).filter(ImageFilter.GaussianBlur(.6))
+    ink = plate.convert("RGBA")
+    ink.putalpha(threshold)                       # <-- the injected mistake
+    for state in STATES:
+        broken = grade(plate, state).convert("RGBA")
+        broken.alpha_composite(ink)
+        broken.convert("RGB").save(scratch / f"{state}-1200.webp", "WEBP", quality=84, method=6)
+    mean, peak = product_drift("yowmings", scratch)
+    assert peak > PRODUCT_DRIFT_PEAK, \
+        f"the check cannot fail: the injected matte drifted only {peak} at peak"
+    healthy = product_drift("yowmings")
+    print(f"self-test: the shipped threshold matte measures mean {mean:.2f} / peak {peak} "
+          f"inside the ink silhouette; the matte that ships now measures mean "
+          f"{healthy[0]:.2f} / peak {healthy[1]}; threshold {PRODUCT_DRIFT_PEAK}. OK")
+
+
 def main():
     if "--self-test" in sys.argv:
         self_test()
+        self_test_yowmings()
         return
     slugs = sys.argv[1:] or list(SCENES) + ["yowmings"]
     for slug in slugs:

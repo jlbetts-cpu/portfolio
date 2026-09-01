@@ -1,13 +1,27 @@
 const assert = require("node:assert/strict");
 const T = require("../time-aware-thumbnails.js");
 
+// Written out rather than read from T.ORIGINALS on purpose: a test that asks the
+// module what it thinks cannot notice the module being wrong. This list is the
+// eleven covers the home page actually ships, and it grew from six on 2026-08-31
+// (cc2048e) when the four new studies and the league joined -- the assertion
+// below had been pinned at those six and was failing against HEAD before this
+// was updated.  Two slugs do not match their directory or their filename and
+// both are deliberate: "ucdavis" reads from variants/time/ucrec/, and
+// "workspace" is served by workspace-study.html because the built app already
+// owns /workspace/.
 const originals = {
   bearings: "images/cs/bearings-cover.webp",
   apollo: "images/cs/apollo-cover.webp",
   strata: "images/cs/strata-cover.webp",
   cluster: "images/cs/cluster/cluster-cover.webp",
   ucdavis: "images/cs/ucrec/cover.webp",
-  r3shore: "images/cs/r3shore.webp"
+  r3shore: "images/cs/r3shore.webp",
+  workspace: "images/cs/study/workspace/cover.webp",
+  headmaker: "images/cs/study/headmaker/cover.webp",
+  gradientlab: "images/cs/study/gradientlab/cover.webp",
+  engine: "images/cs/study/engine/cover.webp",
+  yowmings: "images/cs/yowmings/card-1200.webp"
 };
 
 function image(project) {
@@ -30,7 +44,9 @@ function image(project) {
 function flush() { return new Promise(resolve => setImmediate(resolve)); }
 
 (async function () {
-  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster", "ucdavis", "r3shore"]);
+  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster", "ucdavis", "r3shore",
+                                "workspace", "headmaker", "gradientlab", "engine", "yowmings"]);
+  assert.deepEqual(Object.keys(originals).sort(), T.PROJECTS.slice().sort());
   for (const project of T.PROJECTS) {
     assert.deepEqual(T.sourceFor(project, "off"), {src: originals[project], srcset: "", sizes: ""});
     const variant = project === "ucdavis" ? "ucrec" : project;
