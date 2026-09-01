@@ -281,6 +281,12 @@ PROBE = """() => {
     graphLeft: Math.round(gr.left), graphRight: Math.round(gr.right),
     calRight: Math.round(document.querySelector('.pGitCal').getBoundingClientRect().right),
     cardsLeft: Math.round(cr.left), cardsRight: Math.round(cr.right),
+    /* THE EDGE A READER CAN SEE. .pCards' own box starts on the page's column, but each
+       card insets its contents by 24, so the title, the sentence and the image all begin
+       24 further in. The band lines up with THOSE, not with the grid's invisible box. */
+    textLeft: Math.round(document.querySelector('.pCardT').getBoundingClientRect().left),
+    textRight: Math.round(Math.max(...[...document.querySelectorAll('.pCard .pCardImg')]
+                 .map(e => e.getBoundingClientRect().right))),
     topLeft: Math.round(tr.left), topRight: Math.round(tr.right),
     cellW: cell.getBoundingClientRect().width,
     cellH: cell.getBoundingClientRect().height,
@@ -524,9 +530,16 @@ def browser_contract(base, patched_js=None, patched_css=None):
             # edge.  What replaces the old assertion is a CEILING -- the strip may never
             # run past the column, which is the thing the pinned edge was really
             # protecting, and it now also holds for a strip narrower than it.
-            assert abs(m["graphLeft"] - m["cardsLeft"]) <= 1, \
-                ("%d: the graph does not start on the page's column: graph %d, cards %d"
-                 % (width, m["graphLeft"], m["cardsLeft"]))
+            # AGAINST THE CARD'S TEXT, NOT THE GRID'S BOX.  This compared the graph to
+            # .pCards' own left edge and reported "graph 180, cards 156"; the 24 came off
+            # to satisfy it and put every square hard against the page's vertical rails.
+            # 180 was right, and this is the thing it was right about.
+            assert abs(m["graphLeft"] - m["textLeft"]) <= 1, \
+                ("%d: the graph does not start on the cards' text edge: graph %d, card "
+                 "text %d" % (width, m["graphLeft"], m["textLeft"]))
+            assert m["graphLeft"] > m["cardsLeft"], \
+                ("%d: the graph is hard against the page's rail (%d); the cards inset "
+                 "their contents and so must this" % (width, m["graphLeft"]))
             # THE CEILING IS THE SCROLLPORT'S, NOT THE GRAPH'S, below 760.  The calendar
             # becomes its own horizontal scroller there (53 columns across 358px is a
             # 2.8px day: not a small picture, an unreadable one), so the CONTENT is
@@ -534,12 +547,12 @@ def browser_contract(base, patched_js=None, patched_css=None):
             # the scrollport. The page-scroll assertion above is what proves the overflow
             # stays inside that box.
             edge = m["calRight"] if width <= 760 else m["graphRight"]
-            assert edge <= m["cardsRight"] + 1, \
-                ("%d: the calendar runs past the page's column: edge %d, cards %d..%d"
-                 % (width, edge, m["cardsLeft"], m["cardsRight"]))
+            assert edge <= m["textRight"] + 1, \
+                ("%d: the calendar runs past the cards' text column: edge %d, card "
+                 "image ends %d" % (width, edge, m["textRight"]))
             # The heading is text, so only its LEFT edge is the column's; its right
             # edge is wherever the words stop.
-            assert m["topLeft"] == m["cardsLeft"], \
+            assert m["topLeft"] == m["textLeft"], \
                 ("%d: the heading row no longer spans the column -- it is what holds the "
                  "section to the page now that the strip is shorter than it: row %d..%d, "
                  "cards %d..%d" % (width, m["topLeft"], m["topRight"], m["cardsLeft"], m["cardsRight"]))

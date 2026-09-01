@@ -552,15 +552,19 @@
 
     IT GOES WHEN A GAME TAKES THE VIEWPORT, on the same flag .siteFoot and the margin rails
     use. A pitch has no column and no side-matter. ═══════════════════════════════════════ */
- /* NO HORIZONTAL INSET OF ITS OWN. It used to carry --col-inset because it was a
-    top-level section between the hero and the hub, and it had to build the page's gutter
-    itself. On 2026-09-01 he moved it under the games -- "the github i think should be
-    under the games" -- so it is now a CHILD of .pHub, which already insets the column.
-    Keeping the inset applied it twice and put the strip 24px inside the cards it is
-    supposed to share an edge with. The vertical padding is still this element's job. */
+ /* IT SHARES THE CARDS' TEXT EDGE, NOT THE GRID'S.
+    This went wrong once in both directions and the measurement is worth keeping. .pCards
+    is a grid whose own box starts on the page's column at 156, but every card INSETS its
+    contents by 24 -- the title, the sentence and the image all begin at 180. So there are
+    two "left edges" here, and the band has to pick the one a reader can see: the squares
+    sit beside card TEXT, not beside the invisible edge of a grid container.
+    A gate comparing the graph to .pCards' own box said "graph 180, cards 156" and the
+    24 came off, which put the band's content hard against the page's vertical rails --
+    "why is it touching the lines on the sides". The 24 is back and the assertion now
+    compares against .pCardT, the thing it was always meant to line up with. */
  .pGit{position:relative;z-index:40;width:100%;box-sizing:border-box;
   border-block-start:var(--rule-w) solid var(--rule);
-  padding:var(--sp-56-96) 0 var(--sp-24-32);
+  padding:var(--sp-56-96) var(--sp-24) var(--sp-24-32);
   /* THE RAMP. --accent is #090b24 and is never rebound -- these are new names carrying its
      value, so the tokens page still owns the colour and this owns only the five steps.
      0 is a ground the eye reads as the grid rather than as data; 1-4 are fixed buckets of
@@ -723,6 +727,10 @@
   color:var(--theme-muted);opacity:.75}
 
  @media(max-width:760px){
+  /* THE INSET FOLLOWS THE CARD'S. .pCard drops from 24 to 16 at this same width, and the
+     band lines up with card text, so it drops here too or the two disagree by 8px. */
+  .pGit{padding-inline:var(--sp-16)}
+  .pSecHead{padding-inline:var(--sp-16)}
   .pGitCal{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
    scrollbar-width:thin;padding-bottom:var(--sp-8)}
   /* THE GAP GIVES BEFORE THE CELL DOES. At the scrollport's floor the pitch is fixed,
@@ -738,6 +746,7 @@
     this page are peers and neither title may out-shout the other. It is inside .pHub, so
     it takes the column from the same place the cards do and needs no inset of its own. */
  .pSecHead{width:100%;max-width:var(--col-max);margin:0 auto var(--sp-20);
+  box-sizing:border-box;padding-inline:var(--sp-24);
   font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);
   line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--theme-ink)}
  body.playViewportOwned .pSecHead{display:none}
