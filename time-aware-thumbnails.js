@@ -27,18 +27,40 @@
  "use strict";
 
  var STATES=Object.freeze(["off","pre-dawn","sunrise","daytime","dusk","sunset","night"]);
- var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis","r3shore"]);
+ /* THE SLUG HERE IS THE PAGE'S data-slug, NOT ITS FILENAME, and two of the five
+    new ones do not agree with their file: head-maker-study.html is "headmaker"
+    and gradientlab-study.html is "gradientlab". The href sniff at the bottom of
+    projectFor() therefore cannot find Head Maker on its own -- it looks for
+    "<project>.html" -- so every new card must carry data-time-thumbnail or sit
+    in a .csItem[data-slug]. Both of those are checked BEFORE the href, so a
+    card that declares itself is never at the mercy of the filename.
+    "gradientlab" would in fact match gradientlab-study.html by accident, and
+    would ALSO match a plain link to the tool at gradientlab.html; declaring the
+    attribute is what keeps that from being luck. */
+ var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis","r3shore",
+                             "lifeline","headmaker","gradientlab","engine","yowmings"]);
+ /* Off. Each is the SAME picture as that project's six states with no grade
+    applied, so switching the clock off changes the light and nothing else.
+    Yowmings is the exception and deliberately so: its Off is the match plate
+    the Home card and the case-study hero already load, untouched. */
  var ORIGINALS=Object.freeze({
   bearings:"images/cs/bearings-cover.webp",
   apollo:"images/cs/apollo-cover.webp",
   strata:"images/cs/strata-cover.webp",
   cluster:"images/cs/cluster/cluster-cover.webp",
   ucdavis:"images/cs/ucrec/cover.webp",
-  r3shore:"images/cs/r3shore.webp"
+  r3shore:"images/cs/r3shore.webp",
+  lifeline:"images/cs/study/lifeline/cover.webp",
+  headmaker:"images/cs/study/headmaker/cover.webp",
+  gradientlab:"images/cs/study/gradientlab/cover.webp",
+  engine:"images/cs/study/engine/cover.webp",
+  yowmings:"images/cs/yowmings/card-1200.webp"
  });
  var VARIANT_DIRS=Object.freeze({
   bearings:"bearings",apollo:"apollo",strata:"strata",cluster:"cluster",
-  ucdavis:"ucrec",r3shore:"r3shore"
+  ucdavis:"ucrec",r3shore:"r3shore",
+  lifeline:"lifeline",headmaker:"headmaker",gradientlab:"gradientlab",
+  engine:"engine",yowmings:"yowmings"
  });
  var SIZES="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px";
 
