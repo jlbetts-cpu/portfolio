@@ -560,7 +560,7 @@
     supposed to share an edge with. The vertical padding is still this element's job. */
  .pGit{position:relative;z-index:40;width:100%;box-sizing:border-box;
   border-block-start:var(--rule-w) solid var(--rule);
-  padding:var(--sp-32-64) 0 var(--sp-24-32);
+  padding:var(--sp-56-96) 0 var(--sp-24-32);
   /* THE RAMP. --accent is #090b24 and is never rebound -- these are new names carrying its
      value, so the tokens page still owns the colour and this owns only the five steps.
      0 is a ground the eye reads as the grid rather than as data; 1-4 are fixed buckets of
@@ -655,150 +655,92 @@
  :root[data-theme="dark"] .pGit{--pgit-0:rgba(255,255,255,.07);--pgit-1:rgba(255,255,255,.22);
   --pgit-2:rgba(255,255,255,.42);--pgit-3:rgba(255,255,255,.64);--pgit-4:rgba(255,255,255,.88)}
  .pGitIn{width:100%;max-width:var(--col-max);margin:0 auto}
- /* Heading and snapshot share one baseline row: the date is metadata about the graph, so
-    it sits WITH the title rather than trailing the sentence underneath, where it would
-    read as a footnote somebody might not get to. */
- .pGitTop{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
-  gap:var(--sp-4) var(--sp-16);margin:0 0 var(--sp-28)}
- /* TWO SIZES IN THE WHOLE SECTION, and the senior one is --fs-lead 600 -- .footStatus'
-    rung, "the loudest thing without pretending to be a section title". The games band
-    below deliberately has no heading at all; this one must not out-shout its absence. */
- .pGitHead{margin:0;font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);
-  line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--theme-ink)}
- .pGitStamp{margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
-  line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-muted)}
- /* ONE ROW OF EQUAL 1fr TRACKS, so the strip spans the page's column exactly and shares
-    its edges with the nav, the rails and the cards.
-    THE COUNT IS WRITTEN BY THE SCRIPT FROM THE DATA, and the literal here is a fallback
-    rather than the truth: one more commit-day and a hard-coded 44 wraps a single square
-    onto a row of its own, which is the kind of wrong that survives for a month because
-    nothing errors. The var() carries its own fallback for the same reason CLAUDE.md gives
-    -- an unresolvable var() computes to `unset`, and `grid-template-columns:none` would
-    stack all 44 days into one very tall column.
-    The square is `aspect-ratio:1` on the CELL rather than on the container: with a gap in
-    play, a container ratio cannot resolve to square cells at any width.
 
-    ── AND THE STRIP NO LONGER SPANS THE COLUMN.  2026-09-01, Jayden: "the squares should
-    be smaller".  He was right and the arithmetic says why: 44 equal tracks across a
-    1200px column put a day at 23.4px with a 4px gap, which is the size of a small button,
-    and 44 buttons in a row is a toolbar, not a graph.  There are only three ways to draw
-    44 marks across 1200px and two of them were built and looked at:
-      * 23px contiguous -- what shipped. Chunky. His note.
-      * ~12px on a fixed 27px pitch, so the leftover width becomes gap -- a row of evenly
-        spaced dots. Smaller, but 44 CONSECUTIVE DAYS drawn with air between them stop
-        reading as consecutive; it looks like 44 unrelated items.
-      * ~10px contiguous, and the strip ends at 612px.  This one.  It is the only one that
-        reads as texture, which is what a day-per-square strip is.
-    SO THE RIGHT EDGE IS THE THING THAT GAVE, and it is the cheapest of the three: the
-    heading row above it still spans 156..1356 with the snapshot date on the far edge, so
-    the section is still tied to the page's column -- and the caption underneath already
-    stopped at its own 100ch measure, so a full-bleed graph was the only element here
-    pretending the column was a box. The LEFT edge is still the column's, shared with the
-    heading, the caption, the nav and the cards.
-    THE CELL IS A FIXED 10px, NOT A FRACTION, so a day is the same size on a phone as on a
-    desktop. It was 23.4px at 1512 and 15.3px at 390 -- the mark was heaviest exactly where
-    there was least room for it. */
- /* ══ AND IT NO LONGER HUGS THE LEFT.  2026-09-01, Jayden: "the github still doesnt look
-    optimized look how its hugging the side that doesnt look good."
-    He is right, and the measurement is the one the note below already had: the strip is
-    612px inside a 1200px column, so it stopped dead at the halfway mark and the right half
-    of the band was empty. It did not read as a strip that had been placed there; it read
-    as one that had run out.
-    THE CELL DID NOT MOVE, BECAUSE THE CELL IS THE THING HE ASKED FOR. Two of the three
-    free variables were already measured and rejected in his own words -- 23.4px contiguous
-    is "the squares should be smaller", and a 27px pitch stops 44 CONSECUTIVE days reading
-    as consecutive. The third variable is what ELSE is in the row, and there was something:
-    the caption, sitting under the strip in a column it did not need, leaving TWO short
-    left-aligned blocks stacked in a wide box.
-    SO THE CAPTION MOVED BESIDE IT. The row is now 612 + 32 + the rest, the band's four
-    elements land on two rows instead of three, and the right edge is used by the sentence
-    that explains the picture rather than by nothing. Measured at 1512: the caption's block
-    ends 1356, which is the column's own right edge and the same edge the snapshot date
-    above it lands on.
-    IT ONLY DOES THIS WHERE THERE IS ROOM. flex-wrap plus a 240px floor on the caption: as
-    soon as strip + gap + 240 will not fit the column the caption drops back underneath at
-    the same 16px it always had, so 390 and 320 are unchanged. There is no breakpoint here
-    -- the content decides. ══════════════════════════════════════════════════════════ */
- .pGitRow{display:flex;flex-wrap:wrap;align-items:flex-start;
-  column-gap:var(--sp-32);row-gap:var(--sp-16)}
- .pGitGraph{display:grid;grid-template-columns:repeat(var(--pgit-cols,44),minmax(0,1fr));
-  --pgit-across:var(--pgit-cols,44);--pgit-cell:10px;--pgit-gap:var(--sp-4);
-  gap:var(--pgit-gap);
-  /* THE CEILING, NOT THE SIZE. Tracks stay 1fr so the strip never overflows and never
-     needs a scrollport; this only stops a day growing past 10px. Below the width where
-     the ceiling binds, the tracks shrink on their own exactly as before.
-     N cells and N-1 gaps, so the strip's own width is N*(cell+gap) - gap. --pgit-across
-     is the same count the grid is using and is re-pointed at --pgit-fold at 560 with it;
-     if the two ever disagree the strip stops landing on its last square. */
-  --pgit-w:calc(var(--pgit-across) * (var(--pgit-cell) + var(--pgit-gap)) - var(--pgit-gap));
-  max-width:var(--pgit-w);
-  /* ONE EXPRESSION, TWO JOBS. flex-basis states the strip's own width so the caption
-     beside it gets the remainder honestly; max-width is still the 10px ceiling and still
-     the thing that stops a day growing back to 23px. `0 1` lets it SHRINK below both --
-     which is what a 320px phone needs, where 22 folded days want 304px and have 272 --
-     and never grow. They must stay one expression: a flex-basis that disagreed with the
-     ceiling would leave the strip either short of its last square or wider than its row. */
-  flex:0 1 var(--pgit-w)}
- /* THE CORNER IS 2 AT EVERY WIDTH NOW, because the square is. --r-2xs 3 was sized for a
-    23px block; on a 10px square it is 30% of the side and the day stops being a square.
-    2 on 10 is the same 20% --r-2xs was on 15, which is where this last looked right. */
- .pGitCell{aspect-ratio:1;border-radius:var(--r-hair);
-  /* 640ms IS THE SKY'S OWN CROSS-FADE and it is quoted here rather than taken off the
-     duration ladder. This is not decoration: the picker changes the hour and everything
-     else on the page cross-fades, so 44 squares hard-swapping their colour in the middle
-     of it reads as the picture breaking. Matching the sky is what makes it read as one
-     change. background-color only -- nothing here moves or scales. */
-  transition:background-color 640ms var(--ease-out)}
+ /* ══ THE HEADER: EYEBROW, THEN THE FIGURE ═══════════════════════════════════════════
+    Three sizes in this section and no more: --fs-label for the eyebrow, the key and the
+    footer sentence; --fs-lead 600 for the count; nothing else. The eyebrow is the only
+    uppercase on the page and it is the reference's own device -- a quiet label naming
+    what the number is, so the number itself does not have to be a sentence. */
+ .pGitEyebrow{margin:0 0 var(--sp-6);font-family:var(--sans);font-weight:400;
+  font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--theme-muted)}
+ .pGitHead{margin:0 0 var(--sp-28);font-family:var(--sans);font-weight:600;
+  font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-title);
+  color:var(--theme-ink)}
+
+ /* ══ THE CALENDAR ═══════════════════════════════════════════════════════════════════
+    SEVEN ROWS OF WEEKDAYS, ONE COLUMN A WEEK, filled top-to-bottom then left-to-right --
+    grid-auto-flow:column with seven explicit rows is the whole mechanism, and it is why
+    the script can append 371 cells in date order and have them land on the right days.
+    THE TRACKS ARE 1fr, so the year spans the page's column exactly and shares its edges
+    with the cards above it. The cell is whatever a week's share of the column is; at 1200
+    that is ~19px, which is the reference's own weight.
+    IT SCROLLS ON A PHONE INSTEAD OF DISSOLVING. 53 columns across 358px is a 2.8px day:
+    not a small picture, an unreadable one. Below 760 the calendar becomes its own
+    scrollport and the cells hold a floor, which is what every contribution graph does at
+    that width. The PAGE still does not scroll sideways -- this is an inner scroller, and
+    play-screens-contract measures the document. ══════════════════════════════════════ */
+ .pGitCal{width:100%}
+ .pGitMonths{display:grid;grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,1fr));
+  gap:var(--pgit-gap);margin:0 0 var(--sp-6);
+  font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
+  line-height:1;letter-spacing:var(--tr-flat);color:var(--theme-muted)}
+ .pGitMonths i{font-style:normal;grid-row:1;justify-self:start;white-space:nowrap}
+ .pGitGraph{display:grid;grid-auto-flow:column;
+  grid-template-rows:repeat(7,minmax(0,1fr));
+  grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,1fr));
+  --pgit-gap:var(--sp-4);gap:var(--pgit-gap)}
+ .pGitCell{aspect-ratio:1;border-radius:var(--r-2xs);
+  transition:background var(--dur-state) var(--ease-out)}
  @media(prefers-reduced-motion:reduce){.pGitCell{transition:none}}
  .pGitCell{background:var(--pgit-0)}
  .pGitCell[data-l="1"]{background:var(--pgit-1)}
  .pGitCell[data-l="2"]{background:var(--pgit-2)}
  .pGitCell[data-l="3"]{background:var(--pgit-3)}
  .pGitCell[data-l="4"]{background:var(--pgit-4)}
- /* 16 ABOVE, 28 BELOW THE HEADING: the caption describes the strip and belongs to it, so
-    it sits closer to the graph than the heading does. Equal gaps read as three unrelated
-    things stacked.
-    THE PAIR GREW 20/12 -> 28/16 ON THE SAME RATIO, 2026-09-01, with "better spacing in the
-    margins". The section was 191px tall with 64 above and 32 below it and the three
-    elements packed into the middle 95, so it read as air around a cramped block rather
-    than as a block that breathes. The OUTER padding is untouched -- it was never what was
-    wrong, and it is what sets the band's distance from the hero and the cards.
-    A measure, because this is a 12px caption and not the case studies' prose column --
-    the full 1200px track at --fs-label is ~200 characters a line. 100ch clears the whole
-    sentence on one line at 1440 and up; `balance` is what stops the two-line case leaving
-    "days." alone on the second, the same device .footStatus already uses. */
- /* THE 16 IS THE ROW'S row-gap NOW, not this element's margin -- one number, and it is
-    the one that applies in both arrangements: beside the strip there is no vertical gap to
-    set, and underneath it there is the same 16 there always was. */
- .pGitNote{margin:0;flex:1 1 240px;max-width:100ch;font-family:var(--sans);font-weight:400;
+
+ /* ══ THE FOOTER ROW ═════════════════════════════════════════════════════════════════
+    The sentence on the left, the ramp key on the right, both on the --fs-label rung and
+    both ending on the column's own edges. It wraps to two lines rather than shrinking:
+    at the width where the key will not sit beside the sentence, it goes under it. */
+ .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+  gap:var(--sp-8) var(--sp-16);margin:var(--sp-16) 0 0}
+ .pGitNote{margin:0;flex:1 1 260px;max-width:100ch;font-family:var(--sans);font-weight:400;
   font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
   color:var(--theme-muted);text-wrap:balance}
- /* The 880 step is GONE. It existed because the 1fr cell ballooned with the viewport and
-    the gap had to give to keep up; a 10px cell does not, so 880 has nothing to fix. The
-    radius it also carried is now the base value at every width. */
- /* AND AT 560 THE ROW STILL FOLDS IN TWO, for the reason it always did: one row of 44 at
-    a 14px pitch wants 612px of column and there is 528px at 560, so unfolded the tracks
-    would drop under the 10px ceiling and keep falling -- 7.2px at 390, 5.6px at 320, a
-    strip too thin to read a gap in, which is the one thing this picture has to show.
-    Folded, the same 44 days hold their full 10px down to 390. 560 is not a new number: it
-    is where .pCards drops to one column, so the band and the doors under it change shape
-    on the same line.
-    --pgit-across MOVES WITH THE TRACK COUNT and not a line after it: the max-width is
-    N*(cell+gap)-gap and an N that disagreed with the grid's would leave the strip either
-    short of its last square or wider than its own row.
-    THE HALF-COUNT IS ALSO THE SCRIPT'S, ceil(n/2), so an odd day count leaves the short
-    row short instead of silently re-wrapping the whole strip. */
- @media(max-width:560px){.pGitGraph{grid-template-columns:repeat(var(--pgit-fold,22),minmax(0,1fr));
-  --pgit-across:var(--pgit-fold,22)}}
- /* AND THE 480 STEP IS GONE TOO. It halved the gap so the cell could keep its size, and
-    the cell is worth less than the seam: 22 days at a 14px pitch want 304px, which every
-    phone from 336px up has, and the two that do not get a 9.3px day instead of a 10px one.
-    That is a 7% shrink at the narrowest width anyone owns, against a seam that would have
-    had to change size to prevent it. ONE cell and ONE gap at every width is the whole
-    point of a fixed mark; buying back 0.7px with a second set of numbers is not. */
+ .pGitKey{display:flex;align-items:center;gap:var(--sp-4);margin:0;flex:0 0 auto;
+  font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
+  line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-muted)}
+ /* The key's swatches are the ONLY cells with a fixed size. Everywhere else a cell is a
+    share of the column; here there is no column to take a share of. */
+ .pGitKey .pGitCell{width:10px;height:10px;aspect-ratio:auto;flex:0 0 auto}
+ .pGitKeyW{margin:0 var(--sp-4)}
+ /* The snapshot date closes the section rather than opening it. It is still REQUIRED --
+    play-contributions.js renders nothing without it -- but it is metadata about the
+    picture, and the reference puts the figure first. */
+ .pGitStamp{margin:var(--sp-12) 0 0;font-family:var(--sans);font-weight:400;
+  font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
+  color:var(--theme-muted);opacity:.75}
+
+ @media(max-width:760px){
+  .pGitCal{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+   scrollbar-width:thin;padding-bottom:var(--sp-8)}
+  /* THE GAP GIVES BEFORE THE CELL DOES. At the scrollport's floor the pitch is fixed,
+     so every pixel the gap keeps is one the square loses -- and the square is the thing
+     being read. 2px of seam still separates two level-4 days, which is all it has to do. */
+  .pGitGraph{--pgit-gap:var(--sp-2)}
+  .pGitMonths,.pGitGraph{min-width:var(--pgit-floor,636px)}
+ }
 
  /* The games are a real below-Hero section. It starts one 16px step after the first screen,
     stays in normal flow, and only fades while a full-screen game surface owns the viewport. */
+ /* THE GAMES' SECTION HEAD, on exactly the rung .pGitHead uses -- the two sections of
+    this page are peers and neither title may out-shout the other. It is inside .pHub, so
+    it takes the column from the same place the cards do and needs no inset of its own. */
+ .pSecHead{width:100%;max-width:var(--col-max);margin:0 auto var(--sp-20);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);
+  line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--theme-ink)}
+ body.playViewportOwned .pSecHead{display:none}
  .pHub{position:relative;z-index:40;width:100%;box-sizing:border-box;padding:var(--sp-16) var(--col-inset) 0;
   pointer-events:none;opacity:0;visibility:hidden;scroll-margin-top:calc(var(--bar-h) + var(--sp-8));
   transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
@@ -1857,6 +1799,14 @@
       apology: he is job-hunting, and a disclaimer reads to a recruiter as an excuse where
       "still building" reads as momentum. The full stop in the middle is load-bearing too -- at
       display size the two clauses run together into one breathless sentence without it. -->
+ <!-- A SECTION HEAD OVER THE GAMES. He asked for it on 2026-09-01, and it also fixes the
+      thing the band's own comment used to lean on: the band carried a heading and the
+      games did not, so the page's only section title sat over the SMALLER of the two
+      sections. Both are titled now and both use the same rung, so neither out-shouts the
+      other. The nav keeps aria-label="Games" as its accessible name rather than pointing
+      at this heading, because the label is what a screen reader reads when it enters the
+      landmark and "Games" is already exactly that. -->
+ <h2 class="pSecHead">Games</h2>
  <nav class="pCards" aria-label="Games">
   <!-- ═══════════════════════════════════════════════════════════════════════════════
        SIX DOORS, NO SPAN, THREE PAIRS. The count decides whether anything spans and the
@@ -1974,19 +1924,24 @@
  </nav>
 <section class="pGit" id="pGit" aria-labelledby="pGitHead" hidden>
  <div class="pGitIn">
-  <div class="pGitTop">
-   <h2 class="pGitHead" id="pGitHead">Building this site</h2>
-   <p class="pGitStamp" id="pGitStamp"></p>
-  </div>
-  <!-- THE STRIP AND ITS CAPTION SHARE A ROW. See .pGitRow in the stylesheet for why:
-       a 612px strip and a 1200px column left the right half of this band empty, and the
-       caption was the thing that belonged in it. Wrapper only -- both elements keep their
-       ids, their order and their roles, so play-contributions.js writes into exactly what
-       it wrote into before. -->
-  <div class="pGitRow">
+  <!-- EYEBROW, THEN THE NUMBER, THEN THE CALENDAR, THEN A FOOTER ROW. That order is
+       the reference he sent on 2026-09-01: a small muted label, the headline figure
+       under it, a weekday grid with month letters over it, and a line underneath
+       carrying the count on the left and the LESS/MORE key on the right.
+       THE ELEMENT IDS ARE UNCHANGED where the script already wrote into them
+       (#pGitHead, #pGitStamp, #pGitGraph, #pGitNote), so the date guard and the
+       contract's selectors still point at the same things. -->
+  <p class="pGitEyebrow">GitHub contributions</p>
+  <h2 class="pGitHead" id="pGitHead"><span id="pGitCount">&nbsp;</span></h2>
+  <div class="pGitCal">
+   <div class="pGitMonths" id="pGitMonths" aria-hidden="true"></div>
    <div class="pGitGraph" id="pGitGraph" role="img" aria-label="Commit history for this site"></div>
-   <p class="pGitNote" id="pGitNote"></p>
   </div>
+  <div class="pGitFoot">
+   <p class="pGitNote" id="pGitNote"></p>
+   <p class="pGitKey" aria-hidden="true"><span class="pGitKeyW">Less</span><i class="pGitCell" data-l="0"></i><i class="pGitCell" data-l="1"></i><i class="pGitCell" data-l="2"></i><i class="pGitCell" data-l="3"></i><i class="pGitCell" data-l="4"></i><span class="pGitKeyW">More</span></p>
+  </div>
+  <p class="pGitStamp" id="pGitStamp"></p>
  </div>
 </section>
  <!-- ═══ THE CARD'S TWO ROUTES DO NOT BOTH FIRE ═══════════════════════════════════════

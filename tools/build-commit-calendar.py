@@ -48,8 +48,11 @@ import argparse
 import collections
 import json
 import os
+import re
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from datetime import date, datetime, timedelta
 
 OUT = "data/commit-history.json"
@@ -71,6 +74,94 @@ def level(n):
     return step
 
 
+USER = "jlbetts-cpu"
+CONTRIB = "https://github.com/users/%s/contributions" % USER
+
+
+def github_year():
+    """GitHub's own contribution calendar: [(date, level 0-4)], plus the headline total.
+
+    WHY THIS CAME BACK.  An earlier pass replaced a GitHub fetcher with this repo's git
+    log, and the measurement behind that was right AT THE TIME: the year then held 52
+    active days with two empty stretches of 130 and 118 days, which is a weak picture no
+    caption rescues.  On 2026-09-01 he asked for the band to be structured as a
+    contribution calendar and sent a reference labelled GITHUB COMMITS, and the same
+    measurement now reads differently -- 52 active days across SIX months, longest gap 46
+    days.  A seven-row year grid needs a year of data, and this repository has six weeks
+    of one: drawn from git log the same grid is eleven empty months with everything
+    bunched against the right edge, which is the exact picture that argument rejected.
+
+    WHAT IS LOST, AND IT IS REAL.  The profile HTML carries data-level (0-4) and
+    data-date and NOT a per-day count -- it has not carried data-count for years, and a
+    grep for it returns zero, which reads as "no contributions" and is the wrong
+    conclusion.  So the page can no longer say what the busiest day carried, and the copy
+    below does not pretend otherwise.  The levels are still GitHub's own scale against
+    his own busiest day, so a dark square is still his busiest kind of day.
+
+    IT IS STILL A BUILD-TIME FETCH committed as JSON.  No token, no CORS, no runtime
+    third party, and `generated` still guards the whole section.
+    """
+    req = urllib.request.Request(CONTRIB, headers={
+        "User-Agent": "portfolio-build (build-commit-calendar.py)",
+        "Accept": "text/html"})
+    with urllib.request.urlopen(req, timeout=25) as fh:
+        html = fh.read().decode("utf-8", "replace")
+    cells = re.findall(r'data-date="(\d{4}-\d{2}-\d{2})"[^>]*data-level="(\d)"', html)
+    if not cells:
+        cells = [(d, l) for l, d in
+                 re.findall(r'data-level="(\d)"[^>]*data-date="(\d{4}-\d{2}-\d{2})"', html)]
+    # SORT BY DATE.  GitHub's grid is a <table> with one ROW PER WEEKDAY, so scanning
+    # the markup yields every Sunday, then every Monday, and so on -- consecutive matches
+    # are seven days apart, not one.  Rendered unsorted into a column-flowed grid that is
+    # a plausible-looking calendar with every date in the wrong cell, which is exactly the
+    # kind of quiet wrongness this section exists to avoid.
+    cells.sort(key=lambda c: c[0])
+    if len(cells) < 300:
+        raise SystemExit("the contributions page returned %d cells -- refusing to ship a "
+                         "partial year (the markup has probably changed again)" % len(cells))
+    m = re.search(r"([\d,]+)\s+contributions\s+in\s+the\s+last\s+year", html, re.I)
+    total = int(m.group(1).replace(",", "")) if m else None
+    return cells, total
+
+
+def build_github():
+    cells, total = github_year()
+    # Trim the leading part-week so the grid's first column is a whole Sunday-start week.
+    start = datetime.strptime(cells[0][0], "%Y-%m-%d").date()
+    drop = (start.weekday() - WEEK_START) % 7
+    if drop:
+        cells = cells[(7 - drop) % 7:]
+    days, active, streak, longest = [], 0, 0, 0
+    for d, l in cells:
+        lv = int(l)
+        days.append({"d": d, "l": lv})
+        if lv:
+            active += 1
+            streak += 1
+            longest = max(longest, streak)
+        else:
+            streak = 0
+    histogram = collections.Counter(day["l"] for day in days)
+    return {
+        "generated": date.today().isoformat(),
+        "source": "github contribution calendar for " + USER,
+        "note": ("l is GitHub's own 0-4 level for the day, scaled against his busiest "
+                 "day. GitHub does not publish a per-day count, so there is none here "
+                 "and the page makes no claim about one."),
+        "window": "year",
+        "weekStart": "sunday",
+        "levelFloors": None,
+        "days": days,
+        "commits": total if total is not None else 0,
+        "activeDays": active,
+        "totalDays": len(days),
+        "longestStreak": longest,
+        "levels": {str(k): histogram.get(k, 0) for k in range(5)},
+        "first": days[0]["d"],
+        "last": days[-1]["d"],
+    }
+
+
 def repo_root():
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.dirname(here)
@@ -88,12 +179,42 @@ def git_days(root):
     return days
 
 
-def build(root):
+# The grid is a weekday calendar, so its columns are WEEKS and its rows are the
+# seven weekdays.  Sunday starts the column, which is what every calendar this
+# reference came from does, and what `weekday()+1 mod 7` computes below.
+WEEKS = 53
+WEEK_START = 6  # Python's Sunday
+
+
+def week_floor(d):
+    """The Sunday on or before d.  A grid whose first column is a part-week draws
+    its first days against the wrong weekday rows for the whole year."""
+    return d - timedelta(days=(d.weekday() - WEEK_START) % 7)
+
+
+def build(root, window="year"):
     counts = git_days(root)
     first = min(counts)
     last = max(counts)
-    start = datetime.strptime(first, "%Y-%m-%d").date()
     end = datetime.strptime(last, "%Y-%m-%d").date()
+
+    if window == "year":
+        # A TRAILING YEAR, ALIGNED TO WHOLE WEEKS.  He asked on 2026-09-01 for the
+        # band to be structured like a contribution calendar, and a seven-row grid
+        # needs weeks to be wide: the project's own 44 days are seven columns, a
+        # square the size of a postage stamp in a 1200px column.  The cost is real
+        # and is printed by --print: most of this window predates the repository,
+        # so it is empty, and the work bunches against the right edge.  That is the
+        # picture he chose from a reference showing exactly the same shape.
+        # ANCHOR ON THE END, NOT THE START.  Walking back 53 weeks and then re-deriving
+        # the end from the aligned start moves the end BACKWARDS by up to six days and
+        # silently drops the newest commits -- it cost 35 commits and two active days the
+        # first time this ran.  Close the window on the Saturday that ends the last
+        # commit's week, then count back.
+        end = week_floor(end) + timedelta(days=6)
+        start = end - timedelta(days=7 * WEEKS - 1)
+    else:
+        start = datetime.strptime(first, "%Y-%m-%d").date()
 
     days = []
     streak = longest = 0
@@ -116,6 +237,8 @@ def build(root):
     return {
         "generated": date.today().isoformat(),
         "source": "git log in this repository",
+        "window": window,
+        "weekStart": "sunday",
         "note": ("n is the day's real commit count; l is a fixed bucket of it "
                  "(see levelFloors), not a share of anything"),
         "levelFloors": list(THRESHOLDS),
@@ -136,17 +259,32 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--print", dest="show", action="store_true",
                     help="print the summary and write nothing")
+    ap.add_argument("--window", choices=("year", "history"), default="year",
+                    help="year: a trailing 53 weeks, aligned to Sunday, for the "
+                         "weekday grid. history: only the days the repo has existed.")
+    ap.add_argument("--source", choices=("github", "git"), default="github",
+                    help="github: his contribution calendar, a real year of weeks. "
+                         "git: this repository's log, six weeks of one.")
     args = ap.parse_args()
 
     root = repo_root()
-    data = build(root)
+    if args.source == "github":
+        try:
+            data = build_github()
+        except (urllib.error.URLError, OSError) as exc:
+            print("  github fetch failed (%s); falling back to git log" % exc)
+            data = build(root, args.window)
+    else:
+        data = build(root, args.window)
 
-    summary = ("%(commits)d commits, %(activeDays)d of %(totalDays)d days "
-               "(%(pct).0f%%), longest run %(longestStreak)d, median %(medianActive)d "
-               "on an active day, busiest %(bn)d" % dict(
-                   data, pct=100.0 * data["activeDays"] / data["totalDays"],
-                   bn=data["busiest"]["n"]))
+    pct = 100.0 * data["activeDays"] / data["totalDays"]
+    summary = ("%d contributions, %d of %d days (%.0f%%), longest run %d"
+               % (data["commits"], data["activeDays"], data["totalDays"], pct,
+                  data["longestStreak"]))
+    if data.get("busiest"):
+        summary += ", busiest %d" % data["busiest"]["n"]
     print(summary)
+    print("  source %s" % data["source"])
     print("  span %s .. %s   levels %s" % (data["first"], data["last"], data["levels"]))
 
     if args.show:

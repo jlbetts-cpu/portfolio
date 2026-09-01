@@ -119,8 +119,15 @@ def static_contract():
     # 3 ── THE DATE HAS A HOME IN THE MARKUP, and it is in the heading row rather
     # than trailing the sentence underneath, where it reads as a footnote.
     assert 'id="pGitStamp"' in section, "the snapshot stamp element is gone"
-    assert section.index('id="pGitStamp"') < section.index('id="pGitGraph"'), \
-        "the snapshot stamp has moved below the graph; it is the condition, not a footnote"
+    # THE STAMP'S POSITION IS NO LONGER THE ASSERTION; ITS EXISTENCE IS.
+    # This pinned the date ABOVE the graph, on the reasoning that it is the condition
+    # rather than a footnote.  The condition is real and is still enforced, but by the
+    # thing that actually enforces it: render() returns false and the section stays
+    # hidden when `generated` is missing, which check_date_guard below injects and
+    # proves.  On 2026-09-01 he restructured the band from a reference that puts the
+    # figure first and the metadata last, so the stamp moved to the foot.  Pinning the
+    # ORDER here would have been this gate encoding a layout it was never protecting.
+    assert '<p class="pGitStamp"' in section, "the stamp is no longer its own line"
 
     # 4 ── AND THE SCRIPT REFUSES TO RENDER WITHOUT ONE.  This is the assertion the
     # whole file is for: the early return is one line and it is invisible in a diff.
@@ -139,24 +146,54 @@ def static_contract():
     assert not (ROOT / "tools" / "fetch-contributions.py").exists(), \
         "the GitHub fetcher is back; nothing consumes its output"
 
-    # 6 ── THE DATA CARRIES REAL COUNTS, not opaque buckets. This is what lets the
-    # caption talk about commits at all; GitHub's levels had no number behind them.
-    assert "levelFloors" in DATA, "the calendar no longer declares its level thresholds"
-    assert all("n" in day for day in DATA["days"]), \
-        "a day has no commit count; the shading would be an opaque bucket again"
+    # 6 ── A SQUARE'S SHADE IS EXPLAINED SOMEWHERE ON THE PAGE.
+    # This used to demand a real per-day commit count on every day, because the first
+    # cut drew GitHub's levels, which are an opaque 0-4 with no number behind them, and
+    # the caption could then only say what the shading was NOT.
+    #
+    # On 2026-09-01 he asked for the band to be structured as a contribution calendar
+    # and sent a reference labelled GITHUB COMMITS.  A seven-row year grid needs a year
+    # of weeks, and this repository has six of them: drawn from git log the same grid is
+    # eleven empty months with everything bunched at the right edge.  So the source went
+    # back to his GitHub calendar -- 52 active days across six months -- and the per-day
+    # counts went with it, because GitHub has not published data-count in years.
+    #
+    # THE PRINCIPLE SURVIVES IN A BETTER FORM.  What mattered was never the integer; it
+    # was that a reader can tell what a dark square means.  A rendered LESS/MORE key in
+    # the ramp's own colours says it directly, in both themes, where the old sentence
+    # could not (on a night page the busiest days are the LIGHTEST squares).  So this
+    # asserts the key, and asserts the copy claims no number the data cannot carry.
+    assert all("l" in day for day in DATA["days"]), "a day has no level"
+    if DATA.get("levelFloors"):
+        assert all("n" in day for day in DATA["days"]), \
+            "the data declares count thresholds but a day has no count behind them"
+    else:
+        assert 'class="pGitKey"' in section, \
+            ("the data has levels with no counts behind them and there is no key; "
+             "nothing on the page would say which end of the ramp is busier")
+        assert section.count('class="pGitCell" data-l=') == 5, \
+            "the key does not show all five steps of the ramp"
+        for claim in ("busiest carried", "commits on"):
+            assert claim not in JS, \
+                ("the copy still claims %r, which GitHub's levels cannot support" % claim)
 
     # 7 ── THE COLUMN COUNT COMES FROM THE DATA.  A literal in the stylesheet is a
-    # fallback; the truth is written by the script, or the grid silently wraps one
-    # square onto a row of its own the day the repo gains one.
-    assert 'setProperty("--pgit-cols"' in JS and 'setProperty("--pgit-fold"' in JS, \
-        "the grid's column count is no longer written from the data"
+    # fallback; the truth is written by the script, or the grid silently draws the year
+    # against the wrong number of weeks.
+    assert 'setProperty("--pgit-weeks"' in JS, \
+        "the grid's week count is no longer written from the data"
 
     css = HTML[HTML.index("<style"):HTML.index("</style>")]
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
-    assert "repeat(var(--pgit-cols," in css, \
-        ("the grid no longer takes its column count from a custom property, or the var() "
+    assert "repeat(var(--pgit-weeks," in css, \
+        ("the grid no longer takes its week count from a custom property, or the var() "
          "has lost its fallback -- an unresolvable var() computes to `unset`, and "
          "grid-template-columns:none stacks every day into one very tall column")
+    # SEVEN ROWS, AND THEY ARE NOT NEGOTIABLE. The cells are appended in date order and
+    # placed by grid-auto-flow:column; any row count but seven puts every date on the
+    # wrong weekday and still draws a plausible-looking calendar.
+    assert "grid-template-rows:repeat(7," in css and "grid-auto-flow:column" in css, \
+        "the calendar is no longer seven weekday rows filled column by column"
 
     # 8 ── NO SHADOW, EVER.  The companion heads cast the only shadow on this site;
     # chrome separates with hairlines and translucency.  That rule is absolute and is
@@ -216,7 +253,7 @@ def static_contract():
     # which is also why the caption may not name a direction of shade -- see §11 below.
     assert re.search(r':root\[data-theme="dark"\]\s*\.pGit\{', css), \
         "the band has no dark ramp; ink at 92% alpha on a night page is invisible"
-    print("  static: this repo's log, band below the doors, ships hidden, "
+    print("  static: his contribution year, band below the doors, ships hidden, "
           "guards the date, counts from the data, casts nothing")
 
 
@@ -227,7 +264,9 @@ PROBE = """() => {
   const hero = document.querySelector('.hero');
   const cell = g && g.querySelector('.pGitCell');
   const gr = g.getBoundingClientRect(), cr = cards.getBoundingClientRect();
-  const tr = document.querySelector('.pGitTop').getBoundingClientRect();
+  /* .pGitTop is gone -- the header is an eyebrow and a figure now, not a two-ended
+     row -- so the column check reads the heading, which is the widest thing in it. */
+  const tr = document.querySelector('.pGitHead').getBoundingClientRect();
   return {
     hidden: s.hidden,
     display: getComputedStyle(s).display,
@@ -237,8 +276,10 @@ PROBE = """() => {
     cells: g.querySelectorAll('.pGitCell').length,
     titled: [...g.querySelectorAll('.pGitCell')].filter(c => c.title).length,
     cols: getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean).length,
+    rows: getComputedStyle(g).gridTemplateRows.split(' ').filter(Boolean).length,
     overflow: document.documentElement.scrollWidth - window.innerWidth,
     graphLeft: Math.round(gr.left), graphRight: Math.round(gr.right),
+    calRight: Math.round(document.querySelector('.pGitCal').getBoundingClientRect().right),
     cardsLeft: Math.round(cr.left), cardsRight: Math.round(cr.right),
     topLeft: Math.round(tr.left), topRight: Math.round(tr.right),
     cellW: cell.getBoundingClientRect().width,
@@ -386,10 +427,20 @@ def browser_contract(base, patched_js=None, patched_css=None):
 
     stamp_want = "Snapshot taken " + human(DATA["generated"])
     days = DATA["days"]
-    active = sum(1 for d in days if d["n"] > 0)
-    commits = sum(d["n"] for d in days)
-    busiest = max(d["n"] for d in days)
+    # THE LEVEL IS THE ONE FIELD EVERY SOURCE HAS.  git log gives counts and levels;
+    # GitHub gives levels only.  Everything asserted below is derived from `l` or from
+    # the file's own headline total, so this contract holds across both sources.
+    active = sum(1 for d in days if (d.get("l") or 0) > 0)
+    commits = DATA["commits"]
     total = len(days)
+    longest = 0
+    run = 0
+    for d in days:
+        if (d.get("l") or 0) > 0:
+            run += 1
+            longest = max(longest, run)
+        else:
+            run = 0
 
     def route(page):
         if patched_js is not None:
@@ -416,11 +467,14 @@ def browser_contract(base, patched_js=None, patched_css=None):
                 "%d: the band did not render" % width
 
             # Every number on the page is the file's own.
-            assert m["cells"] == total, ("%d: %d cells for %d days" % (width, m["cells"], total))
-            assert m["titled"] == m["cells"], \
-                "%d: %d of %d cells carry no hover date" % (width, m["titled"], m["cells"])
-            for label, value in (("commits", commits), ("active days", active),
-                                 ("window", total), ("busiest day", busiest)):
+            # The grid may carry up to six hidden pad cells, so its first real day lands
+            # on the right weekday row; those carry no title by design.
+            assert total <= m["cells"] < total + 7, \
+                ("%d: %d cells for %d days" % (width, m["cells"], total))
+            assert m["titled"] == total, \
+                "%d: %d of %d days carry no hover date" % (width, m["titled"], total)
+            for label, value in (("total", commits), ("active days", active),
+                                 ("longest run", longest)):
                 assert str(value) in m["note"].replace(",", ""), \
                     ("%d: the note does not report the file's own %s (%d)" % (width, label, value),
                      m["note"])
@@ -435,11 +489,19 @@ def browser_contract(base, patched_js=None, patched_css=None):
                     ("%d: the caption names a direction of shade (%r) -- the ramp inverts "
                      "with the theme, so it is false in one of them" % (width, word), m["note"])
 
-            # THE GRID IS AS WIDE AS THE DATA, folding rather than being cut short.
-            want_cols = total if width > 560 else math.ceil(total / 2)
+            # THE GRID IS AS WIDE AS THE DATA, in WEEKS.  It was a single row of one
+            # column a day, folding in half below 560; since 2026-09-01 it is the
+            # reference's weekday calendar, so the count that must come from the data is
+            # the number of week columns and it is the same at every width -- a phone
+            # scrolls the calendar rather than reshaping it, because seven rows folded in
+            # half is not a calendar any more.
+            want_cols = math.ceil(m["cells"] / 7)
             assert m["cols"] == want_cols, \
-                ("%d: grid has %d columns, want %d -- the count must come from the data"
-                 % (width, m["cols"], want_cols))
+                ("%d: grid has %d columns for %d cells, want %d -- the week count must "
+                 "come from the data" % (width, m["cols"], m["cells"], want_cols))
+            assert m["rows"] == 7, \
+                ("%d: the calendar has %d rows, not 7 -- every date is on the wrong "
+                 "weekday" % (width, m["rows"]))
 
             # NO PAGE SCROLL.  A day-per-square strip is the obvious way to push a phone
             # sideways, and "nothing scrolls that should not" is the site's rule -- the
@@ -465,10 +527,19 @@ def browser_contract(base, patched_js=None, patched_css=None):
             assert abs(m["graphLeft"] - m["cardsLeft"]) <= 1, \
                 ("%d: the graph does not start on the page's column: graph %d, cards %d"
                  % (width, m["graphLeft"], m["cardsLeft"]))
-            assert m["graphRight"] <= m["cardsRight"] + 1, \
-                ("%d: the graph runs past the page's column: graph %d..%d, cards %d..%d"
-                 % (width, m["graphLeft"], m["graphRight"], m["cardsLeft"], m["cardsRight"]))
-            assert m["topLeft"] == m["cardsLeft"] and abs(m["topRight"] - m["cardsRight"]) <= 1, \
+            # THE CEILING IS THE SCROLLPORT'S, NOT THE GRAPH'S, below 760.  The calendar
+            # becomes its own horizontal scroller there (53 columns across 358px is a
+            # 2.8px day: not a small picture, an unreadable one), so the CONTENT is
+            # legitimately wider than the column and the thing that must not exceed it is
+            # the scrollport. The page-scroll assertion above is what proves the overflow
+            # stays inside that box.
+            edge = m["calRight"] if width <= 760 else m["graphRight"]
+            assert edge <= m["cardsRight"] + 1, \
+                ("%d: the calendar runs past the page's column: edge %d, cards %d..%d"
+                 % (width, edge, m["cardsLeft"], m["cardsRight"]))
+            # The heading is text, so only its LEFT edge is the column's; its right
+            # edge is wherever the words stop.
+            assert m["topLeft"] == m["cardsLeft"], \
                 ("%d: the heading row no longer spans the column -- it is what holds the "
                  "section to the page now that the strip is shorter than it: row %d..%d, "
                  "cards %d..%d" % (width, m["topLeft"], m["topRight"], m["cardsLeft"], m["cardsRight"]))
@@ -477,9 +548,15 @@ def browser_contract(base, patched_js=None, patched_css=None):
             # and it is one `max-width` holding it up; without that the 1fr tracks go
             # straight back to 23.4px at 1512 and nothing errors.  The floor is here so
             # that "smaller" cannot quietly become "gone" on a narrow phone.
-            assert 6 <= m["cellW"] <= 10.5, \
-                ("%d: a day is %.1fpx -- it is meant to be a 10px mark, and 44 of them at "
-                 "23px was the row of buttons this was fixed for" % (width, m["cellW"]))
+            # A DAY IS A WEEK'S SHARE OF THE COLUMN.  The old bound was 6..10.5px, from
+            # the single-row strip: 44 marks across 1200px was 23px a mark, "a row of
+            # buttons", and he asked for smaller.  The calendar divides the same column
+            # by 53 instead of 44, so the same column gives ~19px and there is no row of
+            # buttons to be had -- seven rows of them is a calendar.  The floor is what
+            # still matters, and it is what the phone scrollport exists to hold.
+            assert 8 <= m["cellW"] <= 24, \
+                ("%d: a day is %.1fpx -- outside the range a weekday grid stays legible "
+                 "in" % (width, m["cellW"]))
             assert abs(m["cellW"] - m["cellH"]) < 0.6, \
                 ("%d: a day is not square (%.1f x %.1f)" % (width, m["cellW"], m["cellH"]))
 
@@ -538,9 +615,9 @@ def browser_contract(base, patched_js=None, patched_css=None):
              "does not say when it was taken is the thing this section is not allowed to be")
         page.close()
         browser.close()
-    print("  browser: date is the file's own at 3 widths, %d columns folding to %d, "
+    print("  browser: date is the file's own at 3 widths, %d weeks of 7, "
           "no page scroll, on the column, one seam, no shadow, ramp follows the theme"
-          % (total, math.ceil(total / 2)))
+          % math.ceil(total / 7))
 
 
 def serve(fn, *args):

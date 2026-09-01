@@ -73,70 +73,137 @@
 
   function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
 
+  /* "2026-08-31" -> weekday index, 0 = Sunday. Computed rather than parsed, for the
+     same reason human() splits: new Date("2026-08-31") is UTC midnight and its local
+     getDay() is the PREVIOUS day west of Greenwich, which would rotate the whole
+     calendar by one row for Jayden and for nobody testing in London. Zeller's, on the
+     numbers straight out of the string. */
+  function weekday(iso) {
+    var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+    if (!p) return -1;
+    var y = parseInt(p[1], 10), m = parseInt(p[2], 10), d = parseInt(p[3], 10);
+    if (m < 3) { m += 12; y -= 1; }
+    var k = y % 100, j = Math.floor(y / 100);
+    var h = (d + Math.floor(13 * (m + 1) / 5) + k + Math.floor(k / 4) +
+             Math.floor(j / 4) + 5 * j) % 7;      // 0 = Saturday
+    return (h + 6) % 7;                            // 0 = Sunday
+  }
+
+  var INITIALS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+
   function render(data) {
     var days = data && data.days;
     if (!days || !days.length) return false;
     var generated = human(data.generated);
     if (!generated) return false;          // no date, no section. See the header.
 
+    /* THE TOTAL COMES FROM THE DATA, NOT FROM SUMMING THE SQUARES. GitHub publishes a
+       0-4 LEVEL per day and no per-day count -- it has not carried data-count for years
+       -- so there is nothing to add up here and the headline figure is the one its own
+       profile prints. Everything the page says is either that number or a count of days,
+       and a count of days is something a level can carry. */
     var total = days.length;
-    var active = 0, commits = 0, streak = 0, longest = 0, busiest = 0, i;
+    var commits = data.commits | 0;
+    var active = 0, streak = 0, longest = 0, i;
     for (i = 0; i < days.length; i++) {
-      var n = days[i].n | 0;
-      commits += n;
-      if (n > busiest) busiest = n;
-      if (n > 0) { active++; streak++; if (streak > longest) longest = streak; }
+      if ((days[i].l | 0) > 0) { active++; streak++; if (streak > longest) longest = streak; }
       else streak = 0;
     }
 
-    /* ONE ROW, ONE SQUARE A DAY, IN ORDER. 44 days is a line, not a calendar: a
-       seven-row weekday grid needs a year to read as one, and at six weeks it is
-       just a lumpy block whose rows mean nothing. The column COUNT is written from
-       the data rather than typed into the stylesheet -- one more commit-day and a
-       hard-coded 44 would wrap a single square onto a second row and nobody would
-       notice for a month. The stylesheet's literals are fallbacks, not the truth. */
-    graph.style.setProperty("--pgit-cols", String(total));
-    graph.style.setProperty("--pgit-fold", String(Math.ceil(total / 2)));
+    /* ONE COLUMN A WEEK, SEVEN WEEKDAY ROWS. He asked on 2026-09-01 for the band to be
+       structured like a contribution calendar, so the window widened from the project's
+       own 44 days to a trailing year of whole weeks (see the builder). The first day is
+       a Sunday by construction, which is what lets the cells be appended in date order
+       and land on the right rows under grid-auto-flow:column -- but it is ASSERTED here
+       rather than assumed, because a hand-edited JSON that starts mid-week would draw a
+       year rotated by a few days and look entirely plausible. */
+    var lead = weekday(days[0].d);
+    if (lead !== 0) {
+      for (i = 0; i < lead; i++) days.unshift({ d: "", n: 0, l: 0, pad: true });
+    }
+    var weeks = Math.ceil((days.length) / 7);
+    graph.style.setProperty("--pgit-weeks", String(weeks));
+    var months = document.getElementById("pGitMonths");
+    if (months) months.style.setProperty("--pgit-weeks", String(weeks));
+    /* The phone scrollport's floor: a week column never goes under 11px, so 53 weeks
+       want 53*11 of scrollable width. One number, derived from the count the grid is
+       actually using rather than typed beside it. */
+    var cal = graph.parentNode;
+    if (cal && cal.style) cal.style.setProperty("--pgit-floor", (weeks * 12) + "px");
 
     var frag = document.createDocumentFragment(), cell;
     for (i = 0; i < days.length; i++) {
-      var count = days[i].n | 0;
-      var level = days[i].l | 0;
-      if (level < 0) level = 0;
-      if (level > 4) level = 4;
       cell = document.createElement("i");
       cell.className = "pGitCell";
-      cell.setAttribute("data-l", String(level));
-      cell.setAttribute("title", human(days[i].d) + ": " +
-        (count ? plural(count, "commit") : "no commits"));
+      if (days[i].pad) {
+        cell.setAttribute("data-l", "0");
+        cell.style.visibility = "hidden";
+      } else {
+        var level = days[i].l | 0;
+        if (level < 0) level = 0;
+        if (level > 4) level = 4;
+        cell.setAttribute("data-l", String(level));
+        cell.setAttribute("title", human(days[i].d) + ": " +
+          (level ? "contributions" : "no contributions"));
+      }
       frag.appendChild(cell);
     }
     graph.textContent = "";
     graph.appendChild(frag);
 
-    /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 44 individually
-       labelled squares is not an alternative, it is a maze. role="img" collapses
-       the subtree and this sentence is what a screen reader gets instead. */
+    /* THE MONTH LETTERS SIT OVER THE WEEK THE MONTH OPENS IN, and only where the month
+       actually changes -- so the row reads J J A S O N D J F M A M like the reference
+       rather than repeating a letter over every column. The first column is skipped when
+       its month is only a few days old: a letter there would sit over a week that is
+       mostly the previous month. */
+    if (months) {
+      var mfrag = document.createDocumentFragment(), seen = -1, w, day, mi, tick;
+      for (w = 0; w < weeks; w++) {
+        day = days[w * 7];
+        if (!day || !day.d) continue;
+        mi = parseInt(day.d.slice(5, 7), 10) - 1;
+        if (mi === seen) continue;
+        seen = mi;
+        if (w === 0 && parseInt(day.d.slice(8, 10), 10) > 7) continue;
+        tick = document.createElement("i");
+        tick.style.gridColumn = String(w + 1) + " / span 4";
+        tick.textContent = INITIALS[mi];
+        mfrag.appendChild(tick);
+      }
+      months.textContent = "";
+      months.appendChild(mfrag);
+    }
+
+    /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 371 individually labelled
+       squares is not an alternative, it is a maze. role="img" collapses the subtree and
+       this sentence is what a screen reader gets instead. */
     graph.setAttribute("aria-label",
-      "Commit history for this site. " + commas(commits) + " commits on " + active +
-      " of the " + total + " days from " + human(days[0].d) + " to " +
-      human(days[days.length - 1].d) + "; the longest unbroken run is " +
-      plural(longest, "day") + ". Each square is a day, shaded by the commits it " +
-      "carried; the busiest carried " + busiest + ".");
+      "Contribution calendar. " + commas(commits) + " contributions on " + active +
+      " days in the year to " + human(data.last) + "; the longest unbroken run is " +
+      plural(longest, "day") + ". Each square is a day, shaded by how busy it was.");
+
+    /* THE FIGURE IS THE HEADLINE NOW, which is the reference's structure: a label, then
+       the number, then the picture. The heading element and its id are unchanged, so the
+       section is still labelled by the thing that names it. */
+    var count = document.getElementById("pGitCount");
+    if (count) count.textContent = commas(commits) + " contributions";
 
     stamp.textContent = "Snapshot taken " + generated;
-    /* THE SENTENCE MAKES NO CLAIM THE DATA CANNOT CARRY. It says how long the WINDOW
-       is and how many of its days carried work -- not that the site "started" on the
-       first commit, which this repository cannot know and which is the kind of small
-       invented fact a portfolio cannot afford.
+    /* THE SENTENCE MAKES NO CLAIM THE DATA CANNOT CARRY, and it now has to be careful
+       about a new one: most of this window predates the repository, so it says how many
+       days carried work rather than anything about the empty ones, and it names the span
+       as a year to the last commit rather than calling it "the site's life".
        AND IT DOES NOT SAY "DARKER". It did, and dark mode caught it: the ramp runs on
        whatever the page's ink is, so on a night page the busiest days are the LIGHTEST
        squares and the sentence beside them was false. Naming the busiest day instead
        explains the shading in both themes and is a better fact than the adjective was. */
-    note.textContent = commas(commits) + " commits to this site in the " + total +
-      " days since " + humanShort(days[0].d) + ", on " + active +
-      " of them. Each square is a day, shaded by the commits it carried. The busiest carried " +
-      busiest + ".";
+    /* AND IT DOES NOT SAY "DARKER". It did, and dark mode caught it: the ramp runs on
+       whatever the page's ink is, so on a night page the busiest days are the LIGHTEST
+       squares and the sentence beside them was false. The key under the graph carries
+       the direction instead, in the ramp's own colours, and is right in both themes. */
+    note.textContent = commas(commits) + " contributions on " + active +
+      " days in the last year. Each square is a day. The longest unbroken run is " +
+      plural(longest, "day") + ".";
 
     root.hidden = false;
     /* One frame, so the class lands as a transition rather than as the initial
