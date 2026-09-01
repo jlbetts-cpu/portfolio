@@ -1177,27 +1177,43 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 /* icons inherit the control's colour so they light up with the hover wash */
 .moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
 
-/* ═══ MOBILE AUDIT P1 — the before/after shots stop being halved ══════════════
-   Measured at 390: each .shot.phone img rendered 163px from a 460px source --
-   a 2.8x downscale, six per page, on the one component whose entire job is
-   letting you see the difference between two screens. The standing rule is that
-   the phone shots do not get shrunk, and two columns inside a 342px content
-   width is the only thing breaking it.
-   ONE COLUMN BELOW 560. Each shot goes 163 -> 342px, which is 0.74x of source
-   rather than 0.36x. The cost is real and is the reason this was flagged rather
-   than done blind: you no longer see before and after side by side. What
-   replaces the comparison is sequence -- the .baLabel above each shot already
-   says which is which, and they are now adjacent rather than in two columns, so
-   the pair is one scroll rather than two glances. At 342px you can actually read
-   the screens being compared, which side-by-side at 163px did not let you do.
-   THE RULE IT REPLACES WAS HALF-DEAD, which is why 163 rather than 151: the
-   @media(max-width:560px) block set repeat(2,minmax(0,1fr)) but a LATER base
-   .baGrid{grid-template-columns:repeat(2,minmax(0,270px))} out-ordered it and
-   only its `gap` survived. Same disease as gradientlab's dead mobile sheet. This
-   block is appended at the foot of the sheet so nothing can out-order it, and
-   nothing may be added after it. */
+/* ═══ MOBILE ROUND 2 — the before/after pair goes back side by side ══════
+   Jayden, 2026-08-31: "the before and after mockups on mobile look off they are
+   too big and dont look together for the apollo case study." Both halves of that
+   are the SAME defect and this block caused it.
+   WHAT MOBILE AUDIT P1 DID (the comment it replaces, kept here so nobody redoes
+   it): it found each shot rendering 163px from a 460px source at 390, called
+   that a 2.8x downscale of the one component whose job is showing a difference,
+   and forced ONE COLUMN below 560 so each shot could run the full content width.
+   It measured the shot and never measured the PAIR. Numbers at 390x844 as it
+   shipped: each phone 358 x 778 -- 92% of the viewport height and 92% of its
+   width -- and one .baBlock 1,914px tall, 2.27 viewports. You could not get the
+   Before and the After on screen together at any scroll position, so the two
+   images arrived as two unrelated full-bleed pictures separated by ~89px of
+   mixed caption text. That is exactly what he described. Its own comment had
+   already conceded the cost ("you no longer see before and after side by side")
+   and traded it away for pixels.
+   SIDE BY SIDE BELOW 560, and everything else here is the pairing. Equal 1fr
+   columns so the two are the same width and the same scale; a 12px column gap
+   so the white between them is tighter than the gutter around them; .baCol gap
+   16 -> 8 so each label sits on its shot rather than floating between the two.
+   The labels are single-line and the shots share one aspect-ratio, so the pair
+   lands on one top axis and one bottom axis with no extra rules.
+   MEASURED AFTER, 390x844: each phone 173 x 376, the grid 445px tall (was
+   1,728), the whole block inside one viewport with the heading and the prose.
+   At 320x690: 139 x 302, grid 386, document scrollWidth 320 -- no overflow at
+   either size. The shots are 0.38x of source again and that is the real price;
+   what buys it back is that a layout comparison is legible at 173px (feed vs
+   sunset timer reads instantly in the screenshot) while a pair you can never
+   see at once is not a comparison at any size.
+   NOT DONE, deliberately: no arrow between the halves (.baGo stays hidden below
+   880 -- there is no room at a 12px gap and the aligned labels already say which
+   is which), no frame, no card, no elevation. Premium is subtraction.
+   This block is the foot of the sheet so nothing can out-order it; nothing may
+   be added after it. */
 @media(max-width:560px){
-  .baGrid{grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:var(--sp-24)}
+  .baGrid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-12);row-gap:var(--sp-16)}
+  .baCol{gap:var(--sp-8)}
   .baGrid .shot.phone img{aspect-ratio:720/1565}
 }
 
