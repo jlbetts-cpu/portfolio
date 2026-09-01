@@ -427,6 +427,34 @@
  if(pcY)pcY.addEventListener("click",function(){if(gameOn())return;
   try{if(window.__hmYowStart)window.__hmYowStart();}catch(_){}closeMenuBar();battleGate();});
 
+ /* ══ DEEP LINK: play.html?play=<mode> ═══════════════════════════════════════════════
+    The five case studies carry a "Try now" button near the top, and three of the games
+    have no URL of their own to point it at -- they start in this page, from a card.
+    So the link comes back HERE and clicks the card, rather than calling the engine's
+    start function directly. That is the whole design decision in this block: every
+    guard those handlers carry is a guard this path needs too. The match tops up the
+    field with a mini-Jayden when the roster is odd, the League and the cup do not,
+    every one of them refuses while another game is already running, and a page with no
+    heads on it must not start anything at all. Calling __hmYowStart from here would
+    have re-implemented that list, and drifted from it the first time one changed.
+    An unknown or absent mode does nothing, which is the right answer for a URL a
+    stranger has edited. ══════════════════════════════════════════════════════════ */
+ (function(){
+  var m=/[?&]play=([a-z]+)/.exec(String(location.search||""));
+  if(!m)return;
+  var CARDS={yowmings:"pcYow",league:"pcYow",match:"pcExped",soccer:"pcExped",tournament:"pcTour",cup:"pcTour"};
+  var el=document.getElementById(CARDS[m[1]]||"");
+  if(!el)return;
+  /* One frame after load, so the roster has been read and the cards have had their
+     aria-disabled written; clicking a gated card is then correctly a no-op. */
+  var go=function(){setTimeout(function(){
+   if(el.getAttribute("aria-disabled")==="true")return;
+   el.click();
+  },260);};
+  if(document.readyState==="complete")go();
+  else window.addEventListener("load",go);
+ }());
+
  /* ---- THE HOVER PREVIEW'S LOADER IS REMOVED WITH THE PANEL IT FED. See play.html for
     the argument; the short version is that images/preview/ never existed, `.ready` is
     set on the image's load event, and so this listener has spent its whole life arming

@@ -26,8 +26,8 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=57fb92263c">
-<link rel="stylesheet" href="play.css?v=57fb92263c">
+<link rel="stylesheet" href="tokens.css?v=5329e3e78b">
+<link rel="stylesheet" href="play.css?v=5329e3e78b">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
      remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
@@ -35,7 +35,7 @@
      ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
      is a printed artifact whose materials were settled in the broadcast spec and must not be
      re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
-<link rel="stylesheet" href="tournament.css?v=57fb92263c">
+<link rel="stylesheet" href="tournament.css?v=5329e3e78b">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
@@ -1634,15 +1634,15 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=57fb92263c">
-<link rel="stylesheet" href="footer.css?v=57fb92263c">
-<link rel="stylesheet" href="controls.css?v=57fb92263c">
-<link rel="stylesheet" href="site-theme.css?v=57fb92263c">
+<link rel="stylesheet" href="header.css?v=5329e3e78b">
+<link rel="stylesheet" href="footer.css?v=5329e3e78b">
+<link rel="stylesheet" href="controls.css?v=5329e3e78b">
+<link rel="stylesheet" href="site-theme.css?v=5329e3e78b">
 <!-- league.css LINKS LAST, AND THAT IS THE POINT. controls.css and site-theme.css
      both come after this page's own <style> block, so an equal-specificity rule
      written earlier loses on source order and loses SILENTLY -- four League rules
      were lost that way. The League owns the final word on its own screens. -->
-<link rel="stylesheet" href="league.css?v=57fb92263c">
+<link rel="stylesheet" href="league.css?v=5329e3e78b">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -2075,7 +2075,7 @@ window.__hmGames=true;</script>
      engine are untouched. The stylesheet is linked HERE rather than in <head> for
      the same reason league.css links last -- it is the final word on its own
      object, and a <link> is body-ok. -->
-<link rel="stylesheet" href="league-photos.css?v=57fb92263c">
+<link rel="stylesheet" href="league-photos.css?v=5329e3e78b">
 <script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a

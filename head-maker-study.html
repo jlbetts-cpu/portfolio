@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Head Maker, a browser tool by Jayden Betts that turns a photo into a playable character">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/headmaker/daytime-1200.webp" imagesrcset="images/cs/variants/time/headmaker/daytime-1200.webp 1200w, images/cs/variants/time/headmaker/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=57fb92263c">
+<link rel="stylesheet" href="tokens.css?v=5329e3e78b">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -1340,11 +1340,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=57fb92263c">
+<link rel="stylesheet" href="controls.css?v=5329e3e78b">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Jayden Betts", "item": "https://jaydenbetts.design/"}, {"@type": "ListItem", "position": 2, "name": "Head Maker Case Study", "item": "https://jaydenbetts.design/head-maker-study.html"}]}, {"@type": "CreativeWork", "@id": "https://jaydenbetts.design/head-maker-study.html#work", "url": "https://jaydenbetts.design/head-maker-study.html", "name": "Head Maker: A Product Design Case Study by Jayden Betts", "description": "Cutting a photograph into a character that comes alive and joins the games, without the photo leaving your device. A case study by Jayden Betts.", "image": "https://jaydenbetts.design/images/cs/variants/time/headmaker/daytime-1200.webp", "author": {"@type": "Person", "@id": "https://jaydenbetts.design/#person", "name": "Jayden Betts", "alternateName": "Jayden Lee Betts", "url": "https://jaydenbetts.design/", "sameAs": ["https://www.linkedin.com/in/jaydenbetts", "https://www.instagram.com/jaydenleebetts"]}, "genre": "Product Design", "inLanguage": "en"}]}</script>
-<link rel="stylesheet" href="header.css?v=57fb92263c">
-<link rel="stylesheet" href="footer.css?v=57fb92263c">
-<link rel="stylesheet" href="site-theme.css?v=57fb92263c">
+<link rel="stylesheet" href="header.css?v=5329e3e78b">
+<link rel="stylesheet" href="footer.css?v=5329e3e78b">
+<link rel="stylesheet" href="site-theme.css?v=5329e3e78b">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -1483,6 +1483,17 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   <div class="content">
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Head Maker. A stranger hands over their face in about forty seconds."><span class="eyebrow">Head Maker</span>A stranger hands over their face in about forty seconds.</h1>
+
+
+      <!-- TRY NOW. He asked for this on every case study: "a try now button will be near
+           the top for those that want to use it". It sits between the headline and the
+           cover deliberately -- above the fold on a phone, before the reader commits to
+           the scroll, which is the whole point of it.
+           IT IS THE SYSTEM'S BUTTON, .ctl ctl--primary, with nothing bolted on. The
+           three games have no URL of their own, so the link comes back to play.html with
+           ?play=<mode> and play-games.js clicks that game's card -- see the deep-link
+           block there for why it clicks the card instead of calling the engine. -->
+    <p class="csTry"><a class="ctl ctl--primary" href="headmaker.html?from=study">Make your own head</a></p>
 
     <figure class="cover media media--full" id="cover"><img data-time-thumbnail="headmaker" src="images/cs/variants/time/headmaker/daytime-1200.webp" srcset="images/cs/variants/time/headmaker/daytime-1200.webp 1200w, images/cs/variants/time/headmaker/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="Head Maker across four steps: the photo drop, the cutout frame, the placed face landmarks, and the finished living head." loading="eager" decoding="async"></figure>
     <script src="time-aware-thumbnails.js"></script>

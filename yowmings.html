@@ -48,8 +48,8 @@
 <meta name="twitter:image" content="https://jaydenbetts.design/images/cs/yowmings-cover.webp">
 <meta name="twitter:image:alt" content="The Yowmings League, a browser football game designed and built by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="preload" as="image" href="images/cs/yowmings/card-1200.webp" imagesrcset="images/cs/yowmings/card-1200.webp 1200w, images/cs/yowmings/card-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=57fb92263c">
+<link rel="preload" as="image" href="images/cs/variants/time/yowmings/daytime-1200.webp" imagesrcset="images/cs/variants/time/yowmings/daytime-1200.webp 1200w, images/cs/variants/time/yowmings/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
+<link rel="stylesheet" href="tokens.css?v=5329e3e78b">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -1418,11 +1418,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    horizontal tray has. */
 .content .scrollbox{max-width:100%}
 </style>
-<link rel="stylesheet" href="controls.css?v=57fb92263c">
+<link rel="stylesheet" href="controls.css?v=5329e3e78b">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Yowmings League Case Study","item":"https://jaydenbetts.design/yowmings.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/yowmings.html#work","url":"https://jaydenbetts.design/yowmings.html","name":"Yowmings League: A Product Design Case Study by Jayden Betts","description":"The Yowmings League is a browser game that settles a real fantasy draft: twelve friends' faces race a marble course to seed a bracket, then play it out. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/yowmings-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=57fb92263c">
-<link rel="stylesheet" href="footer.css?v=57fb92263c">
-<link rel="stylesheet" href="site-theme.css?v=57fb92263c">
+<link rel="stylesheet" href="header.css?v=5329e3e78b">
+<link rel="stylesheet" href="footer.css?v=5329e3e78b">
+<link rel="stylesheet" href="site-theme.css?v=5329e3e78b">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -1584,7 +1584,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          THE FRAME IS THE SERIES' FRAME AND SO IS THE PLATE NOW. .cover is 12/5 on
          desktop and 8/5 below 560. The plate used to be the match's own 16/9 in its
          own pair of files; it is the 2:1 card plate the other five case studies use,
-         and it is THE SAME FILE the Home card loads -- images/cs/yowmings/card-*.webp.
+         and it is THE SAME PLATE the Play card loads. Until 2026-09-01 that was
+         images/cs/yowmings/card-*.webp, the bare game capture with no photograph
+         under it -- "the yowmings league still shows it without the background".
+         It is the time-graded plate now, and it carries data-time-thumbnail like
+         every other cover on the site, so the hero takes the hour with them.
          Two reasons, and the second is the one that matters: 2:1 is what the series'
          crop math is tuned for (12/5 takes 83% of the height, 8/5 takes 80% of the
          width), and a visitor arrives here by clicking that exact picture on the Home
@@ -1600,7 +1604,18 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          invented, only continued, and the split is what centres the drop in the frame
          (295px of sky over the referee, 294px of ground under the eggheads) instead
          of leaving it pinned to the bottom edge. -->
-    <figure class="cover media media--full" id="cover"><img src="images/cs/yowmings/card-1200.webp" srcset="images/cs/yowmings/card-1200.webp 1200w, images/cs/yowmings/card-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="The kickoff of a Yowmings League quarter-final: a head in a striped referee cap drops in from above with the football just released beneath it, four cut-out heads waiting on the pitch below, and a set of uprights at each end." loading="eager" decoding="async"></figure>
+
+      <!-- TRY NOW. He asked for this on every case study: "a try now button will be near
+           the top for those that want to use it". It sits between the headline and the
+           cover deliberately -- above the fold on a phone, before the reader commits to
+           the scroll, which is the whole point of it.
+           IT IS THE SYSTEM'S BUTTON, .ctl ctl--primary, with nothing bolted on. The
+           three games have no URL of their own, so the link comes back to play.html with
+           ?play=<mode> and play-games.js clicks that game's card -- see the deep-link
+           block there for why it clicks the card instead of calling the engine. -->
+    <p class="csTry"><a class="ctl ctl--primary" href="play.html?play=yowmings">Play the Yowmings League</a></p>
+
+    <figure class="cover media media--full" id="cover"><img data-time-thumbnail="yowmings" src="images/cs/variants/time/yowmings/daytime-1200.webp" srcset="images/cs/variants/time/yowmings/daytime-1200.webp 1200w, images/cs/variants/time/yowmings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="The kickoff of a Yowmings League quarter-final: a head in a striped referee cap drops in from above with the football just released beneath it, four cut-out heads waiting on the pitch below, and a set of uprights at each end." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>

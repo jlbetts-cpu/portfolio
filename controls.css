@@ -1103,3 +1103,14 @@
   forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)
  }
 }
+
+/* ══ .csTry ═════════════════════════════════════════════════════════════════════════
+   The "Try now" line on a case study, between the headline and the cover. It lives
+   here rather than in five inline <style> blocks because all five studies already
+   link this sheet and the alternative is the same three declarations copied five
+   times, which is how two of them end up different.
+   IT CARRIES NO BUTTON STYLE OF ITS OWN. The control inside it is .ctl ctl--primary,
+   unmodified -- CLAUDE.md's rule is that a control comes from this file and is not
+   patched toward the system property by property. This wrapper only owns the space
+   under it, which is the paragraph rung the covers already sit on. */
+.csTry{margin:0 0 var(--sp-24)}

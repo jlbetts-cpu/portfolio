@@ -98,8 +98,16 @@ SCENES = {
     # green.  Both new frames are flat overcast light with NO SUN IN SHOT, because a
     # photograph that already reads as one hour cannot be graded to another.
     #
-    #   yowmings    Yan Berthemy     Ss4hyF3xUic  an empty stadium bowl under cloud --
-    #               the League is a competition, so it stands in a competition's room.
+    #   yowmings    Petr Ganaj       095cc0a28e09  a corner flag and a boundary line
+    #               on flat turf, shot close in under cloud.  A STADIUM FRAME WAS TRIED
+    #               FIRST AND PULLED: the MCG bowl reads well at card size but at
+    #               case-study size its Toyota and AAMI hoardings are legible, and the
+    #               crop cannot escape them -- the source is 3:2, so a 2:1 crop can drop
+    #               only a quarter of the height and the stand is more than that.  Every
+    #               professional-stadium photograph checked for this had boards on it;
+    #               an amateur ground has none by construction.  This one also stays
+    #               clearly apart from engine's mown pitch and treeline, which is the
+    #               rule for the whole set.
     #   tournament  Nathan Bingle    9UVmlIb0wJU  one stand behind a flat green, shot
     #               level: a knockout tie is one match at one ground, not a season.
     #
@@ -107,7 +115,7 @@ SCENES = {
     # worth recording: it is a night shot, which this grade cannot undo, and it carries
     # PSG, Mastercard, PS5 and Pepsi hoardings -- third-party marks have no business on
     # his portfolio.  Check both before adding a fourth ground.
-    "yowmings": ("https://images.unsplash.com/photo-1663832952954-170d73947ba7", .58),
+    "yowmings": ("https://images.unsplash.com/photo-1582661714915-095cc0a28e09", .52),
     "tournament": ("https://images.unsplash.com/photo-1661924038279-9ce6514d5bf4", .60),
 }
 
@@ -134,6 +142,16 @@ LAYOUTS = {
 SCREEN_CROP = {"engine": (0.0, 0.83)}
 WINDOW_W = .66          # the box the window is fitted into, as a fraction of
 WINDOW_H = .76          # the plate.  Aspect is preserved inside it.
+# ONE SLUG DEVIATES, AND IT IS NOT A TUNING KNOB.  The four original covers hold the
+# same fraction so they carry the same weight in a row, and that rule stands for
+# anything that is an APP SCREENSHOT: a window of UI reads fine small because a reader
+# only has to recognise it.  Yowmings is not a screenshot, it is a SCENE -- a wide shot
+# of a kickoff with cut-out heads, a referee and a set of uprights at each end -- and at
+# .66 the heads are two-thirds size and the thing the picture is of stops being legible.
+# He said it directly: he likes the case study's picture, which is the same scene at full
+# bleed, more than the card's. So the scene gets a bigger box and the photograph stays as
+# a frame around it rather than a field it floats in.
+WINDOW_BOX = {"yowmings": (.76, .80)}
 RADIUS = .014           # the shipped R3SHORE corner: 17px at 1200, 34px at 2400
 # The site's own --rim-1, inset 0 0 0 1px rgba(9,11,36,.08).  A white product
 # panel standing on a pale pre-dawn sky has no edge of its own, and elevation is
@@ -230,7 +248,8 @@ def foreground(slug, size):
     if (top, bottom) != (0.0, 1.0):
         window = window.crop((0, round(window.height * top), window.width, round(window.height * bottom)))
 
-    scale = min(width * WINDOW_W / window.width, height * WINDOW_H / window.height)
+    box_w, box_h = WINDOW_BOX.get(slug, (WINDOW_W, WINDOW_H))
+    scale = min(width * box_w / window.width, height * box_h / window.height)
     box = (round(window.width * scale), round(window.height * scale))
     layer = Image.new("RGBA", size, (0, 0, 0, 0))
     layer.alpha_composite(
