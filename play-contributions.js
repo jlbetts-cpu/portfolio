@@ -1,25 +1,31 @@
-/* ══ THE CONTRIBUTION BAND ═══════════════════════════════════════════════════════════
-   Renders data/contributions.json into #pGitGraph, under the Play hero and above the
-   games band.
+/* ══ THE COMMIT BAND ═════════════════════════════════════════════════════════════════
+   Renders data/commit-history.json into #pGitGraph, under the Play hero and above the
+   games band. One square a day, in a line, for every day this site has existed.
 
-   THE DATA IS BUILT, NOT FETCHED FROM GITHUB, and tools/fetch-contributions.py explains
-   why in full: the calendar is CORS-blocked HTML and the GraphQL endpoint that returns it
-   as data needs a token, which a static site cannot ship. So the graph is fetched at build
-   time, committed as JSON, and drawn from that.
+   IT IS THIS REPOSITORY'S OWN HISTORY, NOT GITHUB'S CALENDAR, and the swap was the whole
+   point of the second pass. The 12-month contribution graph measured 52 active days of
+   367 with two empty stretches of 130 and 118 days -- eight idle months and then every
+   commit bunched against the right edge. The same window read 73% active over the last
+   45 days. A caption cannot rescue a picture like that, and this page's own history is
+   better on every axis: it is the record of the page the visitor is standing on, it has
+   no gaps because the project did not exist before 20 July, and it comes from `git log`,
+   so there is no third party and nothing to be wrong about.
+   tools/build-commit-calendar.py writes it. Its docstring carries the rest.
 
-   WHICH MEANS IT CAN GO STALE, and that is the one objection that parked this idea in
-   August: a panel that LOOKS live while being a snapshot is worse than no panel. So the
-   `generated` date is not optional decoration -- it is the condition the section exists on.
-   Nothing here renders unless the JSON carries it, and it is printed at the top of the
-   section rather than buried under the graph. If you are refactoring this and the date
-   feels like clutter, delete the section instead.
+   THE DATE IS STILL THE CONDITION. A browser cannot run git, so this is still committed
+   data and it can still go stale -- which is the objection that parked the whole idea in
+   August, and the one mitigation that answered it. `generated` prints at the top of the
+   section and NOTHING renders without it. If you are refactoring this and the date feels
+   like clutter, delete the section instead.
 
-   `l` IS GITHUB'S 0-4 BUCKET, NOT A COMMIT COUNT. The build tool refuses to invent a total
-   and so does this: every number on the page is a count of DAYS, and the note says out
-   loud what the shading is. Do not print `l` as commits.
+   `n` IS A REAL COMMIT COUNT, and that is new. GitHub's cells carried an opaque 0-4
+   bucket with no number behind it, so the old caption could only say what the shading was
+   NOT. Here `l` is a fixed bucket OF `n` (levelFloors in the JSON), so the page can say
+   plainly that a darker square is a busier day. Fixed, not quartiles: a ramp derived from
+   the data would re-shade the past every time you commit.
 
-   NO NETWORK, NO STATE, NO STORAGE. This file reads one same-origin JSON and writes into
-   three elements. In particular it never touches hmCompanions.
+   NO NETWORK, NO STATE, NO STORAGE. One same-origin JSON, three elements written. In
+   particular it never touches hmCompanions.
    ═══════════════════════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -47,13 +53,25 @@
     return parseInt(p[3], 10) + " " + MONTHS[m] + " " + p[1];
   }
 
-  /* Day of the week, 0 = Sunday, from the string. Date.UTC keeps it off the local
-     clock for the same reason as above. */
-  function weekday(iso) {
+  /* Same, minus the year, for a date the sentence has already put in context. */
+  function humanShort(iso) {
     var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
-    if (!p) return 0;
-    return new Date(Date.UTC(+p[1], +p[2] - 1, +p[3])).getUTCDay();
+    if (!p) return "";
+    return parseInt(p[3], 10) + " " + MONTHS[parseInt(p[2], 10) - 1];
   }
+
+  /* 1002 -> "1,002". Written out rather than toLocaleString: the separator is part
+     of the copy and should not change with the visitor's locale. */
+  function commas(n) {
+    var s = String(n), out = "", i;
+    for (i = 0; i < s.length; i++) {
+      if (i && (s.length - i) % 3 === 0) out += ",";
+      out += s.charAt(i);
+    }
+    return out;
+  }
+
+  function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
 
   function render(data) {
     var days = data && data.days;
@@ -62,54 +80,63 @@
     if (!generated) return false;          // no date, no section. See the header.
 
     var total = days.length;
-    var active = 0, streak = 0, longest = 0, i;
+    var active = 0, commits = 0, streak = 0, longest = 0, busiest = 0, i;
     for (i = 0; i < days.length; i++) {
-      if (days[i].l > 0) { active++; streak++; if (streak > longest) longest = streak; }
+      var n = days[i].n | 0;
+      commits += n;
+      if (n > busiest) busiest = n;
+      if (n > 0) { active++; streak++; if (streak > longest) longest = streak; }
       else streak = 0;
     }
 
-    /* THE GRID IS COLUMN-MAJOR, SEVEN DEEP, like the calendar it comes from: CSS
-       does the flow (`grid-auto-flow:column` over seven rows), so the markup is a
-       flat list and there is no per-week wrapper to keep in sync. The series starts
-       on a Sunday today, but pad anyway -- a re-run that starts mid-week would
-       otherwise silently rotate every weekday row by a day or two. */
-    var frag = document.createDocumentFragment();
-    var pad = weekday(days[0].d), cell;
-    for (i = 0; i < pad; i++) {
-      cell = document.createElement("i");
-      cell.className = "pGitPad";
-      cell.setAttribute("aria-hidden", "true");
-      frag.appendChild(cell);
-    }
+    /* ONE ROW, ONE SQUARE A DAY, IN ORDER. 44 days is a line, not a calendar: a
+       seven-row weekday grid needs a year to read as one, and at six weeks it is
+       just a lumpy block whose rows mean nothing. The column COUNT is written from
+       the data rather than typed into the stylesheet -- one more commit-day and a
+       hard-coded 44 would wrap a single square onto a second row and nobody would
+       notice for a month. The stylesheet's literals are fallbacks, not the truth. */
+    graph.style.setProperty("--pgit-cols", String(total));
+    graph.style.setProperty("--pgit-fold", String(Math.ceil(total / 2)));
+
+    var frag = document.createDocumentFragment(), cell;
     for (i = 0; i < days.length; i++) {
+      var count = days[i].n | 0;
       var level = days[i].l | 0;
       if (level < 0) level = 0;
       if (level > 4) level = 4;
       cell = document.createElement("i");
       cell.className = "pGitCell";
       cell.setAttribute("data-l", String(level));
-      /* The hover string, and it names the bucket rather than pretending to a count. */
       cell.setAttribute("title", human(days[i].d) + " — " +
-        (level ? "level " + level + " of 4" : "no contributions"));
+        (count ? plural(count, "commit") : "no commits"));
       frag.appendChild(cell);
     }
     graph.textContent = "";
     graph.appendChild(frag);
 
-    /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 367 individually
+    /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 44 individually
        labelled squares is not an alternative, it is a maze. role="img" collapses
        the subtree and this sentence is what a screen reader gets instead. */
     graph.setAttribute("aria-label",
-      "GitHub contribution graph. " + active + " of " + total + " days from " +
-      human(days[0].d) + " to " + human(days[days.length - 1].d) +
-      " carried a commit; the longest run is " + longest +
-      " day" + (longest === 1 ? "" : "s") + ".");
+      "Commit history for this site. " + commas(commits) + " commits on " + active +
+      " of the " + total + " days from " + human(days[0].d) + " to " +
+      human(days[days.length - 1].d) + "; the longest unbroken run is " +
+      plural(longest, "day") + ". Each square is a day, shaded by the commits it " +
+      "carried; the busiest carried " + busiest + ".");
 
     stamp.textContent = "Snapshot taken " + generated;
-    note.textContent = active + " of the last " + total +
-      " days carried a commit, in stretches rather than a trickle — the longest run is " +
-      longest + " day" + (longest === 1 ? "" : "s") +
-      " straight. Shading is GitHub’s own 0–4 bucket, not a commit count.";
+    /* THE SENTENCE MAKES NO CLAIM THE DATA CANNOT CARRY. It says how long the WINDOW
+       is and how many of its days carried work -- not that the site "started" on the
+       first commit, which this repository cannot know and which is the kind of small
+       invented fact a portfolio cannot afford.
+       AND IT DOES NOT SAY "DARKER". It did, and dark mode caught it: the ramp runs on
+       whatever the page's ink is, so on a night page the busiest days are the LIGHTEST
+       squares and the sentence beside them was false. Naming the busiest day instead
+       explains the shading in both themes and is a better fact than the adjective was. */
+    note.textContent = commas(commits) + " commits to this site in the " + total +
+      " days since " + humanShort(days[0].d) + ", on " + active +
+      " of them. Each square is a day, shaded by the commits it carried — the busiest, " +
+      busiest + ".";
 
     root.hidden = false;
     /* One frame, so the class lands as a transition rather than as the initial
@@ -128,7 +155,7 @@
      for any reason the section simply never appears -- a heading over an empty box
      is the stale-dashboard failure in another costume. */
   var xhr = new XMLHttpRequest();
-  xhr.open("GET", "data/contributions.json", true);
+  xhr.open("GET", "data/commit-history.json", true);
   xhr.onreadystatechange = function () {
     if (xhr.readyState !== 4) return;
     if (xhr.status !== 200 && xhr.status !== 0) return;

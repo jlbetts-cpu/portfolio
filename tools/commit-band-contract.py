@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The contribution band shows the date its data was taken, or it does not ship.
+"""The commit band shows the date its data was taken, or it does not ship.
 
 WHY THIS EXISTS
 ---------------
@@ -8,10 +8,10 @@ down on three grounds; two of them are dead (the commit count now argues FOR him
 and he never asked for the token-usage panel that was the other objection).  The
 third is permanent and is the reason the section is allowed to exist at all:
 
-    data/contributions.json is a COMMITTED SNAPSHOT, not a live feed.  GitHub's
-    calendar is CORS-blocked HTML and the GraphQL API needs a token a static site
-    cannot ship (tools/fetch-contributions.py explains it in full).  A panel that
-    LOOKS live while being a stale snapshot is worse than no panel.
+    data/commit-history.json is a COMMITTED SNAPSHOT, not a live feed.  A browser
+    cannot run git, so the calendar is built by tools/build-commit-calendar.py and
+    committed.  A panel that LOOKS live while being a stale snapshot is worse than
+    no panel.
 
 So the mitigation is not advice, it is a condition: the `generated` date is on the
 page, level with the heading, and play-contributions.js renders NOTHING if the JSON
@@ -19,17 +19,34 @@ has lost it.  That is one visible string and one early return -- exactly the kin
 thing a later tidy-up removes without anything looking broken in review.  This file
 is what makes removing it fail.
 
-It also holds the two things that make the band belong rather than look borrowed:
-it is drawn in the site's own ink and it casts no shadow (the companion heads cast
-the only shadow on this site), and it shares the page's column edges with the cards
-band under it.
+WHAT ELSE IS HELD HERE, and each one is a mistake that was actually made:
 
-Run:  python3 tools/contributions-band-contract.py [--self-test]
+  * THE SOURCE.  The first cut drew GitHub's 12-month calendar: 52 active days of
+    367, two empty stretches of 130 and 118 days, everything bunched at the right
+    edge.  An honest caption under a weak picture is still a weak picture, so the
+    source moved to this repository's own log.  The old fetcher and its JSON are
+    DELETED, and this file asserts they stay deleted -- an unused data file that
+    looks live is the failure mode all over again.
+
+  * "DARKER SQUARES ARE BUSIER DAYS" WAS FALSE IN DARK MODE.  The ramp runs on the
+    page's ink, so on a night page the busiest days are the LIGHTEST squares.  The
+    caption may not name a direction of shade.  Found by looking at a screenshot,
+    which is the only way it could have been found.
+
+  * THE GRID'S COLUMN COUNT COMES FROM THE DATA.  A hard-coded 44 wraps a single
+    square onto a row of its own the first day the repo gains one, and nothing
+    errors, so nobody notices for a month.
+
+  * NO SHADOW, NO BORDER, NO RULE.  The companion heads cast the only shadow on
+    this site, and tools/structure-rule-contract.py caps how many lines it draws.
+
+Run:  python3 tools/commit-band-contract.py [--self-test]
       --self-test  serve a play-contributions.js with the date guard removed and
                    the stamp left blank, and prove this contract fails on it.
 """
 
 import json
+import math
 import pathlib
 import re
 import sys
@@ -40,7 +57,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HTML = (ROOT / "play.html").read_text(encoding="utf-8")
 JS = (ROOT / "play-contributions.js").read_text(encoding="utf-8")
-DATA = json.loads((ROOT / "data" / "contributions.json").read_text(encoding="utf-8"))
+DATA = json.loads((ROOT / "data" / "commit-history.json").read_text(encoding="utf-8"))
 
 MONTHS = ["January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"]
@@ -72,7 +89,7 @@ def static_contract():
     # 1 ── THE SECTION IS THERE, AND IT IS BETWEEN THE HERO AND THE DOORS.
     # "under the hero ... before all the options" is the whole request; a section
     # that drifts below the cards has stopped being the thing he asked for.
-    assert '<section class="pGit" id="pGit"' in LIVE, "play.html no longer ships the contribution band"
+    assert '<section class="pGit" id="pGit"' in LIVE, "play.html no longer ships the commit band"
     hero = LIVE.index('class="hero" id="playArena"')
     band = LIVE.index('<section class="pGit" id="pGit"')
     hub = LIVE.index('<section class="pHub" id="games"')
@@ -99,27 +116,54 @@ def static_contract():
     assert 'stamp.textContent = "Snapshot taken "' in JS, \
         "the stamp is no longer written from the JSON's own `generated` field"
 
-    # 5 ── NO SHADOW AND NO BORDER, IN SOURCE.  The companion heads cast the only
-    # shadow on this site; chrome separates with hairlines and translucency. The
-    # computed check below catches an inherited one; this catches a declared one.
+    # 5 ── THE SOURCE IS THIS REPOSITORY, AND THE GITHUB SNAPSHOT STAYS GONE.
+    # An unused data file that looks live is the objection this whole section is
+    # conditioned on, sitting in the tree with nothing to disprove it.
+    assert "data/commit-history.json" in JS, "the band is no longer reading this repo's own log"
+    assert not (ROOT / "data" / "contributions.json").exists(), \
+        "data/contributions.json is back -- a stale GitHub snapshot must not ship"
+    assert not (ROOT / "tools" / "fetch-contributions.py").exists(), \
+        "the GitHub fetcher is back; nothing consumes its output"
+
+    # 6 ── THE DATA CARRIES REAL COUNTS, not opaque buckets. This is what lets the
+    # caption talk about commits at all; GitHub's levels had no number behind them.
+    assert "levelFloors" in DATA, "the calendar no longer declares its level thresholds"
+    assert all("n" in day for day in DATA["days"]), \
+        "a day has no commit count; the shading would be an opaque bucket again"
+
+    # 7 ── THE COLUMN COUNT COMES FROM THE DATA.  A literal in the stylesheet is a
+    # fallback; the truth is written by the script, or the grid silently wraps one
+    # square onto a row of its own the day the repo gains one.
+    assert 'setProperty("--pgit-cols"' in JS and 'setProperty("--pgit-fold"' in JS, \
+        "the grid's column count is no longer written from the data"
+
     css = HTML[HTML.index("<style"):HTML.index("</style>")]
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    assert "repeat(var(--pgit-cols," in css, \
+        ("the grid no longer takes its column count from a custom property, or the var() "
+         "has lost its fallback -- an unresolvable var() computes to `unset`, and "
+         "grid-template-columns:none stacks every day into one very tall column")
+
+    # 8 ── NO SHADOW AND NO BORDER, IN SOURCE.  The companion heads cast the only
+    # shadow on this site; chrome separates with hairlines and translucency. The
+    # computed check below catches an inherited one; this catches a declared one.
     for rule in re.findall(r"[^{}]*\.pGit[^{}]*\{([^}]*)\}", css):
         assert "box-shadow" not in rule, ("the band has taken a shadow", rule)
         assert not re.search(r"(?<!-)border\s*:", rule) and "border-top" not in rule \
             and "border-block" not in rule, ("the band has taken a border", rule)
 
-    # 6 ── IT DOES NOT DRAW A STRUCTURAL LINE EITHER.  The hero's own bottom edge and
+    # 9 ── IT DOES NOT DRAW A STRUCTURAL LINE EITHER.  The hero's own bottom edge and
     # .pCards' border-block-start already bound it, and tools/structure-rule-contract.py
     # caps how many lines this site may draw. A rule added here spends that budget.
     assert "var(--rule)" not in "".join(re.findall(r"[^{}]*\.pGit[^{}]*\{[^}]*\}", css)), \
         "the band is drawing a structural rule; it is bounded by lines that already exist"
 
-    # 7 ── `l` IS A BUCKET.  The build tool refuses to invent a commit total and so
-    # must the page. Every number rendered is a count of DAYS.
-    assert "not a commit count" in JS, \
-        "the note no longer says the shading is a bucket rather than a count"
-    print("  static: band sits between hero and doors, ships hidden, guards the date, casts nothing")
+    # 10 ── AND THE RAMP IS THEMED.  It is the page's ink, not a colour of its own,
+    # which is also why the caption may not name a direction of shade -- see §11 below.
+    assert re.search(r':root\[data-theme="dark"\]\s*\.pGit\{', css), \
+        "the band has no dark ramp; ink at 92% alpha on a night page is invisible"
+    print("  static: this repo's log, band between hero and doors, ships hidden, "
+          "guards the date, counts from the data, casts nothing")
 
 
 PROBE = """() => {
@@ -137,6 +181,7 @@ PROBE = """() => {
     aria: g.getAttribute('aria-label') || '',
     cells: g.querySelectorAll('.pGitCell').length,
     titled: [...g.querySelectorAll('.pGitCell')].filter(c => c.title).length,
+    cols: getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean).length,
     overflow: document.documentElement.scrollWidth - window.innerWidth,
     graphLeft: Math.round(gr.left), graphRight: Math.round(gr.right),
     cardsLeft: Math.round(cr.left), cardsRight: Math.round(cr.right),
@@ -148,21 +193,33 @@ PROBE = """() => {
   };
 }"""
 
+TOP_LEVEL = """() => {
+  const c = document.querySelector('.pGitCell[data-l="4"]') ||
+            document.querySelector('.pGitCell[data-l="3"]');
+  return c ? getComputedStyle(c).backgroundColor : '';
+}"""
+
 
 def browser_contract(base, patched_js=None):
     from playwright.sync_api import sync_playwright
 
     stamp_want = "Snapshot taken " + human(DATA["generated"])
-    active = DATA["activeDays"]
-    total = DATA["totalDays"]
+    days = DATA["days"]
+    active = sum(1 for d in days if d["n"] > 0)
+    commits = sum(d["n"] for d in days)
+    busiest = max(d["n"] for d in days)
+    total = len(days)
+
+    def route(page):
+        if patched_js is not None:
+            page.route("**/play-contributions.js", lambda r: r.fulfill(
+                status=200, content_type="text/javascript", body=patched_js))
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
         for width, height in ((1512, 850), (390, 844), (320, 690)):
             page = browser.new_page(viewport={"width": width, "height": height})
-            if patched_js is not None:
-                page.route("**/play-contributions.js", lambda r: r.fulfill(
-                    status=200, content_type="text/javascript", body=patched_js))
+            route(page)
             page.goto(base + "/play.html", wait_until="load")
             page.wait_for_timeout(2600)
             m = page.evaluate(PROBE)
@@ -175,19 +232,35 @@ def browser_contract(base, patched_js=None):
             assert not m["hidden"] and m["display"] != "none", \
                 "%d: the band did not render" % width
 
-            # Every number on the page is a count of days, and it is the file's.
-            assert m["cells"] == len(DATA["days"]), \
-                ("%d: %d cells for %d days" % (width, m["cells"], len(DATA["days"])))
+            # Every number on the page is the file's own.
+            assert m["cells"] == total, ("%d: %d cells for %d days" % (width, m["cells"], total))
             assert m["titled"] == m["cells"], \
                 "%d: %d of %d cells carry no hover date" % (width, m["titled"], m["cells"])
-            assert str(active) in m["note"] and str(total) in m["note"], \
-                ("%d: the note does not report the file's own counts" % width, m["note"])
-            assert ("%d of %d" % (active, total)) in m["aria"], \
+            for label, value in (("commits", commits), ("active days", active),
+                                 ("window", total), ("busiest day", busiest)):
+                assert str(value) in m["note"].replace(",", ""), \
+                    ("%d: the note does not report the file's own %s (%d)" % (width, label, value),
+                     m["note"])
+            assert str(commits) in m["aria"].replace(",", ""), \
                 ("%d: the graph has no real text alternative" % width, m["aria"])
 
-            # NO PAGE SCROLL.  367 cells at 7 rows is the obvious way to push a phone
+            # THE CAPTION MAY NOT NAME A DIRECTION OF SHADE.  The ramp is the page's
+            # ink, so "darker is busier" is true on paper and false at night. This
+            # shipped once and only a dark screenshot caught it.
+            for word in ("darker", "lighter", "dark squares", "light squares"):
+                assert word not in m["note"].lower(), \
+                    ("%d: the caption names a direction of shade (%r) -- the ramp inverts "
+                     "with the theme, so it is false in one of them" % (width, word), m["note"])
+
+            # THE GRID IS AS WIDE AS THE DATA, folding rather than being cut short.
+            want_cols = total if width > 560 else math.ceil(total / 2)
+            assert m["cols"] == want_cols, \
+                ("%d: grid has %d columns, want %d -- the count must come from the data"
+                 % (width, m["cols"], want_cols))
+
+            # NO PAGE SCROLL.  A day-per-square strip is the obvious way to push a phone
             # sideways, and "nothing scrolls that should not" is the site's rule -- the
-            # squares shrink instead, and there is no scrollport here to hide behind.
+            # squares shrink and the row folds instead, and there is no scrollport here.
             assert m["overflow"] <= 0, \
                 "%d: the band pushed the page %dpx sideways" % (width, m["overflow"])
 
@@ -206,6 +279,15 @@ def browser_contract(base, patched_js=None):
             # NOTHING ELEVATES.  The heads cast the only shadow on this site.
             assert m["shadows"] == "none|none|none", \
                 ("%d: something in the band is casting: %s" % (width, m["shadows"]))
+
+            # AND THE RAMP ACTUALLY MOVES WITH THE THEME, measured rather than read out
+            # of a stylesheet -- the rule can be live and still be outranked.
+            paper = page.evaluate(TOP_LEVEL)
+            page.evaluate("document.documentElement.setAttribute('data-theme','dark')")
+            page.wait_for_timeout(200)
+            night = page.evaluate(TOP_LEVEL)
+            assert paper and night and paper != night, \
+                ("%d: the ramp does not follow the theme (%s vs %s)" % (width, paper, night))
             page.close()
 
         # AND THE GUARD ACTUALLY HOLDS: strip `generated` and the section must not appear.
@@ -213,10 +295,8 @@ def browser_contract(base, patched_js=None):
         stripped.pop("generated", None)
         body = json.dumps(stripped)
         page = browser.new_page(viewport={"width": 1512, "height": 850})
-        if patched_js is not None:
-            page.route("**/play-contributions.js", lambda r: r.fulfill(
-                status=200, content_type="text/javascript", body=patched_js))
-        page.route("**/data/contributions.json", lambda r: r.fulfill(
+        route(page)
+        page.route("**/data/commit-history.json", lambda r: r.fulfill(
             status=200, content_type="application/json", body=body))
         page.goto(base + "/play.html", wait_until="load")
         page.wait_for_timeout(2600)
@@ -225,7 +305,9 @@ def browser_contract(base, patched_js=None):
              "does not say when it was taken is the thing this section is not allowed to be")
         page.close()
         browser.close()
-    print("  browser: date is the file's own at 3 widths, no page scroll, on the column, no shadow")
+    print("  browser: date is the file's own at 3 widths, %d columns folding to %d, "
+          "no page scroll, on the column, no shadow, ramp follows the theme"
+          % (total, math.ceil(total / 2)))
 
 
 def serve(fn, *args):
@@ -257,10 +339,10 @@ def self_test():
 
 
 if __name__ == "__main__":
-    print("Contribution band contract")
+    print("Commit band contract")
     static_contract()
     if "--self-test" in sys.argv:
         self_test()
     else:
         serve(browser_contract)
-    print("Contribution band contract: OK")
+    print("Commit band contract: OK")

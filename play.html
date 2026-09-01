@@ -503,37 +503,47 @@
  body.hmSoccer .hero::before,body.hmBattle .hero::before,
  body.hmRace .hero::before,body.hmTour .hero::before{display:none}
 
- /* ══ THE CONTRIBUTION BAND ══════════════════════════════════════════════════════════
+ /* ══ THE COMMIT BAND ════════════════════════════════════════════════════════════════
     Jayden, 2026-09-01: "under the hero i think there should be a section which shows my
     github contributions before all the options to show the care I put in my projects."
 
-    IT IS NOT A GITHUB CLONE, and that is the whole design. GitHub's green on his paper
-    would read as somebody else's widget pasted in; the ramp here is --accent, the site's
-    ink (#090b24), at five stepped alphas on the page's own ground. Same ink as the type,
-    same radius ladder, same 4px grid -- the graph is drawn BY this design system rather
-    than quoted from another one.
+    IT DRAWS THIS REPOSITORY, NOT GITHUB'S CALENDAR. The first cut of this band was the
+    12-month contribution graph and the picture was weak in a way no caption could rescue:
+    52 active days of 367, two empty stretches of 130 and 118 days, and every commit
+    bunched against the right edge. The same window measured 73% active over 45 days.
+    So the source moved to `git log` on this repo -- the record of the page the visitor is
+    standing on, with no gaps because the project did not exist before 20 July, and no
+    third party to be wrong about it. tools/build-commit-calendar.py writes the JSON.
+
+    IT IS NOT A GITHUB CLONE EITHER, and that is the whole design. GitHub's green on his
+    paper would read as somebody else's widget pasted in; the ramp here is --accent, the
+    site's ink (#090b24), at five stepped alphas on the page's own ground. Same ink as the
+    type, same radius ladder, same 4px grid -- the graph is drawn BY this design system
+    rather than quoted from another one.
     NO CARD, NO BORDER, NO SHADOW. The heads cast the only shadow on this site. The band
     is separated above by .hero::after's own edge and below by .pCards' border-block-start,
     both of which already exist; it draws no line of its own and adds nothing to the
     structural-rule budget.
 
-    THE FULL YEAR AT EVERY WIDTH, AND THE CELLS SHRINK -- not a scrollport and not a
-    shorter window. Both alternatives were considered and both lose:
-      * `overflow-x:auto` on the graph is the obvious answer and it is the one CLAUDE.md
-        rules out. "Nothing scrolls that should not"; where content does not fit the answer
-        is reduction, and he has objected to a scrollport four separate times.
-      * a 6-month window on phones fixes the geometry by making the SENTENCE next to it
-        false -- "52 of the last 367 days" beside 182 drawn squares. A number that does not
-        match its own picture is the stale-dashboard failure again, one breakpoint down.
-    So the columns are 53 equal `1fr` tracks and the square rides the column: ~19px at
-    1440, ~5px at 320. At the small end it stops being a chart and becomes a texture, which
-    is honest -- the sentence under it carries the counts either way.
+    A LINE, NOT A CALENDAR. 44 days is six weeks: a seven-row weekday grid needs a year
+    before its rows mean anything, and at this length it is a lumpy block whose shape is an
+    accident of which weekday the project started on. One square a day, left to right, is
+    the honest picture of a run of days -- and it fills the page's column, so the band
+    shares its edges with the cards under it and the rails beside it.
 
-    THE DATE IS THE CONDITION, NOT DECORATION. This is a committed snapshot, not a live
-    feed, and a panel that looks live while being stale is worse than no panel -- that was
-    the argument that parked this idea in August. `generated` prints at the top of the
-    section, level with the heading, and play-contributions.js renders nothing at all if
-    the JSON has lost it.
+    THE SQUARES SHRINK, THEY DO NOT SCROLL. `overflow-x:auto` on the graph is the obvious
+    phone answer and it is the one CLAUDE.md rules out -- "nothing scrolls that should
+    not", and he has objected to a scrollport four separate times. So the columns are equal
+    `1fr` tracks and the square rides the column, and where one row would put a day under
+    5px the row folds in two rather than the window being cut short. A shorter window would
+    fix the geometry by making the sentence beside it false, which is the stale-dashboard
+    failure one breakpoint down.
+
+    THE DATE IS THE CONDITION, NOT DECORATION. A browser cannot run git, so this is still
+    committed data and it can still go stale -- and a panel that looks live while being a
+    snapshot is worse than no panel, which is the argument that parked this idea in August.
+    `generated` prints at the top of the section, level with the heading, and
+    play-contributions.js renders nothing at all if the JSON has lost it.
 
     IT GOES WHEN A GAME TAKES THE VIEWPORT, on the same flag .siteFoot and the margin rails
     use. A pitch has no column and no side-matter. ═══════════════════════════════════════ */
@@ -541,8 +551,9 @@
   padding:var(--sp-32-64) var(--col-inset) var(--sp-24-32);
   /* THE RAMP. --accent is #090b24 and is never rebound -- these are new names carrying its
      value, so the tokens page still owns the colour and this owns only the five steps.
-     0 is a ground the eye reads as the grid rather than as data; 1-4 are GitHub's four
-     buckets and nothing more (level is not a count). */
+     0 is a ground the eye reads as the grid rather than as data; 1-4 are fixed buckets of
+     the day's REAL commit count (levelFloors in the JSON), which is why the sentence under
+     the graph is allowed to say that a darker square is a busier day. */
   --pgit-0:rgba(9,11,36,.055);--pgit-1:rgba(9,11,36,.24);
   --pgit-2:rgba(9,11,36,.45);--pgit-3:rgba(9,11,36,.68);--pgit-4:rgba(9,11,36,.92);
   opacity:0;transition:opacity var(--dur-reveal) var(--ease-out)}
@@ -560,7 +571,7 @@
     it sits WITH the title rather than trailing the sentence underneath, where it would
     read as a footnote somebody might not get to. */
  .pGitTop{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
-  gap:var(--sp-4) var(--sp-16);margin:0 0 var(--sp-16)}
+  gap:var(--sp-4) var(--sp-16);margin:0 0 var(--sp-20)}
  /* TWO SIZES IN THE WHOLE SECTION, and the senior one is --fs-lead 600 -- .footStatus'
     rung, "the loudest thing without pretending to be a section title". The games band
     below deliberately has no heading at all; this one must not out-shout its absence. */
@@ -568,32 +579,49 @@
   line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--theme-ink)}
  .pGitStamp{margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
   line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-muted)}
- /* Seven rows, column-major, every column an equal fraction of the column the whole page
-    is on -- so the graph shares its edges with the nav, the rails and the cards. The
-    square is `aspect-ratio:1` on the CELL rather than on the container: with a gap in
+ /* ONE ROW OF EQUAL 1fr TRACKS, so the strip spans the page's column exactly and shares
+    its edges with the nav, the rails and the cards.
+    THE COUNT IS WRITTEN BY THE SCRIPT FROM THE DATA, and the literal here is a fallback
+    rather than the truth: one more commit-day and a hard-coded 44 wraps a single square
+    onto a row of its own, which is the kind of wrong that survives for a month because
+    nothing errors. The var() carries its own fallback for the same reason CLAUDE.md gives
+    -- an unresolvable var() computes to `unset`, and `grid-template-columns:none` would
+    stack all 44 days into one very tall column.
+    The square is `aspect-ratio:1` on the CELL rather than on the container: with a gap in
     play, a container ratio cannot resolve to square cells at any width. */
- .pGitGraph{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,auto);
-  grid-auto-columns:minmax(0,1fr);gap:var(--sp-4)}
- .pGitCell,.pGitPad{aspect-ratio:1;border-radius:var(--r-2xs)}
+ .pGitGraph{display:grid;grid-template-columns:repeat(var(--pgit-cols,44),minmax(0,1fr));
+  gap:var(--sp-4)}
+ .pGitCell{aspect-ratio:1;border-radius:var(--r-2xs)}
  .pGitCell{background:var(--pgit-0)}
  .pGitCell[data-l="1"]{background:var(--pgit-1)}
  .pGitCell[data-l="2"]{background:var(--pgit-2)}
  .pGitCell[data-l="3"]{background:var(--pgit-3)}
  .pGitCell[data-l="4"]{background:var(--pgit-4)}
- /* A measure, because this is a 12px caption and not the case studies' prose column --
-    the full 1200px track at --fs-label is ~200 characters a line. */
- .pGitNote{margin:var(--sp-16) 0 0;max-width:88ch;font-family:var(--sans);font-weight:400;
+ /* 12 ABOVE, 20 BELOW THE HEADING: the caption describes the strip and belongs to it, so
+    it sits closer to the graph than the heading does. Equal gaps read as three unrelated
+    things stacked, which is what a 23px-tall graph between two 16s looked like.
+    A measure, because this is a 12px caption and not the case studies' prose column --
+    the full 1200px track at --fs-label is ~200 characters a line. 100ch clears the whole
+    sentence on one line at 1440 and up; `balance` is what stops the two-line case leaving
+    "days." alone on the second, the same device .footStatus already uses. */
+ .pGitNote{margin:var(--sp-12) 0 0;max-width:100ch;font-family:var(--sans);font-weight:400;
   font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
-  color:var(--theme-muted)}
- /* The gap is the one thing that has to give as the square shrinks: 4px between 5px cells
-    is more seam than data. --r-2xs 3 on a ~5px square is a circle, so the radius steps
-    down with it. */
- @media(max-width:880px){.pGitGraph{gap:var(--sp-2)}.pGitCell,.pGitPad{border-radius:var(--r-hair)}}
- /* AND UNDER 480 THE CORNER GOES ENTIRELY. --r-hair 2 on a 4.4px square is a 45% radius --
-    the mark stops being a square and becomes a dot, and a fifth of each low-level cell's
-    mass is rounded away at exactly the size where it can least afford it. 0 is on the
-    ladder (it is what .pCard takes) and a 4px square is the honest shape of the mark. */
- @media(max-width:480px){.pGitGraph{gap:var(--hair-w)}.pGitCell,.pGitPad{border-radius:0}}
+  color:var(--theme-muted);text-wrap:balance}
+ /* The gap is the first thing to give as the square shrinks: 4px between 12px cells is
+    more seam than data. --r-2xs 3 on a 12px square is still a square; below that it is a
+    dot, so the radius steps down with the gap. */
+ @media(max-width:880px){.pGitGraph{gap:var(--sp-2)}.pGitCell{border-radius:var(--r-hair)}}
+ /* AND AT 560 THE ROW FOLDS IN TWO. Measured: one row of 44 puts a day at 10px here, 7.2px
+    at 390 and 5.6px at 320 -- a strip too thin to read a gap in, which is the one thing
+    this picture has to show. Folded, the same 44 days are 23px at 560, 15px at 390 and
+    12px at 320. 560 is not a new number: it is where .pCards drops to one column, so the
+    band and the doors under it change shape on the same line.
+    THE HALF-COUNT IS ALSO THE SCRIPT'S, ceil(n/2), so an odd day count leaves the short
+    row short instead of silently re-wrapping the whole strip. */
+ @media(max-width:560px){.pGitGraph{grid-template-columns:repeat(var(--pgit-fold,22),minmax(0,1fr))}}
+ /* UNDER 480 THE CORNER GOES ENTIRELY. --r-hair 2 on a 12px square is fine; it is the
+    1px gap that goes here, because at 320 a 2px seam is a sixth of the cell beside it. */
+ @media(max-width:480px){.pGitGraph{gap:var(--hair-w)}}
 
  /* The games are a real below-Hero section. It starts one 16px step after the first screen,
     stays in normal flow, and only fades while a full-screen game surface owns the viewport. */
@@ -1496,7 +1524,7 @@
   </main>
  </div>
 </div>
-<!-- ═══ THE CONTRIBUTION BAND, between the hero and the doors ═══════════════════════════
+<!-- ═══ THE COMMIT BAND, between the hero and the doors ═════════════════════════════════
      Jayden asked for this "before all the options to show the care I put in my projects".
      It sits INSIDE .pCol so the margin rails run past it, and it is a sibling of #games
      rather than a child: "View games" in the hero targets #games, and a visitor who clicks
@@ -1505,18 +1533,19 @@
      THE HEADING, THE GRAPH, ONE LINE. No card, no legend, no "Less/More" ramp key -- the
      sentence says what the shading is, which is the same information in fewer objects.
 
-     EVERYTHING VISIBLE IS WRITTEN BY play-contributions.js FROM data/contributions.json,
+     EVERYTHING VISIBLE IS WRITTEN BY play-contributions.js FROM data/commit-history.json,
      including the counts and the snapshot date, so no number here can drift from the file
-     it describes. Re-run tools/fetch-contributions.py and the section re-describes itself.
+     it describes -- the column count of the grid included. Re-run
+     tools/build-commit-calendar.py and the section re-describes itself.
      The element ships `hidden`; the script reveals it only after a successful render with a
      `generated` date in hand. ═════════════════════════════════════════════════════════ -->
 <section class="pGit" id="pGit" aria-labelledby="pGitHead" hidden>
  <div class="pGitIn">
   <div class="pGitTop">
-   <h2 class="pGitHead" id="pGitHead">The last year on GitHub</h2>
+   <h2 class="pGitHead" id="pGitHead">Building this site</h2>
    <p class="pGitStamp" id="pGitStamp"></p>
   </div>
-  <div class="pGitGraph" id="pGitGraph" role="img" aria-label="GitHub contribution graph"></div>
+  <div class="pGitGraph" id="pGitGraph" role="img" aria-label="Commit history for this site"></div>
   <p class="pGitNote" id="pGitNote"></p>
  </div>
 </section>
@@ -1713,7 +1742,7 @@ window.__hmGames=true;</script>
 <script src="play-engine.js"></script>
 <script src="play-games.js"></script>
 <script src="play-tournament.js"></script>
-<!-- Draws data/contributions.json into #pGit. Independent of the games: it touches nothing
+<!-- Draws data/commit-history.json into #pGit. Independent of the games: it touches nothing
      the engine owns, and it is deferred because nothing above the fold waits on it. -->
 <script src="play-contributions.js" defer></script>
 <!-- THE LEAGUE'S BED IS OFF FOR NOW.  2026-08-29, at his request: "remove the
