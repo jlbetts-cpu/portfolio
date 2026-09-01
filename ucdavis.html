@@ -555,7 +555,28 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 }
 @media(max-width:760px){
  .wrap{padding:0 24px}
- .cover{aspect-ratio:4/3}
+ /* ── THE COVER CROP AT <=760 IS 8/5, NOT 4/3.  Jayden: "on mobile the
+    thumbnail picture gets cropped weird in the case study."
+    THE PLATE IS 2:1.  Every time-of-day variant of every cover is 1200x600
+    (and 2400x1200) -- six states a project, all the same shape.  4/3 was
+    written for the ORIGINAL 1600x1189 cover plate, whose ratio it matched
+    almost exactly; the plates were regenerated at 2:1 and this rung never
+    moved with them.  So object-fit:cover stopped taking a sliver off the top
+    and started taking a THIRD off the sides: at 390 the frame is 342x256 and
+    the picture renders 513 wide, 66.7% visible, 16.7% gone from each edge.
+    LOOKED AT, and it is the outer phones that pay: apollo, bearings and
+    strata each have four devices spanning the plate, and 16.7% cuts clean
+    through the first and last one -- the Bearings wordmark reads "arings)".
+    8/5 IS NOT A NEW NUMBER.  index.html's .csFrame already forks to 8/5 at
+    this exact breakpoint, on this exact plate, and the reasoning is written
+    beside it: it is the last rung where four phones still read as four
+    phones, chosen over 17/10 and 3/2 by looking at 390 and 320.  Adopting it
+    here makes the home thumbnail and the case-study cover the SAME crop of
+    the SAME picture, which is what the portal between them was always
+    implying.  Measured after: 80% of the plate visible, 10% a side, and all
+    four devices inside the frame on all five covers in all six states.
+    DESKTOP DOES NOT MOVE -- 12/5 above 760 is untouched. */
+ .cover{aspect-ratio:8/5}
  .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
  .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
  .shot.phone img{width:100%;height:auto}

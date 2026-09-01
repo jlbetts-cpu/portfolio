@@ -117,7 +117,23 @@ def run_viewport(browser, base_url, label, width, height, reduced_motion):
             """
         )
         assert geometry["overflow"] <= 0, geometry
-        assert all(abs(frame["ratio"] - 2) < 0.02 and frame["same"] for frame in geometry["frames"]), geometry
+        # THE FRAME RATIO FORKS AT 760 AND THIS GATE DID NOT.  It demanded 2/1
+        # at every width, which could only pass before index.html's
+        # `@media(max-width:760px){.csFrame{aspect-ratio:8/5}}` -- the crop
+        # Jayden chose by looking at 390 and 320, over 17/10 and 3/2, because
+        # 8/5 is the last rung where four phones still read as four phones.
+        # So the assertion was pinning a decision that had already changed, and
+        # both mobile viewports had been failing on it.  The property worth
+        # protecting is not one number: it is that the frame matches THE CROP
+        # DECLARED FOR ITS WIDTH and that the image still fills the frame
+        # exactly (`same`), which is what catches a plate whose shape has
+        # drifted from the box built for it.  Written as a fork it can still
+        # fail -- change either rung in index.html and this stops.
+        expected = 8 / 5 if width <= 760 else 2.0
+        assert all(
+            abs(frame["ratio"] - expected) < 0.02 and frame["same"]
+            for frame in geometry["frames"]
+        ), (label, expected, geometry)
         page.screenshot(path=str(SHOTS / f"{label}-{state}.png"), full_page=True)
 
     after = page.eval_on_selector_all(
