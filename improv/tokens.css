@@ -1,0 +1,104 @@
+/* developmentalimprovisation.com -- design tokens.
+
+   THE ONLY FILE THAT DEFINES A COLOUR, A SIZE RUNG, A RADIUS OR A DURATION.
+   Everything else reads these. A component may READ --accent; it may never
+   redefine it (CLAUDE.md §3). If you are about to write `--accent:` anywhere
+   but here, don't.
+
+   THREE TEXT SIZES ON A PAGE (CLAUDE.md §3): --fs-label, --fs-body, --fs-lead.
+   The hero h1 and every section h2 share --fs-lead; weight and ink tell them
+   apart, not a fourth size. Buttons are --fs-body, nav and captions --fs-label.
+   The gate (tools/base-contract.js) counts the distinct computed sizes on each
+   page and fails on a fourth.
+
+   TWO WEIGHTS. 400 and 600, self-hosted Geist. No italic face is loaded on
+   purpose -- a faux italic is a third weight in disguise. The gate fails on any
+   other computed weight.
+
+   COLOUR SCHEMES. Linda chooses (CLAUDE.md §4: "present colour schemes" is a
+   deliverable, not a decision). Three complete schemes live at the bottom of
+   this file, switched by data-scheme on <html>; site.js reads ?scheme= and
+   remembers it. The selectors are [data-scheme] rather than :root[data-scheme]
+   ON PURPOSE: custom properties inherit, so any subtree carrying the attribute
+   takes the whole scheme, which is how schemes.html shows three side by side. schemes.html shows them side by side with contrast measured
+   in the browser rather than typed in. */
+
+@font-face{font-family:"Geist";src:url("fonts/geist-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Geist";src:url("fonts/geist-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+
+:root{
+ --sans:"Geist",-apple-system,system-ui,"Segoe UI",sans-serif;
+
+ /* the three rungs */
+ --fs-label:13px;
+ --fs-body:clamp(17px,1.05vw,18px);
+ --fs-lead:clamp(30px,3.6vw,46px);
+ --lh-label:1.35;--lh-body:1.55;--lh-lead:1.1;
+ --tr-label:.01em;--tr-body:-.004em;--tr-lead:-.024em;
+ /* PROPOSED, NOT SETTLED: a 66ch measure on prose blocks. He reverted an
+    unasked-for measure on the portfolio; this is a fresh reading site and a
+    1200px line is ~150ch, so it ships as a proposal he can widen. */
+ --measure:66ch;
+
+ /* 4px grid */
+ --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-20:20px;--sp-24:24px;
+ --sp-32:32px;--sp-40:40px;--sp-48:48px;--sp-64:64px;--sp-80:80px;--sp-96:96px;--sp-128:128px;
+ /* fluid steps: the large value here, the small one on phones (below) */
+ --sp-24-40:40px;--sp-32-64:64px;--sp-48-96:96px;--sp-64-128:128px;
+
+ /* radius by size class */
+ --r-xl:28px;--r-lg:20px;--r-md:14px;--r-sm:6px;--r-pill:999px;
+
+ --hair:1px;--focus-w:2px;--tap-min:44px;--press-scale:.97;
+
+ /* motion ladder */
+ --dur-press:100ms;--dur-state:160ms;--dur-state-out:240ms;--dur-move:280ms;--dur-reveal:360ms;--dur-enter:500ms;
+ --ease-out:cubic-bezier(.22,1,.36,1);
+
+ --page-max:1200px;--gutter:clamp(16px,4vw,40px);
+
+ /* the control ladder reads the grid; controls.css reads this */
+ --ctl-h:var(--tap-min);--ctl-pad:var(--sp-20);--ctl-gap:var(--sp-8);--ctl-r:var(--r-md);
+}
+@media (max-width:640px){:root{--sp-24-40:24px;--sp-32-64:32px;--sp-48-96:48px;--sp-64-128:64px}}
+
+/* ═══ COLOUR ═════════════════════════════════════════════════════════════════
+   Roles, so a scheme is a full set and never a partial one:
+     --paper       the page
+     --surface     a card on the page (one step lighter)
+     --ink         type. Never pure black: the brief's dark blue IS the ink in
+                   the first two schemes, purple in the third.
+     --ink-2       secondary type; must clear 4.5:1 on --paper
+     --rule        hairline; --rule-strong the hovered / rested-control hairline
+     --accent      the interactive signal: primary buttons, link hover, focus
+     --accent-ink  type on --accent
+     --wash        a tinted well: photo slots, quiet panels
+     --band        the one dark ground (newsletter); --band-ink type on it
+     --moment      the single deliberate note. One word in the hero, nothing else.
+                   Scheme "harbour" spends it on purple, so the brief's three
+                   colours are all present. Scheme "coral" spends it on the one
+                   warm note §5 recommends, and is otherwise byte-identical to
+                   harbour so the two can be compared honestly. */
+:root,[data-scheme="harbour"]{
+ --paper:#F7F8FB;--surface:#FFFFFF;
+ --ink:#101B3F;--ink-2:#4A5476;
+ --rule:rgba(16,27,63,.12);--rule-strong:rgba(16,27,63,.26);
+ --accent:#0B7A84;--accent-hover:#08656D;--accent-ink:#FFFFFF;
+ --wash:#E3EFF0;
+ --band:#101B3F;--band-ink:#F7F8FB;--band-ink-2:rgba(247,248,251,.74);--band-rule:rgba(247,248,251,.22);
+ --moment:#5B3FB5;
+ --focus:var(--ink);
+}
+[data-scheme="coral"]{
+ --moment:#C8502A;
+}
+[data-scheme="plum"]{
+ --paper:#FAF8FC;--surface:#FFFFFF;
+ --ink:#2A1A4E;--ink-2:#5C5079;
+ --rule:rgba(42,26,78,.12);--rule-strong:rgba(42,26,78,.26);
+ --accent:#0E7F88;--accent-hover:#0B6A72;--accent-ink:#FFFFFF;
+ --wash:#ECE7F5;
+ --band:#2A1A4E;--band-ink:#FAF8FC;--band-ink-2:rgba(250,248,252,.74);--band-rule:rgba(250,248,252,.22);
+ --moment:#0E7F88;
+ --focus:var(--ink);
+}

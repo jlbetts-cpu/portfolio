@@ -1,0 +1,190 @@
+/* Layout and page components. Reads tokens.css; draws no control (controls.css).
+   NO box-shadow ANYWHERE in this file. Chrome separates with hairlines and
+   translucency (CLAUDE.md §3, shadows). The gate fails on any computed
+   box-shadow other than none. */
+*,*::before,*::after{box-sizing:border-box}
+html{
+ background:var(--paper);color:var(--ink);
+ font-family:var(--sans);font-size:var(--fs-body);font-weight:400;
+ line-height:var(--lh-body);letter-spacing:var(--tr-body);
+ -webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility
+}
+body{margin:0;min-height:100svh;display:flex;flex-direction:column}
+main{flex:1 0 auto}
+h1,h2,h3,p,ul,figure,blockquote{margin:0}
+h1,h2,h3{font-size:inherit;font-weight:600}
+ul{padding:0;list-style:none}
+img{display:block;max-width:100%;height:auto}
+strong{font-weight:600}
+a{color:inherit}
+:focus-visible{outline:var(--focus-w) solid var(--focus);outline-offset:var(--sp-4)}
+
+.wrap{width:min(100% - 2*var(--gutter),var(--page-max));margin-inline:auto}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:var(--gutter);top:-100px;z-index:10}
+.skip:focus{top:var(--sp-12)}
+
+/* ── the three rungs ── */
+.lead{font-size:var(--fs-lead);font-weight:600;line-height:var(--lh-lead);letter-spacing:var(--tr-lead);text-wrap:balance}
+.label{font-size:var(--fs-label);line-height:var(--lh-label);letter-spacing:var(--tr-label)}
+.muted{color:var(--ink-2)}
+.prose{max-width:var(--measure);text-wrap:pretty}
+.prose p+p,.prose ul+p,.prose p+ul{margin-top:var(--sp-16)}
+.prose a,.link{
+ text-decoration:underline;text-decoration-thickness:var(--hair);text-underline-offset:.18em;
+ text-decoration-color:var(--rule-strong);
+ transition:text-decoration-color var(--dur-state-out) var(--ease-out),color var(--dur-state-out) var(--ease-out)
+}
+.prose a:hover,.link:hover{text-decoration-color:currentColor;color:var(--accent)}
+.moment{color:var(--moment)}
+/* copy that is waiting on Linda. Ink-2 and brackets; nothing invented. */
+.todo{color:var(--ink-2)}
+
+/* ── header: a band, not a card. translucent paper over the page, hairline floor ── */
+.top{
+ position:sticky;top:0;z-index:5;
+ background:var(--paper);background:color-mix(in srgb,var(--paper) 84%,transparent);
+ -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+ border-bottom:var(--hair) solid var(--rule)
+}
+.top__row{display:flex;align-items:center;gap:var(--sp-4);min-height:64px}
+.brand{display:inline-flex;align-items:center;min-height:var(--tap-min);margin-right:auto;font-weight:600;text-decoration:none;white-space:nowrap}
+.top__nav{display:flex;gap:var(--sp-4)}
+.top__cta{margin-left:var(--sp-12)}
+@media (max-width:640px){.top__row{min-height:56px}.top__cta{display:none}}
+
+/* ── hero ── */
+.hero{padding-block:var(--sp-64-128) var(--sp-48-96)}
+.hero__eyebrow{margin-bottom:var(--sp-24)}
+.hero h1{max-width:16ch}
+.hero__lead{margin-top:var(--sp-24);max-width:var(--measure);text-wrap:pretty}
+.hero__actions{display:flex;flex-wrap:wrap;gap:var(--sp-12);margin-top:var(--sp-32)}
+
+/* THE ONE ENTRANCE (CLAUDE.md §5, motion). Eyebrow, title, lead, actions and
+   the photograph rise 12px and fade in, 60ms apart, on --dur-enter. It runs
+   once, on the hero only. Without JS nothing is hidden; with reduced motion
+   nothing moves. */
+html.js .enter{opacity:0;transform:translateY(12px)}
+html.js.ready .enter{
+ opacity:1;transform:none;
+ transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);
+ transition-delay:calc(var(--i,0) * 60ms)
+}
+@media (prefers-reduced-motion:reduce){
+ html.js .enter{opacity:1;transform:none}
+ html.js.ready .enter{transition:none}
+}
+
+/* the photo slot. A tinted well with a caption until a real photograph exists;
+   an <img> inside fills it. Never a placeholder silhouette. */
+.photo{position:relative;overflow:hidden;border-radius:var(--r-lg);background:var(--wash);aspect-ratio:16/9}
+.photo img{width:100%;height:100%;object-fit:cover}
+.photo--empty{display:flex;align-items:flex-end;padding:var(--sp-20)}
+.photo--portrait{aspect-ratio:4/5}
+.hero .photo{margin-top:var(--sp-48-96)}
+@media (max-width:640px){.photo{aspect-ratio:4/5}}
+
+/* ── sections ── */
+.section{padding-block:var(--sp-48-96)}
+.section--rule{border-top:var(--hair) solid var(--rule)}
+.section__head{display:grid;gap:var(--sp-16);margin-bottom:var(--sp-32-64)}
+.section__head p{max-width:var(--measure);text-wrap:pretty}
+@media (min-width:900px){.section__head{grid-template-columns:1fr 1fr;gap:var(--sp-48);align-items:end}}
+
+.pagehead{padding-block:var(--sp-64-128) var(--sp-32-64)}
+.pagehead h1{max-width:18ch}
+.pagehead p{margin-top:var(--sp-24);max-width:var(--measure);text-wrap:pretty}
+.pagehead .label{margin-bottom:var(--sp-24)}
+
+/* two columns: heading rail left, prose right */
+.split{display:grid;gap:var(--sp-24)}
+@media (min-width:900px){.split{grid-template-columns:5fr 7fr;gap:var(--sp-64)}}
+.split .photo{margin-bottom:var(--sp-24)}
+
+/* facts: three short statements over hairlines */
+.facts{display:grid;gap:var(--sp-24)}
+.facts li{padding-top:var(--sp-16);border-top:var(--hair) solid var(--rule)}
+.facts p{margin-top:var(--sp-8);color:var(--ink-2)}
+@media (min-width:760px){.facts{grid-template-columns:repeat(3,1fr);gap:var(--sp-32)}}
+
+/* the services cards. A hairline, a surface, and the whole card is the link. */
+.cards{display:grid;gap:var(--sp-16)}
+@media (min-width:760px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{
+ display:flex;flex-direction:column;gap:var(--sp-12);padding:var(--sp-24);
+ border:var(--hair) solid var(--rule);border-radius:var(--r-lg);background:var(--surface);
+ color:inherit;text-decoration:none;
+ transition:border-color var(--dur-state-out) var(--ease-out)
+}
+.card:hover{border-color:var(--rule-strong)}
+.card:focus-visible{outline-offset:var(--sp-4)}
+.card p{color:var(--ink-2)}
+.card__go{margin-top:auto;padding-top:var(--sp-12);color:var(--accent)}
+
+/* a list that reads as a grid: skills, details */
+.gridlist{display:grid;gap:0 var(--sp-32)}
+.gridlist li{padding-block:var(--sp-12);border-top:var(--hair) solid var(--rule)}
+@media (min-width:640px){.gridlist{grid-template-columns:1fr 1fr}}
+@media (min-width:900px){.gridlist--3{grid-template-columns:repeat(3,1fr)}}
+.gridlist .label{display:block;margin-bottom:var(--sp-4)}
+
+/* testimonials: the words, a name, a role. No card, no stars, no avatar. */
+.quotes{display:grid;gap:var(--sp-32)}
+@media (min-width:760px){.quotes{grid-template-columns:repeat(3,1fr);gap:var(--sp-48)}}
+.quote{padding-top:var(--sp-16);border-top:var(--hair) solid var(--rule)}
+.quote p{text-wrap:pretty}
+.quote footer{margin-top:var(--sp-16);color:var(--ink-2)}
+.quote footer b{display:block;font-weight:600;color:var(--ink)}
+
+/* the newsletter band: the one dark ground on the site */
+.band{
+ background:var(--band);color:var(--band-ink);border-radius:var(--r-xl);
+ padding:var(--sp-32-64);display:grid;gap:var(--sp-32)
+}
+.band p{color:var(--band-ink-2);max-width:44ch;text-wrap:pretty}
+.band h2{max-width:14ch}
+.band form{display:flex;flex-wrap:wrap;gap:var(--sp-12)}
+.band .field{flex:1 1 220px;width:auto}
+.band__fine{margin-top:var(--sp-12)}
+@media (min-width:900px){.band{grid-template-columns:1fr 1fr;gap:var(--sp-64);align-items:center}}
+
+/* a service section on services.html */
+.service{padding-block:var(--sp-48-96);border-top:var(--hair) solid var(--rule)}
+.service .hero__actions{margin-top:var(--sp-24)}
+
+/* ── footer ── */
+.foot{border-top:var(--hair) solid var(--rule);padding-block:var(--sp-48) var(--sp-24)}
+.foot__grid{display:grid;gap:var(--sp-32)}
+@media (min-width:760px){.foot__grid{grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--sp-48)}}
+.foot__about{max-width:32ch;margin-top:var(--sp-8);color:var(--ink-2)}
+.foot h2{font-size:var(--fs-label);line-height:var(--lh-label);letter-spacing:var(--tr-label);margin-bottom:var(--sp-4)}
+.foot li a{display:inline-flex;align-items:center;min-height:var(--tap-min);min-width:var(--tap-min);color:var(--ink-2);text-decoration:none;transition:color var(--dur-state-out) var(--ease-out)}
+.foot li a:hover,.foot li a:focus-visible{color:var(--ink)}
+.foot__bottom{margin-top:var(--sp-32);padding-top:var(--sp-16);border-top:var(--hair) solid var(--rule);color:var(--ink-2)}
+
+/* ── the scheme picker. Only when the URL says ?present. Presentation chrome,
+   not site chrome: a translucent bar with a hairline, like the header. ── */
+.picker{
+ position:fixed;left:50%;bottom:var(--sp-16);transform:translateX(-50%);z-index:6;
+ display:flex;gap:var(--sp-4);padding:var(--sp-4);
+ background:var(--paper);background:color-mix(in srgb,var(--paper) 84%,transparent);
+ -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+ border:var(--hair) solid var(--rule);border-radius:var(--r-md)
+}
+
+/* ── schemes.html ── */
+.swatches{display:grid;gap:var(--sp-16)}
+@media (min-width:900px){.swatches{grid-template-columns:repeat(3,1fr)}}
+.scheme{border:var(--hair) solid var(--rule);border-radius:var(--r-lg);overflow:hidden;background:var(--surface);color:var(--ink)}
+.scheme__paper{background:var(--paper);padding:var(--sp-24);border-bottom:var(--hair) solid var(--rule)}
+.scheme__paper h2{max-width:10ch}
+.scheme__paper p{margin-top:var(--sp-12)}
+.scheme__paper .hero__actions{margin-top:var(--sp-20)}
+.scheme__band{background:var(--band);color:var(--band-ink);padding:var(--sp-20) var(--sp-24)}
+.scheme__band p{color:var(--band-ink-2)}
+.scheme__chips{display:flex;gap:var(--sp-8);padding:var(--sp-20) var(--sp-24) 0}
+.chip{width:var(--sp-32);height:var(--sp-32);border-radius:var(--r-sm);border:var(--hair) solid var(--rule)}
+.scheme__meta{padding:var(--sp-16) var(--sp-24) var(--sp-24)}
+.scheme__meta li{display:flex;justify-content:space-between;gap:var(--sp-16);padding-block:var(--sp-8);border-top:var(--hair) solid var(--rule);color:var(--ink-2)}
+.scheme__meta li b{font-weight:600;color:var(--ink)}
+.scheme__meta .hero__actions{margin-top:var(--sp-16)}

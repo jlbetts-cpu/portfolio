@@ -1,0 +1,59 @@
+/* The control system. One base class, variants, one field. Geometry, material,
+   state and motion live here; a page may position a control, never redraw it
+   (CLAUDE.md §3). Every value resolves through tokens.css. */
+.ctl{
+ display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+ min-height:var(--ctl-h);padding:0 var(--ctl-pad);gap:var(--ctl-gap);
+ border:0;border-radius:var(--ctl-r);background:none;box-shadow:none;
+ font-family:var(--sans);font-size:var(--fs-body);font-weight:600;line-height:1;
+ letter-spacing:var(--tr-body);color:var(--ink);white-space:nowrap;text-decoration:none;
+ position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;
+ transition-property:color,background-color,border-color,transform;
+ transition-duration:var(--dur-state-out);transition-timing-function:var(--ease-out)
+}
+.ctl:hover,.ctl:focus-visible{transition-duration:var(--dur-state)}
+.ctl:active{transition-duration:var(--dur-press);transform:scale(var(--press-scale))}
+.ctl:focus-visible{outline:var(--focus-w) solid var(--focus);outline-offset:var(--sp-4)}
+.ctl:focus:not(:focus-visible){outline:none}
+.ctl[disabled],.ctl[aria-disabled="true"]{opacity:.4;cursor:default}
+.ctl[disabled]:active,.ctl[aria-disabled="true"]:active{transform:none}
+
+.ctl--primary{background:var(--accent);color:var(--accent-ink)}
+.ctl--primary:hover,.ctl--primary:focus-visible{background:var(--accent-hover);color:var(--accent-ink)}
+
+.ctl--secondary{border:var(--hair) solid var(--rule-strong);color:var(--ink)}
+.ctl--secondary:hover,.ctl--secondary:focus-visible{border-color:var(--ink)}
+
+.ctl--quiet{font-weight:400;color:var(--ink-2);padding:0 var(--sp-12)}
+.ctl--quiet:hover,.ctl--quiet:focus-visible{color:var(--ink)}
+
+/* the bar item: label rung, quiet at rest, ink + weight when current.
+   No ground, no underline -- the weight is enough. */
+.ctl--nav{font-size:var(--fs-label);font-weight:400;color:var(--ink-2);padding:0 var(--sp-12)}
+.ctl--nav:hover,.ctl--nav:focus-visible{color:var(--ink)}
+.ctl--nav[aria-current="page"],.ctl--nav[aria-pressed="true"]{color:var(--ink);font-weight:600}
+
+/* on the dark band: paper ground, band ink. The focus ring flips to paper
+   because the page ground is not there to borrow. */
+.ctl--on-band{background:var(--band-ink);color:var(--band)}
+.ctl--on-band:hover,.ctl--on-band:focus-visible{background:#fff;color:var(--band)}
+.ctl--on-band:focus-visible{outline-color:var(--band-ink)}
+
+.ctl--block{display:flex;width:100%}
+
+/* THE FIELD. Left-aligned, carries a ground at rest, takes a caret. */
+.field{
+ box-sizing:border-box;display:block;width:100%;min-height:var(--ctl-h);
+ padding:0 var(--ctl-pad);border:var(--hair) solid var(--rule-strong);border-radius:var(--ctl-r);
+ background:var(--surface);box-shadow:none;
+ font-family:var(--sans);font-size:var(--fs-body);font-weight:400;line-height:1;
+ letter-spacing:var(--tr-body);color:var(--ink);
+ transition:border-color var(--dur-state-out) var(--ease-out)
+}
+.field:hover{border-color:var(--ink-2)}
+.field:focus,.field:focus-visible{border-color:var(--ink);outline:var(--focus-w) solid var(--focus);outline-offset:var(--sp-4)}
+.field::placeholder{color:var(--ink-2);opacity:1}
+.field--on-band{background:rgba(255,255,255,.06);border-color:var(--band-rule);color:var(--band-ink)}
+.field--on-band:hover{border-color:var(--band-ink-2)}
+.field--on-band:focus,.field--on-band:focus-visible{border-color:var(--band-ink);outline-color:var(--band-ink)}
+.field--on-band::placeholder{color:var(--band-ink-2)}

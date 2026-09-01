@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Colour schemes — Developmental Improv</title>
+<meta name="description" content="Three complete colour schemes for the new Developmental Improv site, with contrast measured in the browser.">
+<meta name="theme-color" content="#F7F8FB">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/geist-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css?v=20260901a">
+<link rel="stylesheet" href="controls.css?v=20260901a">
+<link rel="stylesheet" href="site.css?v=20260901a">
+</head>
+<body>
+<a class="skip ctl ctl--primary" href="#main">Skip to content</a>
+<header class="top"><div class="wrap top__row">
+ <a class="brand" href="index.html">Developmental Improv</a>
+ <nav class="top__nav" aria-label="Site"><a class="ctl ctl--nav" href="about.html">About</a><a class="ctl ctl--nav" href="services.html">Services</a></nav>
+ <a class="ctl ctl--primary top__cta" href="services.html#enquire">Book a workshop</a>
+</div></header>
+<main id="main">
+ <section class="pagehead wrap">
+  <p class="label muted">For Linda</p>
+  <h1 class="lead">Three colour schemes.</h1>
+  <p>Each one is the whole site, not a swatch. Open any of them on the real pages with the button, and flip between them with the bar at the bottom of the screen. The numbers underneath are contrast ratios, measured from what the browser actually painted. 4.5 is the floor for body text.</p>
+ </section>
+ <section class="section section--rule"><div class="wrap">
+  <div class="swatches" id="swatches">
+   <article class="scheme" data-scheme="harbour">
+    <div class="scheme__paper"><p class="label muted">Harbour</p><h2 class="lead">Growth through <span class="moment">play</span>.</h2><p>Dark blue ink, turquoise for anything you can press, purple for the one word.</p><div class="hero__actions"><span class="ctl ctl--primary" aria-hidden="true">Book a workshop</span><span class="ctl ctl--quiet" aria-hidden="true">What is it?</span></div></div>
+    <div class="scheme__band"><h3>A game a month</h3><p>The newsletter band, and the only dark ground on the site.</p></div>
+    <div class="scheme__chips"></div>
+    <ul class="scheme__meta label"></ul>
+   </article>
+   <article class="scheme" data-scheme="coral">
+    <div class="scheme__paper"><p class="label muted">Harbour, one warm note</p><h2 class="lead">Growth through <span class="moment">play</span>.</h2><p>Identical to Harbour except the one word, which is coral. The warmth the cool triad is missing.</p><div class="hero__actions"><span class="ctl ctl--primary" aria-hidden="true">Book a workshop</span><span class="ctl ctl--quiet" aria-hidden="true">What is it?</span></div></div>
+    <div class="scheme__band"><h3>A game a month</h3><p>The newsletter band, and the only dark ground on the site.</p></div>
+    <div class="scheme__chips"></div>
+    <ul class="scheme__meta label"></ul>
+   </article>
+   <article class="scheme" data-scheme="plum">
+    <div class="scheme__paper"><p class="label muted">Plum</p><h2 class="lead">Growth through <span class="moment">play</span>.</h2><p>Deep purple ink on a faintly violet page, turquoise for anything you can press.</p><div class="hero__actions"><span class="ctl ctl--primary" aria-hidden="true">Book a workshop</span><span class="ctl ctl--quiet" aria-hidden="true">What is it?</span></div></div>
+    <div class="scheme__band"><h3>A game a month</h3><p>The newsletter band, and the only dark ground on the site.</p></div>
+    <div class="scheme__chips"></div>
+    <ul class="scheme__meta label"></ul>
+   </article>
+  </div>
+ </div></section>
+</main>
+<script>
+/* Each card is scoped to its own scheme by carrying data-scheme itself, so all
+   three render at once. The contrast numbers are read back from computed
+   styles, not typed in: change tokens.css and the page tells the truth. */
+(function(){
+ var cards=document.querySelectorAll('.scheme');
+ function lum(c){var m=c.match(/[\d.]+/g);if(!m)return 0;var a=[m[0],m[1],m[2]].map(function(v){v=v/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*a[0]+.7152*a[1]+.0722*a[2]}
+ function ratio(a,b){var x=lum(a),y=lum(b),hi=Math.max(x,y),lo=Math.min(x,y);return ((hi+.05)/(lo+.05)).toFixed(2)}
+ function bg(el){var c;while(el){c=getComputedStyle(el).backgroundColor;if(c&&c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;el=el.parentElement}return 'rgb(255,255,255)'}
+ for(var i=0;i<cards.length;i++){(function(card){
+  var s=card.getAttribute('data-scheme'),cs=getComputedStyle(card);
+  var names=['--paper','--ink','--ink-2','--accent','--moment','--band','--wash'],chips=card.querySelector('.scheme__chips');
+  names.forEach(function(n){var d=document.createElement('span');d.className='chip';d.style.background='var('+n+')';d.title=n;chips.appendChild(d)});
+  var paper=card.querySelector('.scheme__paper'),body=paper.querySelector('h2+p'),h=paper.querySelector('.moment'),pri=paper.querySelector('.ctl--primary'),band=card.querySelector('.scheme__band'),bp=band.querySelector('p'),eye=paper.querySelector('.muted');
+  var rows=[
+   ['Body on paper',ratio(getComputedStyle(body).color,bg(body))],
+   ['Muted on paper',ratio(getComputedStyle(eye).color,bg(eye))],
+   ['Button label on button',ratio(getComputedStyle(pri).color,getComputedStyle(pri).backgroundColor)],
+   ['The one word (large, needs 3)',ratio(getComputedStyle(h).color,bg(h))],
+   ['Band copy on band',ratio(getComputedStyle(bp).color,bg(bp))]
+  ];
+  var ul=card.querySelector('.scheme__meta');
+  rows.forEach(function(r){var li=document.createElement('li');li.innerHTML='<span>'+r[0]+'</span><b>'+r[1]+'</b>';ul.appendChild(li)});
+  var li=document.createElement('li');li.style.border='0';li.innerHTML='<div class="hero__actions"><a class="ctl ctl--secondary" href="index.html?scheme='+s+'&present">Open the site in '+s.charAt(0).toUpperCase()+s.slice(1)+'</a></div>';ul.appendChild(li);
+ })(cards[i])}
+})();
+</script>
+<footer class="foot"><div class="wrap">
+ <div class="foot__grid">
+  <div><p class="brand">Developmental Improv</p><p class="foot__about">Inspiring growth through play. Workshops for kids, adults and educators, taught by Linda Kellogg Fulton.</p></div>
+  <div><h2>Pages</h2><ul><li><a href="about.html">About</a></li><li><a href="services.html">Services</a></li><li><a href="services.html#enquire">Book a workshop</a></li></ul></div>
+  <div><h2>Follow</h2><ul><li><a href="#" data-todo="handle">Instagram</a></li><li><a href="#" data-todo="handle">Facebook</a></li><li><a href="#" data-todo="handle">YouTube</a></li><li><a href="#" data-todo="handle">LinkedIn</a></li></ul></div>
+  <div><h2>Contact</h2><ul><li><a href="mailto:hello@developmentalimprovisation.com" data-todo="address">hello@developmentalimprovisation.com</a></li></ul></div>
+ </div>
+ <p class="foot__bottom label">© 2026 Developmental Improvisation · Linda Kellogg Fulton</p>
+</div></footer>
+<script src="site.js?v=20260901a"></script>
+</body></html>
