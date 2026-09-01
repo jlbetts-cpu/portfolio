@@ -1,0 +1,2035 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="site-theme-state.js"></script>
+<script src="site-theme.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gradient Maker · Case Study · Jayden Betts</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<meta name="description" content="A WebGL builder for volumetric colour fields, with controls named for physics rather than for shader parameters. A case study by Jayden Betts.">
+<meta name="author" content="Jayden Betts">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://jaydenbetts.design/gradientlab-study.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jayden Betts">
+<meta property="og:title" content="Gradient Maker: A Product Design Case Study">
+<meta property="og:description" content="A WebGL gradient builder whose thirty controls are named for what they do to a mass of colour.">
+<meta property="og:url" content="https://jaydenbetts.design/gradientlab-study.html">
+<meta property="og:image" content="https://jaydenbetts.design/images/cs/variants/time/gradientlab/daytime-1200.webp">
+<meta property="og:image:alt" content="Gradient Maker, a WebGL colour tool designed and built by Jayden Betts">
+<!-- THE REST OF THE CARD. This page declared og:image and then stopped, so a
+     scraper had to fetch and decode the file to learn its shape before it could
+     decide between a large card and a thumbnail -- and several never bother, which
+     is why these unfurled small. Width/height/type are the file's real measured
+     values, and the twitter:* pair mirrors the og:* one so a client that reads only
+     the Twitter namespace gets the same card.
+
+     NO NEW COPY: twitter:title and twitter:description repeat this page's existing
+     og:title and og:description verbatim.
+
+     NOTE the image is WebP. LinkedIn's unfurler has historically been the weakest
+     on WebP of any surface a recruiter uses, and the home page's card is a JPEG for
+     exactly that reason. Flagged in the audit; a re-export is an images-lane
+     change, not a head-region one. -->
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="600">
+<meta property="og:image:type" content="image/webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gradient Maker: A Product Design Case Study">
+<meta name="twitter:description" content="A WebGL gradient builder whose thirty controls are named for what they do to a mass of colour.">
+<meta name="twitter:image" content="https://jaydenbetts.design/images/cs/variants/time/gradientlab/daytime-1200.webp">
+<meta name="twitter:image:alt" content="Gradient Maker, a WebGL colour tool designed and built by Jayden Betts">
+<link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
+<link rel="preload" as="image" href="images/cs/variants/time/gradientlab/daytime-1200.webp" imagesrcset="images/cs/variants/time/gradientlab/daytime-1200.webp 1200w, images/cs/variants/time/gradientlab/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
+<link rel="stylesheet" href="tokens.css?v=57fb92263c">
+<style>
+/* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
+   instead of copied into nine of them and missed on two (about.html and
+   play.html were rendering in SF Pro because of exactly this pattern).
+   tokens.css is linked immediately above this <style>, so nothing about the
+   cascade or the load order changes. */
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:clip;scroll-behavior:smooth}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+/* ── EVERY <img> NOW SHIPS ITS INTRINSIC width/height, AND THAT IS A LAYOUT FIX ─
+   Not one image on this page carried the attributes. Where a CSS aspect-ratio
+   already reserved the box (.cover, .photoRow, .photoPair, .stepShot, .shot.phone,
+   .buildStage) nothing changes -- those declarations still win and the attributes
+   are inert. Where nothing reserved it, the box was 0 until the bytes landed and
+   then snapped to full size, pushing everything below it down the page: .wide img
+   and .closeShot img (`width:100%;height:auto`, no ratio), .sketch img, and worst
+   of all .darlings img, which pins a height and leaves `width:auto` -- so three
+   lazy images in one flex row each went 0 -> full width as they arrived and shoved
+   their neighbours sideways, one after another, exactly where a reader is.
+   THIS IS THE MOST-LIKELY-TO-BITE DEFECT IN THE WHOLE PAGE for the reader Jayden
+   is worried about: someone opening a LinkedIn link on mobile data, where images
+   arrive seconds after the text and every unreserved box is a jump. On a warm
+   localhost it is invisible, which is why it survived this long -- run
+   tools/scroll-stability-probe.py --img-delay 900 to see it.
+   about.html already had this and says so at its .abShot rule: "without them a
+   lazy image is 0px tall until it arrives ... measured at 390 as heights
+   [349,0,0,0]". Same lesson, applied to the case studies.
+   NO CSS CHANGES WITH IT. `height` is `auto` by default, so an attribute pair
+   supplies a ratio and nothing else; every image renders at the size it already
+   did. Verified against a pristine `git archive HEAD` render at 390 and 1440. */
+img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION TO THE ATTRIBUTES ABOVE, NOT A TIDY-UP.
+      `width`/`height` on an <img> are PRESENTATIONAL HINTS: they map to the
+      CSS width and height properties at UA-stylesheet weight. So an image
+      with no author height, shrunk by max-width:100%, would keep the
+      attribute's pixel height and stretch. Measured before this line:
+      cluster.html grew 2,984px at 320 and ucdavis 1,468px at 390. An author
+      `height:auto` outranks the hint and restores the ratio; every rule that
+      sets a real height (.cover img, .darlings img, .scrollbox .shot img)
+      is more specific than this and is untouched. Proved by
+      tools/render-diff.py: pixel-identical to the tree before the change. */
+*{-webkit-tap-highlight-color:transparent}
+/* THE WRAP IS 1280, NOT 1200, AND THAT IS WHAT PUTS THE PAGE ON THE BAR'S COLUMN.
+   Measured at 1440 before this pass: .jbNav ran 120..1320 (it is capped at
+   --bar-open 1200 and centred inside a --sp-40 gutter) while .layout ran
+   160..1280 -- 40px inside the bar on BOTH sides, on all five case studies, so
+   the Contact button hung 40px outside the cover's right edge and the h1 started
+   inside the back arrow. 1200 + 40 of padding is 1280 of box; index.html,
+   about.html, headmaker and gradientlab all spell the same column as a 1280 box
+   with the gutter INSIDE it, and those four land on 120..1320. This is the fifth
+   spelling of one number, not a new width -- the content measure is still 1200.
+   After: .layout 120..1320 at 1440, 40..1240 at 1280, both exactly the bar. */
+.wrap{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 40px}
+
+/* The top nav lives in header.css now -- one .jbNav on all nine pages. What stood
+   here was `nav{display:grid;grid-template-columns:1fr auto 1fr}` with Back, the
+   wordmark and Contact one per cell: three things at three unrelated x-positions
+   with nothing binding them, which is why it never read as a bar. Gone with it:
+   .back, .talk and .navTitle (the page names itself in its own h1). */
+
+/* left-aligned content on the page margin; the chapter list floats in the left margin */
+
+/* THE INSET BELOW THE BAND IS THE SITE'S, NOT THIS PAGE'S. --sp-48-64 resolved
+   to 48 on a phone and 56 from 881 up. That was fine on its own and wrong as one
+   of nine: measured from the band's bottom edge (72px) to the first thing that
+   paints, the site ran about 16/24, these five 48/56, headmaker 84/88 and
+   gradientlab 78/88 at 390/1440 -- a 5.4x spread, and Jayden's "some parts dont
+   feel connected ... or just too much space" is what that spread looks like.
+   One rung now: --sp-32-48, 32 on a phone and 48 from 881 up. It is a rung DOWN
+   on a phone, which is the width where it matters most -- a 16px eyebrow does not
+   need 48px of air under a bar that already carries 12px of its own below the
+   pill. No new token; the responsive ladder already carried the value. */
+.layout{display:block;margin-top:var(--sp-32-48);position:relative}
+.content{min-width:0}
+/* ── THE CHAPTER RAIL IS GONE, ALL OF IT.  2026-08-26 ───────────────────────
+   Jayden: "when i said remove the indicator i meant like the whole thing not
+   just the pegs I just felt like it made it look right aligned heavy I didnt
+   like that." An earlier pass today converted it -- dropped the five 28x2 ticks
+   and left the labels -- which was answering a smaller question than he asked.
+   HIS REASON IS COMPOSITIONAL AND IT MEASURES. The rail was a grid column:
+   `grid-template-columns: var(--rail-w) minmax(0,1fr)` with --rail-gutter
+   between them, so at 1440 the content ran 261..1320 while the nav, the footer
+   and the page's own structural rule all ran 120..1320. The prose sat 141px
+   right of the column every other band on the page aligns to -- that is exactly
+   "right aligned heavy", and it was a 141px imbalance, not a feeling.
+   THE GUTTER GOES WITH THE RAIL. .layout is display:block at every width now,
+   so the content column IS the page column: measured after, 120..1320 at 1440,
+   on the same x as the bar above it and the footer below it.
+   WHAT WENT: .rail, .railGone, .chapters, .chap, .clabel and their media forks;
+   the <aside> in the markup; the IntersectionObserver scrollspy that kept
+   aria-current on five links; and the scroll listener that faded the rail near
+   the end of the document -- which was calling documentElement.scrollHeight, a
+   forced layout, on a rAF per scroll frame. Two fewer observers and one fewer
+   scroll listener on each of the five pages.
+   NAVIGABILITY, ASKED RATHER THAN ASSUMED: the rail was the only thing that
+   used the section ids, and nothing else linked to them -- no table of contents,
+   no in-page anchors in the prose, no deep links in the sitemap. The sections
+   keep their ids so an existing #problem link still lands. What a reader has
+   instead is the thing the page was already relying on at every width below 881,
+   where the rail was display:none: the headings, in order, down one column. */
+
+/* content tiers: text holds a readable measure on a strong left edge; the cover runs margin to margin */
+.wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-24-40) 0 0;width:100%}
+.closeShot{display:block;margin:var(--sp-24-40) 0 0;width:100%}
+.closeShot img{width:100%;height:auto;display:block;background:var(--c100);box-shadow:var(--rim-1)}
+.darlings{display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;gap:16px;width:100%}
+.darlings img{height:clamp(200px,28vh,285px);width:auto;max-width:100%;display:block;background:var(--c50);border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-1)}
+@media(max-width:880px){.darlings{width:100%}}
+@media(max-width:560px){.darlings img{height:auto;width:100%}}
+.wide img{width:100%;height:auto;display:block}
+.wide::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
+
+/* full-bleed process photo / comparison slider with a caption underneath */
+.photoFig{margin:var(--sp-24-40) 0 0}
+.cmp{position:relative;overflow:hidden;aspect-ratio:16/9;background:var(--c100);width:100%;user-select:none;-webkit-user-select:none}
+.cmpImg{position:absolute;inset:0}
+.cmpImg img,.cmpImg video{width:100%;height:100%;object-fit:cover;object-position:center;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.cmpAfter img{object-position:center 35%}
+.cmpClip{clip-path:inset(0 0 0 0);will-change:clip-path}
+.cmp::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);pointer-events:none;z-index:3}
+.cmpHandle{position:absolute;top:0;bottom:0;left:100%;width:44px;transform:translateX(-50%);background:none;border:0;padding:0;margin:0;z-index:4;outline:none;cursor:ew-resize;touch-action:none}
+.cmpLine{position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:var(--c50);box-shadow:var(--rim-1)}
+.cmpKnob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--c50);color:var(--c700);display:flex;align-items:center;justify-content:center;box-shadow:var(--rim-1);transition:box-shadow var(--dur-state) var(--ease-out)}
+.cmpHandle:hover .cmpKnob{box-shadow:var(--rim-2)}
+.cmpHandle:focus-visible .cmpKnob{box-shadow:var(--rim-1),0 0 0 2px var(--c950)}
+.cmpBoard{aspect-ratio:2400/1112}
+.cmp img{box-shadow:var(--rim-1)}
+.cmpYellow .cmpLine{background:var(--yellow)}
+.cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
+/* ── FOUR TYPE SIZES IN THE BODY.  2026-08-27 ─────────────────────────────
+   Jayden, on trungvo.xyz/expresso: "very few size variety in the text and no
+   different paragraph variety."
+   THE COUNT WAS SIX AND TWO OF THEM WERE THE SAME NUMBER. --fs-body and
+   --fs-small are both 15px -- one rung wearing two names -- and between them
+   they carried nine roles. The rungs are now:
+     44/30  --fs-pagehead   .head, .statNum        the page's own voice
+     26/19  --fs-h3         .secHead               a section names itself
+     18/16  --fs-prose      every paragraph, .subHead and .fv
+     12     --fs-label      every label, caption, note and source
+   Nothing new was invented: --fs-body and --fs-small simply have no consumer
+   left, and eight rules that carried a size for a class no longer in any of the
+   five pages' markup were deleted outright (.roleHead .hmwQ .hmwLabel .lede
+   .stepHead .shotCap .shotNote .fvsub).
+   THE CAPTION INK MOVED WITH THE SIZE, and that is not cosmetic. --c500
+   (#848591) on --c50 is 3.5:1 -- it failed AA for body text at 15px and 12px
+   would have made it worse to read. --c600 (#6b6d7c) is 4.9:1 and passes.
+   Only the roles that DROPPED to 12 take it; the 15px roles that were already
+   --c500 elsewhere are untouched. */
+.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);color:var(--c600);max-width:680px;text-wrap:pretty;}
+
+/* ── THE OVERVIEW GOES BACK UNDER THE COVER.  2026-08-27, second word ──────
+   "Overview should be under the hero image not above."
+   It was lifted above the cover earlier today to close a text-only gap: "there
+   shouldnt be one point where there is only text on the screen with no visual",
+   measured then at 938px of imageless scroll on Apollo at 390. That reason was
+   real, and it is now paid for elsewhere -- the case studies have had two
+   passes since and the imageless bands were closed at the section level, not by
+   this reorder alone.
+   So the order comes out. Title -> cover -> overview -> facts is the reading he
+   wants, and it is also the DOCUMENT order, which means .hero no longer needs
+   to lay its children out differently from the source at all. One fewer thing
+   doing something clever. If a text-only band comes back at the top of a phone
+   screen, fix it where it is rather than by reordering this again. */
+.hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24));display:flex;flex-direction:column}
+.hero>.ov{margin-top:var(--sp-16)}
+/* --lh-body, so this label resolves to the same 13/19.5 as about.html's
+   .abLabel. It was inheriting whatever its parent happened to set (14.56px
+   measured) -- one role, two leadings, on pages that sit next to each other. */
+.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
+.head .eyebrow{display:block;margin:0 0 var(--sp-8)}
+/* THE PAGE TITLE IS HOME'S, AT HOME'S SIZE AND HOME'S SETTING.  2026-08-27.
+   docs/house-style.md §11 case-studies-3: "The h1 is 40 where home's is 44 and
+   About's is 44." --fs-title (clamp 29..40) was a fourth page-head size across
+   five page types. It takes --fs-pagehead now -- the same token About uses -- so
+   home, About and the five case studies open at one pitch, and the setting is
+   home's tuned pair rather than a near-miss: 1.06 literal (a hand-tuned value,
+   not to be flattened onto a rung) and --tr-hero -.030em against the old
+   --lh-head 1.2 / --tr-head -.027em.
+   THE 760px FORK WENT WITH IT. It swapped in --fs-pagehead-sm below 760, so the
+   title was set from two different tokens depending on width; --fs-pagehead's own
+   clamp already lands at 30 on a phone, which is where home's headline lands. */
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);line-height:1.06;letter-spacing:var(--tr-hero);color:var(--c950);margin:16px 0 0;text-wrap:balance}
+.head .hl{display:block}
+
+.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-16);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
+.cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
+.cover::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
+/* THE FOLD WAS EMPTY FOR MOST OF A SECOND. Measured 2026-08-20: first paint
+   at 64-148ms and the cover not starting until 836-921ms, so the lower 60%
+   of the opening screen was blank white on all five case studies -- the
+   first thing a recruiter sees. The sequence was 280/760/1080/1240 with a
+   700ms keyframe: none of those are rungs on the motion ladder, and the
+   gaps were 480/320/160, decelerating for no reason anyone chose.
+   It is 280/560/840/1120 now -- four even --dur-move beats -- and the
+   cover's own move is --dur-enter. A TRANSITION, not a keyframe: a
+   keyframe restarts from its own 0% and cannot be interrupted, which is
+   what apple-design.md section 3 calls the single most important
+   principle. The 26%/82% stops were an overshoot --ease-out already
+   expresses. */
+.cover.in{opacity:1;transform:scale(1) translateY(0)}
+
+/* at a glance, spec list */
+/* project facts, a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
+.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16) 0}
+.fact{min-width:0}
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
+.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
+/* ── THE FACTS BAND IS ONE LINE PER FACT ON A PHONE.  2026-08-27 ───────────
+   Stacked label-over-value it stood ~229px at 390 -- the single tallest block
+   of text on the opening screen, and the reason the cover had left the top of
+   the window before the first section arrived. Label and value share a line
+   below 881 and it measures ~150px. Nothing changes at 881 and up, where the
+   band has the width to run five columns. */
+@media(max-width:880px){
+ .fact{display:flex;align-items:baseline;gap:var(--sp-8);min-width:0}
+ .fk{margin:0;flex:0 0 auto}
+ .fv{min-width:0}
+}
+
+/* overview, a couple of orienting sentences before the role block */
+.ov{margin:var(--sp-24-40) 0 0}
+.ovBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+
+/* my role */
+.role{margin:var(--sp-24-40) 0 0}
+.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
+.role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+
+/* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
+   docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
+   between components and 112 for the one break before the footer, and it never
+   uses 104 at all. --sp-72-144 resolved to 104 desktop / 72 phone here, which
+   is what made the case studies read airier than the page they hang off.
+   --sp-40-64 is 64 and 40 -- home's between-component gap at BOTH widths, so
+   the phone fork below (--sp-56-96, 56) is deleted rather than retuned. */
+/* ── THE GAP IS SIZED FOR WHAT IT SEPARATES.  2026-08-27 ────────────────────
+   Jayden: "the case study spacing also feels weird ... when its only text on
+   the screen it looks odd ... fix spacing to just feel like a clean paragraph".
+   MEASURED DOWN BEARINGS AT 1440 BEFORE THIS: 16 (para to para) · 24 (subhead
+   to body) · 32 (cover to facts) · 42 (kicker to its own heading) · 48 (body to
+   a stat) · 64 (section to section, and text to a carousel) · 76 (section body
+   to a subsection). Seven values that did not map onto anything: a LABEL sat 42
+   from the heading it labels, and a SUBSECTION sat 76 from its parent -- twelve
+   more than the gap between two whole sections. That is what "blocks with holes
+   between them" is, and it is worst in the Problem -> Onboarding stretch, which
+   is 1,554px of text with no picture in it.
+   THE LADDER NOW, and every rung is one home already uses (house-style §2):
+      8   a label rides on the thing it labels   .kicker/.subKick/.rlabel/.fk/.eyebrow
+     16   a heading binds to its first paragraph, and paragraph to paragraph
+     24   text to a pulled stat, and the stat back to text (both sides, so a
+          callout reads as one object rather than as a break)
+     40   text to media, media to text, and a subsection break  --sp-24-40
+     64   section to section                                    --sp-40-64
+    112   the last block to the footer                          --sp-80-152
+   Monotonic in what it separates, and the biggest in-section gap (40) is now
+   SMALLER than the between-section gap (64), which is the relationship that was
+   inverted. On a phone the tokens fork to 8/16/16/24/40/80 on their own.
+   DO NOT FLATTEN THESE INTO ONE VALUE. The complaint was uniformity, not size:
+   gaps that are all nearly equal are what makes a text-only screen read as
+   stranded islands. */
+.sec{padding-top:var(--sp-40-64);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
+/* ── THE SECTION BREAK IS A LINE ON DESKTOP.  2026-08-27 ───────────────────
+   Jayden, on trungvo.xyz/expresso: "for desktop the subtle line breaks between
+   sections, extremely clean structure with no spacing issues."
+   ONE DECLARATION, N-1 LINES, AND IT MAKES THE LADDER SHORTER RATHER THAN
+   LONGER. A section break was 64px of empty page. It is 40 - hairline - 40 now,
+   so the gap that separates sections is the SAME RUNG (--sp-24-40) as the gap
+   between text and a picture, and the line does the separating that 64px of
+   nothing was doing. Measured rungs in the article at 1440 go from 8/16/40/64/112
+   to 8/16/40/112 -- four, and the one that left is the one this line replaces.
+   WHERE IT IS SUPPRESSED, and why each: the FIRST section after the hero, because
+   the facts band already draws its own bottom border and two hairlines 80px apart
+   is the double-rule; and every width below 881, because a phone has no room to
+   spend 80px on a break and the reference Jayden is quoting draws these on
+   desktop only. Nothing is suppressed near the footer: the footer's own rule sits
+   112px below the last block and no section rule can reach it.
+   --rule, not --c100: this is a STRUCTURAL line between two bands of the page,
+   which is the token's whole job, and it is themed for night. It is the case
+   studies' first use of --rule; tools/structure-rule-contract.py counts
+   occurrences of it in OWNED files and these five pages join that list in the
+   same commit rather than adding lines the cap cannot see. */
+@media(min-width:881px){
+ .content>.sec{border-top:var(--rule-w) solid var(--rule);margin-top:var(--sp-24-40);padding-top:var(--sp-24-40)}
+ .content>.hero+.sec{border-top:0}
+}
+.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
+/* ── FIVE HEADING SIZES BECOME THREE.  2026-08-27 ──────────────────────────
+   docs/house-style.md §11 case-studies-3 names this as "the single biggest
+   reason they do not feel like home": .head 40 · .secHead 30 · .subHead 26 ·
+   .secBody 18 · .eyebrow 12, plus .statNum at 40/400, against home's six sizes
+   total. The ladder is now the one About took in the same pass:
+     44/600  .head, .statNum at 400   26/600  .secHead
+     18/600  .subHead                 18/400  .secBody
+     15/400  captions, notes, sources 12/600  .eyebrow, kicker, labels
+   Six sizes, home's count, and .subHead is separated from body by WEIGHT rather
+   than by a fourth size -- home's own device (13px tabs 400/600, .csName 18/600
+   over .csImpact 15/400). Leading and tracking stay on the site's curve:
+   --lh-head 1.2 for large type that wraps, tracking monotonic in size at
+   -.030 / -.021 / -.027(18-600) / -.011(18-400). */
+.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--sp-8) 0 16px;text-wrap:balance}
+/* TRACKING, which this role did not have. Same finding as About's body copy:
+   every 15px-and-up role on home carries a negative rung and the case studies'
+   18px prose carried `normal`. --tr-title is -0.198px at 18 and keeps the
+   ladder monotonic in size. The MEASURE is untouched and stays the full column
+   -- Jayden reverted a 680px measure here once and said so. */
+.secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
+/* ── THE NUMBER READS INSIDE ITS SENTENCE, NOT ACROSS THE COLUMN.  2026-08-27 ─
+   Jayden: "the analytics taking up a whole new line makes it look cluttered".
+   The callout was THREE stacked blocks -- a 44px number alone on its line, a
+   paragraph under it, a source line under that -- fenced off by 24 above and 24
+   below. Measured on Bearings at 1440 it stood 214px tall and it broke the
+   reading column twice inside one section.
+   IT IS ONE PARAGRAPH NOW.  The number is an inline run inside the sentence it
+   supports: still the largest thing on its line, no longer the owner of the
+   line, and the source follows the sentence in --c500 instead of taking a third
+   block.
+   AND IT IS WHAT RETIRES THE 24 RUNG.  A stat that reads as evidence inside the
+   argument takes the paragraph's own 16, not a gap that existed for this one
+   object; --sp-16-24 had no other consumer in the article flow except the cover
+   and the facts band, both moved to --sp-16 in the same pass. The article's
+   vertical gaps are 8 / 16 / 40 / 64 / 112 at 1440 and 8 / 16 / 24 / 40 / 80 on
+   a phone -- five rungs, down from seven.
+   .statRow, .statCap and .statRowSrc have no consumer left. */
+.stat{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
+/* THE BIG NUMBER JOINS THE TITLE'S RUNG INSTEAD OF OWNING ONE. --fs-statnum
+   (clamp 30..40) was a seventh size carrying one role. It takes --fs-pagehead
+   now and stays at weight 400, so the number and the page title are one size
+   told apart by weight -- exactly how home tells a resting tab from a selected
+   one. --fs-statnum has no consumer left on these pages. */
+/* inline-flex, so the number keeps its own baseline-aligned unit and still sits
+   ON the sentence's baseline. --lh-flat means the 44px run grows the FIRST line
+   box only; every line after it keeps the paragraph's 1.5. */
+.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-pagehead);line-height:var(--lh-flat);letter-spacing:var(--tr-hero);color:var(--c950);display:inline-flex;align-items:baseline;gap:.16em;margin-right:.24em}
+.statUnit{font-size:var(--fs-label);font-weight:400;letter-spacing:var(--tr-flat);color:var(--c600)}
+.statSrc{font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c600)}
+.photoRow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8-16);width:100%}
+.photoRow img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center;display:block;background:var(--c100);box-shadow:var(--rim-1)}
+.photoRow img:nth-child(1){object-position:center bottom}
+.photoRow img:nth-child(2){object-position:center top}
+.photoRow img:nth-child(3){object-position:center 82%}
+/* lo-fi / mid-fi process gallery: full-bleed horizontal scroll-through, drag or swipe */
+.scrollbox{display:flex;gap:var(--sp-24-32);overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scroll-padding-inline:var(--sp-24-32);margin:var(--sp-24-40) 0 0;width:100%;padding:var(--sp-24-32);background:var(--c50);box-shadow:var(--rim-1);cursor:grab;-webkit-overflow-scrolling:touch}
+.scrollbox.dragging{cursor:grabbing;scroll-snap-type:none}
+.shot{flex:0 0 auto;scroll-snap-align:start;margin:0}
+.shot:last-child{scroll-snap-align:end}
+.shot img{width:clamp(300px,38vw,420px);height:clamp(300px,38vw,420px);object-fit:contain;display:block;background:var(--c50);box-shadow:var(--rim-1);pointer-events:none;-webkit-user-drag:none}
+.hmw{margin:var(--sp-24-40) 0 0}
+.scaffold{color:var(--c500)}
+/* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
+   hairline, the type, the ink, the states, the night theme and the phone stack.
+   It used to be forty lines of identical CSS in seven <style> blocks, which is
+   precisely how a "shared" footer drifts. The page keeps only its PLACEMENT:
+   how far the footer sits from the last section, and how much room it leaves
+   under itself. Everything else is the component's own business.
+   The old .footReach sentence and its inline .footIn links are gone with it --
+   the sentence became the identity block's status line and the links became two
+   real columns. The rules that themed them in hero-time.css and site-theme.css
+   have no consumer any more; see the report. */
+.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}
+
+/* .footIn IS NOT A FOOTER CLASS ANY MORE, and strictly it never only was.
+   Besides the old footer sentence it has always carried the INLINE CROSS-LINKS
+   in case-study prose -- Apollo -> Strata (x2), Strata -> Apollo, UC Davis ->
+   Bearings, Cluster's three. The footer's links are .footLink now and live in
+   footer.css; what is left here is the inline prose link, a different component
+   with a different target rule. The NAME is kept deliberately: site-theme.css
+   and hero-time.css already carry the night-theme rules for .footIn inside
+   .content, and those rules were always aimed at these links.
+   (bearings.html carries the rule with no consumer today. The five case studies
+   share one <style> in this region and divergence between them is the failure
+   mode this pass exists to end, so it stays identical on all five.)
+
+   A 24.5px INLINE LINK IS A 40.5px TARGET at every width. The control system 3.3
+   (.ctl--quiet.is-inline): pad the BLOCK axis and pull the margin back by the
+   same amount, so the hit area grows, the line box does not move, and the
+   paragraph does not reflow -- which is why this and not a min-height. Text
+   inside prose gets no wash, no rim and no radius; ink and its own underline
+   carry every state.
+
+   WHY --sp-10 AND NOT A CHASE TO 44. Measured at 390: this prose has a LINE
+   PITCH OF 25.5px (17px at --lh-prose). A vertical hit expansion bigger than the
+   pitch does not make a bigger target, it makes an AMBIGUOUS one -- it reaches
+   into the line above and the line below, so a tap between two lines belongs to
+   two links. --sp-10 already puts these at 41.5-46.7, which is past the pitch;
+   --sp-12 would worsen the overlap for 2.5px of nominal height. WCAG 2.5.8 has
+   an explicit INLINE EXCEPTION for exactly this case.
+   THE FOOTER LINKS NO LONGER QUALIFY FOR IT: they are standalone rows in a
+   column now, not words in a sentence, so footer.css gives them a real 44px
+   control height instead. */
+.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
+.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+.footIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
+
+.heroFoot{height:clamp(40px,7vh,90px)}
+
+/* flow rows: the whole journey lined up; one screen performs at a time, grows to take focus, the rest wait dimmed */
+.flow .shot{transition:transform var(--dur-reveal) var(--ease-out),opacity var(--dur-reveal) var(--ease-out),filter var(--dur-reveal) var(--ease-out);transform-origin:50% 55%;cursor:pointer}
+.flow .shot.act{transform:translateY(-6px) scale(1.06);position:relative;z-index:2;transition:none}
+.flow.playing .shot:not(.act){opacity:.62;filter:grayscale(.4)}
+.flow .shot:not(.act):hover{opacity:.85;transform:translateY(-2px)}
+.flow .shot img{transition:box-shadow var(--dur-reveal) var(--ease-out)}
+.flow .shot.act img{box-shadow:var(--rim-1)}
+.flow .shot.act .shotCap{color:var(--c950)}
+/* focus handoff borrows the About reveal: the incoming screen develops in (blur to sharp, gentle rise) */
+@keyframes actIn{0%{opacity:.6;filter:blur(3px);transform:translateY(2px) scale(1)}100%{opacity:1;filter:none;transform:translateY(-6px) scale(1.06)}}
+.flow .shot.act{animation:actIn var(--dur-reveal) steps(3,end)}
+@media (prefers-reduced-motion:reduce){.flow .shot.act{animation:none}}
+.flow{padding-top:48px;padding-bottom:32px}
+/* scrollytelling stage: the step texts scroll, one phone stays and performs the active step (mobile keeps per-step figures) */
+.buildFlow{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:start;width:100%}
+.flowSteps{min-width:0;padding-bottom:var(--sp-64-168)}
+.buildFlow .step{display:block;width:auto;margin:var(--sp-56-112) 0 0}
+.buildFlow .step:first-child{margin-top:16px}
+.buildFlow .step .stepShot{display:none}
+.buildStage{position:sticky;top:max(96px,calc(50vh - clamp(240px,36vh,360px)));margin-top:16px}
+.buildStage figure{margin:0;cursor:pointer;outline:none}
+.buildStage img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1);transition:box-shadow var(--dur-state-out) var(--ease-out)}
+.buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:var(--rim-1)}
+/* ===== the system: onboarding gallery + the five-step build, one hero screen per step, the reasoning beside it ===== */
+.subBlock{margin:var(--sp-24-40) 0 0}
+.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
+/* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
+   --fs-lead was tried first and was wrong at the small end: --fs-lead is
+   clamp(15,1.4vw,18) and --fs-prose is clamp(16,1.25vw,18), so they agree at 18
+   on a desktop and diverge on a phone -- measured at 390, the subhead computed
+   15px against a 16px paragraph, a heading SMALLER than the copy under it.
+   --fs-prose holds the relationship at every width: 18/600 ink over 18/400 grey
+   at 1440, 16/600 over 16/400 at 390. Weight and ink are the whole mark, which
+   is home's own device -- its tab row separates resting from selected with
+   nothing but --theme-muted/400 against --theme-ink/600. */
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-8) 0 16px;text-wrap:balance}
+/* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
+.shot.phone{width:calc((100% - 72px)/3)}
+.shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
+/* the five-step build: screen on the grid line, the why beside it */
+.step{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:center;margin:var(--sp-32-48) 0 0;width:100%}
+.stepShot{margin:0}
+.stepShot img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1)}
+.step .secBody{margin-top:var(--sp-8-16)}
+/* the payoff screen sits a size up: the whole section has been building to it */
+.step.payoff{grid-template-columns:minmax(0,1fr) clamp(250px,27vw,330px);margin-top:var(--sp-48-72)}
+/* one-shot stage sequences: each step performs its stages once on arrival (hard cuts on the 8fps clock), rests on the resolved frame, and replays a stage per tap. Motion stops inside ~5s, so no pause chrome is needed (WCAG 2.2.2) */
+.seq{cursor:pointer;outline:none}
+.seq img{transition:box-shadow var(--dur-state-out) var(--ease-out)}
+.seq:hover img,.seq:focus-visible img{box-shadow:var(--rim-1)}
+.seqWrap{position:relative}
+.seqTap{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;background:rgba(8,8,8,.20);box-shadow:0 0 0 1.5px rgba(8,8,8,.28);transform:translate(-50%,-50%) scale(1);opacity:0;pointer-events:none}
+.seqTap.show{opacity:1;transform:translate(-50%,-50%) scale(.82);transition:opacity .125s var(--ease-out),transform var(--dur-state-out) var(--ease-out)}
+.seqTicks{display:flex;gap:8px;justify-content:center;margin:var(--sp-8-16) 0 0}
+.seqTicks i{width:14px;height:2px;background:var(--c100);transition:background var(--dur-state-out) var(--ease-out)}
+.seqTicks i.on{background:var(--c950)}
+/* step rows develop like the photo row: the screen lands, its reasoning follows one frame later */
+.step.dv,.step.dv.shown{opacity:1;transform:none;transition:none;filter:none}
+.step.dv .stepShot,.step.dv .stepText{transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out);will-change:transform,opacity,filter}
+.step.dv:not(.shown) .stepShot,.step.dv:not(.shown) .stepText{opacity:0;transform:translateY(12px);filter:blur(6px)}
+.step.dv.shown .stepText{transition-delay:0s}
+.step.dv.shown .stepShot{transition-delay:.125s}
+
+/* ===== reveal system (word-by-word prose + block fade), 8fps stepped ===== */
+.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity var(--dur-reveal) var(--ease-out),filter var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
+.rv.shown .abw{opacity:1;filter:blur(0);transform:none}
+/* ===== chapter develop (block-level: rise for inked text, blur-develop for prose and imagery), 8fps stepped, staggered on the 125ms grid ===== */
+.dv{opacity:0;transform:translateY(12px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);will-change:transform,opacity}
+.dv.dvb{filter:blur(6px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out);will-change:transform,opacity,filter}
+.dv.shown{opacity:1;transform:none}
+.dv.dvb.shown{filter:blur(0)}
+.photoRow.dv>img{transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out)}
+.photoRow.dv:not(.shown)>img{opacity:0;transform:translateY(12px);filter:blur(6px)}
+.photoRow.dv.shown>img{opacity:1;transform:none;filter:blur(0)}
+.photoRow.dv.shown>img:nth-child(1){transition-delay:0s}
+.photoRow.dv.shown>img:nth-child(2){transition-delay:.125s}
+.photoRow.dv.shown>img:nth-child(3){transition-delay:.25s}
+.photoRow.dv,.photoRow.dv.shown{opacity:1;transform:none;transition:none}
+.statNum{font-variant-numeric:tabular-nums}
+.facts{opacity:0;transform:translateY(12px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
+.facts.shown{opacity:1;transform:none}
+
+/* emerge: the page develops out of the portal's white */
+.emerge{position:fixed;inset:0;z-index:9999;background:#fff;opacity:1;pointer-events:none}
+.emerge.clear{opacity:0;transition:opacity .7s var(--ease-out)}
+
+@media(max-width:880px){
+ /* .layout's margin-top is NOT restated here. It used to repeat --sp-48-64,
+    which resolved to the same value on both sides of this breakpoint and so
+    could only ever drift away from the rule above; --sp-32-48 forks itself. */
+ .cover{width:100%}
+ .wide{width:100%}
+ .closeShot{width:100%}
+ .facts{width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cmp{width:100%}
+ .photoRow{width:100%}
+ .scrollbox{width:100%}
+ .step{width:100%}
+ .buildFlow{display:block;width:100%}
+ .buildFlow .step{display:grid}
+ .buildFlow .step .stepShot{display:block}
+ .buildStage{display:none}
+ .step,.step.payoff{grid-template-columns:1fr;row-gap:var(--sp-16-24)}
+ .stepShot{width:min(62vw,300px)}
+ .sec{min-height:0}
+}
+@media(max-width:760px){
+ .wrap{padding:0 24px}
+ /* ── THE COVER CROP AT <=760 IS 8/5, NOT 4/3.  Jayden: "on mobile the
+    thumbnail picture gets cropped weird in the case study."
+    THE PLATE IS 2:1.  Every time-of-day variant of every cover is 1200x600
+    (and 2400x1200) -- six states a project, all the same shape.  4/3 was
+    written for the ORIGINAL 1600x1189 cover plate, whose ratio it matched
+    almost exactly; the plates were regenerated at 2:1 and this rung never
+    moved with them.  So object-fit:cover stopped taking a sliver off the top
+    and started taking a THIRD off the sides: at 390 the frame is 342x256 and
+    the picture renders 513 wide, 66.7% visible, 16.7% gone from each edge.
+    LOOKED AT, and it is the outer phones that pay: apollo, bearings and
+    strata each have four devices spanning the plate, and 16.7% cuts clean
+    through the first and last one -- the Bearings wordmark reads "arings)".
+    8/5 IS NOT A NEW NUMBER.  index.html's .csFrame already forks to 8/5 at
+    this exact breakpoint, on this exact plate, and the reasoning is written
+    beside it: it is the last rung where four phones still read as four
+    phones, chosen over 17/10 and 3/2 by looking at 390 and 320.  Adopting it
+    here makes the home thumbnail and the case-study cover the SAME crop of
+    the SAME picture, which is what the portal between them was always
+    implying.  Measured after: 80% of the plate visible, 10% a side, and all
+    four devices inside the frame on all five covers in all six states.
+    DESKTOP DOES NOT MOVE -- 12/5 above 760 is untouched. */
+ .cover{aspect-ratio:8/5}
+ .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
+ .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
+ .shot.phone img{width:100%;height:auto}
+ .scrollbox{padding:16px;gap:16px}
+ .facts{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-24-32)}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .emerge{display:none}
+ .cover{opacity:1;transform:none;animation:none;transition:none}
+ .rv .abw{opacity:1!important;filter:none!important;transform:none!important;transition:none}
+ .facts{opacity:1!important;transform:none!important;transition:none}
+ .dv,.photoRow.dv>img,.step.dv .stepShot,.step.dv .stepText{opacity:1!important;transform:none!important;filter:none!important;transition:none;will-change:auto!important}
+}
+
+
+/* A malformed rule stood here: `.toTop:hover .toTopLabel,.toTop:focus-visible
+   @media(hover:none){}` -- an at-rule inside a selector list, which is not a
+   selector, so the browser dropped the whole thing. Its body was empty so nothing
+   ever rendered from it. Found by diffing this file's source selectors against
+   document.styleSheets[].cssRules; a .toTopLabel does not exist in the markup
+   either. Deleted rather than repaired. */
+
+
+
+
+
+@media (prefers-reduced-motion:reduce){}
+.demoWrap{margin:var(--sp-24-40) 0 0}
+.demoLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);margin:0 auto 16px;max-width:680px}
+/* ── 30px IS NOT OFF THE LADDER, IT IS A PICTURE OF A PHONE ──────────────────
+   clamp(22px,2.4vw,30px) here and on .demoFrame is the DEVICE's corner, drawn to
+   scale with the render inside it. The radius ladder governs surfaces the site
+   draws, not the geometry of an object inside a photograph or a device mock, and
+   this is the same sanctioned carve-out as .shot.phone img -- which the case-study
+   radius sweep already names alongside these two, calling them one decision rather
+   than two things that got missed. .demoPoster takes border-radius:inherit, so it
+   follows the shell rather than declaring a third copy.
+   THE NOTE IS HERE BECAUSE IT WAS ONLY THERE. The decision was written into the
+   case studies' radius sweep and not beside the rules it exempts, so every census
+   run since has re-found 30px as an off-ladder value and had to re-derive it.
+   Restated in place so the next one stops. */
+.demoPhone{display:block;margin-inline:auto;width:min(380px,86vw);aspect-ratio:390/844;border-radius:clamp(22px,2.4vw,30px);overflow:hidden;background:var(--c50);box-shadow:var(--rim-1);position:relative}
+.demoFrame{width:100%;height:100%;border:0;display:block;border-radius:clamp(22px,2.4vw,30px)}
+@media(max-width:880px){.demoPhone{width:min(340px,84vw)}}
+.videoWrap{margin:var(--sp-24-40) 0 0}
+.videoFrame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;box-shadow:var(--rim-1);background:var(--c100)}
+.videoFrame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.demoPoster{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--c950);cursor:pointer;z-index:2;border-radius:inherit}
+.demoPoster.hidden{display:none}
+.demoPlay{width:66px;height:66px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c50);color:var(--c950);display:grid;place-items:center;cursor:pointer;transition:transform var(--dur-state) var(--ease-out)}
+.demoPoster:hover .demoPlay{color:var(--c950)}
+.demoPlay svg{width:26px;height:26px;margin-left:4px}
+.demoPosterLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c50)}
+.demoMute{position:absolute;top:12px;right:12px;z-index:3;display:none;align-items:center;gap:4px;padding:8px 16px 8px 8px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,243,243,.25)}
+.demoMute.show{display:inline-flex}
+.demoMute svg{width:14px;height:14px}
+.photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-24-40) 0 0;width:100%}
+.photoPair figure{margin:0}
+.photoPair img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;box-shadow:var(--rim-1);background:var(--c100)}
+.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:var(--fs-label);line-height:var(--lh-note);color:var(--c600)}
+/* carousel.css sets .playerNote at --fs-small and links AFTER this block, so the
+   one caption role the case studies do not own was the last 15px on the page.
+   .content raises the specificity rather than touching a shared component that
+   play.html does not use but headmaker might. */
+.content .playerNote{font-size:var(--fs-label);color:var(--c600)}
+
+/* ── THE MOCKUP STANDS ON A GROUND, AND THE GROUND KEEPS THE HOUR.  2026-08-27 ─
+   Jayden: "some of the mockups we can structure better ... so it doesn't make
+   the page feel so skinny when they are on the screen", and "in containers with
+   a background ... using the time of day gradient system to make a clean
+   backdrop for the phone mockups that change depending on time of day settings."
+   THE SKINNY READING IS ARITHMETIC, NOT TASTE. The column is 1200px at 1440 and
+   a phone in a tabbed viewer draws at min(--panel-w, 100% - 2 x inset) -- ~360px
+   here -- so a single centred mockup covered 30% of the column and 70% of the
+   band was empty page. The phone does not grow (it is a phone); the GROUND fills
+   the column, so the block reads as one wide object.
+   NO UNSPLASH PLATE. He offered either; the gradient wins on three counts and
+   the first is his own rule about performance: a photograph would be one more
+   network request per mockup on the pages where a 1,100 KB double fetch was just
+   killed, the gradient is zero bytes; the stops below are the FOOTER BAND'S OWN
+   per-hour table (footer.css:549-560) rather than a seventh palette, so a phone
+   ground, the sky and the band are one system; and only the gradient can do the
+   half of his sentence a photograph cannot -- change with the setting.
+   IT IS A GROUND, NOT A CARD. No shadow: the companion heads cast the only
+   shadow on this site. It separates with --rim-1, the quiet object
+   hairline, and with the gradient itself. The phone keeps its own rim.
+   IT CROSS-FADES ON EXACTLY THE COVER'S CLOCK. An unregistered custom property
+   cannot interpolate, so a gradient keyed on data-theme-state would SNAP while
+   the cover above it dissolved -- the out-of-sync change he has complained about
+   before. --mock-sky-low/-high are registered with @property, so the gradient
+   interpolates, and the duration is the same expression site-theme.css gives the
+   cover ghost: var(--hero-time-duration, var(--dur-enter)). Whatever resolves,
+   both move together and neither can drift from the other. */
+@property --mock-sky-low{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --mock-sky-mid{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --mock-sky-high{syntax:"<color>";inherits:true;initial-value:transparent}
+/* ── NO CONTAINER AT ALL.  2026-08-27 ──────────────────────────────────────
+   "container should no longer show actually should be completely clean", and
+   with it the two things that were symptoms of the box rather than faults of
+   their own: "the apollo section header like The latest design. looks
+   disconnected from the image like its not even in the box also the indicators
+   not in the container for some reason."
+   Both were true, and both were the BOX's fault. A heading and a tick row that
+   live in the document flow will never sit inside a panel that starts below
+   them -- the container drew an edge, and everything outside that edge then
+   read as excluded from it. Take the edge away and there is nothing to be
+   outside of: the picture, its one line and its ticks are simply a run of
+   things on the page, which is what the reference does and what he has asked
+   for four times now in four different words.
+   GONE: the ground colour, the radius, the --rim-1 hairline and the padding.
+   KEPT: width and centring, which are layout and not decoration. */
+.content :is(.playerStage,.tv.tvPhone .tvFrame){
+ background:none;
+ border-radius:0;
+ box-shadow:none;
+ padding-block:0;
+ width:100%;
+ display:flex;align-items:center;justify-content:center;
+}
+
+/* THE OUTER WRAPPER IS A CONTAINER TOO, and it was the one actually drawing the
+   box he could see. .playerStage / .tvFrame is the INNER stage; .tv.collection
+   wraps the tab row AND the stage and carries the white ground, the 28px radius
+   and the inset hairline. Clearing only the inner one left the visible panel
+   untouched, which is why the first attempt looked unchanged.
+   THIS IS ALSO THE WHOLE OF "The latest design. looks disconnected from the
+   image like its not even in the box" AND "the indicators not in the
+   container": the caption and the ticks sit in the document flow OUTSIDE this
+   wrapper, so the wrapper drew a line around some of the group and not the
+   rest. With no line there is no inside to be excluded from. */
+.content .tv.collection,
+.content .tv.tvPhone.collection{
+ background:none;
+ box-shadow:none;
+ border-radius:0;
+}
+
+/* THE CAPTION BINDS TO ITS PICTURE, same rule as the kickers. It is ordered
+   above the media inside .photoFig, and the media kept a 40px top margin that
+   was written when the caption was BELOW it -- so reordering left the label
+   floating 52px clear of the thing it names. Measured: cap margin-bottom 12 +
+   media margin-top 40. The gap belongs above the CAPTION, not between the
+   caption and its picture, exactly like .kicker and .secHead. */
+/* CENTRED, BECAUSE THE THING IT LABELS IS CENTRED. "the section header for the
+   mockups should be centered so it looks like it goes with it." A caption at
+   the column's left edge over a phone sitting in the middle of 1200px reads as
+   two separate objects; over the picture it reads as its title. This is the
+   figure caption only -- the section kickers stay on the column edge with the
+   prose they introduce, which is where a running label belongs. */
+.content .photoFig>figcaption.cap{margin-block:0 var(--sp-8);text-align:center}
+.content .photoFig>:is(.player,.tv){margin-block-start:0}
+.content .photoFig{margin-block-start:var(--sp-40)}
+
+
+:root[data-theme-state="off"]      .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#e9eaec;--mock-sky-mid:#f1f2f3;--mock-sky-high:#f6f7f8}
+:root[data-theme-state="pre-dawn"] .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#486ffd;--mock-sky-mid:#c489ff;--mock-sky-high:#eadcff}
+:root[data-theme-state="sunrise"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#cb83ff;--mock-sky-mid:#ffc977;--mock-sky-high:#fff1dc}
+:root[data-theme-state="daytime"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#0071c1;--mock-sky-mid:#8cc6ee;--mock-sky-high:#dceeff}
+:root[data-theme-state="dusk"]     .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#ffb36a;--mock-sky-mid:#9da8e4;--mock-sky-high:#ccd5f0}
+:root[data-theme-state="sunset"]   .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#ffa577;--mock-sky-mid:#ddadff;--mock-sky-high:#ecd8ff}
+/* NIGHT KEEPS THE VEIL, and that is the one place this table departs from the
+   footer band's. The band sits on a dark page and veiling it toward --theme-page
+   would take away the little light it has; this ground sits on a LIGHT page
+   (night is an hour here, not a dark theme -- site-theme-state.js), so an
+   unveiled #090c13 would be a black slab in the middle of white paper. The veil
+   above holds it to a deep blue-grey the phone still stands out against. */
+:root[data-theme-state="night"]    .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#090c13;--mock-sky-mid:#1e2338;--mock-sky-high:#393557}
+
+/* ── THE MOCKUP IS ONE PICTURE AND ONE LINE.  2026-08-27 ─────────────────────
+   Jayden, with https://trungvo.xyz/pillar open beside this: "the mockup
+   containers are not good they have too much information dont need the on top
+   descriptions side arrows need to fit better might be too large spacing is off
+   and not minimal things are over complicated for no reason ... less design is
+   more design. should literally be a simple visual article showing my work."
+   COUNTED BEFORE TOUCHING IT. Around ONE phone there were SIX pieces of chrome:
+   the kick ("From the 24-hour hackathon"), the step ("Nothing chosen yet"), the
+   note ("The camera opens first and asks what the shot is for."), two 44px
+   arrow chips, the tick row, and the figcaption ("Capturing a win."). The
+   reference carries ONE caption per image and nothing else. Six to two is the
+   whole change and everything below is a consequence of it.
+   THE CAPTION GOES ABOVE, which is where the reference puts it and where
+   carousel.css already puts .playerCap with order:-1. */
+.content .playerKick,
+.content .playerCap{display:none}
+.content .photoFig{display:flex;flex-direction:column}
+/* WIDTH BACK. .player carries auto inline margins, and a flex item with auto
+   margins on the cross axis does NOT stretch -- turning the figure into a flex
+   column silently collapsed the ground from the full 1200 column to 400px, the
+   phone's own width. Measured, not guessed: the ground had just been widened to
+   margin-to-margin one commit earlier and this quietly undid it. */
+.content .photoFig>.player{width:100%}
+/* The caption reads as the line that introduces the picture, so it sits at the
+   column's left edge like every other line of the article rather than centred
+   under a phone -- centred, it was an orphan floating over a 1200px box. */
+/* order:-1 only. The margin and the alignment moved to the rule above, and
+   leaving them here made this the later declaration and therefore the winner --
+   the caption kept a 12px bottom margin and a left edge while the rule that was
+   supposed to own it said 8 and centre. Two rules for one element is how that
+   happens; this one now sets the one thing the other cannot. */
+.content .photoFig>figcaption.cap{order:-1;max-width:none}
+
+/* THE ARROWS KEEP THEIR TARGET AND LOSE THEIR CHIP. 44px is the site's tap
+   floor and is not negotiable -- measured, not declared -- so the BOX stays 44
+   and only the paint goes. What he was looking at was a white rounded card on
+   the sky at every step; what is left is the chevron. */
+.content .crslNav.ctl--icon{
+ background:none;box-shadow:none;border:0;
+ color:var(--c600);
+}
+.content .crslNav.ctl--icon:hover{background:none;color:var(--c950)}
+
+/* THE ROOM'S LAST PADDING GOES TOO. This rule survived the container's removal
+   and, sitting later in the same file at equal specificity, quietly beat it --
+   background, radius and hairline were all cleared while a 24px pad stayed and
+   kept the picture floating in space. Found by asking the browser which rules
+   match, which is the only reliable way to answer an order question. */
+
+/* THE BEZEL IS OUT AGAIN, SAME DAY IT WENT IN. He asked for it -- "needs to be
+   a clear iphone there needs to be border on the screen" -- looked at it, and
+   said no: "i dont like the border either around the phone doesnt look clean
+   and on brand with the portfolio."
+   He is right and the reference agreed with him before he did: trungvo.xyz
+   frames nothing. A drawn bezel is a second object competing with the screen it
+   surrounds, and this site separates with hairlines rather than with edges.
+   The screenshots keep their own --rim-1, which is the hairline, and that is
+   the whole treatment. Do not re-add a frame without asking. */
+
+/* ══ THE READING.  2026-08-27 ═══════════════════════════════════════════════
+   "ther is two section head sizes like header text which looks weird and
+   paragraphs are spaced weird and sized its like every new paragraph is a new
+   design system ... making the center aligned text colums the same width for
+   legibility ... making sure everything looks like apple designed the reading."
+
+   MEASURED FIRST, on apollo at 1440, every prose block on the page:
+     - SEVENTEEN blocks ran at 1200px starting at x=120, and SIX ran at 680px
+       starting at x=380. Two measures on one page is the "same width" one.
+     - .secHead is 26px on 31.2px leading; .subHead is 18px on 21.6px. So the
+       second heading is BODY-SIZED with HEADING leading -- it reads as a
+       heading that is not one, which is "two section head sizes ... looks
+       weird".
+     - .subHead takes margin-top 8px in a section and 4px inside a before/after
+       block. Same class, same page, different rhythm by context. That is
+       literally "every new paragraph is a new design system".
+
+   ── 1. ONE MEASURE, AND IT IS CENTRED ──────────────────────────────────────
+   CLAUDE.md says do not re-apply a measure here without asking, because a
+   680px column was once added on an audit's finding and he reverted it: "I
+   never asked you to change it back to squished to the left." That revert is
+   respected rather than overridden, because what he rejected was the SHAPE,
+   not the width: 680 left-aligned inside 1200 leaves 520px of white down the
+   right and reads as broken. He has now asked for the opposite arrangement in
+   his own words -- "center aligned text colums the same width" -- so the
+   column is centred and the white falls evenly on both sides.
+   72ch at 18px is ~740px. The old 1200 was ~110 characters a line, which is
+   roughly twice what any Apple text column runs and is the actual reason the
+   reading felt hard. */
+/* ONE NUMBER, IN PIXELS, AND NOT IN ch.  The first pass wrote 74ch and it does
+   not do what it looks like it does: ch is relative to the element's OWN font
+   size, so the 26px section head resolved to a wider column than the 18px body
+   and the page came back carrying 883 / 910 / 1200 / 680 -- four measures where
+   there had been two. Measured, which is the only reason it was caught. One
+   declared width in px is the whole point of the instruction. */
+/* MARGIN TO MARGIN AGAIN.  2026-08-27, and this is his third word on it, so it
+   is written down properly: "i actually think i prefer the margin to margin
+   text".
+   The 740 column was added on his own ask ("center aligned text colums the same
+   width for legibility") and it did make the reading measure right, ~72
+   characters. He has looked at it and prefers the full column, which is also
+   what CLAUDE.md recorded him defending the first time. THE FULL COLUMN IS THE
+   DECISION. What survives from the 740 pass is the part that was never about
+   width: one margin rule, one leading, one weight and one ink per paragraph.
+   Do not re-narrow this without him saying so in those words. */
+.content{--measure:100%}
+.content :is(.secBody,.ovBody,.lede,.baBody,.stat,.secHead,.subHead,.roleHead,.hmwQ,.stepHead){
+ max-width:var(--measure);
+ margin-inline:auto;
+}
+/* .baText carried its own 680px cap, which is where the second measure came
+   from. It takes the same one now, so the before/after block reads at the same
+   width as the section above it instead of stepping in by 60px. */
+/* .baBlock .baText carries a 680px cap of its own, which outranks a plain
+   .content .baText -- so this matches its specificity rather than raising the
+   stakes with !important. */
+.content .baBlock .baText{max-width:var(--measure);margin-inline:auto}
+
+/* ── 2. ONE HEADING LOOK ────────────────────────────────────────────────────
+   .secHead stays the section head and keeps its size. .subHead stops
+   pretending to be a second one: it keeps the body's size AND the body's
+   leading, so it reads as a bold lead-in inside the flow rather than as a
+   heading a rung down. Nothing new is introduced -- this REMOVES a treatment,
+   which is the whole instruction. */
+.content .subHead{
+ line-height:var(--lh-body);
+ margin-block:var(--sp-32) var(--sp-8);
+}
+
+/* ── 3. ONE RHYTHM, AND IT DOES NOT DEPEND ON WHERE YOU ARE ─────────────────
+   Every paragraph gets the same space above it and none below, so the gap
+   between two paragraphs is one number and cannot vary by container. The
+   before/after block's private overrides are what made .subHead 4px there and
+   8px everywhere else; they are gone. */
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede){margin-block:var(--sp-16) 0}
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
+
+/* ── EVERY PARAGRAPH, NOT MOST OF THEM.  2026-08-27 ─────────────────────────
+   "not all paragraphs are getting the same spacing and treatment." Audited all
+   five pages rather than the one I had been looking at, and he was right twice:
+
+     .ovBody  -- the overview paragraph on all five -- paints at rgb(9,11,36)
+     while every other body paragraph is rgb(83,84,102). A darker standfirst is
+     a real typographic device, but it is also one more treatment on a page he
+     has asked three times to quieten, and it is the paragraph he sees FIRST,
+     so the page announces an inconsistency before it says anything else.
+
+     bearings carried a bare <p class="rv"> -- "I led the visual design and
+     built the system" -- with margin-top 0 and full ink. One paragraph on one
+     page with its own rhythm, which is precisely the complaint.
+
+   So the selector stops naming classes and names PARAGRAPHS. Anything that is
+   a paragraph inside a section gets the one treatment, whatever it is called,
+   and a class that arrives later cannot opt out of the rhythm by accident. */
+/* ── THE TYPE GROWS SO THE LINE DOES NOT.  2026-08-27 ───────────────────────
+   He kept the full column and chose "full width, larger text" over narrowing
+   it. At 18px across 1200px a line ran ~110 characters, which is about double
+   an article measure and is the real reason the reading felt long -- the width
+   was never the whole story, the RATIO was. Raising the type shortens the line
+   without touching the column, which is the same fix from the other end.
+   --cs-prose is local to these five pages on purpose: --fs-prose is shared with
+   home and About and this is not a site-wide type change. */
+.content{--cs-prose:clamp(17px,1.45vw,21px)}
+/* .rv IS NOT IN THIS LIST AND MUST NEVER BE.  It was added to catch one bare
+   <p class="rv"> on bearings, and it caught the H1 too -- <h1 class="head rv">
+   -- so the page title rendered at body size, 20.88px, the same as the
+   paragraph under it. That is a reveal-animation hook, not a text role, and
+   naming it here means naming everything it is ever put on. The bare paragraph
+   is already covered by `.content .sec p`, which is the whole reason that
+   selector exists. */
+/* `.content p`, NOT `.content .sec p`.  Scoping to sections is what let the
+   Role paragraph escape -- "I led the visual design and built the system..."
+   lives in .role, outside every .sec, and came back 18px on 27px leading in
+   full ink at margin-top 0 while every other paragraph was 21 on 31.32 in
+   rgb(83,84,102) at 16. He spotted it on the page; the audit had been scoped
+   to sections and could not see it.
+   THIS IS THE SECOND TIME the same mistake shipped: first naming classes, then
+   naming a container. A paragraph in this article is a paragraph wherever it
+   sits, so the selector finally says exactly that. */
+.content p,
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede){
+ margin-block:var(--sp-16) 0;
+ color:var(--c700);
+ font-size:var(--cs-prose);
+ line-height:var(--lh-body);
+}
+.content p:first-child,
+.content :is(.secBody,.ovBody,.baBody,.stat,.lede):first-child{margin-block-start:0}
+
+.content .baText .subHead{margin-block:var(--sp-32) var(--sp-8)}
+.content .secHead{margin-block:var(--sp-64) var(--sp-16)}
+.content .sec>.secHead:first-child{margin-block-start:0}
+
+/* ── A LABEL BELONGS TO THE THING IT LABELS.  2026-08-27 ────────────────────
+   "why is the spacing between solution and onboarding so big look out for
+   those individual discrempencies."
+   MEASURED on bearings' Solution section: the kicker "Solution" sat 64px above
+   "So we built one for the whole crew", the heading it is the label FOR. The
+   64 is the section-break rung and it was landing in the wrong place -- between
+   a label and its own head, instead of before the pair of them. So every
+   section opened with its label floating, unattached to anything, which is the
+   discrepancy he is pointing at.
+   The break moves onto the kicker and the head hugs it at 8. Where a section
+   has no kicker the head keeps the 64 itself, so the rhythm between sections is
+   unchanged either way -- this moves a gap, it does not add or remove one. */
+.content .sec>.kicker{margin-block:var(--sp-64) 0}
+.content .sec>.kicker:first-child{margin-block-start:0}
+.content .kicker + .secHead{margin-block-start:var(--sp-8)}
+
+/* ── A HEADING IS NEVER SMALLER THAN ITS BODY.  2026-08-27 ──────────────────
+   "header being smaller than the body text feels weird." It was, and I did it:
+   raising the body to --cs-prose (20.88px at 1440) left .subHead behind on
+   --fs-prose (18px), so a subsection heading rendered SMALLER than the sentence
+   it introduced. .subHead now rides the same token as the body it heads, so the
+   two cannot come apart again whatever --cs-prose is set to. It keeps 600 and
+   the body's leading, which is what makes it a heading at the same size. */
+.content .subHead{font-size:var(--cs-prose)}
+
+/* ── THE CASE-STUDY TITLE COMES DOWN.  2026-08-27 ───────────────────────────
+   "now i feel like the h1 is too large."
+   It was --fs-pagehead, clamp(30px,3.4vw,44px), set when the body under it was
+   18px. The body is 21 now, and the ladder had gone 44 / 26 / 21 / 12 -- the
+   title jumped 1.7x over the section head while the section head is only 1.24x
+   over the body, so the top of the page was doing something the rest of it was
+   not.
+   36 at 1440 and 27 at 390: about 18% down on desktop, 10% on a phone, which is
+   the bottom half of his measured range for a size complaint. New ladder
+   36 / 26 / 21 / 12, and the steps between rungs are finally comparable.
+   SCOPED, AND DELIBERATELY SO. --fs-pagehead is shared, and CLAUDE.md records
+   that home's hero h1 is his alone and is not to be restyled. This is a token
+   the five case studies own; index.html is not touched. */
+.content{--cs-head:clamp(27px,2.6vw,36px)}
+.content .head{font-size:var(--cs-head)}
+
+/* ── THE FACTS BAND JOINS THE LADDER.  2026-08-27 ───────────────────────────
+   The visual pass he asked for -- "make sure all the case studies get the
+   visual check treatment for them individually dont want to miss on any
+   discrepencies" -- turned up a FIFTH size on every page: .fv, the facts-band
+   value, at 18px against a 21px body and a 12px label. It was the last thing
+   sized for the old 18px body and never moved when the body did.
+   It goes to the LABEL's rung, not the body's: this is a compact metadata
+   strip, and at 21px it would shout over the h1 it sits under. Value and label
+   are told apart by weight and ink, which is what they were already doing --
+   the size was carrying nothing. Four sizes on every page again. */
+.content .fv{font-size:var(--fs-label)}
+
+
+
+/* ── THE SUB-LABEL GOES, AND WHAT IS LEFT BINDS TIGHT.  2026-08-27 ──────────
+   "the section head for the mockups look so disconnected looks weird wouldnt
+   use it there as well" -- and, on bearings, "there is a huge empty space
+   between solution and onboarding".
+   THEY ARE THE SAME DEFECT ONE LEVEL DOWN. Measured inside the Onboarding
+   block: .subKick ("Onboarding") sat 32px above .subHead ("The feeling comes
+   before the form"), while the section-level kicker had just been bound to its
+   own head at 8. So a 12px word floated above a heading that floated above a
+   mockup -- three things stacked with nothing holding them together, which is
+   the disconnection he is describing.
+   THE LABEL IS THE ONE THAT GOES. He said he would not use it there, and it is
+   the piece carrying least: .subHead already says what the block is, in a
+   sentence. The mockup keeps one line of introduction instead of two, and that
+   line now sits on the block's own 32 rather than floating between rungs. */
+.content .subBlock>.subKick,
+.content .baText>.subKick{display:none}
+.content .subKick + .subHead{margin-block-start:0}
+
+/* ── THE MOCKUPS COME DOWN 15%.  2026-08-27 ─────────────────────────────────
+   "i feel like the mockups might feel slightly too large." His "slightly" has a
+   measured range on this project -- 10 to 25 percent, never a big jump -- so
+   this is one step at the bottom of it: the phone goes 360 -> 306px wide, 783
+   -> 666 tall.
+   IT IS A LOCAL TOKEN, NOT --panel-w. --panel-w is 360 because it agrees with
+   --mk-panel and the Maker's inspector (tokens.css:961 says so explicitly);
+   moving it would resize a tool on another page to fix the look of a picture on
+   this one. --cs-phone is scoped to the five case studies and nothing else
+   reads it. */
+.content{--cs-phone:306px}
+/* THE COLLECTION'S OWN SELECTOR HAS TO BE MATCHED, not out-guessed.
+   controls.css carries `.tv.collection.tvPhone .collection__content > img` at
+   width:min(var(--panel-w),100%), which is (0,4,1) and beat the first attempt
+   here -- so cluster and ucdavis stayed at 360 while apollo and bearings came
+   down, and the pages disagreed with each other. Found by asking the browser
+   which rules actually match the element rather than by reading the sheet. */
+.content .playerStage.media--mockup>img,
+.content .tv .tvFrame>img,
+.content .tv.collection.tvPhone .collection__content>img,
+.content .tv.tvPhone .tvFrame>img{width:min(var(--cs-phone),100%)}
+
+
+
+
+
+/* ── EVERYTHING IN THE ARTICLE SITS ON THE SAME COLUMN ──────────────────────
+   The kickers and the figure captions were still starting at the section's
+   x=120 while the prose had moved in to x=350, so every label hung off the left
+   of the column it belongs to. "the same width" has to mean the labels too --
+   they are part of the reading, not furniture beside it. */
+/* width:100% MATTERS HERE and is not belt-and-braces. Several of these sit in
+   flex columns (.photoFig is one), and a flex item with auto inline margins
+   does NOT stretch -- it shrink-wraps. Without the width the captions came back
+   89px and 96px wide, centred on their own text instead of starting where the
+   paragraph above them starts. That is the same trap that collapsed the mockup
+   ground to 400px earlier today; it is written down twice now for a reason. */
+/* THE FIGURE CAPTION IS NOT IN THIS LIST ANY MORE. It was, and this rule sits
+   LATER in the file than the centring rule below, so it quietly won and the
+   caption stayed on the left edge over a centred phone. The rest of these are
+   running labels that belong on the column edge with the prose they introduce;
+   a figure caption belongs over its figure. Fixed here rather than by piling
+   specificity onto the other rule. */
+.content :is(.kicker,.subKick,.eyebrow,.rlabel,.hmwLabel){
+ width:100%;
+ max-width:var(--measure);
+ margin-inline:auto;
+ text-align:left;
+}
+.content .cap:not(.photoFig>figcaption){
+ width:100%;
+ max-width:var(--measure);
+ margin-inline:auto;
+}
+
+/* ── THE STAT COMES DOWN A RUNG.  He kept it at the h1's size this morning when
+   the question was asked in isolation; the instruction now is about the reading
+   as a whole -- "paragraphs are spaced weird and sized its like every new
+   paragraph is a new design system" -- and a 44px numeral inside an 18px
+   sentence is the largest single jump left on the page at 2.44x. At the section
+   head's rung it is 1.44x: still unmistakably a number, no longer a second
+   headline arriving mid-paragraph. No new size is introduced -- 26 is already
+   the section head -- so the page stays on four. */
+.content .statNum{font-size:var(--fs-h3);letter-spacing:var(--tr-head)}
+
+/* ══ A PARAGRAPH IS ONE THING.  2026-08-27, and this is the pass that was
+   actually asked for ═════════════════════════════════════════════════════════
+   "by your screen shot i can see its still not a clean paragraph format ... it
+   looks horrible like actually horrible."  He is right, and the previous pass
+   is why: it fixed the GEOMETRY -- one width, one margin, one leading -- and
+   then reported those numbers without judging the picture. Counting is not
+   looking, and this is what looking found.
+
+   ONE PARAGRAPH ON THIS PAGE CONTAINED FIVE TREATMENTS:
+     18px regular  .  18px BOLD mid-sentence  .  an underlined link  .  a 26px
+     numeral  .  a 12px source, trailing the last full stop.
+   Eight of fourteen body paragraphs carried bold runs -- "I have ADHD",
+   "I ran 30 user interviews", "witnessing beats willpower" -- so the page read
+   as though a highlighter had been over it. And an oversized numeral inside a
+   sentence makes that paragraph's FIRST line box taller than its second, which
+   is the uneven rag visible in the screenshot. No amount of consistent margins
+   fixes a paragraph that is internally inconsistent.
+
+   1. THE BOLD GOES. The sentences already carry the emphasis; the weight was
+      saying it twice. Two weights is still the rule -- 600 is for HEADS. */
+/* WEIGHT AND INK BOTH. Dropping only the weight left the paragraph two-TONE:
+   body is rgb(83,84,102) and <strong> was rgb(9,11,36), so "I have ADHD" still
+   read as a darker patch mid-sentence even at 400. Measured, after looking at
+   the screenshot and not before it. */
+.content :is(.secBody,.baBody,.ovBody,.stat,.lede,.role p) :is(strong,b){
+ font-weight:400;
+ color:inherit;
+}
+/* THE LINK KEEPS ITS UNDERLINE AND GIVES UP THE OTHER TWO SIGNALS. It was
+   600-weight, full-ink AND underlined -- three ways of saying one thing, inside
+   a sentence that is otherwise one weight and one colour. The underline alone
+   is what says "link"; it is also the only one of the three that survives being
+   read by someone who cannot see the colour. */
+.content :is(.secBody,.baBody,.ovBody,.stat,.lede,.role p) a{
+ font-weight:400;
+ color:inherit;
+}
+
+/* 2. THE NUMERAL JOINS ITS SENTENCE. Same size, same leading, so every line box
+      in the paragraph is the same height and the rag is even. It keeps 600 and
+      tabular figures, which is enough to make a number read as a number -- it
+      does not also need to be twice the size of the words around it. */
+.content .statNum{
+ font-size:inherit;
+ font-weight:600;
+ letter-spacing:var(--tr-body);
+ line-height:inherit;
+}
+.content .statUnit{font-size:inherit;font-weight:600}
+
+/* 3. THE SOURCE LEAVES THE SENTENCE. It was a 12px fragment trailing the final
+      full stop, which is a third size inside the paragraph and reads as debris.
+      On its own line it is a citation, which is what it is. */
+.content .statSrc{
+ display:block;
+ margin-top:var(--sp-4);
+ font-size:var(--fs-label);
+ color:var(--c600);
+}
+
+
+
+
+@media(prefers-reduced-motion:reduce){
+ .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
+
+
+}
+
+/* --- 4px corner softening pass --- */
+.workCta,.heroBack,.abLink,.abLinkPrimary,.abBack,.moodMenu button,.moodMenu a,.reelClose{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
+.abTalk{border-radius:var(--r-pill)!important}
+.moodMenu,.csInfoCard,.abShot,.abShot img,.amsImg{border-radius:var(--r-lg)!important;corner-shape:var(--corner)}
+.csFrame{border-radius:0}
+/* Radius for the media on this page is decided by ONE rule, the size-class
+   sweep further down (search "RADIUS BY SIZE CLASS"). A split used to stand
+   here and it never won a declaration -- the later sweep names the same
+   elements, so every rule in it was dead. Proved from the CSSOM, not by
+   reading: .cover computed 20px with both rules matching. */
+.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
+.talk{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
+.workcard{border-radius:var(--r-xl) var(--r-xl) 0 0!important}
+/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s var(--ease-out),transform .3s var(--ease-out);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
+   squircle for everything -- when did we decide on 20?" The rule and the
+   measured 900px boundary live in tokens.css beside the ladder. Short form:
+   BIGGEST SURFACES 28 · CARDS AND IMAGES 20 · CONTROLS 14.
+   THIS IS THE ONLY PLACE THESE ELEMENTS GET A RADIUS. Every width below was
+   read off the rendered page at 1440, so the class is a number and not a
+   judgement, and the two groups are separated by the distribution's own
+   largest gap (1103 down to 552) rather than by a round number. ── */
+/* 200-899px -- sits INSIDE the column. Declared FIRST so that where an element
+   matches both groups (a .cmp img nested in a .photoFig) the top class wins on
+   source order, which is what the concentric rule wants: the object that fills
+   the frame takes the frame's corner. */
+.scrollbox,.shot,.photoPair figure,.sbItem,.sbCard,   /* 270 · 552 carousels and cards */
+.shot img,.photoFig img,.photoPair img{               /* 270-363 inside a wrapper */
+  border-radius:var(--r-lg);corner-shape:var(--corner)}
+/* >= 900px -- as wide as the page's measure. Same class as .workcard, which has
+   always been --r-xl, and making them agree is the whole point of the change. */
+.cover,.cover img,          /* 1103 the page cover and its photograph */
+.photoFig,                  /* 1120 a full-measure figure */
+.videoFrame,.videoFrame iframe,  /* 1120 the embedded film */
+.cmpBoard,.cmpBoard img,.cmp,.cmp img{  /* 1120 the before/after board */
+  border-radius:var(--r-xl);corner-shape:var(--corner)}
+/* THE DELIBERATE CARVE-OUTS, and they are not rungs at all. Both are PICTURES
+   OF A PHONE, and that corner is the device's, drawn to scale with the render --
+   content, not chrome. The ladder governs surfaces the site draws, not the
+   geometry of an object inside a photograph or a device mock. Named together so
+   the pair reads as one decision rather than as two things that got missed:
+   .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
+   live phone demo in an iframe at clamp(22px,2.4vw,30px). */
+.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}
+.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:var(--sp-24-40)}}.sec>:last-child{margin-bottom:0}/* nothing in a section may push its own bottom margin into the 64 section break *//* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+   the FIRST focusable element and moves focus to the main content -- so it sits before the
+   nav in DOM order. Parked off-screen by transform (not display:none, which would take it
+   out of the tab order entirely) and slid in on focus. ---- */
+
+
+@media(prefers-reduced-motion:reduce){}
+#main:focus{outline:none}
+
+/* ============================================================================
+   ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
+   1.6 1.7 1.8 2 2.2 3) across the site's inline SVGs, and five rendered sizes.
+   CSS stroke-width beats the SVG presentation attribute, so this normalises
+   every icon without touching fifteen separate markup attributes.
+   1.5 is chosen to sit with the 1px hairlines and the 400-weight text -- a 2px
+   stroke next to a 1px rule is what made the set look like three packs.
+   ============================================================================ */
+.gIco,.moodCar,
+/* every icon that lives inside a control -- catches .baGo, .moodGo, .cmpKnob and anything
+   added later, instead of a hand-kept list that silently misses new ones */
+a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
+ stroke-width:1.5;
+ stroke-linecap:round;stroke-linejoin:round;
+ fill:none;
+ vector-effect:non-scaling-stroke;
+}
+/* one icon size for controls, one for the caret affordance */
+.gIco{width:18px;height:18px;flex:0 0 18px}
+.moodIco{width:18px;height:18px;flex:0 0 18px;font-size:18px}
+.moodCar{width:12px;height:12px;flex:0 0 12px}
+/* icons inherit the control's colour so they light up with the hover wash */
+.moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
+
+/* ═══ THE TAB'S ACTIVE MARK GOES INK, AND STOPS BEING A SWOOSH (round 11) ═════
+   Jayden: "I think making the blue line the black ink would be better."
+   TWO THINGS WERE WRONG WITH .tvTab.on AND ONLY ONE OF THEM WAS THE COLOUR.
+   It drew its underline as `border-bottom:2px solid var(--accent)` on a box
+   whose computed border-radius is --r-md 14px, so the radius bent the line into
+   a tapering curve -- the swoosh the control-system spec already documents. A
+   bottom border cannot be a rule under a word on a radiused box. It is a
+   positioned ::after now, which has no radius to inherit and lands straight.
+   Ink rather than accent, matching index.html's .csTabInk, so the tab family has
+   one active treatment across the site.
+   HOVER GOES INK TOO, for the same reason: --accent on both the border and the
+   label made hover and active the same hue, which is two states competing for
+   one signal. */
+
+
+
+
+
+/* MEDIA BOUNDARY, one specimen rim at the outer visible edge. */
+.wide::after,.cover::after,.cmp::after{border-radius:inherit;corner-shape:inherit;box-shadow:var(--rim-3)}
+.wide>img,.cover>img,.cmpImg>img,.cmpImg>video{box-shadow:none}
+.content :is(.closeShot,.darlings,.photoRow,.shot,.shot.phone,.buildStage,.stepShot,.photoPair,
+    .playerStage,.tvFrame,.baPhone,.sketch)>img,
+.content :is(.closeShot,.darlings,.photoRow,.shot,.shot.phone,.buildStage,.stepShot,.photoPair,
+    .playerStage,.tvFrame,.baPhone,.sketch) figure>img{box-shadow:var(--rim-3)}
+.videoFrame,.demoPhone{box-shadow:var(--rim-3)}
+.videoFrame:fullscreen,.videoFrame iframe:fullscreen,
+.demoPhone:fullscreen,.demoFrame:fullscreen{border-radius:0!important;box-shadow:none}
+/* ── THE SIZE CLASS .photoFig NEVER HAD ─────────────────────────────────────
+   The ladder above assigns radius by the BOX's width, boundary measured at ~900px,
+   and every width in it "was read off the rendered page at 1440". That is exactly
+   the problem: .photoFig took --r-xl from a single 1440 read and then had no
+   responsive rule at all -- not a media query with the wrong number in it, no rule.
+   Proven by walking document.styleSheets rather than by reading: of the four rules
+   whose selector mentions .photoFig, the one that wins is unconditional.
+
+   Measured, the box is 1120px at 1440, 990px at 1280, 795px at 1000 and 358px at
+   390, and it crosses the ladder's own 900px boundary at viewport 1105 (box 900.0px;
+   at 1104, 899.0px). Everything below 1105 was carrying the rung reserved for the
+   widest surfaces on a box down to a third the size -- not a phone-only defect.
+
+   WHY A VIEWPORT QUERY AND NOT A CONTAINER QUERY. A container query is the honest
+   tool for a size class and is what this should eventually be. It is not what ships
+   here: container-type:inline-size applies layout containment, which makes .photoFig
+   a BFC and stops its first child's top margin collapsing through it. Measured, that
+   adds 64px to every figure on apollo, cluster and ucdavis (+128, +128 and +320px of
+   document height) and moves 125 of ucdavis's 285 content elements. bearings escapes
+   only because all three of its figures happen to start with a zero-top-margin child.
+   The box's width here is a pure function of the viewport, so the breakpoint is exact
+   and costs nothing. The container query needs those margins reworked first; it is
+   recorded rather than skipped. */
+@media(max-width:1104px){
+ .photoFig{border-radius:var(--r-lg);corner-shape:var(--corner)}
+}
+@media(max-width:760px){
+ .wrap{padding-inline:16px}
+ .cover,.cover>img,.wide,.wide>img,.cmp,.cmpBoard,.cmpImg,.cmpImg>img,.cmpImg>video,
+ .videoFrame,.videoFrame>iframe,.sketch,.sketch>img,.tv.tvBoard .tvFrame>img{
+  border-radius:var(--r-lg);corner-shape:var(--corner)}
+ .photoPair figure,.photoPair img{border-radius:var(--r-sm);corner-shape:var(--corner)}
+}
+
+/* ── ONE CURVE, NOT TWO ──────────────────────────────────────────────────────
+   Jayden, on the Apollo cover: "in the case studies I notice the top image the
+   outline doesnt match the photo it looks like its for something else."
+
+   He is describing a real thing, and it was on all five covers at both widths.
+   MEASURED, frame vs photograph, same rect to the pixel:
+       1440   .cover 20px squircle   ·   .cover img 28px squircle   (8px apart)
+        390   .cover 14px squircle   ·   .cover img 20px squircle   (6px apart)
+   Two concentric curves, and the frame's --surface-ground showing white in the
+   crescent between them, plus BOTH of the frame's hairlines (--surface-rim on
+   .media and --rim-3 on .cover::after) tracing the outer one. So the outline
+   really was "for something else": it is the frame's corner, and the photograph
+   never reaches it.
+
+   THE CAUSE IS SOURCE ORDER, NOT A WRONG NUMBER. The size-class sweep above
+   names `.cover, .cover img` together on purpose, so the frame and its
+   photograph were authored to agree. But .cover also carries `media`, and
+   controls.css -- which links AFTER this block -- sets
+   `.media{border-radius:var(--radius-media)}` at equal specificity (0,1,0), so
+   it wins on the FRAME and cannot touch `.cover img` (0,1,1). The sweep lost one
+   leg and kept the other. This is the trap CLAUDE.md names: controls.css links
+   after the inline styles, so fix it where it lives.
+
+   THE FIX IS `inherit`, NOT A SECOND NUMBER. Whatever the frame computes, the
+   photograph now matches -- at 1440, at 390, and across the 20px -> 14px step in
+   --radius-media that made a frame and an image agree at one width and disagree
+   at another. There is no value here to keep in sync, which is why the defect
+   could exist at all. controls.css already uses exactly this idiom on the home
+   page's .csFrame>img.
+
+   AND THIS IS A SUBTRACTION, NOT A REPAINT. An inset box-shadow paints on its
+   own element's background, BENEATH that element's children. Once the photograph
+   covers the frame exactly, .media's --surface-rim and the white ground both
+   disappear behind it on their own, and what is left is the one deliberate
+   hairline .cover::after was always meant to be: "MEDIA BOUNDARY -- one specimen
+   rim at the outer visible edge". Nothing was added to achieve that. */
+.cover>img{border-radius:inherit;corner-shape:var(--corner)}
+
+/* ── AND THE RIM WAS A THIRD CURVE, WHICH IS THE ONE HE ACTUALLY SAW ─────────
+   Fixing the radius above left the outline still disagreeing with the photo, so
+   I looked instead of stopping at the table. MEASURED, all five covers at 1440:
+       .cover        20px / squircle
+       .cover img    20px / squircle   (after the fix above)
+       .cover::after 20px / ROUND
+   Same radius, DIFFERENT CORNER SHAPE. `border-radius:inherit` on the pseudo
+   picked up the 20px correctly, but corner-shape is NOT an inherited property
+   and was never declared here, so it fell all the way to its `round` initial
+   value. A squircle is fuller than a round corner at equal radius -- it bulges
+   toward the corner point -- so the rim tracked a curve visibly INSIDE the
+   photograph's edge and separated from it exactly at the corners. That is the
+   outline that "looks like its for something else": a plain rounded rectangle
+   drawn over a squircle photograph.
+   `corner-shape:inherit` is now on the rule itself, beside the border-radius it
+   was always supposed to travel with. Same fix for .wide::after and .cmp::after,
+   which shared the declaration and the defect -- bearings' .cmp measured round
+   over a squircle board too. */
+</style>
+<link rel="stylesheet" href="controls.css?v=57fb92263c">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Jayden Betts", "item": "https://jaydenbetts.design/"}, {"@type": "ListItem", "position": 2, "name": "Gradient Maker Case Study", "item": "https://jaydenbetts.design/gradientlab-study.html"}]}, {"@type": "CreativeWork", "@id": "https://jaydenbetts.design/gradientlab-study.html#work", "url": "https://jaydenbetts.design/gradientlab-study.html", "name": "Gradient Maker: A Product Design Case Study by Jayden Betts", "description": "A WebGL builder for volumetric colour fields, with controls named for physics rather than for shader parameters. A case study by Jayden Betts.", "image": "https://jaydenbetts.design/images/cs/variants/time/gradientlab/daytime-1200.webp", "author": {"@type": "Person", "@id": "https://jaydenbetts.design/#person", "name": "Jayden Betts", "alternateName": "Jayden Lee Betts", "url": "https://jaydenbetts.design/", "sameAs": ["https://www.linkedin.com/in/jaydenbetts", "https://www.instagram.com/jaydenleebetts"]}, "genre": "Product Design", "inLanguage": "en"}]}</script>
+<link rel="stylesheet" href="header.css?v=57fb92263c">
+<link rel="stylesheet" href="footer.css?v=57fb92263c">
+<link rel="stylesheet" href="site-theme.css?v=57fb92263c">
+<script src="header.js" defer></script>
+<script src="footer-band.js" defer></script>
+</head>
+<body data-nav="work" data-theme-page="case-study">
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+
+<!-- THE SITE HEADER. One component, all nine pages: header.css + header.js.
+     HEADER V2, 2026-08-03 -- spec docs/superpowers/specs/2026-08-03-header-v2-research.md.
+     Restores Jayden's original silhouette (Work / About me / lockup / Games / Contact)
+     at ONE FIXED INSET, identical on all nine pages (header.css SS0). Jayden chose an
+     x=80, which is exactly the chapter rail's left edge -- an alignment the page has
+     always had and the v1 header ignored. Back is its own item at the leading edge now,
+     full opacity and its own 44x44, instead of a .55-opacity chevron injected inside the
+     lockup: two controls, two stable accessible names.
+     `Work` is lit here because a case study IS the work.
+     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's work rail
+     emerges from white on return (see this page's script). Every link that goes home
+     carries it, including the new Back item. -->
+ <div class="jbStick">
+  <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <span class="jbGrp jbGrpL">
+    <a class="jbBack backlink ctl ctl--nav" href="index.html" aria-label="Back to work"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></a>
+   </span>
+   <span class="jbGrp jbGrpC" id="jbNavMid">
+    <a class="backlink ctl ctl--nav" data-nav-item="home" href="index.html" aria-label="Home"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="jbLbl">Home</span></a>
+    <a class="backlink ctl ctl--nav" data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
+    <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
+   <!-- WORKSPACE LEFT THE BAR, 2026-08-26. Jayden: "for workspace instead of
+        being a whole tab please add it to the play page as well I feel like that
+        makes more sense." It is his own tool rather than a case study, and Play
+        is where the things he built live; play.html carries it as a card now.
+        /workspace/ is untouched and still reachable. It was also the widest
+        label in the bar (98px at 1440, 44 as a glyph on a phone), and the bar
+        needed exactly that back: the time-of-day switch had just taken the
+        seventh slot, which at 320 does not exist. -->
+   </span>
+   <span class="jbGrp jbGrpR" id="jbNavEnd">
+   <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+         Jayden, 2026-08-26: "the time of day button should be in the header since
+         it affects all the pages." It writes data-theme-mode / data-theme-state on
+         <html>; every page reads them. It used to live in index.html's Hero rail.
+         THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+         <script> in <head>, so :root carries data-theme-state before this markup is
+         parsed, and header.css shows the matching <g> off it. No first-paint hole
+         and nothing to fetch -- the paths are inline for the same reason header.js
+         inlines the nav's: an external <use> renders nothing until its document
+         resolves, which is the blank-glyph bug this bar has already had once.
+         header.js owns opening it, the roulette of aria-checked, and the keyboard.
+        WHY IT IS ON THIS SIDE AND NOT AMONG THE TABS. Jayden: "I feel like the
+        time of day should be sorta on the contact side of the screen like maybe
+        right to the left I dont think it should sit right in the middle thats
+        for sure with the other main options." The centred zone is DESTINATIONS
+        -- places you can go. Contact is an ACTION. This is a utility that
+        changes how the site looks, so sitting it between Home and Play said it
+        was a fourth place to go. Beside Contact it joins the things that DO
+        something, and the pair balances the mark on the left.
+        NO DIVIDER BETWEEN THEM, and it is not an omission: the two are already
+        distinguishable by kind. Contact is .ctl--secondary -- a paper chip with
+        a rim, the loudest thing in the bar after the mark -- and this is a bare
+        .ctl--nav glyph, so the quieter one reads as attached to the louder one
+        rather than as its equal. A rule between two adjacent controls is the one
+        separator this site does not use anywhere else. -->
+    <div class="heroTime" id="heroTime">
+     <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+     </div>
+    </div>
+    <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
+        Jayden asked for a Contact that is noticeable but does not compete with the
+        hero's "View work"; .ctl--secondary is that kind in this system, and it is
+        the same treatment as the sun button beside it.
+        WHAT WENT WITH THE DROPDOWN: the .jbDisc wrapper, #jbContactMenu and its
+        three rows, aria-haspopup / aria-expanded / aria-controls, the chevron, and
+        header.js's whole disclosure block -- a listener bound to markup that no
+        longer ships is the defect, not the leftover, and aria-expanded on a link
+        with nothing to expand is a lie a screen reader reads out loud.
+        The three destinations are not lost: the footer carries LinkedIn, Instagram
+        and Email in the same order on every page, which is where the panel's own
+        round-10 note already said the fallback lived. -->
+    <a class="jbContactBtn ctl ctl--nav ctl--secondary" data-nav-item="contact" href="mailto:jaydenlbetts@gmail.com" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
+   </span>
+  </nav>
+ </div>
+<!-- ══ THE CASE-STUDY SKELETON.  2026-08-27 ═══════════════════════════════════
+     Jayden, on trungvo.xyz/expresso: "all the case studies have a certain
+     structure that I admire." All five of these pages are now one shape, and
+     this is it. If you are adding to a case study, put the new thing on a rung
+     of this skeleton or change the skeleton on all five -- do not grow a sixth
+     shape here.
+
+       section.hero
+         h1.head        span.eyebrow (the project) + the sentence
+         div.ov         TWO SENTENCES, and CSS order puts them above the cover
+         figure.cover   the time-aware plate, 12/5
+         dl.facts       Role / Team / Timeline / [one project-specific] / Year
+         div.role       ONLY where the work was shared and the split matters
+                        (bearings). A solo project says it in .facts and the
+                        lede; a "My role" block there is the facts restated.
+
+       section.sec  x 3-5, each opened by a hairline on desktop (the first
+                    after the hero is suppressed -- .facts draws its own edge)
+         div.kicker     Problem / Research / Solution / Outcome, 12px
+         h2.secHead     the section's claim as a sentence, 26px
+         p.secBody      ONE OR TWO paragraphs, never more before something to
+                        look at.  A number belongs INSIDE its sentence
+                        (p.stat), not on a line of its own.
+         <a visual>     figure.photoFig wrapping .player / .tv / .baGrid /
+                        .photoRow / .darlings / .cmp, or a bare .photoPair.
+                        Every section that runs a screen of prose has one; the
+                        viewport-step check in the previous commit is what
+                        proves it.
+         div.subBlock   a named sub-decision: subKick + subHead + prose + its
+                        own visual.  Same rule about paragraph count.
+
+       div.photoPair    the closing two photographs, where they exist
+       footer.siteFoot  footer.css, identical on all nine pages
+
+     THE ONE DELIBERATE DEVIATION, so nobody "fixes" it: apollo's opening
+     section carries two claims (the problem and the research) because splitting
+     them left 1,349px of prose between the cover and the first mockup. The
+     second claim leads its own paragraph in bold instead of taking a heading.
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="wrap">
+
+ <div class="layout" id="main" tabindex="-1">
+  <div class="content">
+   <section id="overview" class="hero">
+    <h1 class="head rv" data-f="0.05" aria-label="Gradient Maker. Nineteen versions to make a gradient that stops looking like one."><span class="eyebrow">Gradient Maker</span>Nineteen versions to make a gradient that stops looking like one.</h1>
+
+    <figure class="cover media media--full" id="cover"><img data-time-thumbnail="gradientlab" src="images/cs/variants/time/gradientlab/daytime-1200.webp" srcset="images/cs/variants/time/gradientlab/daytime-1200.webp 1200w, images/cs/variants/time/gradientlab/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="Gradient Maker: a large colour orb on a pale stage beside a five-tab control panel." loading="eager" decoding="async"></figure>
+    <script src="time-aware-thumbnails.js"></script>
+
+    <dl class="facts">
+     <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>
+     <div class="fact"><dt class="fk">Team</dt><dd class="fv">Solo</dd></div>
+     <div class="fact"><dt class="fk">Built with</dt><dd class="fv">WebGL, no libraries</dd></div>
+     <div class="fact"><dt class="fk">Controls</dt><dd class="fv">Thirty, in five groups</dd></div>
+     <div class="fact"><dt class="fk">Year</dt><dd class="fv">2026</dd></div>
+    </dl>
+
+    <div class="ov">
+     <span class="rlabel">Overview</span>
+     <p class="ovBody rv" data-f="0.011">Gradient Maker is a builder for the soft, volumetric colour fields I kept saving to a reference board and could not reproduce anywhere. Five colour sources blend perceptually and drift on their own clocks; you dial one in and leave with a PNG or a snippet.</p>
+    </div>
+   </section>
+   <section id="problem" class="sec">
+    <div class="kicker">Problem</div>
+    <h2 class="secHead">Every tool made gradients. I wanted the ones on my board.</h2>
+    <p class="secBody"><strong>I had two reference boards full of images I loved and no way to make one of them.</strong> Every generator gave me the same soft plasma: pretty, generic, nothing like a mass of colour with a taut flank and a long feathered tail. So I wrote down what was happening in those references, in plain language, and built controls for that instead of for shader parameters.</p>
+   <figure class="photoFig"><div class="wide media media--full"><img src="images/cs/study/gradientlab/builder.webp" width="1800" height="1053" alt="Gradient Maker at rest: a warm orb on a pale stage, with the Look tab open beside it." loading="lazy" decoding="async"></div><figcaption class="cap">The artifact holds the centre. The panel never competes with it.</figcaption></figure>
+   </section>
+   <section id="research" class="sec">
+    <div class="kicker">The vocabulary</div>
+    <h2 class="secHead">The controls are named for physics, not for effects.</h2>
+    <p class="secBody"><strong>Speed, Melt, Wobble, Sweep, Contour, Tension, Rim, Layer.</strong> Tension exists because a real mass has a tight flank facing the light and a long dissolve behind it, and that asymmetry is what makes a crescent read as swept rather than blobbed. Layer exists because averaging colours evenly makes smudge, while compositing them in an order makes the references.</p>
+   <figure class="photoFig"><div class="wide media media--full"><img src="images/cs/study/gradientlab/flow.webp" width="1800" height="1053" alt="The Flow tab of Gradient Maker: eight sliders named Speed, Melt, Wobble, Sweep, Contour, Tension, Rim and Layer." loading="lazy" decoding="async"></div><figcaption class="cap">Eight words that describe a moving mass. None of them is the name of a shader uniform.</figcaption></figure>
+    <div class="subBlock">
+     <div class="subKick">Where it starts</div>
+     <h3 class="subHead">Six of the presets are the reference images themselves.</h3>
+     <p class="secBody"><strong>Each one exists to prove the engine can hit that exact picture, and the holes they exposed became controls.</strong> Randomize does not sample evenly either: it draws from a few archetypes with light in the upper third and locked relationships between the five colours, which is why a random pull still comes out pretty.</p>
+    </div>
+   <figure class="photoFig"><div class="photoRow dv"><img src="images/cs/study/gradientlab/preset-ember.webp" width="900" height="900" alt="The Ember preset in Gradient Maker: warm orange and magenta with a pale crown." loading="lazy" decoding="async"><img src="images/cs/study/gradientlab/preset-silk.webp" width="900" height="900" alt="The Silk Dusk preset: soft folded bands of dusk colour." loading="lazy" decoding="async"><img src="images/cs/study/gradientlab/preset-marble.webp" width="900" height="900" alt="The Mint Marble preset: veined green and white." loading="lazy" decoding="async"></div><figcaption class="cap">Ember, Silk Dusk, Mint Marble. Three of the fifteen saved starting points.</figcaption></figure>
+   </section>
+   <section id="rejected" class="sec">
+    <div class="kicker">What I threw away</div>
+    <h2 class="secHead">Version twelve was better in every part and worse as a whole.</h2>
+    <p class="secBody"><strong>It brought zone hierarchy, brush-stroke taper, coherent rotation and warm glass seams, and it lost the colour cohesion that made the thing worth looking at.</strong> I reverted all of it. The rule since is one change at a time, with Ember as the baseline anything new has to survive, and new looks arriving as forms you can choose rather than as changes to the one that worked.</p>
+   <figure class="photoFig"><div class="darlings"><img src="images/cs/study/gradientlab/form-streams.webp" width="760" height="760" alt="The Streams form: long drawn bands of colour." loading="lazy" decoding="async"><img src="images/cs/study/gradientlab/form-silk.webp" width="760" height="760" alt="The Silk form: folded, cloth-like colour." loading="lazy" decoding="async"><img src="images/cs/study/gradientlab/form-pleats.webp" width="760" height="760" alt="The Pleats form: repeating ridges of light and colour." loading="lazy" decoding="async"><img src="images/cs/study/gradientlab/form-marble.webp" width="760" height="760" alt="The Marble form: veined, stone-like colour." loading="lazy" decoding="async"></div><figcaption class="cap">Four later forms, each added beside the original rather than on top of it.</figcaption></figure>
+   </section>
+   <section id="system" class="sec">
+    <div class="kicker">The panel</div>
+    <h2 class="secHead">Thirty controls, and the panel never scrolls.</h2>
+    <p class="secBody"><strong>The answer was fewer at once, not a taller box.</strong> Thirty in one column made a scroller whose last rows nobody could reach. They are five groups now, one open at a time, each named for what it affects, so the group label does the explaining and the page carries no instructional prose at all.</p>
+   <figure class="photoFig"><div class="wide media media--full"><img src="images/cs/study/gradientlab/panels.webp" width="2400" height="932" alt="The five inspector groups of Gradient Maker side by side: Look, Nodes, Flow, Optics and Stage." loading="lazy" decoding="async"></div><figcaption class="cap">Look, Nodes, Flow, Optics, Stage. One is open at a time, and the label is the documentation.</figcaption></figure>
+   </section>
+   <section id="honest" class="sec">
+    <div class="kicker">The stage</div>
+    <h2 class="secHead">I was judging the orb on paper it would never sit on.</h2>
+    <p class="secBody"><strong>Everything got designed on the near-white background of the tool and then used somewhere else.</strong> Stage puts it on the grounds it will actually land on. Ink is in that list and Ink does not work: the halo crushes to black and the feathered limb reads hard. I left it in and wrote the failure down, because deleting the case that exposes a limit is how you forget the limit.</p>
+   <div class="photoPair media media--full"><figure><img src="images/cs/study/gradientlab/ground-paper.webp" width="900" height="900" alt="The Ember orb on the pale paper ground, halo intact." loading="lazy" decoding="async"><figcaption>On paper, the halo does its job.</figcaption></figure><figure><img src="images/cs/study/gradientlab/ground-ink.webp" width="900" height="900" alt="The same orb on the ink ground, where the halo is invisible and the edge reads hard." loading="lazy" decoding="async"><figcaption>On ink, the same halo may as well be switched off.</figcaption></figure></div>
+   </section>
+   <section id="outcome" class="sec">
+    <div class="kicker">Outcome</div>
+    <h2 class="secHead">It is where the rest of the site gets its colour.</h2>
+    <p class="secBody"><strong>The engine came out of the tool and went into the portfolio.</strong> The phone mockups in these case studies stand on grounds it generates, and the time of day skies come from the same table. A tool that only made pictures for other people would have been a smaller thing than one I have to keep honest by using.</p>
+   <figure class="photoFig"><div class="wide media media--full"><img src="images/cs/study/gradientlab/phones.webp" width="1800" height="1389" alt="Gradient Maker at 390 and at 320 pixels wide, the stage above the panel at both." loading="lazy" decoding="async"></div><figcaption class="cap">The phone layout had been dead code for its whole life. Every slider is a real target now.</figcaption></figure>
+   </section>
+
+  </div>
+ </div>
+
+ <footer class="siteFoot" id="contact" role="contentinfo">
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></a>
+    <!-- 2026-08-26, his words exactly, full stop included. It replaces "Open to
+        full-time roles." -- which the Hero already says on index.html and the About
+        page said a third time in its facts block. Three copies of one fact is what
+        was actually wrong with it; the availability now lives in ONE place (the
+        Hero's status line) and the footer says something only he would say. -->
+    <p class="footStatus">Fear of living an ordinary life.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)">Résumé</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
+ </footer>
+</div>
+
+<div class="emerge" id="emerge" aria-hidden="true"></div>
+
+<script>
+(function(){
+ var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+ /* split prose blocks into word spans (recursive: keeps line wrappers, splits text) */
+ function splitWords(container,factor){
+  var wi={n:0};
+  function walk(node){
+   var kids=[].slice.call(node.childNodes);
+   kids.forEach(function(ch){
+    if(ch.nodeType===3){
+     var parts=ch.nodeValue.split(/(\s+)/);
+     var frag=document.createDocumentFragment();
+     parts.forEach(function(w){
+      if(!w)return;
+      if(/^\s+$/.test(w)){frag.appendChild(document.createTextNode(w));return;}
+      var sp=document.createElement('span');sp.className='abw';sp.textContent=w;
+      sp.style.transitionDelay=(wi.n*factor).toFixed(3)+'s';wi.n++;
+      frag.appendChild(sp);
+     });
+     node.replaceChild(frag,ch);
+    }else if(ch.nodeType===1){
+     walk(ch);
+    }
+   });
+  }
+  walk(container);
+ }
+
+ var rvs=[].slice.call(document.querySelectorAll('.rv'));
+ rvs.forEach(function(el){ splitWords(el, parseFloat(el.dataset.f)||0.011); });
+ /* cap the stagger so any paragraph's wave completes within 500ms (research: >1s reads as delay) */
+ rvs.forEach(function(el){var ws=el.querySelectorAll('.abw');if(!ws.length)return;var f=parseFloat(el.dataset.f)||0.011;var eff=Math.min(f,0.5/ws.length);for(var k=0;k<ws.length;k++)ws[k].style.transitionDelay=(k*eff).toFixed(3)+'s';});
+
+ function reveal(el){
+  if(!el||el.classList.contains('shown'))return;
+  el.classList.add('shown');
+  /* Safari: a child that keeps its own filter OR a will-change compositing layer isolates it from the parent ink filter, clear both after the reveal so the #inkBig texture passes through the headline */
+  if(el.classList.contains('rv')){
+   setTimeout(function(){
+    var ws=el.querySelectorAll('.abw');
+    for(var i=0;i<ws.length;i++){ws[i].style.filter='none';ws[i].style.willChange='auto';}
+   },920);
+  }
+ }
+
+ var em=document.getElementById('emerge');
+ var cover=document.getElementById('cover');
+ var head=document.querySelector('.head');
+ var glance=document.querySelector('.facts');
+ var role=[].slice.call(document.querySelectorAll('.ov .rv, .role .rv'));
+
+ if(reduce){
+  rvs.forEach(reveal);
+  if(glance)glance.classList.add('shown');
+  if(cover){cover.style.opacity='1';cover.style.transform='none';}
+ }else{
+  if(em){ requestAnimationFrame(function(){requestAnimationFrame(function(){em.classList.add('clear');});}); setTimeout(function(){em.style.display='none';},900); }
+  /* orchestrated arrival out of the white: the title writes out, then the cover lands */
+  setTimeout(function(){reveal(head);},280);
+  setTimeout(function(){if(cover)cover.classList.add('in');},560);
+  setTimeout(function(){if(glance)glance.classList.add('shown');},840);
+  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*140);});},1120);
+ }
+
+ /* hand back to the work rail so it emerges from white on return */
+ [].slice.call(document.querySelectorAll('.backlink')).forEach(function(b){
+  b.addEventListener('click',function(){try{sessionStorage.setItem('csReturn','1');}catch(e){}});
+ });
+
+
+
+ /* comparison sliders: grab and drag the handle to wipe between two layers. pointer capture keeps mouse/touch tracking 1:1 with a grab offset so it never jumps; drag only starts on the handle (never the image); full keyboard control; each slider reads its own start position from data-start */
+ [].slice.call(document.querySelectorAll('.cmp')).forEach(function(cmp){
+  var clip=cmp.querySelector('.cmpClip'),handle=cmp.querySelector('.cmpHandle');
+  if(!clip||!handle)return;
+  var vid=cmp.querySelector('video');
+  var start=parseFloat(cmp.getAttribute('data-start'));if(isNaN(start))start=50;
+  var pos=start,dragging=false,grab=0;
+  function set(p){
+   p=Math.max(0,Math.min(100,p));pos=p;
+   clip.style.clipPath='inset(0 '+(100-p).toFixed(2)+'% 0 0)';
+   handle.style.left=p.toFixed(2)+'%';
+   handle.setAttribute('aria-valuenow',Math.round(p));
+  }
+  function pct(x){var r=cmp.getBoundingClientRect();return (x-r.left)/r.width*100;}
+  handle.addEventListener('pointerdown',function(e){
+   dragging=true;grab=pos-pct(e.clientX);
+   if(vid){vid.play().catch(function(){});}
+   try{handle.setPointerCapture(e.pointerId);}catch(_){}
+   e.preventDefault();
+  });
+  handle.addEventListener('pointermove',function(e){if(dragging)set(pct(e.clientX)+grab);});
+  function end(e){dragging=false;try{handle.releasePointerCapture(e.pointerId);}catch(_){}}
+  handle.addEventListener('pointerup',end);
+  handle.addEventListener('pointercancel',end);
+  handle.addEventListener('keydown',function(e){
+   var s=e.shiftKey?10:2,k=e.key;
+   if(k==='ArrowLeft'||k==='ArrowDown'){set(pos-s);e.preventDefault();}
+   else if(k==='ArrowRight'||k==='ArrowUp'){set(pos+s);e.preventDefault();}
+   else if(k==='Home'){set(0);e.preventDefault();}
+   else if(k==='End'){set(100);e.preventDefault();}
+  });
+  set(start);
+  if(vid){vid.play().catch(function(){});}
+ });
+
+ /* process gallery: click-drag to scroll on desktop; native swipe/trackpad still works */
+ [].slice.call(document.querySelectorAll('.scrollbox')).forEach(function(box){
+  if(!box.hasAttribute('tabindex'))box.setAttribute('tabindex','0');
+  var down=false,sx=0,sl=0,vx=0,lastX=0,lastT=0,glide=0;
+  box.addEventListener('pointerdown',function(e){
+   if(e.pointerType==='touch')return;
+   cancelAnimationFrame(glide);
+   down=true;sx=e.clientX;sl=box.scrollLeft;vx=0;lastX=e.clientX;lastT=performance.now();
+  });
+  box.addEventListener('pointermove',function(e){
+   if(!down)return;
+   if(!box.classList.contains('dragging')){
+    if(Math.abs(e.clientX-sx)<7)return;
+    box.classList.add('dragging');try{box.setPointerCapture(e.pointerId);}catch(_){}
+   }
+   box.scrollLeft=sl-(e.clientX-sx);
+   var t=performance.now(),dt=t-lastT;
+   if(dt>0){vx=0.8*vx+0.2*((lastX-e.clientX)/dt);lastX=e.clientX;lastT=t;}
+  });
+  function endDrag(e){
+   if(!down)return;down=false;try{box.releasePointerCapture(e.pointerId);}catch(_){}
+   /* glide with the release velocity, then hand back to native snap for the landing */
+   var v=Math.max(-3.2,Math.min(3.2,vx)),last=performance.now();
+   if(Math.abs(v)<0.12){box.classList.remove('dragging');return;}
+   (function step(){
+    var t=performance.now(),dt=t-last;last=t;
+    box.scrollLeft+=v*dt;
+    v*=Math.pow(0.994,dt);
+    var atEdge=box.scrollLeft<=0||box.scrollLeft>=box.scrollWidth-box.clientWidth-1;
+    if(Math.abs(v)>0.05&&!atEdge){glide=requestAnimationFrame(step);}
+    else{box.classList.remove('dragging');}
+   })();
+  }
+  box.addEventListener('pointerup',endDrag);box.addEventListener('pointercancel',endDrag);
+ });
+
+ /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ /* ── THE BOIL HOLDS STILL WHILE YOU ARE MOVING, AND THAT IS THE WHOLE CHANGE ──
+    Jayden: "the experience of even scrolling on the home to feel choppy and all
+    over the place", reported from the LinkedIn link -- an in-app WKWebView on a
+    phone, which is plausibly how most recruiters will ever see this site.
+    WHAT THIS LOOP COSTS, because `seed` looks like a paint hint and is not.
+    It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
+    and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
+    every element on the page carrying either -- the h1, every eyebrow, kicker,
+    caption, fact key and stat source --
+    re-runs a fractal-noise + displacement chain and repaints. Eight times a
+    second, from a bare setInterval, so the invalidation lands wherever it falls
+    inside the frame rather than at the top of one, and it never stops: hidden
+    tab, offscreen type, mid-flick, all the same.
+    THE TEXTURE IS THE CHARACTER. THE BOIL DURING A FLICK IS NOT. The
+    displacement is 1.1px on the big filter and 0.55px on the small one. Nobody
+    has ever seen half a pixel wander on type that is itself travelling past at
+    flick speed -- but everybody feels the frame it cost. So the ink still boils
+    on the same 8fps house clock, through the same seed sequence in the same
+    order, whenever the page is STILL. It holds its last seed while you scroll
+    and while the tab is hidden, and picks the sequence up again 180ms after you
+    stop. AT REST THIS IS BYTE-FOR-BYTE THE EFFECT THAT WAS HERE; nothing about
+    the look is subtracted, only the eight repaints a second nobody can see.
+    THE CLOCK STAYS A TIMER, THE WRITE MOVES INTO A FRAME. A permanent rAF loop
+    would keep the compositor awake for a page that is doing nothing; a 125ms
+    timer whose callback returns immediately costs nothing when suppressed. The
+    one attribute write is deferred into a single requestAnimationFrame so the
+    invalidation happens at the start of a frame rather than halfway through the
+    one the scroller is already using. */
+ (function(){
+  if(reduce)return;
+  var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
+  if(!tb&&!ts)return;
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0,quietUntil=0,pending=false;
+  addEventListener('scroll',function(){quietUntil=performance.now()+180;},{passive:true});
+  setInterval(function(){
+   if(pending||document.hidden||performance.now()<quietUntil)return;
+   pending=true;
+   requestAnimationFrame(function(){
+    pending=false;tk++;var s=SEEDS[tk%SEEDS.length];
+    if(tb)tb.setAttribute('seed',s);
+    if(ts)ts.setAttribute('seed',(s*2+5)%37);
+   });
+  },125);
+ })();
+
+ /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
+ (function(){
+  var rt=document.getElementById('readTime'),content=document.querySelector('.content');
+  if(!rt||!content)return;
+  var read=content.querySelectorAll('.secBody,.secHead,.ovBody,.subHead,.cap,.stat');
+  var txt=[].map.call(read,function(e){return e.textContent||'';}).join(' ').replace(/\s+/g,' ').trim();
+  var words=txt?txt.split(' ').length:0;
+  rt.textContent=Math.max(2,Math.ceil(words/225))+' min';
+ })();
+
+
+
+
+ /* flow conductor: each flow row plays its screens ONE AT A TIME, left to right, the active shot grows and
+    performs its stages with the demo grammar (dwell, fingertip on the real control, cut), then focus moves on
+    and the row gently scrolls to keep it in view. One full pass, then it rests on the finished flow (motion
+    stops; WCAG). Any tap or drag hands over control: tap a screen and it plays, only ever one at a time.
+    Reduced motion: resolved frames, tap still plays a single screen's stages. */
+ [].slice.call(document.querySelectorAll('.scrollbox.flow')).forEach(function(box){
+  var shots=[].slice.call(box.querySelectorAll('.shot'));
+  if(!shots.length)return;
+  var DWELL=1350,TAPMS=375,BEAT=1600,timers=[],auto=true,playing=null,passDone=false;
+  function clearT(){timers.forEach(clearTimeout);timers=[];}
+  function later(f,ms){timers.push(setTimeout(f,ms));}
+  shots.forEach(function(sh){
+   var img=sh.querySelector('img');
+   var wrapEl=document.createElement('div');wrapEl.className='seqWrap';img.parentNode.insertBefore(wrapEl,img);wrapEl.appendChild(img);
+   var d=document.createElement('div');d.className='seqTap';d.setAttribute('aria-hidden','true');wrapEl.appendChild(d);
+   sh.__img=img;sh.__dot=d;
+   sh.__frames=(sh.getAttribute('data-fr')||'').split('|').filter(Boolean).map(function(f){return sh.getAttribute('data-base')+f;});
+   sh.__taps=(sh.getAttribute('data-tp')||'').split('|');sh.__exit=sh.getAttribute('data-ex')||null;
+   sh.__loaded=false;
+  });
+  function preload(sh,cb){
+   if(sh.__loaded||!sh.__frames.length){sh.__loaded=true;cb();return;}
+   var n=0;sh.__frames.forEach(function(src){var im=new Image();im.onload=im.onerror=function(){n++;if(n===sh.__frames.length){sh.__loaded=true;cb();}};im.src=src;});
+  }
+  function focus(sh){
+   shots.forEach(function(x){x.classList.toggle('act',x===sh);});
+   box.classList.add('playing');
+   var r=sh.offsetLeft-(box.clientWidth-sh.offsetWidth)/2;
+   box.scrollTo({left:Math.max(0,r),behavior:'smooth'});
+  }
+  function unfocus(){shots.forEach(function(x){x.classList.remove('act');});box.classList.remove('playing');}
+  function playShot(sh,done){
+   playing=sh;focus(sh);
+   var fr=sh.__frames,img=sh.__img,dot=sh.__dot;
+   if(fr.length<2){later(function(){if(done)done();},BEAT);return;}
+   preload(sh,function(){
+    if(playing!==sh)return;
+    var i=0;img.src=fr[0];
+    (function step(){
+     if(playing!==sh)return;
+     later(function(){
+      if(playing!==sh)return;
+      if(i>=fr.length-1){if(done)done();return;}
+      var t=sh.__taps[i];
+      function cut(){img.src=fr[++i];step();}
+      if(t&&t!=='x'&&t.indexOf(',')>0){
+       var xy=t.split(',');dot.style.left=xy[0]+'%';dot.style.top=xy[1]+'%';dot.classList.add('show');
+       later(function(){dot.classList.remove('show');cut();},TAPMS);
+      }else cut();
+     },DWELL);
+    })();
+   });
+  }
+  function exitThen(sh,cb){
+   if(!sh.__exit||reduce){later(cb,420);return;}
+   var xy=sh.__exit.split(',');sh.__dot.style.left=xy[0]+'%';sh.__dot.style.top=xy[1]+'%';
+   later(function(){sh.__dot.classList.add('show');
+    later(function(){sh.__dot.classList.remove('show');later(cb,140);},TAPMS);},260);
+  }
+  function restImg(sh){if(!sh.__frames.length)return;sh.__img.src=(sh.getAttribute("data-rest")==="first")?sh.__frames[0]:sh.__frames[sh.__frames.length-1];}
+  function runFrom(k){
+   if(k>=shots.length){passDone=true;auto=false;unfocus();box.scrollTo({left:0,behavior:'smooth'});return;}
+   playShot(shots[k],function(){exitThen(shots[k],function(){restImg(shots[k]);if(auto)runFrom(k+1);});});
+  }
+  function takeover(sh){
+   auto=true;clearT();
+   if(playing===sh)playing=null;
+   else if(playing){var of=playing;restImg(of);}
+   var k=shots.indexOf(sh);
+   playShot(sh,function(){exitThen(sh,function(){restImg(sh);if(auto)runFrom(k+1);});});
+  }
+  shots.forEach(function(sh){sh.addEventListener('click',function(){takeover(sh);});});
+  var idleT=null;
+  box.addEventListener('pointerdown',function(){auto=false;clearT();clearTimeout(idleT);},true);
+  box.addEventListener('pointerup',function(){clearTimeout(idleT);idleT=setTimeout(function(){
+   if(reduce||playing)return;auto=true;var k=Math.max(0,shots.findIndex(function(x){return x.classList.contains('act');}));
+   runFrom(k);},1500);},true);
+  box.setAttribute('tabindex','0');
+  box.addEventListener('keydown',function(e){
+   if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;e.preventDefault();
+   var k=shots.findIndex(function(x){return x.classList.contains('act');});
+   var n=Math.min(shots.length-1,Math.max(0,(k<0?0:k)+(e.key==='ArrowRight'?1:-1)));
+   takeover(shots[n]);});
+  if(!reduce&&'IntersectionObserver' in window){
+   var started=false;
+   new IntersectionObserver(function(en){
+    en.forEach(function(e){if(e.isIntersecting&&!started){started=true;later(function(){if(auto&&!playing)runFrom(0);},800);}});
+   },{threshold:0.35}).observe(box);
+  }
+ });
+
+ /* chapter develop: everything below the fold arrives the way the site loads, a stepped rise into focus.
+    Inked text (kickers, sources, labels) rises without blur so the SVG ink filter is never fought; prose,
+    stats, and imagery blur-develop like a polaroid. Stat figures tick 0 -> value in 8fps odometer jumps.
+    Staggers sit on the 125ms frame grid. Static under reduced motion. */
+ (function(){
+  if(!('IntersectionObserver' in window))return;
+  var SEL='#problem .kicker,#problem .secHead,#problem .secBody,#problem .stat,#problem .hmw,'+
+          '#research .kicker,#research .secHead,#research .secBody,#research .stat,'+
+          '.photoRow,.photoRow + .cap,#research .scrollbox,.cmp,.cmp + .cap,'+
+          '#system .kicker,#system .secHead,#system .secBody,#system .subKick,#system .subHead,#system .scrollbox,#system .step';
+  var els=[].slice.call(document.querySelectorAll(SEL));
+  if(!els.length)return;
+  var INK=/(^|\s)(kicker|cap|subKick)(\s|$)/;
+  els.forEach(function(el){
+    el.classList.add('dv');
+    if(!INK.test(el.className) && !el.classList.contains('photoRow') && !el.classList.contains('step')) el.classList.add('dvb');   // blur-develop for prose/stats/imagery; inked labels rise clean
+  });
+  if(reduce){els.forEach(function(el){el.classList.add('shown');});return;}
+  function tickNum(el){                                  // 8fps odometer: 9 stepped jumps, lands exact
+    var t=parseInt(el.getAttribute('data-t'),10);if(!t&&t!==0)return;
+    var frames=9,f=0;
+    var iv=setInterval(function(){f++;el.textContent=String(Math.round(t*f/frames));if(f>=frames){clearInterval(iv);el.textContent=String(t);}},125);
+  }
+  // wrap each stat figure so only the number ticks (unit span stays put; tabular-nums holds the width)
+  [].slice.call(document.querySelectorAll('.statNum')).forEach(function(n){
+    var tn=n.firstChild;if(!tn||tn.nodeType!==3)return;
+    var v=(tn.nodeValue||'').trim();if(!/^\d+$/.test(v))return;
+    var sp=document.createElement('span');sp.className='sn';sp.setAttribute('data-t',v);sp.textContent=v;
+    n.replaceChild(sp,tn);
+  });
+  // per-section stagger on the 125ms grid, capped so late blocks never lag a fast scroller
+  els.forEach(function(el){
+    var sec=el.closest('section')||document;
+    var sibs=[].slice.call(sec.querySelectorAll('.dv'));
+    var k=Math.min(sibs.indexOf(el),2);
+    if(k>0)el.style.transitionDelay=(k*0.125)+'s';
+  });
+  var ticked=false;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting)return;
+      if(e.intersectionRatio<0.16&&e.intersectionRect.height<innerHeight*0.35)return;
+      var el=e.target;io.unobserve(el);
+      el.classList.add('shown');
+      if(el.classList.contains('scrollbox'))[].slice.call(el.querySelectorAll('img[loading="lazy"]')).forEach(function(im){im.removeAttribute('loading');});
+      
+      if(el.classList.contains('stat')){
+        [].slice.call(el.querySelectorAll('.sn')).forEach(function(sn){sn.textContent='0';setTimeout(function(){tickNum(sn);},150);});
+      }
+      setTimeout(function(){if(el.classList.contains('dvb'))el.style.filter='none';el.style.willChange='auto';el.style.transitionDelay='';
+        if(el.classList.contains('photoRow'))[].slice.call(el.querySelectorAll(':scope>img')).forEach(function(sh){sh.style.filter='none';});
+        if(el.classList.contains('step'))[].slice.call(el.querySelectorAll('.stepShot,.stepText')).forEach(function(ch){ch.style.filter='none';ch.style.willChange='auto';});
+      },1400);                                            // clear compositing hints after the develop settles
+    });
+  },{threshold:[0.02,0.16],rootMargin:'0px 0px -7% 0px'});
+  els.forEach(function(el){io.observe(el);});
+ })();
+})();
+</script>
+
+ <button class="toTop ctl ctl--icon" type="button" aria-label="Back to top" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg></button>
+ <script>
+ (function(){var b=document.querySelector('.toTop');if(!b)return;var shown=false,tick=false;
+ function u(){var s=window.scrollY>window.innerHeight*1.2;if(s!==shown){shown=s;b.classList.toggle('show',s);b.setAttribute('aria-hidden',s?'false':'true');}tick=false;}
+ addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();
+ var r=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ b.addEventListener('click',function(){scrollTo({top:0,behavior:r?'auto':'smooth'});var h=document.querySelector('h1');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}});})();
+ </script>
+<script>
+</script>
+<script>
+(function(){var p=document.getElementById('demoPhone');if(!p)return;var fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),pl=document.getElementById('demoPlay'),mu=document.getElementById('demoMute');var src=fr.getAttribute('data-src');
+function load(){fr.src=src;po.classList.add('hidden');mu.classList.add('show');}
+function stop(){if(fr.src){fr.removeAttribute('src');}po.classList.remove('hidden');mu.classList.remove('show');}
+pl.addEventListener('click',function(e){e.stopPropagation();load();});
+po.addEventListener('click',load);
+mu.addEventListener('click',function(e){e.stopPropagation();stop();});
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting&&fr.getAttribute('src'))stop();});},{threshold:0.12});io.observe(p);}
+})();
+
+/* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
+(function(){
+  var boxes=[].slice.call(document.querySelectorAll('.scrollbox'));
+  boxes.forEach(function(box){
+    if(box.parentElement && box.parentElement.classList.contains('sbWrap')) return;
+    var wrap=document.createElement('div'); wrap.className='sbWrap';
+    box.parentNode.insertBefore(wrap, box); wrap.appendChild(box);
+    var nav=document.createElement('div'); nav.className='sbNav';
+    function mk(dir,label){
+      var b=document.createElement('button'); b.type='button'; b.className='sbBtn ctl ctl--internal'; b.setAttribute('aria-label',label);
+      b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 6 15 12 9 18')+'"/></svg>';
+      b.addEventListener('click',function(){
+        if(box.classList.contains('flow')){
+          box.dispatchEvent(new KeyboardEvent('keydown',{key:dir<0?'ArrowLeft':'ArrowRight',bubbles:true}));
+          return;
+        }
+        var shots=[].slice.call(box.querySelectorAll('.shot'));
+        var max=box.scrollWidth-box.clientWidth,t;
+        if(shots.length){
+          var bl=box.getBoundingClientRect().left,cur=box.scrollLeft;
+          var pad=parseFloat(getComputedStyle(box).paddingLeft)||0;
+          var pos=shots.map(function(sh){return sh.getBoundingClientRect().left-bl+cur-pad;});
+          if(dir>0){t=pos.filter(function(x){return x>cur+8;})[0];if(t==null)t=max;}
+          else{var rev=pos.filter(function(x){return x<cur-8;});t=rev.length?rev[rev.length-1]:0;}
+        }else{
+          t=box.scrollLeft+dir*Math.round(box.clientWidth*0.8);
+        }
+        t=Math.max(0,Math.min(t,max));
+        if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches){box.scrollLeft=t;return;}
+        cancelAnimationFrame(box.__pg);clearTimeout(box.__pgf);
+        var s0=box.scrollLeft,d0=t-s0,t0=performance.now(),landed=false;
+        box.__pgf=setTimeout(function(){if(!landed){box.scrollLeft=t;upd();}},600);
+        (function fr(now){
+          var p=Math.min(1,(now-t0)/380),e=1-Math.pow(1-p,3);
+          box.scrollLeft=s0+d0*e;
+          if(p<1)box.__pg=requestAnimationFrame(fr);
+          else{landed=true;clearTimeout(box.__pgf);upd();}
+        })(t0);
+      });
+      nav.appendChild(b); return b;
+    }
+    var prev=mk(-1,'Previous screens'),next=mk(1,'Next screens');
+    wrap.appendChild(nav);
+    function upd(){
+      var max=box.scrollWidth-box.clientWidth;
+      nav.style.display=(max>8)?'':'none';
+      prev.disabled=box.scrollLeft<=4;
+      next.disabled=box.scrollLeft>=max-4;
+    }
+    box.addEventListener('scroll',upd,{passive:true});
+    window.addEventListener('resize',upd);
+    [].slice.call(box.querySelectorAll('img')).forEach(function(im){ if(!im.complete) im.addEventListener('load',upd); });
+    setTimeout(upd,400); setTimeout(upd,1200); upd();
+  });
+})();
+</script>
+<script>
+/* a tiny visitor: if you made your own head in Extras, it peeks in once while you read */
+(function(){try{
+ if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+ var d=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(!d||!d.cut||d.cut.length<100)return;
+ if(sessionStorage.getItem("hmPeek_"+location.pathname))return;
+ var el=document.createElement("img");el.src=d.cut;el.alt="";el.setAttribute("aria-hidden","true");
+ el.style.cssText="position:fixed;right:36px;bottom:0;width:64px;z-index:60;transform:translateY(105%) rotate(-7deg);transition:transform .7s cubic-bezier(.34,1.45,.4,1);pointer-events:none;filter:drop-shadow(0 4px 10px rgba(8,8,8,.18))";
+ document.body.appendChild(el);
+ setTimeout(function(){try{sessionStorage.setItem("hmPeek_"+location.pathname,"1");}catch(_){}
+  el.style.transform="translateY(32%) rotate(4deg)";
+  setTimeout(function(){el.style.transform="translateY(28%) rotate(-3deg)";},900);
+  setTimeout(function(){el.style.transform="translateY(30%) rotate(2deg)";},1700);
+  setTimeout(function(){el.style.transform="translateY(105%) rotate(-7deg)";},3100);
+  setTimeout(function(){el.remove();},4100);
+ },16000+Math.random()*18000);
+}catch(_){}})();
+</script>
+</body>
+</html>
