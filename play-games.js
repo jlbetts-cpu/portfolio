@@ -190,14 +190,19 @@
      Expedition still gates: it is a match between the visitor's own heads and there must be
      at least one. (The engine's own launchers keep battleGate's original behaviour -- this
      is the hub's gate, and the hub is where a first-time visitor actually lands.) */
-  var ex=document.getElementById("pcExped");
-  if(ex)ex.setAttribute("aria-disabled",few?"true":"false");
-  var tr=document.getElementById("pcTour");
-  if(tr)tr.setAttribute("aria-disabled","false");
+  /* THE CELL CARRIES THE STATE AND SO DOES ITS CONTROL. .pCard is a container now --
+     the focusable thing inside it is .pCardGo -- so writing aria-disabled only on the
+     cell leaves the control a screen reader actually lands on announcing itself as
+     enabled. The cell's attribute is what .pCard[aria-disabled="true"] dims and what
+     takes pointer-events off, so both are written, not one moved. */
+  function gate(id,off){var cell=document.getElementById(id);if(!cell)return;
+   cell.setAttribute("aria-disabled",off?"true":"false");
+   var go=cell.querySelector(".pCardGo");if(go)go.setAttribute("aria-disabled",off?"true":"false");}
+  gate("pcExped",few);
+  gate("pcTour",false);
   /* The League is the cup with a different objective and it fields the same dyed eggheads,
      so it is ungated for exactly the reason Tournament is: it works on an empty planet. */
-  var yw=document.getElementById("pcYow");
-  if(yw)yw.setAttribute("aria-disabled","false");
+  gate("pcYow",false);
   }
  /* ---- THE CROWD STRIP IS GONE, THE CAPABILITY IS NOT.
     It rendered a row of head thumbnails with a per-head remove and an "Add an egghead"
@@ -574,7 +579,7 @@
   function mjCut(){if(_mjCut)return _mjCut;
    try{var d=window.__hmFillerData&&window.__hmFillerData();if(d&&d.cut)_mjCut=d.cut;}catch(_){}
    return _mjCut||"images/smile.webp";}
-  function mjChip(){var b=document.createElement("button");b.className="teamChip ctl "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
+  function mjChip(){var b=document.createElement("button");b.className="teamChip ctl "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden, joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
    var im=document.createElement("img");im.src=mjCut();im.alt="";b.appendChild(im);
    return bindChip(b,9001);}
   function chip(h,slot){var b=document.createElement("button");b.className="teamChip ctl "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
@@ -659,7 +664,7 @@
     col.appendChild(cc);cols.appendChild(col);});
    wrap.appendChild(cols);
    var ft=document.createElement("div");ft.className="pTeamFoot";
-   var hint=document.createElement("div");hint.className="pTeamHint";hint.textContent=(mode==="lava"?"Teammates spare each other — until they're the last team":"Tap a head to switch its side, or drag it across");ft.appendChild(hint);
+   var hint=document.createElement("div");hint.className="pTeamHint";hint.textContent=(mode==="lava"?"Teammates spare each other, until they're the last team":"Tap a head to switch its side, or drag it across");ft.appendChild(hint);
    var start=document.createElement("button");start.className="pBtn pBtnGo "+GO;start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");
    start.addEventListener("click",function(ev){ev.stopPropagation();startWithTeams();});ft.appendChild(start);
    wrap.appendChild(ft);}

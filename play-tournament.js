@@ -3132,7 +3132,7 @@ function buildRace(into){
     li.appendChild(el('span', 'tvDraftN bcNum', String(row.rank)));
     var c = el('i', 'tvChipC'); if (tm) c.style.setProperty('--tcx', tm.col);
     li.appendChild(c);
-    li.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));
+    li.appendChild(el('span', 'tvNm', tm ? tm.name : 'TBC'));
     /* The accessible name carries what the fill says, because a hollow chip is not
        readable by a screen reader and "settled" is the whole point of this pane. */
     li.setAttribute('aria-label', (tm ? tm.name : 'unknown') + ', ' + ord(row.rank)
@@ -3189,7 +3189,7 @@ function buildChampion(into, champ2){
     + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
   hh.appendChild(crown); wrap.appendChild(hh);
   into.appendChild(wrap);
-  into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the ' + (T.cup || 'cup')));
+  into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : 'TBC') + ' wins the ' + (T.cup || 'cup')));
   /* AND IN THE LEAGUE IT SAYS WHAT WAS WON.  There is no trophy here -- the prize
      is the first overall pick, and the screen that ends the cup was the only one
      that never named it. slot() is the same function the stake sentence, the tie

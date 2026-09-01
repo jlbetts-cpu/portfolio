@@ -24,7 +24,7 @@
 <meta property="og:description" content="A browser game that settles a real fantasy draft. Twelve friends, a marble course, and a bracket nobody argues with.">
 <meta property="og:url" content="https://jaydenbetts.design/yowmings.html">
 <meta property="og:image" content="https://jaydenbetts.design/images/cs/yowmings-cover.webp">
-<meta property="og:image:alt" content="The Yowmings League, a browser football game designed and built by Jayden Betts">
+<meta property="og:image:alt" content="The kickoff of a Yowmings League match: a head in a striped referee cap drops the football in over the waiting teams">
 <!-- THE REST OF THE CARD. This page declared og:image and then stopped, so a
      scraper had to fetch and decode the file to learn its shape before it could
      decide between a large card and a thumbnail -- and several never bother, which
@@ -48,7 +48,7 @@
 <meta name="twitter:image" content="https://jaydenbetts.design/images/cs/yowmings-cover.webp">
 <meta name="twitter:image:alt" content="The Yowmings League, a browser football game designed and built by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="preload" as="image" href="images/cs/yowmings/cover-1200.webp" imagesrcset="images/cs/yowmings/cover-1200.webp 1200w, images/cs/yowmings/cover-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
+<link rel="preload" as="image" href="images/cs/yowmings/card-1200.webp" imagesrcset="images/cs/yowmings/card-1200.webp 1200w, images/cs/yowmings/card-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
 <link rel="stylesheet" href="tokens.css?v=57fb92263c">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
@@ -1343,6 +1343,22 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    radius only below 760 because it has only ever been used full-bleed; inside a
    grid cell it is a card, so it takes the card rung. */
 .baStack{display:flex;flex-direction:column;gap:var(--sp-24-40);margin:var(--sp-24-40) 0 0}
+/* ── THE PAGE HAS TO END ON A DOOR ────────────────────────────────────────────
+   Jayden, 2026-09-01: "needs a link to play the game." He read to the bottom of
+   his own case study and it stopped there.
+   WHY THE OUTCOME AND NOT THE HERO. The header's Play glyph is on screen the
+   whole way down this page, so there was never NO route to play.html -- the gap
+   was that the one paragraph which says the thing is unarguable handed the
+   reader nothing to go and argue with. A second copy in the hero would be the
+   same command twice on one page, and the hero's composition (h1, cover, facts,
+   overview) is a set Jayden has already settled; this is the one place on the
+   page where a control is the answer to the sentence above it.
+   IT IS THE SYSTEM'S LOUD KIND, NOT A NEW ONE. .ctl .ctl--primary out of
+   controls.css, undrawn here -- this page has no other loud control, so there is
+   nothing for a private button to match and everything for it to drift from. The
+   margin is the .baStack / .photoFig rung so it lands on the rhythm every other
+   block that follows prose here already uses. */
+.secGo{margin:var(--sp-24-40) 0 0;display:flex}
 .baBlock{margin:0}
 .baGrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(40px,4.5vw,64px);row-gap:var(--sp-16);align-items:start}
 .baCol{display:flex;flex-direction:column;align-items:center;gap:var(--sp-16);min-width:0}
@@ -1541,7 +1557,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  <div class="layout" id="main" tabindex="-1">
   <div class="content">
    <section id="overview" class="hero">
-    <h1 class="head rv" data-f="0.05" aria-label="Yowmings League — a game that settles a real draft has to be one nobody can argue with."><span class="eyebrow">Yowmings League</span>A game that settles a real draft has to be one nobody can argue with.</h1>
+    <h1 class="head rv" data-f="0.05" aria-label="Yowmings League: a game that settles a real draft has to be one nobody can argue with."><span class="eyebrow">Yowmings League</span>A game that settles a real draft has to be one nobody can argue with.</h1>
 
     <!-- ── THIS COVER DOES NOT TAKE THE HOUR, AND THAT IS A GAP, NOT A DECISION ──
          The other five covers each ship TWELVE files -- six time-of-day states at
@@ -1555,11 +1571,26 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          WHAT IT WOULD TAKE: six graded captures of a match and one line in
          PROJECTS/ORIGINALS/VARIANT_DIRS. Until then this page is the only case
          study whose cover holds still, and the home-page card holds still with it.
-         THE FRAME IS THE SERIES' FRAME. .cover is 12/5 on desktop and 8/5 below
-         560, and the plate is the match's own 16/9, so object-fit:cover takes the
-         middle band at desktop -- both sets of uprights, the bundle, the airborne
-         head -- and nearly the whole frame on a phone. -->
-    <figure class="cover media media--full" id="cover"><img src="images/cs/yowmings/cover-1200.webp" srcset="images/cs/yowmings/cover-1200.webp 1200w, images/cs/yowmings/cover-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="675" alt="A Yowmings League quarter-final in play: cut-out heads in red and yellow bundled at the left-hand goal, one yellow head airborne, the ball in the air above them, and a set of uprights at each end of the white pitch." loading="eager" decoding="async"></figure>
+         THE FRAME IS THE SERIES' FRAME AND SO IS THE PLATE NOW. .cover is 12/5 on
+         desktop and 8/5 below 560. The plate used to be the match's own 16/9 in its
+         own pair of files; it is the 2:1 card plate the other five case studies use,
+         and it is THE SAME FILE the Home card loads -- images/cs/yowmings/card-*.webp.
+         Two reasons, and the second is the one that matters: 2:1 is what the series'
+         crop math is tuned for (12/5 takes 83% of the height, 8/5 takes 80% of the
+         width), and a visitor arrives here by clicking that exact picture on the Home
+         page, so the cover is already in cache and paints on the first frame. The old
+         cover-1200/2400 pair is deleted rather than left orphaned.
+         THE PICTURE IS THE KICKOFF. Jayden: "for the thumbnail can it be a thumbnail
+         of the kickoff I feel like those look funner." The referee head is centred, so
+         the phone's side crop keeps it; both uprights live at the extreme edges and
+         are the first thing the 8/5 crop spends, which is the same trade every other
+         card in the series makes. The score bar is cropped off the top and the flat
+         253 pitch is extended 110 rows above and 134 below to reach 2:1 -- that value
+         is uniform across the full width on both sides of the picture, so nothing is
+         invented, only continued, and the split is what centres the drop in the frame
+         (295px of sky over the referee, 294px of ground under the eggheads) instead
+         of leaving it pinned to the bottom edge. -->
+    <figure class="cover media media--full" id="cover"><img src="images/cs/yowmings/card-1200.webp" srcset="images/cs/yowmings/card-1200.webp 1200w, images/cs/yowmings/card-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="The kickoff of a Yowmings League quarter-final: a head in a striped referee cap drops in from above with the football just released beneath it, four cut-out heads waiting on the pitch below, and a set of uprights at each end." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>
@@ -1570,7 +1601,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">Every year my friends need a fantasy draft order. A random draw is fair. A game is better &mdash; but only if everyone believes the result.</p>
+     <p class="ovBody rv" data-f="0.011">Every year my friends need a fantasy draft order. A random draw is fair. A game is better, but only if everyone believes the result.</p>
      <p class="ovBody rv" data-f="0.011">Twelve of their faces drop down a marble course to seed a bracket, then play it out until someone takes the 1.01. It runs in a browser with no framework and no build step.</p>
     </div>
    </section>
@@ -1604,7 +1635,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="kicker">The stakes</div>
     <h2 class="secHead">A toy can be wrong. A verdict cannot.</h2>
     <p class="secBody">Nobody audits a game they played once. They audit the one that decided who picks first, and they do it out loud, while watching.</p>
-    <p class="secBody">So <strong>&ldquo;done&rdquo; stopped meaning &ldquo;fun&rdquo; and started meaning &ldquo;unarguable&rdquo;</strong>. Six weeks, 991 commits, and the interesting work was never the feature &mdash; it was the gap between what my instruments measured and what the screen actually showed.</p>
+    <p class="secBody">So <strong>&ldquo;done&rdquo; stopped meaning &ldquo;fun&rdquo; and started meaning &ldquo;unarguable&rdquo;</strong>. Six weeks, 991 commits, and the interesting work was never the feature: it was the gap between what my instruments measured and what the screen actually showed.</p>
    </section>
 
    <section id="course" class="sec">
@@ -1634,7 +1665,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="players" class="sec">
     <div class="kicker">The players</div>
     <h2 class="secHead">A head could reach a state with no way out.</h2>
-    <p class="secBody">Players froze mid-match &mdash; rarely, briefly, and exactly the kind of thing that gets brought up for a year.</p>
+    <p class="secBody">Players froze mid-match, rarely, briefly, and exactly the kind of thing that gets brought up for a year.</p>
     <p class="secBody">A head could end up falling and not airborne at the same time, which nothing in the engine can leave. It was <strong>half of every frozen frame</strong>. The fix had to remove the freeze without removing the mess, because the chaos is the point: after it, the ball spent <em>more</em> time in the air, not less.</p>
    </section>
 
@@ -1642,7 +1673,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="kicker">The rule</div>
     <h2 class="secHead">I argued for the wrong version, and the measurement won.</h2>
     <p class="secBody">Balls were passing through the goal without scoring. Real football has no ceiling over the uprights, so I removed ours. It fixed the complaint outright.</p>
-    <p class="secBody">It also awarded <strong>more than a quarter of goals with the ball in open sky above the posts</strong> &mdash; a picture that no longer matched its own rule. The version that shipped is narrower, and no goal lands above the posts now.</p>
+    <p class="secBody">It also awarded <strong>more than a quarter of goals with the ball in open sky above the posts</strong>, a picture that no longer matched its own rule. The version that shipped is narrower, and no goal lands above the posts now.</p>
     <div class="baStack">
      <div class="baBlock">
       <div class="baGrid baGrid--posts">
@@ -1688,7 +1719,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="outcome" class="sec">
     <div class="kicker">Outcome</div>
     <h2 class="secHead">It decides something, and nobody argues.</h2>
-    <p class="secBody">Every race finishes, on every screen I could find. Players stay on their feet. Goals look like goals. And the thing it was built to protect survived all of it &mdash; <strong>the winner still is not the halfway leader in two races out of three</strong>.</p>
+    <p class="secBody">Every race finishes, on every screen I could find. Players stay on their feet. Goals look like goals. And the thing it was built to protect survived all of it: <strong>the winner still is not the halfway leader in two races out of three</strong>.</p>
     <figure class="photoFig">
      <div class="scrollbox" role="group" aria-label="The end of a match, six frames in order">
       <figure class="shot strip"><img src="images/cs/yowmings/tear-1.webp" width="899" height="435" alt="Frame 1 of 6: both finalists&rsquo; photographs hang above the pitch and the winner is announced." loading="lazy" decoding="async" draggable="false"></figure>
@@ -1700,6 +1731,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      </div>
      <figcaption class="cap">The end of a match, left to right in time: the loser&rsquo;s photograph tears in half and drops away. Drag the strip sideways.</figcaption>
     </figure>
+    <div class="secGo"><a class="ctl ctl--primary" href="play.html#games">Play the League</a></div>
    </section>
 
   </div>

@@ -2,7 +2,7 @@
 <script src="site-theme-state.js"></script>
 <script src="site-theme.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Play — Jayden Betts</title>
+<title>Play · Jayden Betts</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
@@ -1187,6 +1187,12 @@
     the negative inline margin cancels --ctl-pad-sm so its text sits on the same left edge
     as the title above it. .ctl--quiet paints no ground in any state, so nothing is
     visible in the padding that margin is cancelling.
+    IT CARRIES THE ARROW BECAUSE THE CELL IS ALREADY A CONTROL. Every other word in the
+    card is inert copy inside one big click target, so a second dark line of text reads as
+    a third sentence -- and on hover .pCardD steps to --c950, which is exactly this link's
+    colour, so at the moment a visitor is pointing at the card the two are indistinguishable.
+    The glyph is the same right arrow the case study's own before/after blocks use, in the
+    icon slot .ctl--sm already sizes; no underline, no second ink, nothing redrawn.
     ADDING THE NEXT ONE IS ONE ANCHOR. Only the League has a case study today. When a
     second one lands it is a line of markup in that card, not a redesign of the band.
     ═══════════════════════════════════════════════════════════════════════════════════ */
@@ -1210,6 +1216,13 @@
     which is the same job this line does: a quiet second line under a name. Tracking goes
     to normal with it, because that is what home sets at 12. */
  .pCardD{font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:normal;color:var(--c500)}
+ /* The arrow belongs to the LINK, not to the cell, so it takes the link's ink and the
+    control's own icon rung rather than .pCard .gIco's --ico-md/--c700 door sign. Declared
+    here and at three classes deep because .pCard .gIco and .pCard:hover .gIco both reach
+    it otherwise, and the second of those would darken it on CARD hover -- which is the
+    exact ambiguity the glyph is here to remove. */
+ .pCard .pCardMore .gIco{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm);
+  color:inherit;stroke-width:var(--ico-stroke)}
  /* THE WIDE CELL IS THE SAME CELL. One span declaration and one measure -- no second
     padding, no second type scale, no second hover, no rule of its own. Everything that
     makes it read as part of the band is the band's. See the markup for why exactly one
@@ -1778,7 +1791,7 @@
    <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
    <!-- The only card with a second destination today. It is the whole of "an option to
         read the case study": one anchor, no badge, no second treatment on the cell. -->
-   <a class="pCardMore ctl ctl--quiet ctl--sm" href="yowmings.html">Read the case study</a>
+   <a class="pCardMore ctl ctl--quiet ctl--sm" href="yowmings.html">Read the case study<svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
   </div>
   <div class="pCard" id="pcExped">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
@@ -1868,8 +1881,8 @@
 <div class="gamebar" id="gamebar" hidden>
  <button class="gameBtn" id="gameBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="gameMenu">Play</button>
  <div class="gameMenu" id="gameMenu">
-  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match — a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
-  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — eight heads in a knockout, one match at a time, with the option of twelve"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
+  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match: a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
+  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament: eight heads in a knockout, one match at a time, with the option of twelve"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
   <!-- The two maker rows carry the SAME text as the two maker cards in the hub -- "Add your
        head" and "Make a gradient". They are the same command to the same destination, and

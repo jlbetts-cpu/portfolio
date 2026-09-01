@@ -107,7 +107,7 @@
       cell = document.createElement("i");
       cell.className = "pGitCell";
       cell.setAttribute("data-l", String(level));
-      cell.setAttribute("title", human(days[i].d) + " — " +
+      cell.setAttribute("title", human(days[i].d) + ": " +
         (count ? plural(count, "commit") : "no commits"));
       frag.appendChild(cell);
     }
@@ -135,7 +135,7 @@
        explains the shading in both themes and is a better fact than the adjective was. */
     note.textContent = commas(commits) + " commits to this site in the " + total +
       " days since " + humanShort(days[0].d) + ", on " + active +
-      " of them. Each square is a day, shaded by the commits it carried — the busiest, " +
+      " of them. Each square is a day, shaded by the commits it carried. The busiest carried " +
       busiest + ".";
 
     root.hidden = false;

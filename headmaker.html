@@ -506,7 +506,7 @@ img{display:block;max-width:100%}
     gutters in place, step 4's panel ran 475 of 744px and left the head 161x193
     — the artifact stops being the artifact at that size. The shelf is 122 of
     those pixels and it is the only thing on the step that is not a control.
-    Nothing becomes unreachable: Start over returns to step 1, where the shelf
+    Nothing becomes unreachable: New head returns to step 1, where the shelf
     is, and picking a head there puts it straight back on the stage. Step 1 is
     where "carry on with an old head" is the actual question anyway, and on
     steps 2 and 3 you are mid-edit — swapping heads there would discard work.
@@ -768,7 +768,7 @@ img{display:block;max-width:100%}
        cannot grow a second line and push the stage around. The row keeps its
        height when every span is empty, so nothing reflows on a step change. -->
   <p class="mkNote">
-   <span id="hmErr" class="mkErr hidden" role="status">That photo stumped this browser &mdash; a JPG, PNG or screenshot works every time.</span>
+   <span id="hmErr" class="mkErr hidden" role="status">That photo stumped this browser. A JPG, PNG or screenshot works every time.</span>
    <span id="mkNoteDefault">Your photo never leaves this device.</span>
    <span id="hmWhich" aria-live="polite">Drag near a marker to move it</span>
    <span id="hmNameSay" role="status" aria-live="polite"></span>
@@ -789,7 +789,7 @@ img{display:block;max-width:100%}
         under is the case-study reflex this pass exists to remove. -->
    <section class="mkStep" id="step1">
     <div class="mkGroup">
-     <p class="mkHint">Face the camera in even light, eyes open. A selfie works great. Nothing is uploaded &mdash; the whole thing happens in this tab.</p>
+     <p class="mkHint">Face the camera in even light, eyes open. A selfie works great. Nothing is uploaded. The whole thing happens in this tab.</p>
     </div>
     <div class="mkActs">
      <button class="ctl ctl--primary ctl--block" type="button" id="pickPhoto">Choose a photo</button>
@@ -855,7 +855,21 @@ img{display:block;max-width:100%}
      <p class="mkHint">The download is a transparent PNG. A head file re-opens here later.</p>
     </div>
     <div class="mkActs">
-     <button class="ctl ctl--quiet" type="button" id="restart">Start over</button>
+     <!-- "NEW HEAD", NOT "START OVER" — SAME ONE CONTROL, THE HONEST NAME.
+          Jayden: "the only way to add new heads is to say start over on an
+          existing head." Both halves of that were true. This button IS the way
+          to add a head — by the time you can see it your head is already in the
+          shelf, written by buildLive()'s freshMake save — and it was announcing
+          itself as the opposite. On a screen whose storage is irreplaceable and
+          has twice been destroyed by a bug, a door marked "start over" is one
+          you do not walk through, so the page read as holding one head.
+          NOT a second button beside it. "Add another head" used to sit on the
+          shelf doing exactly this, calling exactly this handler, and it was
+          removed because two controls for one action is worse than one — the
+          removal was right and the label it left behind was the wrong one of
+          the two. Nothing here is destructive and nothing needs a confirm: the
+          heads on the shelf are untouched, and step 1's shelf is where you land. -->
+     <button class="ctl ctl--quiet" type="button" id="restart">New head</button>
      <button class="ctl ctl--primary" type="button" id="save"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor"><path d="M12 3v12"/><polyline points="6 11 12 17 18 11"/><line x1="4" y1="21" x2="20" y2="21"/></svg>Download</button>
     </div>
    </section>
@@ -869,10 +883,12 @@ img{display:block;max-width:100%}
     <h2 class="mkGroupH" id="hmPitTitle">Your heads</h2>
     <button class="ctl ctl--quiet ctl--sm" id="hmPitEdit" type="button" aria-pressed="false" aria-controls="hmPitRow" hidden>Edit</button>
    </div>
-   <!-- "Add another head" used to sit here and it did exactly what Start over
-        does — restart(), same handler, same result. Two controls for one action
-        is worse than one anywhere, and on a phone it was 44px of the room the
-        head needed. -->
+   <!-- "Add another head" used to sit here and it did exactly what step 4's
+        button does — same handler, same result. Two controls for one action is
+        worse than one anywhere, and on a phone it was 44px of the room the head
+        needed. That button is called "New head" now, which is what this one was
+        called and what the action has always been; the shelf does not need its
+        own copy of it. -->
    <div class="hmPit" id="hmPitRow" data-editing="false"></div>
   </section>
 
@@ -1683,10 +1699,37 @@ function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that 
  d.style.backgroundPosition=(cx-w/2)/(1-w)*100+"% "+((cy-h/2)/(1-h)*100)+"%";
  headEl.appendChild(d);return d;
 }
+/* ---------- TEARING THE RIG DOWN — THE HEAD BLEED, AND WHY IT IS ONE RULE ----
+   THIS WAS "chunks of the last person's head appears on the head".
+
+   Every layer of the living rig except the base photograph is painted with
+   `url(cutURL)` — a lift of THAT SUBJECT'S OWN SKIN. So a layer left behind is
+   not a stray box, it is a patch of the previous person's face, and it stays
+   welded to every head made afterwards AND into every PNG downloaded from one,
+   because save() clones #hmHead and rasterises it.
+
+   Two owners tore this down and they disagreed. buildLive() removed the eye
+   wrap, the `.hmScl` cover and the `.hmLidW` lid window; Start over removed
+   `e.wrap` ONLY, and then set eyeEls=[]. The cover and the lid window were
+   still in the DOM with nothing referencing them any more, so buildLive's own
+   teardown — which walks the same arrays — could never find them either. Two
+   orphans per Start over, and Start over was the only route to a new head.
+   Reproduced at 1400x950: bake a magenta subject, mark its eyes, Start over,
+   bake a green one, and two magenta patches sit on the green head's crown.
+
+   The teardown is now a RULE, not a list: everything under #hmHead that is not
+   the base image goes. A list has to be kept in step with every layer anybody
+   adds — that is the bug, in its general form — and a rule cannot fall behind.
+   It owns `tick` too, for the same reason: two owners of one timer is how the
+   two owners of one DOM got out of step. */
+function clearLive(){
+ if(tick){clearInterval(tick);tick=null;}
+ [].slice.call(headEl.children).forEach(function(n){if(n!==liveImg)n.remove();});
+ eyeEls=[];browEls=[];noseEl=null;mouthEl=null;
+}
 function buildLive(){
+ clearLive();
  liveImg.src=cutURL;
- eyeEls.forEach(function(e){e.wrap.remove();if(e.scl)e.scl.remove();if(e.lidW)e.lidW.remove();});eyeEls=[];
- browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}if(mouthEl){mouthEl.remove();mouthEl=null;}
  var des=deriveEyes(),g={w:(des[0].w+des[1].w)/2,h:(des[0].h+des[1].h)/2};
  var oneWhite=(function(){var a=sclera(des[0]),b=sclera(des[1]);
   function px2(cc){var m=/rgb\((\d+), ?(\d+), ?(\d+)/.exec(cc);return m?[+m[1],+m[2],+m[3]]:[239,236,231];}
@@ -1765,7 +1808,9 @@ function buildLive(){
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
  mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthEl.style.transformOrigin="50% 18%";mouthAt=performance.now()+5000+Math.random()*6000;
- if(tick)clearInterval(tick);
+ /* the second clearInterval(tick) that stood here is gone: clearLive() at the
+    top of this function already stopped it, and one timer with two owners is
+    the shape of the bug above. */
  blinkAt=performance.now()+2600+Math.random()*2800;smAt=performance.now()+7000;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
@@ -1847,7 +1892,7 @@ function readPit(){var all=[],rawN1=null;
  /* THE GEOMETRY KEY NEEDS THE PICTURE IN IT. "Same marks and same eye boxes" was being
     treated as "same head", which is false: two different people marked at the same
     coordinates are two different people, and the second one was being deleted as a
-    duplicate. Reproduced 3/3 -- build one face, Start over, build a second whose auto
+    duplicate. Reproduced 3/3 -- build one face, New head, build a second whose auto
     guess declines, and the roster still holds one head, the first one. The cut length
     costs nothing and makes the key about the FACE as well as where its eyes are. */
  var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
@@ -1966,9 +2011,8 @@ document.getElementById("saveFile").addEventListener("click",function(){ // your
   var a=document.createElement("a");a.download="my-floating-head.headjson";
   a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(payload));a.click();
  }catch(_){}});
-document.getElementById("restart").addEventListener("click",function(){newSubject();   // Start over means a different person: clear the bake, the cut and the facial geometry too, not just restoredEyes
- if(tick){clearInterval(tick);tick=null;}
- eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
+document.getElementById("restart").addEventListener("click",function(){newSubject();   // "New head" (the id is the old label's) means a DIFFERENT PERSON: clear the bake, the cut and the facial geometry too, not just restoredEyes. Nothing is deleted -- the head you just made is already in hmCompanions, saved by buildLive when freshMake was true.
+ clearLive();   /* the whole rig, by rule. This line used to be `eyeEls.forEach(e=>e.wrap.remove())`, which left the two `.hmScl` skin covers and the two `.hmLidW` lid windows behind, painted with the last person's cut and referenced by nothing. See clearLive(). */
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
  file.value="";eyes.L={x:0.40,y:0.42};eyes.R={x:0.60,y:0.42};smileURL=null;smileSlot=false;
  photoErr(false);
