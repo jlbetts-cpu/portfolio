@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Header — prototype</title>
+<title>Header · prototype</title>
 <link rel="stylesheet" href="tokens.css?v=57fb92263c">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -524,16 +524,16 @@ body.frameMode .fmHost{display:block;height:100vh;overflow:auto;position:relativ
 <div class="doc">
 
 <div class="masthead">
-  <h1>The site header — one component, five page types, two widths</h1>
+  <h1>The site header: one component, five page types, two widths</h1>
   <p><b>The bar is the lockup plus three items: Home · About · Games.</b> Contact has left it.
-  The lockup is back to <b>two stacked lines, still sentence case</b> — see §5 for the four ways
+  The lockup is back to <b>two stacked lines, still sentence case</b>. See §5 for the four ways
   to solve the width mismatch and why three of them distort the type.
   The socials sit in a row above the bar on the home page and slide <i>into</i> the bar as that
   row scrolls away. The availability line is a <b>hero</b> element above the <code>&lt;h1&gt;</code>,
   not header furniture. The four moods have left the header entirely for a dock under the head
   they act on.</p>
   <p><b>One component, every page.</b> The specimen recommended a pill on home and a ledge on
-  case studies; that is the current bug wearing better paint — <code>index.html</code> and the
+  case studies; that is the current bug wearing better paint: <code>index.html</code> and the
   five case studies already run two different headers. The only per-page differences here are a
   back arrow, which item is lit, and one attribute for a dark ground.</p>
   <p>Everything is live. Click <b>the dock</b>, click <b>About</b>, scroll the frames, tab
@@ -542,7 +542,7 @@ body.frameMode .fmHost{display:block;height:100vh;overflow:auto;position:relativ
 
 <div class="rule"></div>
 
-<h2 class="sec">1 · Home — at rest, and after one scroll</h2>
+<h2 class="sec">1 · Home: at rest, and after one scroll</h2>
 <p class="dek"><b>Scroll the left frame.</b> The social row leaves and does not come back; the
 bar sticks; the glyphs slide into the bar's trailing slot on <code>--sp-quick</code>. Contact is
 never off screen and never costs a second row.</p>
@@ -551,7 +551,7 @@ never off screen and never costs a second row.</p>
   <div>
     <div class="frameLbl"><b>Home</b><span>· <code>data-nav="home"</code> · social row + sticky bar</span></div>
     <div class="frame tall" data-sim="home" data-nav="home"></div>
-    <p class="note"><b>Home stays lit at the top and scrolled down among the case studies</b> —
+    <p class="note"><b>Home stays lit at the top and scrolled down among the case studies</b>:
     the work lives on Home, so there is nothing else for the scroll position to mean. That is why
     there is no fourth "Work" slot. The capsule above the headline is the hero's, not the
     header's: it is <code>.heroAvail</code> restyled, in its existing position, keeping its
@@ -564,16 +564,16 @@ never off screen and never costs a second row.</p>
     aria-expanded&gt;</code> that toggles the existing takeover, so it takes
     <code>aria-current="true"</code> (this is the current thing) rather than
     <code>aria-current="page"</code> (this URL). The lockup grows its back arrow while the overlay
-    is open — which is what retires <code>.heroBack</code> and <code>.navTitle</code>.
+    is open, which is what retires <code>.heroBack</code> and <code>.navTitle</code>.
     <b>Known cost:</b> About still has no shareable URL.</p>
   </div>
 </div>
 
 <div class="rule"></div>
 
-<h2 class="sec">2 · The mood dock — under the head, on the grid</h2>
+<h2 class="sec">2 · The mood dock: under the head, on the grid</h2>
 <p class="dek">The four moods were sitting in the site header, acting on something 400px below
-it. They are now a child of the hero grid's centre column, directly under the head — not an
+it. They are now a child of the hero grid's centre column, directly under the head, not an
 absolutely-positioned corner element, which is what <code>.faceMoodCorner</code>
 (<code>right:-14px</code>) is today. <b>Click it, then pick a mood.</b> Nothing was collapsed and
 nothing was reordered: the four moods, the separator, Add your head, Add an egghead, the
@@ -588,20 +588,20 @@ saved-heads grid and Show on home are in the order they ship in.</p>
     <b>Where the roster went.</b> Games is a page now, so the Play menu no longer exists to hold
     anything. The moods went where Jayden asked. <b>Add your head, Add an egghead, the saved-heads
     grid and Show on home came with them</b>, below a separator, because they act on the same
-    object: the heads on this screen. They are head controls, not site navigation — the header was
+    object: the heads on this screen. They are head controls, not site navigation: the header was
     the wrong owner for both halves.<br><br>
     <b>The trigger states the current mood</b> rather than saying "Play": a control and a readout
     in one slot, so you can see the mood without opening anything.<br><br>
     <b>One collision to resolve on adoption.</b> <code>.scrollCue</code> sits at
     <code>bottom:18px</code> in the hero and the dock takes that space. The cue moves below the
-    dock or goes — listed in the report.</p>
+    dock or goes, whichever the report lists.</p>
   </div>
 </div>
 
 <div class="rule"></div>
 
 <h2 class="sec">3 · The other three page types</h2>
-<p class="dek">No social row on a sub-page — one bar, 48px, glyphs already inside it. The row is
+<p class="dek">No social row on a sub-page: one bar, 48px, glyphs already inside it. The row is
 a home-page letterhead; on a case study it would be a second layer between a visitor and the
 work.</p>
 
@@ -611,14 +611,14 @@ work.</p>
     <div class="frame" data-sim="case" data-nav="home"></div>
     <p class="note">The rail is sticky under the bar (<code>top: calc(var(--nav-h) + 26px)</code>).
     Scroll the frame: nothing collides, and the bar's shadow deepens once content passes beneath
-    it — the one and only thing that changes on scroll.</p>
+    it, the one and only thing that changes on scroll.</p>
   </div>
   <div>
     <div class="frameLbl"><b>play.html</b><span>· <code>data-nav="games"</code> · paper, fixed bar</span></div>
     <div class="frame" data-sim="play" data-nav="games"></div>
     <p class="note">Games is a real destination now, so it lights like one
     (<code>aria-current="page"</code>). The arena is full-viewport and must not scroll during a
-    match, so the bar is <code>fixed</code>, not <code>sticky</code> — same object, same geometry.
+    match, so the bar is <code>fixed</code>, not <code>sticky</code>, same object, same geometry.
     Its wrapper is <code>pointer-events:none</code> with the bar opting back in, so it never eats
     a tap meant for the pitch.</p>
   </div>
@@ -632,7 +632,7 @@ work.</p>
     <div class="frame" data-sim="lab" data-nav="none"></div>
     <p class="note"><b>Nothing is lit, and that is the answer.</b> The Lab is
     <code>noindex</code> and is not in the nav, so forcing an active item would be a lie. Dark
-    glass rather than a white pill because the stage colour is whatever the user dials in — white
+    glass rather than a white pill because the stage colour is whatever the user dials in: white
     ink on <code>--mat-i3</code> clears 4.5:1 over a white ground <i>and</i> over near-black. The
     existing <code>pointer-events:none</code> header contract is preserved exactly.</p>
   </div>
@@ -644,10 +644,10 @@ work.</p>
 
 <div class="rule"></div>
 
-<h2 class="sec">4 · 390px — the design case, not the check</h2>
+<h2 class="sec">4 · 390px: the design case, not the check</h2>
 <p class="dek">Real 390px viewports. <b>Three items and the lockup fit inline</b>, which means
 <code>.navBurger</code>, <code>aside.navDrawer</code>, <code>.ndLink</code> and
-<code>.navScrim</code> can be deleted outright — a whole mobile component retired, not
+<code>.navScrim</code> can be deleted outright, a whole mobile component retired, not
 restyled. Numbers below are read live off these frames.</p>
 
 <div class="mobRow">
@@ -658,7 +658,7 @@ restyled. Numbers below are read live off these frames.</p>
   </div>
   <div class="mob">
     <iframe title="Home scrolled at 390" src="header-prototype.html?frame=home&scrolled=1&cb=30" loading="eager"></iframe>
-    <p><b>Home, scrolled.</b> Row gone, bar alone. <b>The glyphs do not slide in here</b> — see
+    <p><b>Home, scrolled.</b> Row gone, bar alone. <b>The glyphs do not slide in here</b>: see
     the measurement below.</p>
   </div>
   <div class="mob">
@@ -689,7 +689,7 @@ restyled. Numbers below are read live off these frames.</p>
 
 <div class="rule"></div>
 
-<h2 class="sec">5 · The lockup — what was measured</h2>
+<h2 class="sec">5 · The lockup: what was measured</h2>
 <div class="pair">
   <div>
     <div class="measure" id="lockup">measuring…</div>
@@ -700,23 +700,23 @@ restyled. Numbers below are read live off these frames.</p>
     both lines at one size and one tracking, <code>--tr-mark</code>. No monogram, no glyph, no
     drawn mark, present at 390px on every page.<br><br>
     <b>The rag is the design, not a compromise.</b> Width-matching sentence case needs
-    <code>wdth 76.81%</code> against an axis floor of 75 — 1.8pp of headroom, and lowercase bowls
+    <code>wdth 76.81%</code> against an axis floor of 75, 1.8pp of headroom, and lowercase bowls
     and stems distort long before that. Per-line tracking needs +0.19em on "Betts", two textures
     in one mark. Two optical sizes needs line 2 at 22.1px, which reads as surname emphasis.
     <b>Holding the texture constant and letting the width fall where it falls is the only one of
     the four that does not distort something.</b><br><br>
-    <b>It is 45% narrower and 95% taller than the single line</b> — 54.9 × 30.7px against
+    <b>It is 45% narrower and 95% taller than the single line</b>: 54.9 × 30.7px against
     100.1 × 15.7px. That is the presence, and the narrowing is what paid for the mail glyph in
     the 390px bar.<br><br>
     <b>Where it sits: leading the bar, and the bar centred on the page.</b> It is the back
     affordance on every sub-page, and a back control belongs at the leading edge. The five case
-    studies centre it today in a <code>1fr auto 1fr</code> grid — that is exactly what leaves
+    studies centre it today in a <code>1fr auto 1fr</code> grid, and that is exactly what leaves
     three children stranded at three unrelated x-positions with nothing binding them.<br><br>
     <b>Optical, not metric.</b> Two corrections, both derived rather than nudged: a baseline
     correction for mixing 17px and 14px in one row, and a 1px tighter leading inset measured off
     the sidebearings. Both are in the numbers on the left.<br><br>
     <b>Four states, not two.</b> Rest, hover, <code>:focus-visible</code> (2px accent ring,
-    2px offset), and <code>:active</code> — <code>scale(.97)</code> on items,
+    2px offset), and <code>:active</code>: <code>scale(.97)</code> on items,
     <code>scale(.985)</code> on the lockup, because a bigger object needs less scale to read as
     the same press.</p>
   </div>
@@ -730,9 +730,9 @@ restyled. Numbers below are read live off these frames.</p>
     <p class="note" style="max-width:none;font-size:13.5px">
     <span class="tag ok">Kept</span><br>
     <b>The lockup</b>, stacked, at every width, doubling as Back on sub-pages and while the
-    About overlay is open — one slot, two jobs, a real 44 × 44 target.<br>
+    About overlay is open: one slot, two jobs, a real 44 × 44 target.<br>
     <b>Home · About · Games</b>, the three named.<br>
-    <b>The socials</b>, in the row on home and inside the bar once that row has gone — contact
+    <b>The socials</b>, in the row on home and inside the bar once that row has gone: contact
     on <b>every</b> page at zero vertical cost, phones included, which the single-line lockup
     could not afford.</p>
   </div>
@@ -741,7 +741,7 @@ restyled. Numbers below are read live off these frames.</p>
     <span class="tag no">Cut</span><br>
     <b>1. The second component.</b> The case-study <code>1fr auto 1fr</code> grid and the home
     <code>flex</code> bar collapse into one.<br>
-    <b>2. Contact.</b> Out of the bar — the socials say it better and say it three ways.<br>
+    <b>2. Contact.</b> Out of the bar: the socials say it better and say it three ways.<br>
     <b>3. A separate Back slot.</b> Merged into the lockup.<br>
     <b>4. Icons on the nav items.</b> The arrow, the caret and the panel icons stay: they state
     behaviour. Decoration does not.<br>
@@ -758,7 +758,7 @@ restyled. Numbers below are read live off these frames.</p>
 <h2 class="sec">7 · Two things to decide</h2>
 <p class="note" style="max-width:82ch">
 <span class="tag q">1</span><b>Home and the lockup go to the same place.</b> Two leading slots,
-one destination. It is defensible — the lockup is brand-and-back, Home is the you-are-here
+one destination. It is defensible: the lockup is brand-and-back, Home is the you-are-here
 indicator, and something has to light up. If you want the bar tighter, the lockup can absorb Home
 and the bar drops to two items. Five-minute change either way.<br><br>
 <span class="tag q">2</span><b>Availability now exists in exactly one place.</b> It comes out of
@@ -784,8 +784,8 @@ var G={
 };
 var SOCIALS=[
   ['mail','mailto:jaydenlbetts@gmail.com','Email Jayden Betts'],
-  ['li','https://www.linkedin.com/in/jaydenbetts','Jayden Betts on LinkedIn — opens in a new tab'],
-  ['ig','https://www.instagram.com/jaydenleebetts','Jayden Betts on Instagram — opens in a new tab']
+  ['li','https://www.linkedin.com/in/jaydenbetts','Jayden Betts on LinkedIn, opens in a new tab'],
+  ['ig','https://www.instagram.com/jaydenleebetts','Jayden Betts on Instagram, opens in a new tab']
 ];
 var MOODS=[['Empathy','#5E7FB5'],['Hunger','#C08A3E'],['Delight','#8E6FC4'],['Love','#C05A6E']];
 var AVAIL='Based in San Francisco · Open to full-time roles';
@@ -820,7 +820,7 @@ function navHTML(ctxName){
   var h='<nav class="jbNav'+(c.row?'':' hasSoc')+'" aria-label="Primary" data-surface="'
     +c.surface+'"'+(c.back?' data-back="1"':'')+'>';
   h+='<a class="jbHome" href="index.html" aria-label="'
-    +(c.back?'Back — Jayden Betts, home':'Jayden Betts, home')+'">'
+    +(c.back?'Back to Jayden Betts, home':'Jayden Betts, home')+'">'
     /* two spans, mirroring index.html's existing .logoLine/.logoL1/.logoL2 so
        adoption is a class rename rather than a restructure */
     +(c.back?G.arrow:'')
@@ -866,7 +866,7 @@ function simHTML(kind){
       ? '<div class="simHead" style="background:radial-gradient(120% 110% at 32% 26%,#A9A398,#5F5A52)"></div>'
       : '<div class="simHead"></div>';
     var copy=(kind==='about')
-      ? '<h3>Hi — I’m Jayden. I design products people actually finish using.</h3>'
+      ? '<h3>Hi, I’m Jayden. I design products people actually finish using.</h3>'
       : '<h3>I design products that feel like someone was thinking about you.</h3>';
     return '<div class="simHome">'
       +'<p class="heroAvail"><i aria-hidden="true"></i>'+AVAIL+'</p>'
@@ -886,7 +886,7 @@ function simHTML(kind){
       +'<p class="simP">Designed from the ground up for the way ADHD brains actually work: no '
       +'streaks, no shame, no doomscroll.</p>'
       +'<div class="simShot" style="margin-top:22px;background:linear-gradient(150deg,#7A5C86,#C1A2CC)"></div>'
-      +'<p class="simP">Scroll — the rail stays clear of the bar and the bar lifts off the page.</p>'
+      +'<p class="simP">Scroll: the rail stays clear of the bar and the bar lifts off the page.</p>'
       +'<div style="height:120px"></div></div></div>';
   }
   if(kind==='play'){
@@ -960,7 +960,7 @@ function wireAbout(nav){
       if(!open&&!nav.hasAttribute('data-back')){
         nav.setAttribute('data-back','tmp');
         home.insertAdjacentHTML('afterbegin',G.arrow);
-        home.setAttribute('aria-label','Back — Jayden Betts, home');
+        home.setAttribute('aria-label','Back to Jayden Betts, home');
       }else if(open&&nav.getAttribute('data-back')==='tmp'){
         nav.removeAttribute('data-back');
         var a=home.querySelector('.jbArrow'); if(a)a.remove();
@@ -1032,7 +1032,7 @@ if(frame&&CTX[frame]){
   document.body.setAttribute('data-nav',(CURRENT[frame]&&Object.keys(CURRENT[frame])[0])||'none');
   var fh=document.getElementById('fmHost');
   build(fh,frame);
-  document.title='Header — '+frame;
+  document.title='Header · '+frame;
   if(q.get('scrolled')){
     var n=0,to=setInterval(function(){
       fh.scrollTop=Math.max(190,fh.scrollTop);
@@ -1057,7 +1057,7 @@ if(frame&&CTX[frame]){
             ['play','play.html'],['headmaker','headmaker.html'],['lab','gradientlab.html']];
   document.getElementById('matrix').innerHTML=rows.map(function(r){
     var c=CTX[r[0]],cur=CURRENT[r[0]],k=Object.keys(cur)[0];
-    return '<b>'+r[1]+'</b> — '+(c.row?'social row + bar':'bar only')
+    return '<b>'+r[1]+'</b>: '+(c.row?'social row + bar':'bar only')
       +' · '+(c.back?'back arrow':'no arrow')
       +' · lit: '+(k?k+' <code>aria-current="'+cur[k]+'"</code>':'nothing')
       +(c.surface==='ink'?' · <b>ink</b>':'')
@@ -1081,31 +1081,31 @@ if(frame&&CTX[frame]){
       var drift=((inkTop+inkH/2)-box/2).toFixed(2);  /* optical centring     */
       var l1=document.querySelector('.jbL1'),l2=document.querySelector('.jbL2');
       document.getElementById('lockup').innerHTML=
-        '<b>set</b> — 600 · '+px+'px · both lines · <code>--tr-mark</code> '+cs.letterSpacing
+        '<b>set</b>: 600 · '+px+'px · both lines · <code>--tr-mark</code> '+cs.letterSpacing
         +' · line-height <code>--mark-lh</code> '+(lh/px).toFixed(3)+'<br>'
-        +'<b>line widths</b> — Jayden <b>'+Jt.toFixed(2)+'px</b> · Betts <b>'+Bt.toFixed(2)
+        +'<b>line widths</b>: Jayden <b>'+Jt.toFixed(2)+'px</b> · Betts <b>'+Bt.toFixed(2)
         +'px</b> · rag '+(Jt-Bt).toFixed(2)+'px<br>'
-        +'<b>block</b> — <b>'+Jt.toFixed(1)+' × '+inkH.toFixed(1)+'px</b>, against the single '
+        +'<b>block</b>: <b>'+Jt.toFixed(1)+' × '+inkH.toFixed(1)+'px</b>, against the single '
         +'line’s '+oneT.toFixed(1)+' × '+(one.asc+one.desc).toFixed(1)+'px. '
         +'<b>'+Math.round((1-Jt/oneT)*100)+'% narrower, '
         +Math.round((inkH/(one.asc+one.desc)-1)*100)+'% taller.</b><br>'
-        +'<b>why not font-stretch</b> — Betts ÷ Jayden = <b>'+(B.adv/J.adv).toFixed(4)
+        +'<b>why not font-stretch</b>: Betts ÷ Jayden = <b>'+(B.adv/J.adv).toFixed(4)
         +'</b> at every size, so width-matching needs wdth <b>76.81%</b> against an axis floor of '
         +'75. 1.8pp of headroom, and lowercase distorts long before that.<br>'
-        +'<b>interline ink gap</b> — line-height '+lh.toFixed(2)+' − “y” descender '+J.desc
+        +'<b>interline ink gap</b>: line-height '+lh.toFixed(2)+' − “y” descender '+J.desc
         +' − “Betts” ascent '+B.asc+' = <b>'+gap.toFixed(2)+'px</b> ('+(gap/px).toFixed(3)
-        +'em). The shipped 1.04 gave 0.03em — the y touching the B.<br>'
-        +'<b>optical flush-left</b> — “B” sidebearing '+B.left+'px vs “J” '+J.left
+        +'em). The shipped 1.04 gave 0.03em, the y touching the B.<br>'
+        +'<b>optical flush-left</b>: “B” sidebearing '+B.left+'px vs “J” '+J.left
         +'px, so metric alignment sets line 2 <b>'+(J.left-B.left).toFixed(2)
         +'px</b> too far right. Corrected by <code>--mark-flush</code>; measured live at '
-        +(l1&&l2?(l2.getBoundingClientRect().left-l1.getBoundingClientRect().left).toFixed(2):'—')
+        +(l1&&l2?(l2.getBoundingClientRect().left-l1.getBoundingClientRect().left).toFixed(2):'n/a')
         +'px between the two rendered lines.<br>'
-        +'<b>leading inset</b> — “J” '+J.left+'px vs “Home” '+h.left+'px, so a metric 12px reads '
+        +'<b>leading inset</b>: “J” '+J.left+'px vs “Home” '+h.left+'px, so a metric 12px reads '
         +'~1px wider on the mark. <code>--mark-inset</code> = <b>11px</b>.<br>'
-        +'<b>baseline correction</b> — <b>none needed</b>: the stacked block is centred to within '
+        +'<b>baseline correction</b>: <b>none needed</b>. The stacked block is centred to within '
         +'<b>'+drift+'px</b> of its own box, because Jayden’s ascender above line 1 balances '
         +'Betts’s near-zero descender below line 2. Stacking retired the −1.06px single-line fix.<br>'
-        +'<b>target</b> — '+Math.round(el.getBoundingClientRect().width)+' × '
+        +'<b>target</b>: '+Math.round(el.getBoundingClientRect().width)+' × '
         +Math.round(el.getBoundingClientRect().height)+', bar '
         +Math.round(document.querySelector('.jbNav').getBoundingClientRect().height)+'px.';
     },600);
@@ -1127,7 +1127,7 @@ if(frame&&CTX[frame]){
         var chromeBottom=Math.round(n.getBoundingClientRect().bottom+12);
         var tg=[].slice.call(n.querySelectorAll('a,button')).filter(function(e){return e.offsetParent});
         var min=Math.min.apply(null,tg.map(function(e){return Math.round(e.getBoundingClientRect().width)}));
-        out.push('<b>'+f.title.replace(' at 390','')+'</b> — bar '
+        out.push('<b>'+f.title.replace(' at 390','')+'</b>: bar '
           +Math.round(n.getBoundingClientRect().width)+'px of '+(d.documentElement.clientWidth-32)
           +'px available · chrome above content <b>'+chromeBottom+'px</b> ('
           +(chromeBottom/812*100).toFixed(1)+'% of a 390 × 812 screen) · smallest target '
@@ -1135,10 +1135,10 @@ if(frame&&CTX[frame]){
       }catch(e){out.push('measure failed: '+e)}
     });
     out.push('<br><b>The read.</b> One row of header furniture, about 60px, on every page at every '
-      +'scroll position — the home page adds a 42px social row that one scroll gesture retires. '
+      +'scroll position: the home page adds a 42px social row that one scroll gesture retires. '
       +'That is affordable. Three stacked layers would not have been, which is why the availability '
       +'capsule belongs to the hero and not to the header. <b>The glyphs deliberately do not '
-      +'condense into the bar at 390 — and now they do</b>. The single-line lockup spent 127 of '
+      +'condense into the bar at 390, and now they do</b>. The single-line lockup spent 127 of '
       +'the 358px budget on the leading slot and left no room; the stacked block spends 91, and '
       +'one 44px glyph plus its rule fits with ~12px still spare. <b>Email is now reachable from '
       +'the header on every page at every width.</b> A second glyph is +48 and does not fit, so '

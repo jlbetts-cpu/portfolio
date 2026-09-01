@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Interactive accent — swatches</title>
+<title>Interactive accent · swatches</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <style>
@@ -172,7 +172,7 @@ body.inframe .hide-in-frame{display:none}
 
 <p class="eyebrow">Proposal · 2026-08-03 · not applied to any page</p>
 <h1>An interactive accent for the portfolio</h1>
-<p class="lede">The site has one accent and it means “live” — it is only used by the tournament UI. Nothing carries a shared colour for “this responds to you.” This page puts one candidate blue on the real paper, on real components, with every contrast ratio measured in the browser rather than asserted.</p>
+<p class="lede">The site has one accent and it means “live”: it is only used by the tournament UI. Nothing carries a shared colour for “this responds to you.” This page puts one candidate blue on the real paper, on real components, with every contrast ratio measured in the browser rather than asserted.</p>
 <p class="note">Every number on this page is computed at runtime from the actual rendered colours (WCAG&nbsp;2.x relative-luminance formula). Thresholds shown: <b>4.5</b> for body-size text, <b>3.0</b> for large text, focus rings and other non-text UI.</p>
 
 <!-- ============ 1. the candidate ============ -->
@@ -192,7 +192,7 @@ body.inframe .hide-in-frame{display:none}
       <tbody></tbody>
     </table>
   </div>
-  <p class="note">Apple’s <code>#007AFF</code> is a community-measured value — Apple ships an adaptive <code>systemBlue</code> token, not a fixed hex, and uses <code>#0A84FF</code> in dark mode. The reference value <code>#0072F5</code> was read off the live page in the 2026-08-02 teardown.</p>
+  <p class="note">Apple’s <code>#007AFF</code> is a community-measured value: Apple ships an adaptive <code>systemBlue</code> token, not a fixed hex, and uses <code>#0A84FF</code> in dark mode. The reference value <code>#0072F5</code> was read off the live page in the 2026-08-02 teardown.</p>
 </section>
 
 <!-- ============ 3. real components ============ -->
@@ -206,21 +206,21 @@ body.inframe .hide-in-frame{display:none}
       <span class="verdict v-yes">Recommended</span>
       <p class="plabel">Case-study back link · the element that started this</p>
       <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
-        <a class="back" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back — rest</a>
-        <a class="back is-hover" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back — hover</a>
+        <a class="back" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back: rest</a>
+        <a class="back is-hover" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back: hover</a>
       </div>
       <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="hover on paper"></span></div>
     </div>
 
     <div class="panel">
-      <span class="verdict v-yes">Recommended — hover only, rest stays ink</span>
+      <span class="verdict v-yes">Recommended: hover only, rest stays ink</span>
       <p class="plabel">Body-size prose link · 16px</p>
       <p class="prose">The engineering section names a feature that <a class="plink" href="#3">wasn’t feasible</a>, and the one <a class="plink is-hover" href="#3">shipped instead</a>. Pressed reads as <a class="plink is-press" href="#3">one step deeper</a>.</p>
       <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="hover on paper"></span><br><span class="cr" data-fg="var(--accent-press)" data-bg="var(--c50)" data-min="4.5" data-label="pressed on paper"></span></div>
     </div>
 
     <div class="panel">
-      <span class="verdict v-no">Not recommended — see §3 of the spec</span>
+      <span class="verdict v-no">Not recommended: see §3 of the spec</span>
       <p class="plabel">Active nav item · underline vs wash pill</p>
       <nav class="nav"><a class="navLink on" href="#3">Work</a><a class="navLink" href="#3">About</a><a class="navLink" href="#3">Play</a></nav>
       <div style="margin-top:16px"><span class="navPill">Work</span></div>
@@ -228,7 +228,7 @@ body.inframe .hide-in-frame{display:none}
     </div>
 
     <div class="panel">
-      <span class="verdict v-no">Not recommended — the dark button stays</span>
+      <span class="verdict v-no">Not recommended: the dark button stays</span>
       <p class="plabel">Buttons · current dark, accent alternative</p>
       <div class="btns">
         <button class="btn dark">See the work</button>
@@ -240,7 +240,7 @@ body.inframe .hide-in-frame{display:none}
     </div>
 
     <div class="panel">
-      <span class="verdict v-ask">Jayden’s call — spec recommends keeping ink</span>
+      <span class="verdict v-ask">Jayden’s call: spec recommends keeping ink</span>
       <p class="plabel">Focus rings · today’s ink vs accent</p>
       <div class="ringrow">
         <span class="ringdemo"><button class="btn ghost ringInk">Ink ring</button><span class="cr" data-fg="var(--c950)" data-bg="var(--c50)" data-min="3" data-label="ring vs paper"></span></span>
@@ -250,11 +250,11 @@ body.inframe .hide-in-frame{display:none}
         <span class="ringdemo"><button class="btn dark ringInk">Ink ring on dark</button><span class="cr" data-fg="var(--c950)" data-bg="var(--c950)" data-min="3" data-label="ring vs the button"></span></span>
         <span class="ringdemo"><button class="btn dark ringAcc">Accent ring on dark</button><span class="cr" data-fg="var(--accent)" data-bg="var(--c950)" data-min="3" data-label="ring vs the button"></span></span>
       </div>
-      <p class="note">The 1.00:1 looks alarming and isn’t a failure: every ring on the site uses a <em>positive</em> <code>outline-offset</code>, so a band of paper always separates ring from control, and paper is the adjacent colour that counts. Both rings are legal. The accent ring would trade 18.42:1 for 5.59:1 across ~60 selectors — which is why the spec says keep ink.</p>
+      <p class="note">The 1.00:1 looks alarming and isn’t a failure: every ring on the site uses a <em>positive</em> <code>outline-offset</code>, so a band of paper always separates ring from control, and paper is the adjacent colour that counts. Both rings are legal. The accent ring would trade 18.42:1 for 5.59:1 across ~60 selectors, which is why the spec says keep ink.</p>
     </div>
 
     <div class="panel onc75">
-      <p class="plabel">On #f1f1f4 (c75) — the hover/row background</p>
+      <p class="plabel">On #f1f1f4 (c75): the hover/row background</p>
       <p class="prose" style="margin-bottom:10px">A <a class="plink is-hover" href="#3">hovered link</a> sitting on the c75 fill the site uses for hovered menu rows and the live result row.</p>
       <span class="cr" data-fg="var(--accent)" data-bg="var(--c75)" data-min="4.5" data-label="accent on c75"></span><br>
       <span class="cr" data-fg="var(--accent)" data-bg="var(--c100)" data-min="4.5" data-label="accent on c100"></span>
@@ -269,29 +269,29 @@ body.inframe .hide-in-frame{display:none}
   <p class="lede">Green stays the broadcast signal. It only ever appears as a <em>fill, border or dot on a card</em>. Blue only ever appears as <em>text, an underline or an outline on something you can point at</em>. Different hue, different geometry, different place on the page.</p>
   <div class="demo">
     <div class="panel">
-      <p class="plabel">Live — green, on the card</p>
+      <p class="plabel">Live: green, on the card</p>
       <p class="tRdNow">Round of 16</p>
       <div class="tM tLive" style="margin-top:12px"><span class="tT">Sunburst FC</span><span class="tT">Iron Gulls</span></div>
       <div class="pfoot"><span class="cr" data-fg="var(--live-deep)" data-bg="var(--c50)" data-min="3" data-label="live border vs paper"></span><br><span class="cr" data-fg="var(--live-bright)" data-bg="var(--c50)" data-min="3" data-label="live dot vs paper"></span></div>
     </div>
     <div class="panel">
-      <p class="plabel">Interactive — blue, on the text</p>
+      <p class="plabel">Interactive: blue, on the text</p>
       <p class="prose"><a class="plink is-hover" href="#4">A hovered link</a></p>
       <div style="margin-top:12px"><a class="back is-hover" href="#4"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back</a></div>
       <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="accent vs paper"></span><br><span class="cr" data-fg="var(--accent)" data-bg="var(--live-deep)" data-min="3" data-label="blue vs green, direct"></span></div>
     </div>
   </div>
-  <p class="note">The last number is the honest caveat: blue and green are almost the same <em>lightness</em>, so they separate by hue only. Never place them adjacent as two text colours, and never let either state be signalled by colour alone (WCAG 1.4.1) — the live card already carries a dot and a “NOW” label, and the interactive state always carries a hover, an underline or a focus outline.</p>
+  <p class="note">The last number is the honest caveat: blue and green are almost the same <em>lightness</em>, so they separate by hue only. Never place them adjacent as two text colours, and never let either state be signalled by colour alone (WCAG 1.4.1): the live card already carries a dot and a “NOW” label, and the interactive state always carries a hover, an underline or a focus outline.</p>
 </section>
 
 <!-- ============ 5. dark ground ============ -->
 <section class="sec">
   <h2>5 · Dark ground (the Play sky)</h2>
-  <p class="lede">The base blue is a paper colour. On a night sky it collapses. A lighter same-hue variant is required — this is the same move Apple makes going from <code>#007AFF</code> to <code>#0A84FF</code>.</p>
+  <p class="lede">The base blue is a paper colour. On a night sky it collapses. A lighter same-hue variant is required, and this is the same move Apple makes going from <code>#007AFF</code> to <code>#0A84FF</code>.</p>
   <div class="dark-ground">
     <p class="plabel">Dark panel · #0E1626</p>
-    <p style="margin:0 0 10px">The dark-ground variant: <a href="#5">pick a planet</a> — legible.</p>
-    <p style="margin:0 0 16px">The paper variant, misused here: <span class="wrongblue" style="text-decoration:underline;text-underline-offset:3px">pick a planet</span> — do not do this.</p>
+    <p style="margin:0 0 10px">The dark-ground variant: <a href="#5">pick a planet</a>, legible.</p>
+    <p style="margin:0 0 16px">The paper variant, misused here: <span class="wrongblue" style="text-decoration:underline;text-underline-offset:3px">pick a planet</span>. Do not do this.</p>
     <span class="cr" data-fg="var(--accent-dark)" data-bg="#0E1626" data-min="4.5" data-label="dark variant on sky"></span><br>
     <span class="cr" data-fg="var(--accent)" data-bg="#0E1626" data-min="4.5" data-label="base variant on sky"></span>
   </div>
@@ -358,15 +358,15 @@ body.inframe .hide-in-frame{display:none}
   /* ---------- candidate cards ---------- */
   var TEXT=[['var(--c50)','on paper',4.5],['var(--c75)','on c75',4.5],['var(--c100)','on c100',4.5]];
   var CARDS=[
-    {n:'Accent — base',      v:'var(--accent)',      css:'oklch(52% 0.18 262)',      role:'link + back-link hover, active nav, focus ring option', k:TEXT},
-    {n:'Accent — pressed',   v:'var(--accent-press)',css:'oklch(44% 0.16 262)',      role:':active only, and the accent button’s hover', k:TEXT},
-    {n:'Accent — wash',      v:'var(--accent-wash)', css:'oklch(94.7% 0.018 262)',   role:'active-nav pill fill, focus halo. Never text — it is a ground.',
+    {n:'Accent: base',      v:'var(--accent)',      css:'oklch(52% 0.18 262)',      role:'link + back-link hover, active nav, focus ring option', k:TEXT},
+    {n:'Accent: pressed',   v:'var(--accent-press)',css:'oklch(44% 0.16 262)',      role:':active only, and the accent button’s hover', k:TEXT},
+    {n:'Accent: wash',      v:'var(--accent-wash)', css:'oklch(94.7% 0.018 262)',   role:'active-nav pill fill, focus halo. Never text: it is a ground.',
       k:[['var(--c50)','vs paper',3],['var(--c950)','ink on it',4.5],['var(--accent)','accent on it',4.5]]},
-    {n:'Accent — dark ground',v:'var(--accent-dark)',css:'oklch(72% 0.12 262)',      role:'the Play sky only. Never on paper.',
+    {n:'Accent: dark ground',v:'var(--accent-dark)',css:'oklch(72% 0.12 262)',      role:'the Play sky only. Never on paper.',
       k:[['#0E1626','on sky',4.5],['var(--c950)','on ink',4.5],['var(--c50)','on paper',4.5]]},
-    {n:'Live — deep',        v:'var(--live-deep)',   css:'#0E6B3B (today’s --accent)',role:'live-match border + result rail. Stays green; renamed, not reused.',
+    {n:'Live: deep',        v:'var(--live-deep)',   css:'#0E6B3B (today’s --accent)',role:'live-match border + result rail. Stays green; renamed, not reused.',
       k:[['var(--c50)','vs paper',3],['var(--c75)','vs c75',3],['var(--accent)','vs the blue',3]]},
-    {n:'Live — bright',      v:'var(--live-bright)', css:'#17A45A (today’s --accent-live)',role:'live dot + “NOW” round heading.',
+    {n:'Live: bright',      v:'var(--live-bright)', css:'#17A45A (today’s --accent-live)',role:'live dot + “NOW” round heading.',
       k:[['var(--c50)','vs paper',3],['var(--c75)','vs c75',3],['var(--accent)','vs the blue',3]]}
   ];
   var host=document.getElementById('cards-main');
@@ -389,8 +389,8 @@ body.inframe .hide-in-frame{display:none}
     {n:'Ours',                v:'var(--accent)',   note:'proposal'},
     {n:'Apple system blue',   v:'var(--ref-apple)',note:'reference'},
     {n:'Reference-site blue', v:'var(--ref-trung)',note:'reference'},
-    {n:'Live — deep (green)', v:'var(--live-deep)',note:'existing'},
-    {n:'Live — bright (green)',v:'var(--live-bright)',note:'existing'},
+    {n:'Live: deep (green)', v:'var(--live-deep)',note:'existing'},
+    {n:'Live: bright (green)',v:'var(--live-bright)',note:'existing'},
     {n:'Body ink c700',       v:'var(--c700)',     note:'existing'}
   ];
   var tb=document.querySelector('#reftable tbody');

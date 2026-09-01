@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Control system — Jayden Betts</title>
+<title>Control system · Jayden Betts</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="tokens.css?v=57fb92263c">
 <style>
@@ -341,7 +341,7 @@ table{display:block;overflow-x:auto}
 one radius, one curve, three durations. Every number below is resolved live from
 <span class="mono">tokens.css</span> and printed beside the control it applies to.</p>
 <p class="subq">“Buttons and such need a consistent design. Tab buttons, regular buttons,
-markers — they all look different.” · “Spacing has to be premium, and the hover animation
+markers: they all look different.” · “Spacing has to be premium, and the hover animation
 has to feel premium and consistent site-wide.”</p>
 
 <div class="bar">
@@ -355,8 +355,8 @@ has to feel premium and consistent site-wide.”</p>
 <!-- ═══ 1 · THE BASE ═══════════════════════════════════════════════════════ -->
 <h2><span class="num">1</span>The shared base</h2>
 <p class="note">Every control inherits all of this. A <b>kind</b> may vary exactly four
-properties — <code>background</code>, <code>box-shadow</code>, <code>color</code>,
-<code>font-weight</code> — and nothing else. Not height, not padding, not radius, not the
+properties: <code>background</code>, <code>box-shadow</code>, <code>color</code>,
+<code>font-weight</code>. Nothing else. Not height, not padding, not radius, not the
 transition, not the focus ring, not the press. <b>Height is <code>min-height</code>, never
 vertical padding</b>: that one rule collapses eight shipped paddings to two, and it is the
 direct cause of <code>7px 11px</code> in Gradient Lab.</p>
@@ -365,26 +365,26 @@ direct cause of <code>7px 11px</code> in Gradient Lab.</p>
 <!-- ═══ 2 · THE SIX KINDS ══════════════════════════════════════════════════ -->
 <h2><span class="num">2</span>The six kinds, in every state</h2>
 
-<h3>1 · Primary — the one action a view exists for</h3>
+<h3>1 · Primary: the one action a view exists for</h3>
 <p class="note">Filled with <code>--ctl-accent</code>. <b>One per view.</b> Hover deepens the
 ground to <code>--ctl-accent-press</code> (5.59:1 → 7.86:1 white-on-blue). No border: the shipped
 <code>.workCta</code> carries a border the same colour as its own fill.</p>
 <div class="grid" data-kind="ctl--primary" data-label="Get in touch"></div>
 
-<h3>2 · Secondary — a boundary, not a fill</h3>
+<h3>2 · Secondary: a boundary, not a fill</h3>
 <p class="note">A <code>--rim-1</code> inset hairline that becomes <code>--rim-2</code> on hover
 while the ink goes <code>--c700</code> → <code>--c950</code>. Two channels move and neither is a
-background. The rim is a <code>box-shadow</code>, so it is outside layout — which is why every
+background. The rim is a <code>box-shadow</code>, so it is outside layout, which is why every
 Secondary can share one padding.</p>
 <div class="grid" data-kind="ctl--secondary" data-label="See the work"></div>
 
-<h3>3 · Quiet — no ground, no rim, no radius anyone will see</h3>
+<h3>3 · Quiet: no ground, no rim, no radius anyone will see</h3>
 <p class="note">The default and the largest population: 18 of the 40 classes, plus every nav
-item and menu row. There is nothing to declare — <b>Quiet is the base</b>. Hover is ink only.
+item and menu row. There is nothing to declare: <b>Quiet is the base</b>. Hover is ink only.
 This is <span class="mono">header.css:247</span> generalised to the whole site.</p>
 <div class="grid" data-kind="ctl--quiet" data-label="Read the case"></div>
 
-<h3>4 · Tab — a blue underline, never a blue fill</h3>
+<h3>4 · Tab: a blue underline, never a blue fill</h3>
 <p class="note">The underline is a <code>::before</code> bar inset to <code>--ctl-pad</code>, not a
 <code>border-bottom</code>. Measured on <span class="mono">apollo.html</span>: the shipped
 <code>.tvTab.on</code> draws a 2px bottom border on a <code>border-radius:14px</code> box, so the
@@ -392,40 +392,40 @@ This is <span class="mono">header.css:247</span> generalised to the whole site.<
 reflows the row; selection is carried by ink (4.53:1 → 18.42:1) plus the rule.</p>
 <div class="grid" data-kind="ctl--tab" data-label="Overview"></div>
 
-<h3>5 · Chip / marker — usually not a target at all</h3>
+<h3>5 · Chip / marker: usually not a target at all</h3>
 <p class="note">The purest subtraction in the set. <code>.baLabel</code> today is
-<code>1px solid #E6E6E6</code> over <code>background:#FDFDFD</code> on a <code>#FDFDFD</code> page —
-an invisible box inside an invisible border — and its "after" state is a filled black pill. Ink
+<code>1px solid #E6E6E6</code> over <code>background:#FDFDFD</code> on a <code>#FDFDFD</code> page,
+an invisible box inside an invisible border, and its "after" state is a filled black pill. Ink
 and weight say it just as clearly.</p>
 <div class="grid" data-kind="ctl--chip" data-label="After"></div>
 
-<h3>6 · Field — the one kind that should look recessed</h3>
+<h3>6 · Field: the one kind that should look recessed</h3>
 <p class="note">In scope because a <code>select</code> at 28.5px next to a button at 44px is the
 loudest inconsistency in Gradient Lab, and a form row cannot read as one object if its halves
 sit on different ladders.</p>
 <div class="grid" data-kind="ctl--field" data-label="Sunset"></div>
 
 <!-- ═══ 3 · MODIFIERS ══════════════════════════════════════════════════════ -->
-<h2><span class="num">3</span>Modifiers — geometry only, never colour</h2>
+<h2><span class="num">3</span>Modifiers: geometry only, never colour</h2>
 <p class="note">Five, and they compose. A modifier may never touch the four properties a kind
 owns. <b>Turn on “Show hit areas”</b> to see the 36px rung’s <code>::after</code> expansion.</p>
 <div class="grid" id="modGrid"></div>
 
 <h3>The compact rung: three conditions, all of them</h3>
-<p class="note"><b>1 · Container</b> — it sits inside a chrome object that is itself ≥44px.
-<b>2 · Hit area</b> — it carries the <code>::after</code> expansion to 44, applied by the modifier
-so it cannot be forgotten. <b>3 · Spacing</b> — ≥8px between adjacent expanded targets.
+<p class="note"><b>1 · Container</b>: it sits inside a chrome object that is itself ≥44px.
+<b>2 · Hit area</b>: it carries the <code>::after</code> expansion to 44, applied by the modifier
+so it cannot be forgotten. <b>3 · Spacing</b>: ≥8px between adjacent expanded targets.
 Any one failing means 44px. A <code>pointer:coarse</code> query is <i>not</i> the answer: coarse
 pointers need a bigger target, not a bigger ink box, and the <code>::after</code> already gives
 44×44 on every pointer type.</p>
 <table><thead><tr><th>Evidence</th><th>Measured</th><th>Verdict</th></tr></thead><tbody>
 <tr><td class="mono">#moodBtn (index.html)</td><td>36px box, <span class="mono">::after{height:44px}</span></td><td><b>Legitimate.</b> Already the pattern. All three conditions hold.</td></tr>
 <tr><td class="mono">.mhToggle</td><td><span class="mono">min-height:36px</span>, free-standing in a menu</td><td>Condition 1 fails → <b>44px</b>.</td></tr>
-<tr><td class="mono">.miniBtn — 7px 11px</td><td>23.5px tall, neighbours 4–6px away, no expansion</td><td><b>It must grow.</b> 36px + 44 hit area + 8px gaps. <code>7px 11px</code> is the fingerprint of padding to an unnamed height.</td></tr>
+<tr><td class="mono">.miniBtn: 7px 11px</td><td>23.5px tall, neighbours 4–6px away, no expansion</td><td><b>It must grow.</b> 36px + 44 hit area + 8px gaps. <code>7px 11px</code> is the fingerprint of padding to an unnamed height.</td></tr>
 </tbody></table>
 
 <!-- ═══ 4 · MOTION ═════════════════════════════════════════════════════════ -->
-<h2><span class="num">4</span>Motion — three tiers, one curve</h2>
+<h2><span class="num">4</span>Motion: three tiers, one curve</h2>
 <p class="note">Measured across the whole site: <b>511 transition declarations, 30 distinct
 durations, 15 distinct easings</b>. On controls specifically: 171 declarations, 10 durations,
 4 easings. Only two motion tokens are consumed today.</p>
@@ -441,8 +441,8 @@ durations, 15 distinct easings</b>. On controls specifically: 171 declarations, 
 <p class="note"><code>ease-out</code> is <code>cubic-bezier(0,0,.58,1)</code>. The house curve is
 <code>cubic-bezier(.22,1,.36,1)</code>. At a quarter of the way through, the house curve has
 covered <b>77%</b> of the distance and <code>ease-out</code> has covered <b>38%</b>. In the mood
-menu today, <code>.moodItem</code> runs <code>.1s ease-out</code> and <code>.moodGo</code> — the row
-immediately below it — runs <code>160ms cubic-bezier(.22,1,.36,1)</code>. Two adjacent rows of one
+menu today, <code>.moodItem</code> runs <code>.1s ease-out</code> and <code>.moodGo</code>, the row
+immediately below it, runs <code>160ms cubic-bezier(.22,1,.36,1)</code>. Two adjacent rows of one
 menu, two curves, two durations.</p>
 <div id="curveWrap"></div>
 
@@ -450,35 +450,35 @@ menu, two curves, two durations.</p>
 <p class="note">The property set is <b>closed</b>. Five may animate on hover:
 <code>color</code> (all kinds), <code>box-shadow</code> (Secondary, Field),
 <code>background-color</code> (Primary only), <code>text-decoration-color</code>
-(<code>.is-inline</code> only), and <code>transform</code> — <b><code>:active</code> only, never
+(<code>.is-inline</code> only), and <code>transform</code>: <b><code>:active</code> only, never
 <code>:hover</code></b>.</p>
 <table><thead><tr><th>Never on hover</th><th>Why</th><th>Where it ships today</th></tr></thead><tbody>
 <tr><td class="mono">transform</td><td>A lift implies elevation, which breaks the no-shadow rule, and it makes a row jitter as the pointer crosses it.</td><td class="mono">.btn, .miniBtn (translateY)</td></tr>
 <tr><td class="mono">opacity</td><td>Fades the whole object <i>including its label</i>, so the ink gets <b>weaker</b> on hover. Backwards.</td><td class="mono">.abTalk .82 · .hmBtn .86 · .teamStart .9</td></tr>
-<tr><td class="mono">font-weight</td><td>Reflows the label under the pointer. Weight belongs to <b>selection</b>, which does not flicker.</td><td>—</td></tr>
+<tr><td class="mono">font-weight</td><td>Reflows the label under the pointer. Weight belongs to <b>selection</b>, which does not flicker.</td><td>none</td></tr>
 <tr><td class="mono">background-color</td><td>The grey wash. Ink and rim do the work instead.</td><td class="mono">.moodItem #F1F1F1 · .tGo --c75</td></tr>
 </tbody></table>
 <p class="note"><b>The asymmetry.</b> In 160ms, out 240ms. Arriving is user-initiated and should
-feel instant; leaving is often incidental — crossing a row on the way somewhere else — and a
+feel instant; leaving is often incidental, crossing a row on the way somewhere else, and a
 slower release stops a row flickering as the cursor sweeps it. 1.5× is the smallest perceptible
 ratio that does not read as lag. <b>Turn on “Slow motion 8×”</b> and sweep across the row below.</p>
 <div class="stage" style="gap:var(--gap-item)" id="asymRow"></div>
 <p class="hint">Three Quiet controls at <code>--gap-item</code> 8px. In: 160 ms. Out: 240 ms.</p>
 
-<h3>Carve-outs — explicitly not UI motion</h3>
+<h3>Carve-outs: explicitly not UI motion</h3>
 <p class="note"><code>steps(2,end)</code> ×24 and <code>steps(2)</code> ×2 <b>stay verbatim</b>.
 They are the case studies’ two-frame ink cut on the artefact swap (the same language as
 <code>filter:url(#inkSm)</code>) and the companion head’s eye. Character and craft, not chrome.
-All <b>126 <code>animation:</code> declarations across 51 durations</b> — the goal sequence at
-5600ms, the champion reveal, the 22 000ms ambient loop — belong to the game and the hero, and
-forcing them onto a 3-tier UI scale would be a category error. The 500ms content entrances
+All <b>126 <code>animation:</code> declarations across 51 durations</b> belong to the game and
+the hero: the goal sequence at 5600ms, the champion reveal, the 22 000ms ambient loop.
+Forcing them onto a 3-tier UI scale would be a category error. The 500ms content entrances
 (<code>.ch</code>, <code>.csMeta</code>, <code>.reelCap</code>) keep <code>--enter-dur</code>.</p>
 
 <!-- ═══ 5 · SPACING ════════════════════════════════════════════════════════ -->
-<h2><span class="num">5</span>Spacing — the between-control rhythm</h2>
+<h2><span class="num">5</span>Spacing: the between-control rhythm</h2>
 <p class="note">One ladder, three rungs that matter, and <b>the gap between groups is exactly
 2× the gap between items, with no third value</b>. That 2:1 is what lets a bar read as groups
-without a divider — the same argument as the type spec’s 3.8:1 heading ratio, turned sideways.
+without a divider, the same argument as the type spec’s 3.8:1 heading ratio, turned sideways.
 8px is a <b>floor</b>, not a preference: it is the separation two 44px targets need.</p>
 <div class="rhythm" id="rhythmRow"></div>
 <p class="hint">Left group and right group at <code>--gap-item</code> 8px within, <code>--gap-group</code> 16px between.</p>
@@ -487,33 +487,33 @@ without a divider — the same argument as the type spec’s 3.8:1 heading ratio
 <tr><td><b>item</b></td><td class="mono">--gap-item</td><td class="mono">8px</td><td>Two adjacent controls in a group. Also the 44px-target minimum.</td></tr>
 <tr><td><b>group</b></td><td class="mono">--gap-group</td><td class="mono">16px</td><td>Two groups in one row. Exactly 2 × item.</td></tr>
 <tr><td><b>band</b></td><td class="mono">--gap-band</td><td class="mono">24px</td><td>A control row and the content above or below it.</td></tr>
-<tr><td>menu rows</td><td>—</td><td class="mono">0</td><td>Their 44px height is the separation. A gap makes a menu read as a list of buttons.</td></tr>
+<tr><td>menu rows</td><td>none</td><td class="mono">0</td><td>Their 44px height is the separation. A gap makes a menu read as a list of buttons.</td></tr>
 </tbody></table>
 <p class="note"><b>Measured violations to fix in the same pass:</b>
-<span class="mono">header.css:396–397</span> drops the nav gap to <code>--sp-4</code> at ≤640px —
+<span class="mono">header.css:396–397</span> drops the nav gap to <code>--sp-4</code> at ≤640px:
 two 44px targets 4px apart. <span class="mono">.playerBar{gap:16px}</span> uses group spacing
 between items. Gradient Lab’s panel rows sit 4–6px apart.</p>
 
 <!-- ═══ 6 · COMPOSITIONS ═══════════════════════════════════════════════════ -->
-<h2><span class="num">6</span>Compositions — built from the kinds, not new kinds</h2>
+<h2><span class="num">6</span>Compositions: built from the kinds, not new kinds</h2>
 
-<h3>The split control — a destination that also discloses</h3>
+<h3>The split control: a destination that also discloses</h3>
 <p class="note"><b>One element, not two.</b> A link plus a caret button is two hit areas, two
 focus stops and two hover states, and it reads as glued rather than made. The caret is an
-11px <code>--ico-xs</code> glyph inside the same anchor — one rung below the leading icon’s 18px,
+11px <code>--ico-xs</code> glyph inside the same anchor, one rung below the leading icon’s 18px,
 because a control with an 18px head and an 18px tail has no direction. Gap to the caret is 6px,
 not 8: the caret belongs to the <i>label</i>. Rotation is 160ms <code>--ease-out</code>,
-deliberately <b>not</b> a spring — an overshoot on an 11px glyph is a twitch, not weight.
+deliberately <b>not</b> a spring: an overshoot on an 11px glyph is a twitch, not weight.
 Open state takes the hover ink and <b>no fill</b>: open ≠ selected, and the menu is its own
 indicator.</p>
 <div class="stage" style="gap:var(--gap-item);align-items:flex-start;flex-direction:column" id="splitStage"></div>
 <p class="hint">Click to toggle. Hover-intent in <code>--dur-intent</code> 120 ms; close after <code>--dur-state-out</code> 240 ms.</p>
 
 <h3>The travelling active indicator</h3>
-<p class="note">One shared element per row. <b><code>transform</code> only</b> — never
+<p class="note">One shared element per row. <b><code>transform</code> only</b>, never
 <code>left</code>/<code>width</code>, which re-solve layout on every frame of a 360ms move. Curve
 is <code>--sp-settle</code>, the one place a spring belongs on chrome: the indicator is an object
-with position and it should arrive rather than stop. It is <b>never the only signal</b> — the ink
+with position and it should arrive rather than stop. It is <b>never the only signal</b>: the ink
 still goes <code>--c500</code> → <code>--c950</code> instantly, because mid-flight the bar marks
 neither tab.</p>
 <div class="ctl-tabrow has-indicator" id="indRow" role="tablist">
@@ -523,10 +523,10 @@ neither tab.</p>
 
 <h3>Menu rows and nav items are the same control</h3>
 <p class="note">Same kind, same ink ramp, same 44px target, same focus ring, same 160/240ms
-hover — which is what <i>“in the same style and design system”</i> means, and it costs nothing
+hover, which is what <i>“in the same style and design system”</i> means, and it costs nothing
 because they were already the same control. <b>Exactly three permitted differences:</b>
 alignment (a menu is a vertical list; a bar is a horizontal row), width (100%), and icon size
-below 640px — the bar drops to 15px because it runs out of horizontal room, and <b>a menu does
+below 640px: the bar drops to 15px because it runs out of horizontal room, and <b>a menu does
 not</b>, because shrinking a menu’s icons makes it look like a different component from the bar
 that opened it. Desktop icon size is <code>--ico-md</code> 18px in both, which is already true
 today. Rows stack at <code>gap:0</code>.</p>
@@ -535,13 +535,13 @@ today. Rows stack at <code>gap:0</code>.</p>
   <p class="frameCap">The menu surface is the <b>one</b> place a shadow is permitted:
   <code>--rim-2</code> + <code>--sh-2</code>. The no-shadow rule governs <i>resting</i> chrome;
   the tokens spec §4.2 sanctions <code>--sh-2</code> for “a surface genuinely floating over
-  content — an open menu, a tooltip.” Rows take <code>--r-md</code> 14px:
+  content: an open menu, a tooltip.” Rows take <code>--r-md</code> 14px:
   <code>--r-lg</code> 20 minus the <code>--sp-8</code> inset, per the concentric rule.</p>
 </div>
 
 <!-- ═══ 7 · SURFACES ═══════════════════════════════════════════════════════ -->
 <h2><span class="num">7</span>The dark ground and the floating control</h2>
-<p class="note">Five custom properties, no second component, no second layout —
+<p class="note">Five custom properties, no second component, no second layout:
 <code>[data-surface="ink"]</code> swaps the ink ramp, the rim and the focus ring. A Secondary
 that floats over arbitrary content adds <code>background:--mat-3-solid</code>, which is a
 <i>material</i>, not a fill: the one permitted addition in the system.</p>
@@ -577,13 +577,13 @@ that floats over arbitrary content adds <code>background:--mat-3-solid</code>, w
 
 <!-- ═══ 9 · MOBILE ═════════════════════════════════════════════════════════ -->
 <h2><span class="num">9</span>390px</h2>
-<p class="note">A real 390px viewport in an iframe — headless Chrome clamps the window to 500px
+<p class="note">A real 390px viewport in an iframe: headless Chrome clamps the window to 500px
 minimum, so this is the only honest way to see it. Nothing about the system changes at this
 width except that a control row wraps and the compact rung’s hit area starts doing visible work.</p>
 <div class="frameWrap">
   <iframe class="phone" src="button-system.html?embed=1" title="Control system at 390px"></iframe>
   <p class="frameCap">Every control keeps its 44px target. The 36px rung keeps its ink box and
-  its 44px <code>::after</code>. Between-control spacing stays at the 8px floor — it is the one
+  its 44px <code>::after</code>. Between-control spacing stays at the 8px floor: it is the one
   number that must not shrink with the viewport.</p>
 </div>
 
@@ -635,7 +635,7 @@ function readCtl(el){
     ink   : c.color,
     fw    : c.fontWeight,
     fs    : c.fontSize,
-    gap   : c.gap === 'normal' ? '—' : c.gap,
+    gap   : c.gap === 'normal' ? 'none' : c.gap,
     ico   : c.getPropertyValue('--ico-md').trim() || tok('--ico-md'),
     dur   : c.transitionDuration,
     ease  : c.transitionTimingFunction
@@ -675,7 +675,7 @@ function mk(kind, label, opt){
 /* ── §2 the state grids ───────────────────────────────────────────────────── */
 var STATES = [
   { key:'rest',     hd:'Rest' },
-  { key:'hover',    hd:'Hover — 160 ms in' },
+  { key:'hover',    hd:'Hover: 160 ms in' },
   { key:'selected', hd:'Active / selected' },
   { key:'focus',    hd:'Focus-visible' },
   { key:'disabled', hd:'Disabled' }
@@ -736,18 +736,18 @@ document.querySelectorAll('.grid[data-kind]').forEach(function(g){
 });
 /* ── §1 the base table ────────────────────────────────────────────────────── */
 var BASE = [
-  ['min-height',          '--ctl-h',        tok('--ctl-h'),        '20 · 22 · 32 · 36 · 38 · 40 · 44 · 46 — 8 heights on one page'],
+  ['min-height',          '--ctl-h',        tok('--ctl-h'),        '20 · 22 · 32 · 36 · 38 · 40 · 44 · 46, 8 heights on one page'],
   ['min-height, compact', '--ctl-h-sm',     tok('--ctl-h-sm'),     'unset, or 36, or 42, or 23.5'],
   ['padding-inline',      '--ctl-pad',      tok('--ctl-pad'),      '8 16 · 8 24 · 16 20 · 8 12 · 12 16 · 8 8 · 7 11 · 0'],
-  ['padding-block',       '—',              '0',                   'the height was made of padding — that is the whole bug'],
+  ['padding-block',       'none',           '0',                   'the height was made of padding: that is the whole bug'],
   ['border-radius',       '--ctl-r',        tok('--ctl-r'),        '100px · 4px · 50% · --r-md · --r-xs · --r-2xs · 0 · unset'],
-  ['border',              '—',              '0 (rim is a box-shadow)', '1px --accent · 1px rgba(8,8,8,.16) · 1px --c100 · 0 · unset'],
+  ['border',              'none',           '0 (rim is a box-shadow)', '1px --accent · 1px rgba(8,8,8,.16) · 1px --c100 · 0 · unset'],
   ['icon ⇄ label',        '--ctl-gap',      tok('--ctl-gap'),      '4 · 6 · 8 · 10 · 12 · .45em'],
   ['icon size',           '--ico-md',       tok('--ico-md'),       '11 · 12 · 13 · 15 · 16 · 18'],
   ['font-size',           '--ctl-fs',       tok('--ctl-fs'),       '11 · 12 · 13 · 14 · 15 · 16 · 17 · 19.2'],
   ['ink, rest',           '--ctl-ink',      tok('--ctl-ink'),      '--c500 · --c700 · --c950 · inherit'],
   ['ink, hover',          '--ctl-ink-strong', tok('--ctl-ink-strong'), '--c950, or --accent, or a grey wash'],
-  ['focus ring',          '--focus-w' + ' / --ctl-ink-strong', tok('--focus-w') + ' solid ' + tok('--ctl-ink-strong'), '2px --c950 · 2px --accent · 2px --nav-accent — 3 colours'],
+  ['focus ring',          '--focus-w' + ' / --ctl-ink-strong', tok('--focus-w') + ' solid ' + tok('--ctl-ink-strong'), '2px --c950 · 2px --accent · 2px --nav-accent, 3 colours'],
   ['press',               '--press-scale',  'scale(' + tok('--press-scale') + ')', 'scale(.97) · translateY(1px) · nothing'],
   ['duration, in',        '--dur-state',    tok('--dur-state'),    '.1 · .12 · .14 · .15 · .16 · .18 · .2 · .25 · .3 · .5s'],
   ['duration, out',       '--dur-state-out', tok('--dur-state-out'), 'always identical to the in-duration'],
@@ -765,8 +765,8 @@ BASE.forEach(function(r){
 
 /* ── §3 modifiers ─────────────────────────────────────────────────────────── */
 var MODS = [
-  ['Default — 44px', 'ctl--secondary', {}, 'the base. Free-standing in content is never compact.'],
-  ['.is-sm — 36px',  'ctl--secondary', {mods:'is-sm'}, '36px ink box, 44px ::after. All three conditions must hold.'],
+  ['Default: 44px',  'ctl--secondary', {}, 'the base. Free-standing in content is never compact.'],
+  ['.is-sm: 36px',   'ctl--secondary', {mods:'is-sm'}, '36px ink box, 44px ::after. All three conditions must hold.'],
   ['.is-icon',       'ctl--secondary', {mods:'is-icon', iconOnly:true, lead:'up'}, '44 × 44 square. No circles: radius is a function of the box.'],
   ['.is-sm.is-icon', 'ctl--secondary', {mods:'is-sm is-icon', iconOnly:true, lead:'close'}, '36 × 36 ink, 44 × 44 target on both axes.'],
   ['.is-block',      'ctl--primary',   {mods:'is-block', lead:'play'}, 'full width. .teamStart is 41px today.'],
@@ -878,11 +878,11 @@ rr.appendChild(g1); rr.appendChild(sp); rr.appendChild(g2); rr.appendChild(sp2);
   var cc = cr ? getComputedStyle(cr) : null;
   v.innerHTML = '<b>control</b>   ' + c.minHeight + ' · pad ' + c.paddingLeft + ' / ' + c.paddingRight +
     '\n<b>lead icon</b> ' + getComputedStyle(btn.querySelector('.gIco')).width +
-    '   <b>caret</b> ' + (cc ? cc.width : '—') + '  (one rung down)' +
+    '   <b>caret</b> ' + (cc ? cc.width : 'none') + '  (one rung down)' +
     '\n<b>caret gap</b> ' + tok('--ctl-gap-sm') + '   (label gap ' + tok('--ctl-gap') + ')' +
-    '\n<b>rotate</b>    180° · ' + tok('--dur-state') + ' ease-out — not a spring' +
+    '\n<b>rotate</b>    180° · ' + tok('--dur-state') + ' ease-out, not a spring' +
     '\n<b>intent</b>    open ' + tok('--dur-intent') + ' · close ' + tok('--dur-state-out') +
-    '\n<b>open ink</b>  ' + tok('--ctl-ink-strong') + ' — no fill. open ≠ selected.';
+    '\n<b>open ink</b>  ' + tok('--ctl-ink-strong') + ': no fill. open ≠ selected.';
 })();
 
 /* ── §6.2 travelling indicator ────────────────────────────────────────────── */
@@ -932,7 +932,7 @@ rr.appendChild(g1); rr.appendChild(sp); rr.appendChild(g2); rr.appendChild(sp2);
   var c = mk('ctl--chip','Live',{mods:'is-onmedia'}); c.disabled = false; c.setAttribute('aria-disabled','false');
   document.getElementById('chipStage').appendChild(c);
   document.getElementById('inkVals').innerHTML  = fmt(readCtl(a)) + '\n<b>rim</b>    --rim-i1 → --rim-i2\n<b>ring</b>   --c50';
-  document.getElementById('medVals').innerHTML  = fmt(readCtl(b)) + '\n<b>ground</b> --mat-3-solid — a MATERIAL, not a fill';
+  document.getElementById('medVals').innerHTML  = fmt(readCtl(b)) + '\n<b>ground</b> --mat-3-solid, a MATERIAL, not a fill';
   document.getElementById('chipVals').innerHTML = fmt(readCtl(c)) + '\n<b>track</b>  --tr-caps .045em on 12px uppercase';
 })();
 
