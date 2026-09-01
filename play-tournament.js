@@ -2942,7 +2942,9 @@ function buildDraft(into){
      what the league's hardcoded four did when the field went eight to twelve, and it hid
      half a table silently. */
   list.style.setProperty('--tvDraftRows', String(Math.ceil(rows.length / 2)));
-  var anyDrawn = false, anyRace = false,
+  /* anyDrawn/anyRace went with the label they fed; the legend they drove was
+     removed in August and the row word in September. */
+  var
       racePart = !!(T.race && T.race.mode === 'partial');
   rows.forEach(function(row){
     var tm = teamById(row.id);
@@ -2988,25 +2990,22 @@ function buildDraft(into){
        symbol that is not on the screen is worse than no legend: it makes a
        reader look for something that is not there. Counted, not inferred. */
     var unearned = row.tiedFromDraw || (racePart && row.fromTail);
-    if (row.tiedFromDraw) anyDrawn = true;
-    if (racePart && row.fromTail) anyRace = true;
-    /* ── THE ROW SAYS IT, INSTEAD OF A DOT AND A LEGEND.  2026-08-27 ───────
-       This printed a bare "\u00b7" whose only explanation was a tooltip, and a
-       key line under the table decoding it. That pairing is what he called
-       clutter -- and it was the WORSE half of the trade, because the dot is
-       meaningless on sight while the key cost the pane the room it needed for
-       twelve rows (the note below this function records the over-run, and his
-       screenshot shows DRAFT ORDER printing over row 1 because of it).
-       A word in the row costs the same space as the dot and needs no legend
-       at all: "Draw" for a position separated by the draw, "Race" for one
-       ranked by distance because the race did not reach the line. The title
-       stays for the full sentence. */
+    /* ── THE WORD COMES OFF THE ROW.  2026-09-01 ────────────────────────────
+       "there is a thing at the end when showing the order and it says draw could
+       we remove that feature idk why it says draw."
+       It replaced a dot-and-legend in August for exactly this reason -- he called
+       that clutter -- and the word turned out to read as clutter too. A label a
+       reader has to ask about is not doing its job.
+       THE FACT IS NOT DELETED, ONLY THE PRINTING OF IT. A drawn position was not
+       won on the pitch, and a board that silently shows it as earned is less
+       honest than one that does not raise it, so the sentence moves to the ROW's
+       own title, where it costs no space and still answers anyone who looks.
+       tiedFromDraw and fromTail are untouched upstream, so the distinction is
+       still computed and can be printed again by restoring three lines. */
     if (unearned){
-      var d = el('span', 'tvDraftTie', row.tiedFromDraw ? 'Draw' : 'Race');
-      d.setAttribute('title', row.tiedFromDraw
-        ? 'Level on goal difference and goals -- separated by the draw'
-        : 'The qualifying race did not reach the line -- ranked by how far this head got');
-      li.appendChild(d); }
+      li.setAttribute('title', row.tiedFromDraw
+        ? 'Level on goal difference and goals, separated by the draw'
+        : 'The qualifying race did not reach the line, ranked by how far this head got'); }
     list.appendChild(li);
   });
   into.appendChild(list);

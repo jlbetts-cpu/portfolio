@@ -353,11 +353,6 @@ body.hmYowCup .tvDraftOut{
 body.hmYowCup .tvDraftRow:first-child .tvNm{font-weight:600}
 /* Where a seat was not settled on the pitch, the row says so in the row --
    there is no legend under the table and there is not going to be one. */
-body.hmYowCup .tvDraftTie{
-  margin-inline-start:auto;margin-inline-end:0;
-  font-size:var(--fs-caption);letter-spacing:var(--tr-caps);text-transform:uppercase;
-  color:var(--theme-muted,var(--c500));
-}
 /* The running order shares the board's shape; only its two states differ. */
 body.hmYowCup .tvOrder .tvChipC{flex:0 0 var(--sp-2);width:var(--sp-2)}
 body.hmYowCup .tvOrder .tvMoving .tvNm{color:var(--theme-muted,var(--c500))}
