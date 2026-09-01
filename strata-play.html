@@ -471,8 +471,10 @@
     any earlier declaration -- the heading sat hard against the viewport edge at 0.
     CLAUDE.md names this exact trap. The numbers are strata.html's .wrap: 1280 and
     40/24/16, so the two Strata pages share one column. */
+ /* The top pad is the small rung, not the big one: with no copy above it the screen is
+    the first thing on the page and a 64px gap under the bar is just a hole. */
  .spMain{position:relative;z-index:1;width:100%;box-sizing:border-box;
-  padding:var(--sp-32-64) 40px var(--sp-56-96)}
+  padding:var(--sp-24-32) 40px var(--sp-56-96)}
  .spIn{width:100%;max-width:1280px;margin:0 auto}
  @media(max-width:880px){.spMain{padding-inline:24px}}
  @media(max-width:560px){.spMain{padding-inline:16px}}
@@ -486,11 +488,48 @@
   font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
   color:var(--theme-muted);max-width:60ch}
  .spLink{color:var(--theme-ink);text-underline-offset:.22em}
+ /* ══ THE TOWER ═════════════════════════════════════════════════════════════════════
+    A stack, so it is a list that reads bottom-up: the oldest win is the foundation and
+    the newest sits on top, which is the whole metaphor. column-reverse does that with
+    the DOM still in date order, so a screen reader gets oldest-to-newest as written and
+    nothing depends on the visual order.
+    THE COLOUR IS THE AREA'S OWN, read from Workspace's `areas` store -- the same hex the
+    app tints that area with. Nothing new is invented here; if an area has no colour the
+    block falls back to the page's ink at a low alpha.
+    NO SHADOW: these are chrome, and the heads cast the only shadow on this site. The
+    blocks separate from the page with their own fill and from each other with a gap. */
+ /* THE TOWER SITS UNDER THE SCREEN, not beside it, and carries no heading -- one muted
+    line under the blocks says what they are and nothing else does. */
+ .spTower{margin:var(--sp-40) auto 0;max-width:420px;width:100%}
+ .spTowerNote{margin:var(--sp-12) 0 0;font-family:var(--sans);font-weight:400;
+  font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
+  color:var(--theme-muted);text-align:center}
+ .spBlocks{display:flex;flex-direction:column-reverse;gap:var(--sp-4);
+  margin:0;padding:0;list-style:none}
+ .spBlock{display:flex;align-items:center;gap:var(--sp-8);box-sizing:border-box;
+  min-height:var(--tap-min);padding:var(--sp-8) var(--sp-14);
+  border-radius:var(--r-md);corner-shape:var(--corner);
+  background:var(--blk,rgba(9,11,36,.10));
+  font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
+  line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-ink)}
+ .spBlockEmoji{flex:0 0 auto;font-size:1.15em;line-height:1}
+ .spBlockName{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .spBlockDate{flex:0 0 auto;color:var(--theme-muted);font-variant-numeric:tabular-nums}
+ /* The demo stack says so, rather than dressing invented data as his. */
+ .spTower[data-source="demo"] .spBlock{opacity:.92}
+ @media(max-width:880px){.spTower{max-width:none}}
+
  .spStage{display:flex;justify-content:center}
- .spPhone{position:relative;aspect-ratio:9/19.5;
-  /* Whichever binds first: the viewport's height minus the bar and this page's padding,
-     or the column. min() rather than a media query -- the content decides. */
-  height:min(72vh, 780px);max-width:100%;
+ /* THE SCREEN IS THE PAGE, so it takes the height and the aspect is the app's own --
+    390/844, the same ratio strata.html gives it, not a rounded 9/19.5.
+    IT WAS TOO SMALL AND THE CAUSE WAS THE DRIVER. At 72vh this computed 299x648, which is
+    smaller than the 380x822 the CASE STUDY shows -- a page dedicated to the app was
+    giving it less room than a figure inside an article. 88vh with a 940 ceiling puts it
+    at 792x366 on a 900-tall window and 940x434 on a tall one, and it never needs the page
+    to scroll to see the whole screen. max-width keeps it inside a narrow window, where
+    width binds first. */
+ .spPhone{position:relative;aspect-ratio:390/844;
+  height:min(92vh, 980px);width:auto;max-width:94vw;
   border-radius:var(--r-xl);corner-shape:var(--corner);overflow:hidden;
   background:var(--c75);box-shadow:var(--rim-1)}
  .spFrame{display:block;width:100%;height:100%;border:0}
@@ -500,11 +539,15 @@
     container and spans the whole phone, which reads as a banner rather than a button. */
  .spPlay{flex:0 0 auto;align-self:center}
  .spPoster[hidden]{display:none}
- /* On a phone the app is phone-shaped and the viewport is too, so height still binds --
-    at 844 this is a 726px frame rather than an 845px one that would push the page. */
+ /* On a phone the viewport is the same shape as the app, so width binds first and the
+    height cap simply stops it running under the fold. */
  @media(max-width:560px){
-  .spPhone{height:min(78vh, 720px)}
+  .spPhone{height:min(82vh, 760px)}
  }
+ /* A heading the outline needs and the page does not show. Not display:none -- that takes
+    it out of the accessibility tree, which is the whole reason it is here. */
+ .spA11y{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap;border:0}
 </style>
 </head>
 <body data-theme-page="strata-play">
@@ -636,9 +679,12 @@
       poster is pressed, the same handshake strata.html uses, so a third-party app does
       not start executing (or playing sound) because somebody opened a page. -->
  <div class="spIn">
-  <p class="spEyebrow">Strata</p>
-  <h1 class="spHead">A habit builder where the days you finish stack into a tower.</h1>
-  <p class="spNote">Stack a block, hear it land, add a photo. Everything here works. <a class="spLink" href="strata.html">Read the case study</a>.</p>
+  <!-- NO COPY. "there is no need for extra text on the strata page." An eyebrow, a
+       headline and a sentence stood here; the page is the app, and the case study next
+       door is where the words belong. What survives is a <h1> for the document outline,
+       visually hidden -- a page with no heading is a real accessibility defect, not a
+       tidier page. -->
+  <h1 class="spA11y">Play Strata</h1>
 
   <div class="spStage">
    <div class="spPhone" id="spPhone">
@@ -651,8 +697,155 @@
     </div>
    </div>
   </div>
+
+  <!-- ══ THE TOWER, WIRED TO WORKSPACE ═══════════════════════════════════════════════
+       2026-09-01: "in workspace i am setting my wins I think it would be neat if they
+       were connected like marking a win in workspace will place a block in strata."
+       IT WORKS BECAUSE OF ONE FACT: /workspace/ and this page are the SAME ORIGIN, so
+       this page can open Workspace's own IndexedDB (`lifeline`) and read its habitLog
+       directly. No API, no export, no copy of the data -- it reads the real store the
+       app writes when a habit is ticked. Verified by writing from a page under
+       /workspace/ and reading it back from here.
+       WHAT IT CANNOT DO, and why the tower is here rather than inside the app below:
+       the Strata build is hosted on stratahabit.lovable.app, a DIFFERENT origin, so
+       nothing on this site can put a block into it. Reaching that one would need a
+       message listener added inside the Lovable project. This tower is his own code and
+       needs nobody's cooperation.
+       READ-ONLY, ALWAYS. It opens the database without a version number, so it can
+       never trigger an upgrade, and it only ever runs getAll() inside a readonly
+       transaction. It must not be the reason a habit log changes. -->
+  <section class="spTower" id="spTower" aria-labelledby="spTowerHead" hidden>
+   <h2 class="spA11y" id="spTowerHead">Wins from Workspace</h2>
+   <ol class="spBlocks" id="spBlocks"></ol>
+   <p class="spTowerNote" id="spTowerNote"></p>
+  </section>
+
  </div>
 </main>
+
+<script>
+/* ══ WORKSPACE'S WINS, STACKED ═══════════════════════════════════════════════════════
+   Reads /workspace/'s own IndexedDB. Same origin, so no API and no copy of the data --
+   this is the store the app writes when a habit is ticked.
+
+   IT NEVER WRITES, AND IT CANNOT UPGRADE. indexedDB.open() is called WITHOUT a version,
+   which means it opens whatever version exists and never fires onupgradeneeded; every
+   read is a readonly transaction. His habit log must not change because he looked at a
+   tower. If the database is not there -- a visitor who has never opened Workspace -- the
+   open succeeds with no object stores and the demo stack renders instead.
+
+   ES5 THROUGHOUT, like every other script on this site. No arrow functions, no const.
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+(function(){
+ "use strict";
+ var DB="lifeline";
+ var tower=document.getElementById("spTower");
+ var list=document.getElementById("spBlocks");
+ var note=document.getElementById("spTowerNote");
+ if(!tower||!list||!note)return;
+
+ /* One demo day per colour, so a visitor who has never opened Workspace still sees what
+    the thing IS. Labelled as a sample in the caption -- invented data dressed as his
+    would be the one thing a portfolio cannot afford. */
+ var DEMO=[
+  {name:"Morning walk",emoji:"\uD83D\uDEB6",colour:"#60a8e2",date:"Mon"},
+  {name:"Read 20 pages",emoji:"\uD83D\uDCD6",colour:"#c489ff",date:"Mon"},
+  {name:"Write 500 words",emoji:"\u270D\uFE0F",colour:"#ff90b9",date:"Tue"},
+  {name:"Deep work",emoji:"\uD83C\uDFAF",colour:"#486ffd",date:"Tue"},
+  {name:"Gym",emoji:"\uD83C\uDFCB\uFE0F",colour:"#64a5dd",date:"Wed"},
+  {name:"Cook dinner",emoji:"\uD83E\uDD58",colour:"#cb83ff",date:"Wed"}
+ ];
+
+ function esc(v){return String(v==null?"":v);}
+
+ function shortDate(iso){
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||""));
+  if(!m)return esc(iso);
+  var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return parseInt(m[3],10)+" "+MON[parseInt(m[2],10)-1];
+ }
+
+ function block(item){
+  var li=document.createElement("li");
+  li.className="spBlock";
+  if(item.colour)li.style.setProperty("--blk",tint(item.colour));
+  var e=document.createElement("span");
+  e.className="spBlockEmoji";e.setAttribute("aria-hidden","true");
+  e.textContent=item.emoji||"\u25A0";
+  var n=document.createElement("span");
+  n.className="spBlockName";n.textContent=esc(item.name);
+  var d=document.createElement("span");
+  d.className="spBlockDate";d.textContent=esc(item.date);
+  li.appendChild(e);li.appendChild(n);li.appendChild(d);
+  return li;
+ }
+
+ /* The area's hex at a low alpha, so a block sits ON the page rather than shouting off
+    it, and so ink stays legible on every one of the twelve hues. */
+ function tint(hex){
+  var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||""));
+  if(!m)return "rgba(9,11,36,.10)";
+  var n=parseInt(m[1],16);
+  return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+",.22)";
+ }
+
+ function render(items,source){
+  list.textContent="";
+  for(var i=0;i<items.length;i++)list.appendChild(block(items[i]));
+  tower.setAttribute("data-source",source);
+  note.textContent = source==="real"
+   ? items.length+(items.length===1?" win":" wins")+" ticked in Workspace. Tick another and it lands here."
+   : "A sample stack. Tick a habit in Workspace and your own wins take its place.";
+  tower.hidden=false;
+ }
+
+ function readAll(db,store){
+  return new Promise(function(res){
+   if(!db.objectStoreNames.contains(store))return res([]);
+   try{
+    var q=db.transaction(store,"readonly").objectStore(store).getAll();
+    q.onsuccess=function(){res(q.result||[]);};
+    q.onerror=function(){res([]);};
+   }catch(e){res([]);}
+  });
+ }
+
+ function load(){
+  if(!window.indexedDB||!window.Promise)return render(DEMO,"demo");
+  var req;
+  try{req=indexedDB.open(DB);}catch(e){return render(DEMO,"demo");}
+  req.onerror=function(){render(DEMO,"demo");};
+  req.onsuccess=function(ev){
+   var db=ev.target.result;
+   Promise.all([readAll(db,"habitLog"),readAll(db,"habits"),readAll(db,"areas")])
+    .then(function(r){
+     var log=r[0],habits=r[1],areas=r[2];
+     var byId={},colourOf={},i;
+     for(i=0;i<areas.length;i++)colourOf[areas[i].id]=areas[i].colour;
+     for(i=0;i<habits.length;i++)byId[habits[i].id]=habits[i];
+     var done=[];
+     for(i=0;i<log.length;i++){
+      var row=log[i];
+      if(!row||row.done!==true)continue;
+      var h=byId[row.habitId]||{};
+      done.push({name:h.name||row.habitId||"A win",
+                 emoji:h.emoji||"",
+                 colour:colourOf[h.areaId]||"",
+                 date:shortDate(row.date),
+                 sort:String(row.date||"")+"|"+String(row.habitId||"")});
+     }
+     done.sort(function(a,b){return a.sort<b.sort?-1:a.sort>b.sort?1:0;});
+     /* NEWEST ON TOP, and the column is reversed in CSS, so the last 40 in date order
+        are the ones the tower shows -- an older win does not push a newer one off. */
+     if(done.length>40)done=done.slice(done.length-40);
+     try{db.close();}catch(e2){}
+     render(done.length?done:DEMO,done.length?"real":"demo");
+    })["catch"](function(){render(DEMO,"demo");});
+  };
+ }
+ load();
+}());
+</script>
 
 <script>
 (function(){
