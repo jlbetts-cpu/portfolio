@@ -821,8 +821,14 @@
    links after every case study's inline block (verified on all six: inline at
    line 53, controls.css at 997-1026), so it wins a tie the same way the rest
    of the library does, and one fix covers every page that has ever carried the
-   component -- including the five that were shipping it broken and unused. */
-.sbNav svg{width:14px;height:14px}
+   component -- including the five that were shipping it broken and unused.
+
+   --sp-14 rather than 14px, even though `.sbMore svg` beside it in the pages'
+   inline blocks writes the raw value: shared-surfaces-contract forbids a raw
+   length in this file, and it is right to -- "the page may place a primitive
+   but may not redraw it". The inline copies predate that rule and live in a
+   file it does not police; this one lives in the library and does. */
+.sbNav svg{width:var(--sp-14);height:var(--sp-14)}
 .playerBar{gap:0}
 .scene-swap-target{
  display:block;contain:layout paint;transition:filter var(--scene-cut-duration) var(--scene-cut-ease),
