@@ -1368,10 +1368,14 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .baCol.isAfter .baNote{color:var(--c950);font-weight:400}
 .baGo{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:var(--r-full);background:var(--c50);box-shadow:var(--rim-1);display:grid;place-items:center;color:var(--c700);z-index:2}
 .baGo svg{width:16px;height:16px}
-/* The goal is 240x618 and captured at 2x, so 240 CSS px is its own size. Poured
-   into a 568px column it would be a 2.4x upscale of a drawing whose whole point
-   is the width of a post against the width of the pad inside it. */
-.baGrid--posts{grid-template-columns:repeat(2,minmax(0,240px));justify-content:center}
+/* .baGrid--posts IS GONE WITH THE PAIR IT SIZED. It capped the goal plates at their
+   own 240px capture width; there is one before/after left on this page and it is the
+   score bar, which is .baGrid--stacked and sets its own cap. Deleted rather than left
+   unused: a modifier with no element is a rule nobody can prove is right.
+   .baGo AND .baGrid'S TWO-COLUMN DEFAULT STAY, dormant, and that is a different case:
+   they are the shared two-up pattern this page inherited from apollo.html rather than
+   anything the goal plates owned, and they are what a second side-by-side pair here
+   would land in. The 240px cap was only ever right for one picture. */
 /* The score bar is 1270x160 -- 7.9:1 -- and captured at 2x. Side by side it is unreadable at any width, so this pair is ONE
    column at every width. It is capped at its capture size rather than stretched
    to the 1200px measure: at 1200 it is a 1.89x upsample and the 12px type it
@@ -1381,7 +1385,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .baGrid--stacked .wide{max-width:640px}
 @media(max-width:880px){
  .baGrid{grid-template-columns:minmax(0,1fr);row-gap:var(--sp-24-32)}
- .baGrid--posts{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-16)}
  .baGo{display:none}
 }
 
@@ -1681,23 +1684,22 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <h2 class="secHead">I argued for the wrong version, and the measurement won.</h2>
     <p class="secBody">Balls were passing through the goal without scoring. Real football has no ceiling over the uprights, so I removed ours. It fixed the complaint outright.</p>
     <p class="secBody">It also awarded <strong>more than a quarter of goals with the ball in open sky above the posts</strong>, a picture that no longer matched its own rule. The version that shipped is narrower, and no goal lands above the posts now.</p>
-    <div class="baStack">
-     <div class="baBlock">
-      <div class="baGrid baGrid--posts">
-       <div class="baCol">
-        <span class="baLabel">Before</span>
-        <figure class="wide"><img src="images/cs/yowmings/posts-before.webp" width="240" height="618" alt="The goal before: short yellow uprights on a crossbar that runs past the right upright, standing on a red pad much wider than the post it wraps." loading="lazy" decoding="async" draggable="false"></figure>
-        <span class="baNote">The pad is wider than the post inside it and the crossbar overshoots the upright.</span>
-       </div>
-       <div class="baCol isAfter">
-        <span class="baLabel">After</span>
-        <figure class="wide"><img src="images/cs/yowmings/posts-after.webp" width="240" height="618" alt="The goal after: taller uprights, a crossbar that ends where they stand, and a green pad the same width as the post." loading="lazy" decoding="async" draggable="false"></figure>
-        <span class="baNote">The pad is the post&rsquo;s own width, the bar ends where the uprights stand, and the uprights are taller.</span>
-       </div>
-      <span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span>
-      </div>
-     </div>
-    </div>
+    <!-- ═══ THE GOALPOST BEFORE/AFTER IS CUT, AND THE SECTION IS NOT ═════════════════
+         Jayden, 2026-09-01: cut the pair, keep the section.
+         IT WAS NOT A BEFORE AND AFTER. Checked against the shipping goal rather than
+         against the two plates: the live post carries the SLIM pad from the "after"
+         plate AND the crossbar overhang the "before" note is written to criticise. The
+         overhang is deliberate and documented in play.css -- it is kept on the field
+         side and removed on the wall side -- so the two pictures are one design shot at
+         opposite ends of the pitch, and a caption calling that a fix is a claim the
+         images do not support. On a page whose own lesson is "counting is not looking",
+         that is the worst possible figure to leave standing.
+         NOTHING REPLACES IT. The score-bar pair in the next section is a real before and
+         after and it already carries the argument; a second one here would be the same
+         point made twice, the weaker time first.
+         AND THE SECTION IS NOT THIN WITHOUT IT: kicker, headline and two paragraphs is
+         exactly the shape of #stakes and #players either side of it. Three of the six
+         sections on this page carry no figure, and this is now the third. ═══════════ -->
    </section>
 
    <section id="lesson" class="sec">
