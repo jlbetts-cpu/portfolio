@@ -86,6 +86,29 @@ SCENES = {
     "headmaker": ("https://images.unsplash.com/photo-1778110858872-5bde317d0272", .55),
     "gradientlab": ("https://images.unsplash.com/photo-1611613042541-21b1afcae5fd", .55),
     "engine": ("https://images.unsplash.com/photo-1719469202552-3a86b1bf5ff0", .55),
+    # ADDED 2026-09-01, when he said the Tournament card had no picture and the
+    # Yowmings one was not consistent with the rest.  Both were true: they were the
+    # only two cards in the band with no photograph under them.  Yowmings was a flat
+    # game capture graded in place by build_yowmings() below, and Tournament was a bare
+    # UI panel on white that had never been through this tool at all.
+    #
+    # Three football grounds now, and they have to stay TELLABLE APART, which is the
+    # same rule the other four follow: engine keeps its mown pitch and conifer treeline,
+    # the League gets a big tiered bowl, and the cup gets a single stand behind an even
+    # green.  Both new frames are flat overcast light with NO SUN IN SHOT, because a
+    # photograph that already reads as one hour cannot be graded to another.
+    #
+    #   yowmings    Yan Berthemy     Ss4hyF3xUic  an empty stadium bowl under cloud --
+    #               the League is a competition, so it stands in a competition's room.
+    #   tournament  Nathan Bingle    9UVmlIb0wJU  one stand behind a flat green, shot
+    #               level: a knockout tie is one match at one ground, not a season.
+    #
+    # A floodlit Parc des Princes frame was rejected on the way here for two reasons
+    # worth recording: it is a night shot, which this grade cannot undo, and it carries
+    # PSG, Mastercard, PS5 and Pepsi hoardings -- third-party marks have no business on
+    # his portfolio.  Check both before adding a fourth ground.
+    "yowmings": ("https://images.unsplash.com/photo-1663832952954-170d73947ba7", .58),
+    "tournament": ("https://images.unsplash.com/photo-1661924038279-9ce6514d5bf4", .60),
 }
 
 # The one screen that stands on each photograph: the product's signature view.
@@ -98,6 +121,9 @@ LAYOUTS = {
     "headmaker": "study/headmaker/step3.webp",
     "gradientlab": "study/gradientlab/builder.webp",
     "engine": "study/engine/soccer.webp",
+    # The kickoff, which is the screen he named: "put the kickoff on a real pitch photo".
+    "yowmings": "yowmings/card-1200.webp",
+    "tournament": "study/engine/tournament.webp",
 }
 # How much of the screen to keep, top and bottom as fractions of its height.
 # Only the match capture needs it: measured, its last non-white row is 601 of
@@ -472,7 +498,15 @@ def product_drift(slug, folder=None):
     """
     folder = folder or OUT / slug
     frames = [Image.open(folder / f"{state}-1200.webp").convert("RGB") for state in STATES]
-    if slug == "yowmings":
+    # THE SAMPLE FOLLOWS THE CONSTRUCTION, NOT THE NAME.  This read `slug ==
+    # "yowmings"` and picked the silhouette sample for it always.  Once yowmings moved
+    # onto a photograph (2026-09-01) that mask -- built from the OLD flat capture's ink
+    # -- was laid over a plate whose silhouette is now mostly PHOTOGRAPH, so it measured
+    # the sky changing between states and called it the product moving: peak 101 against
+    # a 60 bound, on a plate that measures 24 when sampled correctly.  A slug with a
+    # photograph under it has its product in one rectangle and is cropped; only a plate
+    # graded in place needs the mask.
+    if slug not in SCENES:
         # The ink is scattered over the whole plate rather than sitting in one
         # rectangle, so the sample is taken through a mask instead of a crop --
         # and the mask is the ink's SILHOUETTE, not the pixels the matte happens
@@ -576,9 +610,22 @@ def main():
         self_test()
         self_test_yowmings()
         return
-    slugs = sys.argv[1:] or list(SCENES) + ["yowmings"]
+    # YOWMINGS IS NO LONGER THE EXCEPTION.  It used to run build_yowmings(), which
+    # grades the shipped game capture in place behind an ink matte -- no photograph
+    # under it.  That is exactly what he meant on 2026-09-01 by "the yowmings picture
+    # is not consistent either": it was the only card in the band with no photograph,
+    # and beside five plates that all are one it read as a different kind of object.
+    # It is in SCENES now and takes the same path as the rest.  build_yowmings() and
+    # its self-test are kept, unreferenced by default, because the matte work in them
+    # is the only thing that knows how to lift the heads off that capture and someone
+    # may want it back; `--legacy-yowmings` still runs it.
+    if "--legacy-yowmings" in sys.argv:
+        for path in build_yowmings():
+            print(path.relative_to(ROOT), path.stat().st_size)
+        return
+    slugs = [a for a in sys.argv[1:] if not a.startswith("--")] or list(SCENES)
     for slug in slugs:
-        for path in (build_yowmings() if slug == "yowmings" else build(slug)):
+        for path in build(slug):
             print(path.relative_to(ROOT), path.stat().st_size)
         variants = sorted((OUT / slug).glob("*.webp"))
         assert len(variants) == 12, (slug, len(variants))

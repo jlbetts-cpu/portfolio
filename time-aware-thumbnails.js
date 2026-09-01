@@ -42,11 +42,14 @@
     attribute is what keeps that from being luck. "workspace" does not match
     workspace-study.html at all, so its card MUST keep data-slug="workspace". */
  var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis",
-                             "workspace","headmaker","gradientlab","engine","yowmings"]);
+                             "workspace","headmaker","gradientlab","engine","yowmings",
+                             "tournament"]);
  /* Off. Each is the SAME picture as that project's six states with no grade
     applied, so switching the clock off changes the light and nothing else.
-    Yowmings is the exception and deliberately so: its Off is the match plate
-    the Home card and the case-study hero already load, untouched. */
+    Yowmings USED to be the exception here, pointing at the flat game capture the
+    Home card loads. It is not any more: on 2026-09-01 it moved onto a photograph
+    like the rest, so its Off is its own ungraded plate and Off now changes the
+    light and nothing else on every project without exception. */
  var ORIGINALS=Object.freeze({
   bearings:"images/cs/bearings-cover.webp",
   apollo:"images/cs/apollo-cover.webp",
@@ -57,13 +60,14 @@
   headmaker:"images/cs/study/headmaker/cover.webp",
   gradientlab:"images/cs/study/gradientlab/cover.webp",
   engine:"images/cs/study/engine/cover.webp",
-  yowmings:"images/cs/yowmings/card-1200.webp"
+  yowmings:"images/cs/study/yowmings/cover.webp",
+  tournament:"images/cs/study/tournament/cover.webp"
  });
  var VARIANT_DIRS=Object.freeze({
   bearings:"bearings",apollo:"apollo",strata:"strata",cluster:"cluster",
   ucdavis:"ucrec",
   workspace:"workspace",headmaker:"headmaker",gradientlab:"gradientlab",
-  engine:"engine",yowmings:"yowmings"
+  engine:"engine",yowmings:"yowmings",tournament:"tournament"
  });
  var SIZES="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px";
 
