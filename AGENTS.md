@@ -288,6 +288,12 @@ that cannot fail is worse than none.
   `add -A`. Several agents work this tree at once.
 - Never serve `images/earth-map-src.jpg` (2.5 MB) raw.
 - Cache-busting a page URL does not bust its external CSS or JS.
+- **Every `.css` link needs `?v=<stamp>`.** `vercel.json` serves all CSS
+  `max-age=31536000, immutable`, so a stylesheet linked bare is frozen in every
+  browser that has loaded it for a year, with nothing able to reach it. Five were
+  linked bare until 2026-09-01 (`league`, `play`, `league-photos`, `tournament`,
+  `builder-theme`) and that is what "it never changed from the last update" looks
+  like from his side. If you edit a stylesheet, check its link carries the stamp.
 
 ---
 
