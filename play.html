@@ -26,8 +26,8 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=56e7b114cf">
-<link rel="stylesheet" href="play.css?v=56e7b114cf">
+<link rel="stylesheet" href="tokens.css?v=faebb97241">
+<link rel="stylesheet" href="play.css?v=faebb97241">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
      remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
@@ -35,7 +35,7 @@
      ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
      is a printed artifact whose materials were settled in the broadcast spec and must not be
      re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
-<link rel="stylesheet" href="tournament.css?v=56e7b114cf">
+<link rel="stylesheet" href="tournament.css?v=faebb97241">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
@@ -1665,15 +1665,15 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=56e7b114cf">
-<link rel="stylesheet" href="footer.css?v=56e7b114cf">
-<link rel="stylesheet" href="controls.css?v=56e7b114cf">
-<link rel="stylesheet" href="site-theme.css?v=56e7b114cf">
+<link rel="stylesheet" href="header.css?v=faebb97241">
+<link rel="stylesheet" href="footer.css?v=faebb97241">
+<link rel="stylesheet" href="controls.css?v=faebb97241">
+<link rel="stylesheet" href="site-theme.css?v=faebb97241">
 <!-- league.css LINKS LAST, AND THAT IS THE POINT. controls.css and site-theme.css
      both come after this page's own <style> block, so an equal-specificity rule
      written earlier loses on source order and loses SILENTLY -- four League rules
      were lost that way. The League owns the final word on its own screens. -->
-<link rel="stylesheet" href="league.css?v=56e7b114cf">
+<link rel="stylesheet" href="league.css?v=faebb97241">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1898,29 +1898,24 @@
    <a class="pCardOpen pCardT" href="yowmings.html">Yowmings League</a>
    <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
   </div>
+  <!-- ONE DOOR FOR BOTH MATCH AND CUP. 2026-09-01: "play a match and tournment can be
+       the same case study they dont need two differnt case studies they just need two
+       buttons inside the case study. to keep it to 6 boxes."
+       They were already ONE case study -- both cards opened engine.html -- so the grid
+       was spending two of its six boxes to reach one page. The two launchers moved into
+       engine.html, where the reader has the context to choose between them, and this
+       card's own play button starts the MATCH: it is the shorter game, it is the one the
+       menu row calls Expedition, and a corner button has room for one verb.
+       THE TOURNAMENT IS STILL ONE CLICK from here, via engine.html's own buttons, and
+       play.html?play=tournament still starts it directly -- play-games.js routes that to
+       the menu's own tourGo now that this card is gone. -->
   <div class="pCard" id="pcExped">
    <div class="pCardShot">
     <img class="pCardImg" data-time-thumbnail="engine" src="images/cs/study/engine/cover.webp" width="1600" height="800" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="Cut-out heads strung out across a pitch with the ball loose between them and a scoreboard above." loading="lazy" decoding="async" draggable="false">
     <button class="pCardGo ctl ctl--primary" type="button" aria-label="Pick sides and play a match now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
    </div>
-   <a class="pCardOpen pCardT" href="engine.html">Play a match</a>
-   <span class="pCardD">Split the heads into two teams and watch them play soccer. You pick the teams first.</span>
-  </div>
-  <div class="pCard" id="pcTour">
-   <div class="pCardShot">
-    <img class="pCardImg" data-time-thumbnail="tournament" src="images/cs/study/tournament/cover.webp" width="1600" height="800" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="The cup's next-fixture panel: two heads named as opponents, the round above them, and Kick off, Simulate and Leave under them." loading="lazy" decoding="async" draggable="false">
-    <button class="pCardGo ctl ctl--primary" type="button" aria-label="Start a tournament now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
-   </div>
-   <a class="pCardOpen pCardT" href="engine.html">Tournament</a>
-   <!-- THE SENTENCE FOLLOWS THE FORMAT, AND THE FORMAT WENT BACK. It briefly read
-        "Twelve heads, a league table, three matchdays" because the cup had briefly
-        become a league; Jayden: "I still did like the one game elimination format."
-        So this says what the cup is again -- one game, you lose, you are out -- and
-        names the option he actually asked for in the same breath, because a card is
-        where a visitor decides whether to open the door. The LABEL stays "Tournament":
-        it is the word he uses for this door, it is the same word on the Play menu row,
-        and one command in two menus must read identically. -->
-   <span class="pCardD">Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.</span>
+   <a class="pCardOpen pCardT" href="engine.html">Match and tournament</a>
+   <span class="pCardD">Split the heads into two teams and watch them play soccer, or run eight of them through a knockout cup.</span>
   </div>
   <div class="pCard" id="pcHead">
    <div class="pCardShot">
@@ -1960,6 +1955,26 @@
    </div>
    <a class="pCardOpen pCardT" href="workspace-study.html">Workspace</a>
    <span class="pCardD">The app I run my life on: timeline, memory, mindset, books and kitchen. It opens on a new page.</span>
+  </div>
+  <!-- STRATA TAKES THE SIXTH BOX. 2026-09-01: "I lowkey think the Strata case study
+       should also be in play I think the game itself should be on its own page you can
+       open like the rest."
+       It belongs here on the same test every other cell passes: it is a thing a visitor
+       can play, and until now the only way to reach it was to read a case study and find
+       the phone mockup two thirds down. It is ALSO still in Home's case studies, because
+       he said "also" -- this is a second door to it, not a move.
+       THE PLAY BUTTON GOES TO ITS OWN PAGE like the Head Maker's and the Gradient
+       Maker's do, rather than to the embed inside the study. strata-play.html is that
+       page. The app itself is hosted elsewhere and always has been; what the page adds
+       is a real URL on his site, the site's own chrome around it, and a card whose
+       corner button behaves exactly like the other five. -->
+  <div class="pCard" id="pcStrata">
+   <div class="pCardShot">
+    <img class="pCardImg" data-time-thumbnail="strata" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" width="1200" height="600" sizes="(max-width: 560px) calc(100vw - 80px), (max-width: 760px) calc(50vw - 56px), (max-width: 1280px) calc(50vw - 72px), 552px" alt="The Strata habit builder on a phone, its finished days stacked into a tower of coloured blocks." loading="lazy" decoding="async" draggable="false">
+    <a class="pCardGo ctl ctl--primary" href="strata-play.html" aria-label="Play Strata now"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></a>
+   </div>
+   <a class="pCardOpen pCardT" href="strata.html">Strata</a>
+   <span class="pCardD">A habit builder where the days you finish stack up into a tower. It opens on a new page.</span>
   </div>
  </nav>
 <section class="pGit" id="pGit" aria-labelledby="pGitHead" hidden>
@@ -2106,7 +2121,7 @@ window.__hmGames=true;</script>
      engine are untouched. The stylesheet is linked HERE rather than in <head> for
      the same reason league.css links last -- it is the final word on its own
      object, and a <link> is body-ok. -->
-<link rel="stylesheet" href="league-photos.css?v=56e7b114cf">
+<link rel="stylesheet" href="league-photos.css?v=faebb97241">
 <script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a

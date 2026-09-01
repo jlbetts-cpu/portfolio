@@ -199,7 +199,10 @@
    cell.setAttribute("aria-disabled",off?"true":"false");
    var go=cell.querySelector(".pCardGo");if(go)go.setAttribute("aria-disabled",off?"true":"false");}
   gate("pcExped",few);
-  gate("pcTour",false);
+  /* pcTour is gone -- the cup shares the match's cell since 2026-09-01 -- and gate() is
+     null-guarded, so this is a no-op rather than an error. Left in place deliberately:
+     it is the one line that would need to come back if the cup ever gets its box again,
+     and its neighbours document why the cup is ungated at all. */
   /* The League is the cup with a different objective and it fields the same dyed eggheads,
      so it is ungated for exactly the reason Tournament is: it works on an empty planet. */
   gate("pcYow",false);
@@ -442,7 +445,12 @@
  (function(){
   var m=/[?&]play=([a-z]+)/.exec(String(location.search||""));
   if(!m)return;
-  var CARDS={yowmings:"pcYow",league:"pcYow",match:"pcExped",soccer:"pcExped",tournament:"pcTour",cup:"pcTour"};
+  /* tournament points at the MENU's launcher, not at a card. The cup lost its own cell
+     on 2026-09-01 when it merged into the match's -- one case study did not need two of
+     the six boxes -- and #tourGo is the other element startTour() is bound to, so this
+     keeps taking the same door rather than growing a second way in. */
+  var CARDS={yowmings:"pcYow",league:"pcYow",match:"pcExped",soccer:"pcExped",
+             tournament:"tourGo",cup:"tourGo"};
   var el=document.getElementById(CARDS[m[1]]||"");
   if(!el)return;
   /* One frame after load, so the roster has been read and the cards have had their

@@ -22,7 +22,7 @@
      either, because listing a noindex URL in a sitemap is a self-contradiction that
      Search Console reports as an error against the whole file. -->
 <meta name="robots" content="noindex,follow">
-<title>Gradient Maker · Jayden Betts</title>
+<title>Play Strata &middot; Jayden Betts</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -451,16 +451,63 @@
 <link rel="stylesheet" href="controls.css?v=faebb97241">
 <link rel="stylesheet" href="header.css?v=faebb97241">
 <link rel="stylesheet" href="footer.css?v=faebb97241">
-<link rel="stylesheet" href="builder-theme.css?v=faebb97241">
 <link rel="stylesheet" href="site-theme.css?v=faebb97241">
 <script src="header.js" defer></script>
+<style>
+ /* ══ PLAY STRATA ═══════════════════════════════════════════════════════════════════
+    A host page, so it authors as little as possible: tokens, controls and the header
+    come from the shared sheets, and what is left is a column, a heading block and a
+    frame for the app.
+    THE PHONE IS A RATIO, NOT A DEVICE. 9/19.5 is the app's own aspect; the frame takes
+    whichever of height or width binds first so it is never taller than the viewport and
+    never wider than the column. No mockup shell around it -- a drawn phone bezel would
+    be a picture of a device wrapped round a real one, which is the "card round a phone
+    mockup" he has already had removed once.
+    NO SHADOW. The heads cast the only shadow on this site; this is chrome, so it
+    separates with a hairline. ════════════════════════════════════════════════════ */
+ /* THE COLUMN IS THIS PAGE'S OWN, and it has to be: --col-inset and --col-max are
+    declared in play.html's :root and NOWHERE ELSE, so `padding: X var(--col-inset) Y`
+    here was invalid at computed-value time, which falls back to `unset` rather than to
+    any earlier declaration -- the heading sat hard against the viewport edge at 0.
+    CLAUDE.md names this exact trap. The numbers are strata.html's .wrap: 1280 and
+    40/24/16, so the two Strata pages share one column. */
+ .spMain{position:relative;z-index:1;width:100%;box-sizing:border-box;
+  padding:var(--sp-32-64) 40px var(--sp-56-96)}
+ .spIn{width:100%;max-width:1280px;margin:0 auto}
+ @media(max-width:880px){.spMain{padding-inline:24px}}
+ @media(max-width:560px){.spMain{padding-inline:16px}}
+ .spEyebrow{margin:0 0 var(--sp-6);font-family:var(--sans);font-weight:400;
+  font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--theme-muted)}
+ .spHead{margin:0 0 var(--sp-12);font-family:var(--sans);font-weight:600;
+  font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-title);
+  color:var(--theme-ink);max-width:34ch}
+ .spNote{margin:0 0 var(--sp-32);font-family:var(--sans);font-weight:400;
+  font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
+  color:var(--theme-muted);max-width:60ch}
+ .spLink{color:var(--theme-ink);text-underline-offset:.22em}
+ .spStage{display:flex;justify-content:center}
+ .spPhone{position:relative;aspect-ratio:9/19.5;
+  /* Whichever binds first: the viewport's height minus the bar and this page's padding,
+     or the column. min() rather than a media query -- the content decides. */
+  height:min(72vh, 780px);max-width:100%;
+  border-radius:var(--r-xl);corner-shape:var(--corner);overflow:hidden;
+  background:var(--c75);box-shadow:var(--rim-1)}
+ .spFrame{display:block;width:100%;height:100%;border:0}
+ .spPoster{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--c75)}
+ /* The control keeps its intrinsic width. Without this it is a flex item in a stretch
+    container and spans the whole phone, which reads as a banner rather than a button. */
+ .spPlay{flex:0 0 auto;align-self:center}
+ .spPoster[hidden]{display:none}
+ /* On a phone the app is phone-shaped and the viewport is too, so height still binds --
+    at 844 this is a 726px frame rather than an 845px one that would push the page. */
+ @media(max-width:560px){
+  .spPhone{height:min(78vh, 720px)}
+ }
+</style>
 </head>
-<body data-theme-page="gradientlab">
-<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
-     2026-08-03 from header-prototype.html. Design + the measured lockup:
-     .superpowers/sdd/2026-08-02-play-page/header-report.md
-     Nothing lights up here: the Maker is noindex and is not in the nav, so
-     forcing an active item would be a lie. -->
+<body data-theme-page="strata-play">
 <div class="jbStick">
  <!-- LIGHT SURFACE, and the reason is structural rather than a preference.
       header.css:306 chose ink here on one argument: "gradientlab's stage is
@@ -575,720 +622,52 @@
   </span>
  </nav>
 </div>
-<div class="lab">
-  <main class="stage" id="stage">
-    <div class="bgHost" id="bgHost"></div>
-    <div class="orbWrap" id="orbWrap">
-      <div class="haloWrap"><div class="halo" id="halo"><canvas id="haloCanvas"></canvas></div></div>
-      <div class="discClip" id="discClip"><canvas id="fluid"></canvas></div>
+
+<main class="spMain" id="main" tabindex="-1">
+ <!-- THE GAME ON ITS OWN PAGE. 2026-09-01: "the game itself should be on its own page
+      you can open like the rest." Until now Strata could only be reached by opening its
+      case study and finding the embed two thirds down, which is not how any of the other
+      five are reached.
+      THE APP IS NOT IN THIS REPOSITORY and never has been -- it is the Lovable build, the
+      same origin the case study embeds. What this page adds is the thing that was
+      missing: a real URL on his own site, the site's own chrome around it, and a Play
+      card whose corner button behaves exactly like the other five.
+      IT LOADS ON A CLICK, NOT ON ARRIVAL. The iframe's src lives in data-src until the
+      poster is pressed, the same handshake strata.html uses, so a third-party app does
+      not start executing (or playing sound) because somebody opened a page. -->
+ <div class="spIn">
+  <p class="spEyebrow">Strata</p>
+  <h1 class="spHead">A habit builder where the days you finish stack into a tower.</h1>
+  <p class="spNote">Stack a block, hear it land, add a photo. Everything here works. <a class="spLink" href="strata.html">Read the case study</a>.</p>
+
+  <div class="spStage">
+   <div class="spPhone" id="spPhone">
+    <iframe class="spFrame" id="spFrame" data-src="https://stratahabit.lovable.app?playsinline=1" title="Strata, live and interactive" allow="autoplay; fullscreen" loading="lazy"></iframe>
+    <div class="spPoster" id="spPoster">
+     <button class="spPlay ctl ctl--primary" id="spPlay" type="button" aria-label="Play Strata">
+      <svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span>Play Strata</span>
+     </button>
     </div>
-  </main>
-
-  <!-- THE INSPECTOR. Five groups, one visible at a time, named for what they
-       affect -- the group label is the explanation, so the page carries no
-       prose at all. The three fixed rows (name, tabs, actions) never move. -->
-  <aside class="panel" aria-label="Controls">
-    <div class="labHead"><h1>Gradient Maker</h1><span>fluid mesh system</span></div>
-
-    <div class="tabs" role="tablist" aria-label="Control groups">
-      <!-- the label is in a span so the selected underline can be exactly as wide
-           as the word rather than as wide as an equal-flex segment -->
-      <button class="ctl ctl--tab" type="button" role="tab" id="tabLook"   aria-controls="pLook"   aria-selected="true"><span class="ctlLbl">Look</span></button>
-      <button class="ctl ctl--tab" type="button" role="tab" id="tabNodes"  aria-controls="pNodes"  aria-selected="false" tabindex="-1"><span class="ctlLbl">Nodes</span></button>
-      <button class="ctl ctl--tab" type="button" role="tab" id="tabFlow"   aria-controls="pFlow"   aria-selected="false" tabindex="-1"><span class="ctlLbl">Flow</span></button>
-      <button class="ctl ctl--tab" type="button" role="tab" id="tabOptics" aria-controls="pOptics" aria-selected="false" tabindex="-1"><span class="ctlLbl">Optics</span></button>
-      <button class="ctl ctl--tab" type="button" role="tab" id="tabStage"  aria-controls="pStage"  aria-selected="false" tabindex="-1"><span class="ctlLbl">Stage</span></button>
-    </div>
-
-    <!-- LOOK — what the gradient IS: which preset, which form, which shape, and
-         the five colours. The form-specific shape sliders live here rather than
-         with the field, because Bend / Fold / Sheen are parameters OF the form
-         and only exist when it is chosen. -->
-    <div class="tabPanel" role="tabpanel" id="pLook" aria-labelledby="tabLook">
-      <div class="row">
-        <label for="preset">Preset</label>
-        <select class="field field--select field--flex" id="preset" aria-label="Preset">
-          <option value="-1" selected>Custom</option>
-          <option value="0">ULR: Glacier</option>
-          <option value="1">Thoby: Deep Teal</option>
-          <option value="2">Ember</option>
-          <option value="3">Verdant</option>
-          <option value="4">Harshaf: Lilac</option>
-          <option value="5">Good &amp; Evil</option>
-          <option value="6">Butter Stream</option>
-          <option value="7">Silk Dusk</option>
-          <option value="8">Breeze Field</option>
-          <option value="9">Curtain Rose</option>
-          <option value="10">Mint Marble</option>
-          <option value="11">Night Bloom</option> <option value="12">Reef</option> <option value="13">Amethyst</option> <option value="14">Rainbow Sparkles</option>
-        </select>
-        <button class="ctl ctl--secondary ctl--icon" id="saveBtn" type="button" title="Save the current settings as a preset" aria-label="Save the current settings as a preset"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/></svg></button>
-      </div>
-      <div class="row">
-        <label for="form">Form</label>
-        <select class="field field--select field--flex" id="form" aria-label="Form">
-          <option value="0" selected>Planet</option>
-          <option value="1">Streams</option>
-          <option value="2">Silk</option>
-          <option value="3">Field</option>
-          <option value="4">Pleats</option>
-          <option value="5">Marble</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="shape">Shape</label>
-        <select class="field field--select field--flex" id="shape" aria-label="Shape">
-          <option value="orb" selected>Orb</option>
-          <option value="bleed">Full-bleed</option>
-        </select>
-      </div>
-      <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input class="ctl ctl--range" type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
-      <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input class="ctl ctl--range" type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
-      <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input class="ctl ctl--range" type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
-
-      <p class="grpH">Colours</p>
-      <div class="swRow">
-        <span class="sw"><input class="ctl ctl--swatch" type="color" id="c1" value="#f2a03d" aria-label="Node one colour">1</span>
-        <span class="sw"><input class="ctl ctl--swatch" type="color" id="c2" value="#e2472e" aria-label="Node two colour">2</span>
-        <span class="sw"><input class="ctl ctl--swatch" type="color" id="c3" value="#c2378f" aria-label="Node three colour">3</span>
-        <span class="sw"><input class="ctl ctl--swatch" type="color" id="c4" value="#6d34e8" aria-label="Node four colour">4</span>
-        <span class="sw"><input class="ctl ctl--swatch" type="color" id="c5" value="#ffd9a0" aria-label="Node five colour">5</span>
-        <button class="ctl ctl--secondary ctl--icon" id="rndColors" type="button" title="New random palette" aria-label="New random palette"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
-      </div>
-    </div>
-
-    <!-- NODES — the five colour sources, one at a time. -->
-    <div class="tabPanel" role="tabpanel" id="pNodes" aria-labelledby="tabNodes" hidden>
-      <div class="row">
-        <label for="nodeSel">Node</label>
-        <select class="field field--select field--flex" id="nodeSel" aria-label="Edit node">
-          <option value="0" selected>Node 1</option><option value="1">Node 2</option>
-          <option value="2">Node 3</option><option value="3">Node 4</option>
-          <option value="4">Node 5</option>
-        </select>
-      </div>
-      <div class="row"><label for="nx">X</label><input class="ctl ctl--range" type="range" id="nx" min="0" max="100" value="50"><output id="nxO">50</output></div>
-      <div class="row"><label for="ny">Y</label><input class="ctl ctl--range" type="range" id="ny" min="0" max="100" value="50"><output id="nyO">50</output></div>
-      <div class="row"><label for="nsize">Size</label><input class="ctl ctl--range" type="range" id="nsize" min="10" max="200" value="100"><output id="nsizeO">100</output></div>
-      <div class="row"><label for="nlen">Length</label><input class="ctl ctl--range" type="range" id="nlen" min="0" max="100" value="0"><output id="nlenO">0</output></div>
-      <div class="row"><label for="nang">Angle</label><input class="ctl ctl--range" type="range" id="nang" min="-90" max="90" value="0"><output id="nangO">0</output></div>
-    </div>
-
-    <!-- FLOW — how the field moves and how the masses meet. -->
-    <div class="tabPanel" role="tabpanel" id="pFlow" aria-labelledby="tabFlow" hidden>
-      <div class="row"><label for="flow">Speed</label><input class="ctl ctl--range" type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
-      <div class="row"><label for="melt">Melt</label><input class="ctl ctl--range" type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
-      <div class="row"><label for="wob">Wobble</label><input class="ctl ctl--range" type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
-      <div class="row"><label for="sweep">Sweep</label><input class="ctl ctl--range" type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
-      <div class="row"><label for="contour">Contour</label><input class="ctl ctl--range" type="range" id="contour" min="0" max="100" value="18"><output id="contourO">18</output></div>
-      <div class="row"><label for="tension">Tension</label><input class="ctl ctl--range" type="range" id="tension" min="0" max="100" value="40"><output id="tensionO">40</output></div>
-      <div class="row"><label for="rim">Rim</label><input class="ctl ctl--range" type="range" id="rim" min="0" max="100" value="35"><output id="rimO">35</output></div>
-      <div class="row"><label for="layer">Layer</label><input class="ctl ctl--range" type="range" id="layer" min="0" max="100" value="55"><output id="layerO">55</output></div>
-    </div>
-
-    <!-- OPTICS — the limb, the glass and the light. Edge and Fringe are
-         properties of a sphere's limb, so the script hides them full-bleed. -->
-    <div class="tabPanel" role="tabpanel" id="pOptics" aria-labelledby="tabOptics" hidden>
-      <div class="row"><label for="edgeF">Edge</label><input class="ctl ctl--range" type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
-      <div class="row"><label for="glass">Glass</label><input class="ctl ctl--range" type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
-      <div class="row"><label for="expo">Exposure</label><input class="ctl ctl--range" type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
-      <div class="row"><label for="fringe">Fringe</label><input class="ctl ctl--range" type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
-      <div class="row"><label for="lx">Light X</label><input class="ctl ctl--range" type="range" id="lx" min="0" max="100" value="36"><output id="lxO">36</output></div>
-      <div class="row"><label for="ly">Light Y</label><input class="ctl ctl--range" type="range" id="ly" min="0" max="100" value="30"><output id="lyO">30</output></div>
-      <div class="row"><label for="glow">Glow</label><input class="ctl ctl--range" type="range" id="glow" min="0" max="100" value="50"><output id="glowO">50</output></div>
-    </div>
-
-    <!-- STAGE — everything that is about the SETTING rather than the gradient.
-         The ground judges the orb against the surface it will actually sit on:
-         it changes what is BEHIND the canvas, never a shader uniform, a preset
-         or the export. Planet dressing joins it because a halo, a volume and a
-         grain are all things the stage sees and the exported field does not. -->
-    <div class="tabPanel" role="tabpanel" id="pStage" aria-labelledby="tabStage" hidden>
-      <div class="row">
-        <label for="stageGround">Ground</label>
-        <select class="field field--select field--flex" id="stageGround" aria-label="Stage background">
-          <option value="paper" selected>Paper</option>
-          <option value="white">White</option>
-          <option value="grey">Grey</option>
-          <option value="ink">Ink</option>
-          <option value="custom">Custom</option>
-        </select>
-      </div>
-      <div class="row" id="stageGroundCustomRow" style="display:none">
-        <label for="stageGroundColor">Colour</label>
-        <input class="ctl ctl--swatch" type="color" id="stageGroundColor" value="#fdfdfd" aria-label="Custom stage background colour">
-      </div>
-      <div id="dressSec">
-        <div class="row" id="sceneRow"><label for="scene">Scene</label>
-          <select class="field field--select field--flex" id="scene" aria-label="Scene">
-            <option value="1" selected>Solo</option>
-            <option value="2">Duo</option>
-            <option value="3">Trio</option>
-          </select></div>
-        <div class="row"><label for="haloA">Halo</label><input class="ctl ctl--range" type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
-        <div class="row"><label for="vol">Volume</label><input class="ctl ctl--range" type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
-        <div class="row"><label for="grain">Grain</label><input class="ctl ctl--range" type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
-      </div>
-    </div>
-
-    <!-- THE ACTIONS, outside the tabs because they are true of every group.
-         Download is the one primary: it is the thing a visitor came to leave
-         with, and it is the only filled control on the page. -->
-    <div class="panelFoot">
-      <button class="ctl ctl--secondary ctl--icon" id="rnd" type="button" title="Randomize everything" aria-label="Randomize everything"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M8.5 8.5l0 .01"/><path d="M15.5 8.5l0 .01"/><path d="M8.5 15.5l0 .01"/><path d="M15.5 15.5l0 .01"/><path d="M12 12l0 .01"/></svg></button>
-      <button class="ctl ctl--secondary ctl--icon" id="copyBtn" type="button" title="Copy the embed code" aria-label="Copy the embed code"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
-      <button class="ctl ctl--primary" id="pngBtn" type="button"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>Download PNG</button>
-    </div>
-    <p class="glErr" id="glErr">WebGL unavailable. The export still includes a static CSS fallback.</p>
-    <pre id="code" aria-hidden="true"></pre>
-  </aside>
-</div>
-
-<script src="fluid-mesh.js"></script>
+   </div>
+  </div>
+ </div>
+</main>
 
 <script>
 (function(){
-  "use strict";
-  var $=function(id){return document.getElementById(id);};
-  var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","contour","tension","rim","layer","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
-  var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
-  var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
-  els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");els.shape=$("shape");
-  els.stageGround=$("stageGround");els.stageGroundColor=$("stageGroundColor");
-
-  function N(x,y,size,len,angDeg){return{x:x,y:y,size:size,len:len,ang:angDeg*Math.PI/180};}
-  var nodes=[N(.5,.48,1,0,0),N(.22,.28,1,0,0),N(.74,.36,1,0,0),N(.70,.78,1,0,0),N(.28,.70,1,0,0)];
-
-  /* ---- THE TEST: the six reference posters as presets. Each exists to prove
-     the engine can hit that exact look; the holes they exposed (bands, per-node
-     size, fringe, exposure) are now first-class parameters. ---- */
-  var PRESETS=[
-    {name:"ULR: Glacier",
-     colors:["#eaf5f0","#93c7e8","#4a77d4","#2c4f9e","#f2c4d8"],
-     nodes:[N(.52,.20,1.15,0,0),N(.30,.44,1,.10,-25),N(.38,.66,.85,.30,-33),N(.72,.60,.8,.14,-30),N(.84,.30,.45,0,0)],
-     lx:50,ly:16,glow:48, flow:38,melt:52,wob:8,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
-    {name:"Thoby: Deep Teal",
-     colors:["#12333a","#0c2027","#1d4a42","#37826a","#e8994a"],
-     nodes:[N(.44,.40,1.3,.1,20),N(.30,.72,1.1,.16,35),N(.62,.30,.9,.18,55),N(.78,.62,.55,.22,70),N(.86,.42,.30,.18,75)],
-     lx:32,ly:24,glow:22, flow:36,melt:44,wob:12,sweep:26,expo:66,fringe:78, haloA:26,vol:52,grain:18},
-    {name:"Ember",
-     colors:["#f2a03d","#e2472e","#8a2d5f","#5f2dc2","#ffd9a0"],
-     nodes:[N(.55,.34,1.2,0,0),N(.60,.66,1.1,.12,10),N(.74,.80,.8,.1,25),N(.16,.44,.42,0,0),N(.40,.20,.8,.1,-20)],
-     lx:44,ly:22,glow:58, flow:40,melt:55,wob:10,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
-    {name:"Verdant",
-     colors:["#dcecdc","#f0a83c","#3f9a6e","#8fd4b4","#e8703a"],
-     nodes:[N(.42,.26,1.1,.1,-15),N(.52,.52,.9,.28,-32),N(.70,.80,.9,.2,-25),N(.24,.72,.7,.14,-40),N(.80,.40,.5,.12,-30)],
-     lx:40,ly:20,glow:44, flow:38,melt:50,wob:12,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
-    {name:"Harshaf: Lilac",
-     colors:["#e0e3f5","#a8b2ec","#6072d8","#3947a8","#cdd4f2"],
-     nodes:[N(.52,.30,1.2,0,0),N(.68,.56,1,.12,20),N(.34,.68,.95,.16,30),N(.24,.84,.7,.1,15),N(.76,.22,.7,0,0)],
-     lx:52,ly:22,glow:40, flow:34,melt:62,wob:6,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
-    {name:"Good & Evil",
-     colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
-     nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
-     lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16},
-    {name:"Butter Stream",form:1,contour:35,
-     colors:["#f6e8c8","#f2b04a","#e87a5a","#8fb8d8","#f8d9e8"],
-     nodes:[N(.30,.30,1.4,.30,-18),N(.62,.44,1.1,.34,-24),N(.78,.72,1.0,.30,-20),N(.16,.66,1.0,.28,-16),N(.50,.12,.9,.26,-22)],
-     lx:38,ly:22,glow:30, flow:42,melt:60,wob:8,bend:55,sweep:26,expo:102,fringe:0, haloA:0,vol:0,grain:10,glass:30,edgeF:0},
-    {name:"Silk Dusk",form:2,contour:42,
-     colors:["#f4ede2","#e88a3f","#4a7ac8","#2c4a8a","#f8d9c8"],
-     nodes:[N(.34,.28,1.5,.24,-20),N(.66,.46,1.2,.30,-26),N(.74,.78,1.1,.26,-22),N(.20,.70,1.0,.22,-18),N(.52,.10,.9,.2,-24)],
-     lx:40,ly:20,glow:26, flow:36,melt:64,wob:6,bend:62,foldA:58,foldSh:52,sweep:22,expo:100,fringe:0, haloA:0,vol:0,grain:8,glass:26,edgeF:0},
-    {name:"Breeze Field",form:3,contour:16,
-     colors:["#f2ede0","#e8657a","#22334a","#f4e2c8","#8fb8a8"],
-     nodes:[N(.44,.24,1.6,.18,-8),N(.60,.62,1.3,.22,-14),N(.30,.82,1.2,.16,-6),N(.82,.34,.9,.12,-10),N(.14,.48,.8,.1,-8)],
-     lx:44,ly:18,glow:20, flow:30,melt:24,wob:34,bend:8,sweep:18,expo:100,fringe:0, haloA:0,vol:0,grain:26,glass:62,edgeF:0},
-    {name:"Curtain Rose",form:4,contour:30,
-     colors:["#f6dfe4","#e88aa4","#c2456f","#7a2d4a","#f8ecd8"],
-     nodes:[N(.30,.24,1.5,.16,-80),N(.62,.40,1.2,.20,-84),N(.50,.74,1.2,.18,-78),N(.82,.60,.9,.14,-82),N(.12,.55,.8,.12,-80)],
-     lx:42,ly:18,glow:24, flow:26,melt:58,wob:6,bend:3,foldA:42,foldSh:48,sweep:16,expo:100,fringe:0, haloA:0,vol:0,grain:12,glass:22,edgeF:0},
-    {name:"Mint Marble",form:5,contour:24,
-     colors:["#e8f4ec","#9fd4c0","#5f9fd8","#2c4a7a","#f4f0e2"],
-     nodes:[N(.36,.28,1.3,.14,-20),N(.66,.42,1.1,.18,-30),N(.52,.72,1.1,.16,-24),N(.20,.60,.9,.12,-16),N(.82,.20,.8,.1,-28)],
-     lx:40,ly:20,glow:18, flow:34,melt:40,wob:62,bend:6,sweep:20,expo:102,fringe:0, haloA:0,vol:0,grain:20,glass:30,edgeF:0},
-    {name:"Night Bloom",form:1,contour:32,
-     colors:["#101e26","#1c1230","#e8823f","#e04a86","#0c2a2c"],
-     nodes:[N(.45,.35,1.6,.20,-20),N(.75,.70,1.3,.22,-25),N(.40,.68,.75,.30,-24),N(.68,.30,.45,.18,-28),N(.15,.20,1.0,.16,-18)],
-     lx:40,ly:64,glow:18, flow:36,melt:52,wob:10,bend:58,sweep:24,expo:78,fringe:0, haloA:0,vol:0,grain:16,glass:38,edgeF:0},
-    /* Reef — saved from a Jayden export, 2026-08-03. tension/rim/layer are 0 on
-       purpose: writeCode() does not carry those three, so this reproduces the
-       exported snippet exactly rather than the Lab state it was exported from. */
-    {name:"Reef",form:3,contour:100,
-     colors:["#a6dbf2","#4b5feb","#31c3ac","#118c4d","#ee72dc"],
-     nodes:[N(0,.55,1.46,.21,-59),N(.6,.62,1.3,.22,-14),N(.6,.82,1.2,.161,-6),N(.94,.34,.9,.119,-10),N(.5,.5,1.35,.102,4)],
-     lx:88,ly:18,glow:20, flow:18,melt:18,wob:62,bend:8,foldA:55,foldSh:45,sweep:63,expo:100,fringe:0, haloA:0,vol:0,grain:27,glass:77,edgeF:100,
-     tension:0,rim:0,layer:0},
-    /* Amethyst — saved from a Jayden export, 2026-08-03. Silk form, so bend
-       skips the 0.9 factor cfg() applies to every other form. Same
-       tension/rim/layer caveat as Reef. */
-    {name:"Amethyst",form:2,contour:50,
-     colors:["#f0eff7","#a07ae4","#9e35e5","#9315a4","#e6e7e9"],
-     nodes:[N(.29,.25,1.18,.07,-23),N(.07,.45,1.06,.095,-20),N(.48,.53,.82,.185,-31),N(.63,.72,.75,.067,-16),N(1,.43,.46,.045,-30)],
-     lx:55,ly:28,glow:44, flow:40,melt:58,wob:33,bend:50,foldA:33,foldSh:27,sweep:21,expo:97,fringe:34, haloA:0,vol:0,grain:12,glass:100,edgeF:100,
-     tension:0,rim:0,layer:0},
-    /* Rainbow Sparkles — Jayden export, 2026-08-03. Marble form, so bend takes
-       cfg()'s 0.9 factor: 0.45 exported = slider 50. Same tension/rim/layer
-       pinning as Reef and Amethyst — writeCode() does not carry those three. */
-    {name:"Rainbow Sparkles",form:5,contour:50,
-     colors:["#ff3df9","#5532d2","#c85b64","#d91226","#1ac304"],
-     nodes:[N(.26,.37,1.54,.091,6),N(.34,.457,.95,.099,-27.8),N(.515,.578,.97,.253,-31.6),N(.718,.814,.85,.099,-24),N(.832,.523,.45,.066,-29.6)],
-     lx:61,ly:23,glow:100, flow:76,melt:29,wob:39,bend:50,foldA:33,foldSh:27,sweep:22,expo:66,fringe:30, haloA:0,vol:0,grain:0,glass:37,edgeF:19,
-     tension:0,rim:0,layer:0}
-  ];
-
-  function hexToHsl(hex){
-    var n=parseInt(hex.slice(1),16),r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255;
-    var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h=0,s=0,l=(mx+mn)/2,d=mx-mn;
-    if(d){s=l>0.5?d/(2-mx-mn):d/(mx+mn);
-      h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);h*=60;}
-    return{h:h,s:s*100,l:l*100};
-  }
-  function hsl(h,s,l,a){h=((h%360)+360)%360;s=Math.max(0,Math.min(100,s));l=Math.max(0,Math.min(100,l));
-    return "hsl("+h.toFixed(0)+" "+s.toFixed(0)+"% "+l.toFixed(0)+"% / "+a+")";}
-  function hslToHex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;
-    var f=function(n){var k=(n+h/30)%12,c=s*Math.min(l,1-l);
-      var v=l-c*Math.max(-1,Math.min(k-3,Math.min(9-k,1)));
-      return Math.round(v*255).toString(16).padStart(2,"0");};
-    return "#"+f(0)+f(8)+f(4);
-  }
-
-  function cfg(){
-    return{
-      colors:colorIds.map(function(id){return els[id].value;}),
-      nodes:nodes,
-      light:[+els.lx.value/100,+els.ly.value/100],
-      glow:+els.glow.value/100, melt:+els.melt.value/100,
-      sweep:+els.sweep.value/100, flow:+els.flow.value/100,
-      grain:+els.grain.value/100, fringe:+els.fringe.value/100,
-      expo:+els.expo.value/100, form:+els.form.value,
-      orb:(+els.form.value===0)?1:0,
-      bend:(+els.form.value===2)?(+els.bend.value/100):(+els.bend.value/100*.9),
-      foldA:+els.foldA.value/100, foldSh:+els.foldSh.value/100,
-      wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
-      glass:+els.glass.value/100, contour:+els.contour.value/100,
-      tension:+els.tension.value/100, rim:+els.rim.value/100,
-      layer:+els.layer.value/100
-    };
-  }
-
-  var base=cfg();base.haloCanvas=$("haloCanvas");
-  var mesh=FluidMesh($("fluid"),base);
-  if(!mesh)$("glErr").style.display="block";
-
-  function volShadow(v){
-    var A=hexToHsl(v.colors[0]),C=hexToHsl(v.colors[3]);
-    /* a feathered limb and a crisp inset ring cannot coexist — any meaningful
-       Edge feather retires the insets entirely; the field's own wrapped masses
-       carry the shading (which is how the reference posters do it) */
-    var vol=(+els.vol.value/100)*Math.max(0,1-(+els.edgeF.value/100)*2.9);
-    var ux=(v.light[0]*100-50)/50, uy=(v.light[1]*100-50)/50;
-    return "inset calc(var(--R)*"+(ux*0.12).toFixed(3)+") calc(var(--R)*"+(uy*0.12).toFixed(3)
-      +") calc(var(--R)*0.19) 0 "+hsl(C.h,75,14,(0.5*vol).toFixed(2))
-      +",inset calc(var(--R)*"+(-ux*0.08).toFixed(3)+") calc(var(--R)*"+(-uy*0.08).toFixed(3)
-      +") calc(var(--R)*0.13) 0 "+hsl(A.h,50,96,(0.55*vol).toFixed(2));
-  }
-  function fallbackHalo(v,alpha){
-    var A=hexToHsl(v.colors[0]),B=hexToHsl(v.colors[1]),C=hexToHsl(v.colors[3]);
-    return "radial-gradient(42% 42% at 32% 26%, "+hsl(A.h,A.s,70,(0.9*alpha).toFixed(2))+", transparent 70%),"
-      +"radial-gradient(46% 46% at 74% 58%, "+hsl(C.h,C.s,68,(0.8*alpha).toFixed(2))+", transparent 72%),"
-      +"radial-gradient(60% 60% at 50% 55%, "+hsl(B.h,B.s,60,(0.5*alpha).toFixed(2))+", transparent 74%)";
-  }
-
-  var loadingPreset=false;
-  function markCustom(){if(!loadingPreset)els.preset.value="-1";}
-
-  /* ---- scenes: companion orbs, hue-rotated, composed like the board's
-     multi-orb poster. A stage feature — the export stays solo. ---- */
-  var sceneOrbs=[];
-  function hueRotHex(hex,deg){var h=hexToHsl(hex);return hslToHex(h.h+deg,h.s,h.l);}
-  function sceneCfg(v,deg){
-    var c={};for(var k in v)c[k]=v[k];
-    c.colors=v.colors.map(function(x){return hueRotHex(x,deg);});
-    c.nodes=nodes;c.orb=1;c.form=0;
-    return c;
-  }
-  function teardownScene(){
-    sceneOrbs.forEach(function(o){if(o.mesh)o.mesh.destroy();o.wrap.remove();});
-    sceneOrbs=[];
-  }
-  function buildScene(n){
-    teardownScene();
-    var degs=[30,-40],cls=["orb2","orb3"];
-    for(var i=0;i<n-1;i++){
-      var wrap=document.createElement("div");
-      wrap.className="orbWrap "+cls[i];
-      wrap.innerHTML='<div class="haloWrap"><div class="halo"><canvas></canvas></div></div>'
-        +'<div class="discClip"><canvas></canvas></div>';
-      $("stage").appendChild(wrap);
-      var c=sceneCfg(cfg(),degs[i]);
-      c.haloCanvas=wrap.querySelector(".halo canvas");
-      var m=FluidMesh(wrap.querySelector(".discClip canvas"),c);
-      var w=wrap.getBoundingClientRect().width;
-      wrap.style.setProperty("--R",(w/2).toFixed(0)+"px");
-      sceneOrbs.push({wrap:wrap,mesh:m,deg:degs[i]});
-    }
-  }
-
-  function loadNodeSliders(){
-    var nd=nodes[+els.nodeSel.value];
-    els.nx.value=Math.round(nd.x*100);els.ny.value=Math.round(nd.y*100);
-    els.nsize.value=Math.round(nd.size*100);
-    els.nlen.value=Math.round(nd.len/0.0035);
-    els.nang.value=Math.round(nd.ang*180/Math.PI);
-    syncOutputs();markSelectedSwatch();
-  }
-  function saveNodeSliders(){
-    var nd=nodes[+els.nodeSel.value];
-    nd.x=+els.nx.value/100;nd.y=+els.ny.value/100;
-    nd.size=Math.max(.1,+els.nsize.value/100);
-    nd.len=+els.nlen.value*0.0035;
-    nd.ang=+els.nang.value*Math.PI/180;
-  }
-
-  function apply(){
-    var v=cfg();
-    if(mesh)mesh.set(v);
-    var haloA=+els.haloA.value/100;
-    $("halo").style.setProperty("--haloA",haloA.toFixed(2));
-    if(!mesh)$("halo").style.background=fallbackHalo(v,haloA);
-    $("discClip").style.setProperty("--volSh",volShadow(v));
-    var orb=(els.shape.value==="orb");
-    $("stage").classList.toggle("bgMode",!orb);
-    var canvas=$("fluid");
-    var host=orb?$("discClip"):$("bgHost");
-    if(canvas.parentNode!==host)host.insertBefore(canvas,host.firstChild);
-    /* contextual controls: each Form shows only the sliders that shape it */
-    $("bendRow").style.display=(v.form===1||v.form===2||v.form===4)?"":"none";
-    $("bendLbl").textContent=(v.form===2)?"Drape angle":(v.form===4)?"Pleat angle":"Bend";
-    $("foldRow").style.display=(v.form===2||v.form===4)?"":"none";
-    $("foldRow").querySelector("label").textContent=(v.form===4)?"Pleats":"Fold";
-    $("sheenRow").style.display=(v.form===2||v.form===4)?"":"none";
-    $("dressSec").style.display=orb?"":"none";
-    els.edgeF.closest(".row").style.display=orb?"":"none";
-    els.fringe.closest(".row").style.display=orb?"":"none";
-    /* scenes live on the Planet stage only; teardown everywhere else */
-    var wantScene=orb?+($("scene").value):1;
-    if(wantScene>1&&sceneOrbs.length!==wantScene-1)buildScene(wantScene);
-    if(wantScene===1&&sceneOrbs.length)teardownScene();
-    sceneOrbs.forEach(function(o){
-      if(o.mesh)o.mesh.set(sceneCfg(v,o.deg));
-      o.wrap.style.setProperty("--haloA",haloA.toFixed(2));
-    });
-    writeCode(v,orb,haloA);
-  }
-  /* ---- stage ground: what the orb is judged against, not what it renders as.
-     All four now map to tokens.css — --c0 is the ramp's top rung (added by the
-     header-v2 pass) and retires the last raw #fff on this page. Purely a
-     stage-level background-color swap — never touches cfg(), the shader, a
-     preset, or writeCode()'s export. */
-  var STAGE_GROUNDS={paper:"var(--c50)",white:"var(--c0)",grey:"var(--c500)",ink:"var(--c950)"};
-  function applyStageBg(){
-    var v=els.stageGround.value;
-    $("stageGroundCustomRow").style.display=(v==="custom")?"":"none";
-    $("stage").style.background=(v==="custom")?els.stageGroundColor.value:STAGE_GROUNDS[v];
-  }
-  els.stageGround.addEventListener("input",applyStageBg);
-  els.stageGroundColor.addEventListener("input",applyStageBg);
-
-  /* THE READOUTS, AND THE SLIDERS' OWN FILL.
-     controls.css's .ctl--range draws its filled portion from --ctl-range-value,
-     a 0..1 number, because no shipping engine exposes a range's value to CSS:
-     ::-moz-range-progress is Gecko-only and ::slider-fill needs appearance:base,
-     which Chrome 151 does not support. THE HOOK IS THIS FUNCTION AND NOT A NEW
-     LISTENER, and that is the whole reason this is safe -- syncOutputs() is
-     already the single place the panel re-reads its own state, called from every
-     input handler, from loadPreset, loadSaved, loadNodeSliders, randomizeAll,
-     the shape handler and init. A fill written anywhere else would go stale the
-     first time a preset moved a slider without the user touching it. */
-  function fillRanges(){
-    [].forEach.call(document.querySelectorAll(".ctl--range"),function(r){
-      var lo=(r.min==="")?0:parseFloat(r.min),
-          hi=(r.max==="")?100:parseFloat(r.max),
-          v=parseFloat(r.value);
-      r.style.setProperty("--ctl-range-value",
-        (isFinite(lo)&&isFinite(hi)&&isFinite(v)&&hi>lo)?((v-lo)/(hi-lo)).toFixed(4):"0");
-    });
-  }
-  function syncOutputs(){
-    rangeIds.concat(nodeRangeIds).forEach(function(k){
-      var o=$(k+"O");if(o)o.textContent=els[k].value;});
-    fillRanges();
-  }
-  /* WHICH WELL THE OTHER TAB IS EDITING. .ctl--swatch's selected ring is the one
-     state a colour well cannot show in its own ground, because the ground is the
-     visitor's. Look holds the five colours and Nodes edits one node at a time, so
-     the selection already exists -- it just had no way to be seen from the tab
-     where the colours are. This is a read-only mark, not a second control: the
-     authoritative picker stays the <select>, and clicking a well still does the
-     one thing a colour well does. */
-  function markSelectedSwatch(){
-    var i=+els.nodeSel.value;
-    colorIds.forEach(function(id,j){
-      els[id].setAttribute("data-selected",(j===i)?"true":"false");});
-  }
-
-  function loadPreset(i){
-    var p=PRESETS[i];if(!p)return;
-    loadingPreset=true;
-    colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
-    nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
-    els.form.value=String(p.form||0);
-    els.contour.value=(p.contour!==undefined)?p.contour:18;
-    els.tension.value=(p.tension!==undefined)?p.tension:40;
-    els.rim.value=(p.rim!==undefined)?p.rim:((p.form||0)===0?35:0);
-    els.layer.value=(p.layer!==undefined)?p.layer:55;
-    els.shape.value=p.shape?p.shape:(((p.form||0)===0)?"orb":"bleed");
-    ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
-      .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
-    loadNodeSliders();syncOutputs();apply();
-    loadingPreset=false;
-  }
-
-  function writeCode(v,orb,haloA){
-    var engine=window.FluidMesh.toString();
-    var conf={colors:v.colors,
-      nodes:nodes.map(function(nd){return{x:+nd.x.toFixed(3),y:+nd.y.toFixed(3),
-        size:+nd.size.toFixed(2),len:+nd.len.toFixed(3),ang:+nd.ang.toFixed(3)};}),
-      light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
-      grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb,
-      wob:v.wob,edgeF:v.edgeF,glass:v.glass,
-      form:v.form,sph:v.sph,orb:v.orb,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh,contour:v.contour};
-    var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
-    var lines=["<!-- Fluid Mesh — generated by Gradient Maker -->"];
-    if(orb){
-      lines.push("<!-- Duo/Trio scenes are a stage-preview feature; this snippet exports the solo orb -->");
-      lines.push(
-'<div class="fmOrb">',
-'  <div class="fmHaloWrap"><div class="fmHalo"><canvas class="fmHaloCanvas"></canvas></div></div>',
-'  <div class="fmClip"><canvas class="fmCanvas"></canvas></div>',
-'</div>',
-"<style>",
-".fmOrb{position:relative;aspect-ratio:1;--R:215px} /* set --R to half your orb width */",
-".fmHaloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}",
-".fmHalo{position:absolute;inset:0;border-radius:50%;overflow:hidden;",
-"  filter:blur(calc(var(--R)*0.34));opacity:"+haloA.toFixed(2)+"}",
-".fmHalo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block}",
-".fmClip{position:absolute;inset:0;border-radius:50%;overflow:hidden;",
-"  isolation:isolate;transform:translateZ(0)}",
-".fmClip::after{content:\"\";position:absolute;inset:0;border-radius:50%;",
-"  pointer-events:none;z-index:2;box-shadow:"+volShadow(v)+"}",
-".fmCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}",
-fallback,
-"</style>");
-    }else{
-      lines.push(
-'<div class="fmBg"><canvas class="fmCanvas"></canvas></div>',
-"<style>",
-".fmBg{position:absolute;inset:0;overflow:hidden} /* or fixed, for a page background */",
-".fmCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}",
-fallback,
-"</style>");
-    }
-    lines.push("<script>");
-    lines.push(engine.trim());
-    var init="var fmCfg="+JSON.stringify(conf)+";";
-    if(orb)init+="fmCfg.haloCanvas=document.querySelector('.fmHaloCanvas');";
-    lines.push(init);
-    lines.push("var fm=FluidMesh(document.querySelector('.fmCanvas'),fmCfg);");
-    lines.push("if(!fm)document.querySelector('.fmCanvas').parentNode.classList.add('fmFallback');");
-    lines.push("<\/script>");
-    $("code").textContent=lines.join("\n");
-  }
-
-  /* Randomize draws from ARCHETYPES, not uniform ranges: each defines the five
-     nodes' ROLES (crown light, two mid masses, one deep, one small accent) with
-     locked lightness/saturation relationships — the reason random pulls stay
-     pretty. Composition rules: one diagonal band, one accent near a limb, light
-     in the upper third, coherent angles. */
-  function rnd(a,b){return a+Math.random()*(b-a);}
-  var ARCH=[
-    {n:"glacier",h:function(h){return[h,h+18,h+34,h+46,h+rnd(150,190)];},
-     S:[30,62,78,82,55],L:[93,72,55,38,82],expo:[96,106]},
-    {n:"sunset",h:function(h){return[h+16,h,h-18,h+rnd(215,250),h+30];},
-     S:[55,88,90,80,60],L:[84,58,48,40,82],expo:[92,102]},
-    {n:"orchid",h:function(h){return[h+24,h,h-20,h-38,h+45];},
-     S:[35,72,85,85,50],L:[90,66,52,36,84],expo:[94,104]},
-    {n:"forest",h:function(h){return[h+30,h+rnd(60,90),h,h-16,h+rnd(140,170)];},
-     S:[28,80,68,72,75],L:[90,62,48,32,66],expo:[92,102]},
-    {n:"noir",h:function(h){return[h,h+16,h-14,h+8,h+rnd(120,160)];},
-     S:[45,55,60,50,85],L:[24,16,30,12,58],expo:[58,72]}
-  ];
-  var lastArch=-1;
-  function pickArch(){
-    var i;do{i=Math.floor(Math.random()*ARCH.length);}while(i===lastArch&&ARCH.length>1);
-    lastArch=i;return ARCH[i];
-  }
-  function applyArchColors(a){
-    var h=rnd(0,360),hues=a.h(h);
-    colorIds.forEach(function(id,j){
-      els[id].value=hslToHex(hues[j]+rnd(-6,6),a.S[j]+rnd(-8,8),a.L[j]+rnd(-4,4));});
-    return a;
-  }
-  function randomColors(){
-    applyArchColors(pickArch());
-    markCustom();apply();
-  }
-  function randomizeAll(){
-    var a=applyArchColors(pickArch());
-    var bandAng=rnd(-45,-22);            /* one coherent diagonal family */
-    var accSide=Math.random()<.5?rnd(.08,.2):rnd(.8,.92);
-    nodes=[
-      N(rnd(.42,.58),rnd(.18,.32),rnd(1.0,1.4),rnd(0,.08),bandAng+rnd(-10,10)),
-      N(rnd(.24,.44),rnd(.40,.60),rnd(.8,1.15),rnd(.04,.14),bandAng+rnd(-8,8)),
-      N(rnd(.40,.62),rnd(.55,.72),rnd(.8,1.1),rnd(.18,.30),bandAng),
-      N(rnd(.56,.80),rnd(.66,.86),rnd(.7,1.05),rnd(.06,.18),bandAng+rnd(-8,8)),
-      N(accSide,rnd(.30,.62),rnd(.28,.5),rnd(0,.12),bandAng+rnd(-12,12))];
-    els.lx.value=Math.round(rnd(30,58));els.ly.value=Math.round(rnd(14,32));
-    els.glow.value=Math.round(rnd(35,58));
-    els.melt.value=Math.round(rnd(46,62));
-    els.wob.value=Math.round(rnd(4,16));
-    els.edgeF.value=Math.round(rnd(24,48));
-    els.glass.value=Math.round(rnd(28,55));
-    els.sweep.value=Math.round(rnd(22,42));
-    els.fringe.value=Math.round(rnd(12,50));
-    els.expo.value=Math.round(rnd(a.expo[0],a.expo[1]));
-    loadNodeSliders();syncOutputs();markCustom();apply();
-  }
-
-  /* the copy control is a 44px icon button now, so its confirmation is the glyph
-     rather than the label -- same 1400ms, same idea, and the aria-label goes with
-     it so a screen reader hears the change too */
-  var COPY_ICO=$("copyBtn").innerHTML;
-  var COPY_OK='<svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>';
-  $("copyBtn").addEventListener("click",function(){
-    var txt=$("code").textContent,btn=this,lbl=btn.getAttribute("aria-label");
-    function ok(){btn.innerHTML=COPY_OK;btn.classList.add("is-ok");
-      btn.setAttribute("aria-label","Embed code copied");
-      setTimeout(function(){btn.innerHTML=COPY_ICO;btn.classList.remove("is-ok");
-        btn.setAttribute("aria-label",lbl);},1400);}
-    function fallback(){var ta=document.createElement("textarea");ta.value=txt;
-      document.body.appendChild(ta);ta.select();
-      try{document.execCommand("copy");ok();}catch(e){}
-      document.body.removeChild(ta);}
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(ok,fallback);
-    }else fallback();
-  });
-
-  colorIds.concat(rangeIds).forEach(function(k){
-    els[k].addEventListener("input",function(){syncOutputs();markCustom();apply();});
-  });
-  nodeRangeIds.forEach(function(k){
-    els[k].addEventListener("input",function(){saveNodeSliders();syncOutputs();markCustom();apply();});
-  });
-  els.nodeSel.addEventListener("input",loadNodeSliders);
-  els.form.addEventListener("input",function(){markCustom();apply();});
-  els.shape.addEventListener("input",function(){
-    /* Orb brings its dressing: a field authored full-bleed carries no halo,
-       rim or feather, so becoming a planet would render a flat disc */
-    if(els.shape.value==="orb"&&(+els.edgeF.value+ +els.haloA.value+ +els.rim.value)===0){
-      els.edgeF.value=34;els.haloA.value=50;els.rim.value=35;els.vol.value=45;
-      syncOutputs();
-    }
-    markCustom();apply();});
-  $("scene").addEventListener("input",apply);
-
-  /* ---- saved presets: the full state, persisted, listed under the built-ins ---- */
-  var LS_KEY="glabPresets";
-  function savedList(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return[];}}
-  function serialize(){
-    var s={colors:colorIds.map(function(id){return els[id].value;}),
-      nodes:nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};}),
-      form:els.form.value,sliders:{}};
-    rangeIds.forEach(function(k){s.sliders[k]=els[k].value;});
-    return s;
-  }
-  function rebuildSavedOptions(){
-    [].slice.call(els.preset.querySelectorAll("option[data-saved]"))
-      .forEach(function(o){o.remove();});
-    savedList().forEach(function(p,i){
-      var o=document.createElement("option");
-      o.value="s"+i;o.textContent="★ "+p.name;o.setAttribute("data-saved","1");
-      els.preset.appendChild(o);
-    });
-  }
-  function loadSaved(i){
-    var p=savedList()[i];if(!p)return;
-    loadingPreset=true;
-    var s=p.s;
-    colorIds.forEach(function(id,j){els[id].value=s.colors[j];});
-    nodes=s.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
-    els.form.value=s.form;
-    rangeIds.forEach(function(k){if(s.sliders[k]!==undefined)els[k].value=s.sliders[k];});
-    loadNodeSliders();syncOutputs();apply();
-    loadingPreset=false;
-  }
-  $("saveBtn").addEventListener("click",function(){
-    var arr=savedList();
-    arr.push({name:"My preset "+(arr.length+1),s:serialize()});
-    try{localStorage.setItem(LS_KEY,JSON.stringify(arr));}catch(e){}
-    rebuildSavedOptions();
-    els.preset.value="s"+(arr.length-1);
-  });
-  rebuildSavedOptions();
-
-  els.preset.addEventListener("input",function(){
-    var v=els.preset.value;
-    if(v.charAt(0)==="s"){loadSaved(+v.slice(1));return;}
-    var i=+v;if(i>=0)loadPreset(i);
-  });
-  $("rnd").addEventListener("click",randomizeAll);
-  $("rndColors").addEventListener("click",randomColors);
-
-  /* hi-res PNG: 2048 square for the planet (with feathered alpha), 2x the
-     stage for full-bleed forms, capped at 4096 on the long edge */
-  $("pngBtn").addEventListener("click",function(){
-    if(!mesh)return;
-    var v=cfg(),w,h;
-    if(v.form===0){w=h=2048;}
-    else{var st=$("stage");var sc=Math.min(2,4096/Math.max(st.clientWidth,st.clientHeight));
-      w=Math.round(st.clientWidth*sc);h=Math.round(st.clientHeight*sc);}
-    var cv2=mesh.snapshot(w,h);
-    if(!cv2)return;
-    var nm=els.preset.value>=0?els.preset.options[els.preset.selectedIndex].text:"custom";
-    cv2.toBlob(function(b){
-      if(!b)return;
-      var a=document.createElement("a");
-      a.href=URL.createObjectURL(b);
-      a.download="gradient-"+nm.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
-      a.click();
-      setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
-    });
-  });
-
-  /* ---- the tab strip. One group visible at a time is what lets thirty controls
-     live in a panel that never scrolls; it is a reduction of what is on screen,
-     not a scrollport. Roving tabindex + arrow keys per the ARIA tabs pattern:
-     one Tab stop for the whole strip, arrows to move within it. ---- */
-  var tabs=[].slice.call(document.querySelectorAll(".ctl--tab"));
-  function selectTab(el){
-    tabs.forEach(function(t){
-      var on=(t===el);
-      t.setAttribute("aria-selected",on?"true":"false");
-      t.tabIndex=on?0:-1;
-      $(t.getAttribute("aria-controls")).hidden=!on;
-    });
-  }
-  tabs.forEach(function(t,i){
-    t.addEventListener("click",function(){selectTab(t);});
-    t.addEventListener("keydown",function(e){
-      var d=(e.key==="ArrowRight")?1:(e.key==="ArrowLeft")?-1:
-            (e.key==="Home")?-i:(e.key==="End")?(tabs.length-1-i):0;
-      if(!d&&e.key!=="Home"&&e.key!=="End")return;
-      e.preventDefault();
-      var n=tabs[(i+d+tabs.length)%tabs.length];
-      selectTab(n);n.focus();
-    });
-  });
-
-  function sizeR(){var w=$("orbWrap").getBoundingClientRect().width;
-    $("orbWrap").style.setProperty("--R",(w/2).toFixed(0)+"px");}
-  addEventListener("resize",sizeR);
-
-  sizeR();loadNodeSliders();syncOutputs();apply();applyStageBg();
-})();
+ "use strict";
+ var frame=document.getElementById("spFrame");
+ var poster=document.getElementById("spPoster");
+ var play=document.getElementById("spPlay");
+ if(!frame||!poster||!play)return;
+ play.addEventListener("click",function(){
+  var src=frame.getAttribute("data-src");
+  if(src&&!frame.getAttribute("src"))frame.setAttribute("src",src);
+  poster.hidden=true;
+  frame.focus();
+ });
+}());
 </script>
 </body>
 </html>

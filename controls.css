@@ -1113,4 +1113,8 @@
    unmodified -- CLAUDE.md's rule is that a control comes from this file and is not
    patched toward the system property by property. This wrapper only owns the space
    under it, which is the paragraph rung the covers already sit on. */
-.csTry{margin:0 0 var(--sp-24)}
+/* A row, because engine.html carries two of them since the match and the cup merged
+   into one study. gap is the controls' own --ctl-gap rung; it wraps rather than
+   shrinking, so a narrow phone stacks them at full height instead of squeezing two
+   44px targets into one line. */
+.csTry{display:flex;flex-wrap:wrap;gap:var(--sp-8);margin:0 0 var(--sp-24)}

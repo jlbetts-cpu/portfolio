@@ -75,7 +75,15 @@ assert HTML.index('class="hero" id="playArena"') < HTML.index('id="games"')
 # list held seven -- the draft board was appended without the sentence being reread. The
 # board is gone now ("lets remove the draft guide actually i dont think i want it on the
 # site"), so the count and the prose agree for the first time since it arrived.
-assert parser.card_ids == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork"]
+# 2026-09-01: STILL SIX, DIFFERENT SIX. "play a match and tournment can be the same case
+# study they dont need two differnt case studies they just need two buttons inside the
+# case study. to keep it to 6 boxes." Both cards already opened engine.html, so the grid
+# was spending two of its six boxes to reach one page; the cup's two launchers moved into
+# that study and pcTour came out. The box it freed went to Strata -- "I lowkey think the
+# Strata case study should also be in play" -- which passes the same test every other cell
+# does: it is a thing a visitor can play. Still an EXACT list, so a seventh door arriving
+# unannounced still fails here, and so does a door quietly changing places.
+assert parser.card_ids == ["pcYow", "pcExped", "pcHead", "pcGrad", "pcWork", "pcStrata"]
 # TWO COLUMNS AND AN ODD COUNT LEAVES A HOLE, and a hole in this flush grid is not white
 # space -- it is the container's --rule ground showing through as a solid block. Exactly one
 # cell must span when the count is odd, and none may when it is even. Asserted as the
@@ -86,7 +94,9 @@ assert wide == (len(parser.card_ids) % 2), \
 assert wide == 0 or '.pCardWide{grid-column:1/-1}' in HTML
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
-    "Split the heads into two teams and watch them play soccer. You pick the teams first.",
+    # ONE SENTENCE FOR BOTH GAMES now that they share a cell. It has to name the cup as
+    # well as the match, or the merged card silently drops a game from the page.
+    "Split the heads into two teams and watch them play soccer, or run eight of them through a knockout cup.",
     # 2026-08-11, SECOND MOVE: the cup became a twelve-team league and has been put
     # back. Jayden: "I still did like the one game elimination format." So the
     # sentence describes a knockout again, and it names the option he did ask for --
@@ -95,14 +105,25 @@ for fragment in (
     # the word on the Play menu row; one command in two menus must read identically.
     # This assertion is UPDATED rather than removed: the point of it is that the card
     # cannot silently disagree with the format again, which is what it caught here.
-    "Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.",
-    # And the words the league brought with it must not survive it anywhere on the page.
+    # Strata's cell reaches the game on its own page, not the embed inside its study.
+    'href="strata-play.html"',
 
     "Dial a planet of coloured light on a new page, and leave with the image and the code.",
     'href="headmaker.html?from=play"',
     'href="gradientlab.html?from=play"',
 ):
     assert fragment in HTML
+# THE CUP'S DOOR MOVED, IT DID NOT CLOSE. Its own cell is gone, so the thing to assert is
+# that BOTH launchers exist inside the study the merged card opens -- that is where he put
+# the choice ("they just need two buttons inside the case study"). A study that lost one of
+# them is the same defect the cup's card sentence used to guard against: a game that
+# quietly stops being reachable from this page.
+# NOT `ENGINE` -- that name is already play-engine.js in this file, and reusing it here
+# silently replaced the engine source for every assertion below.
+ENGINE_STUDY = (ROOT / "engine.html").read_text(encoding="utf-8")
+for fragment in ('href="play.html?play=match"', 'href="play.html?play=tournament"'):
+    assert fragment in ENGINE_STUDY, ("engine.html has lost a launcher", fragment)
+
 for rejected_selector_fragment in ("pArenaFrame", "pModeDock", "pModeRail", "play-select.css"):
     assert rejected_selector_fragment not in HTML
 
