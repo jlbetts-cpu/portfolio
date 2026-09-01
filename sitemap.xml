@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Nine URLs: every page that carries <meta name="robots" content="index,follow">.
+  Thirteen URLs: every page that carries <meta name="robots" content="index,follow">.
 
-  It used to carry two -- the home page and bearings.html -- so about.html and four
+  It used to carry two – the home page and bearings.html – so about.html and four
   of the five case studies were absent, and about.html is the single most
   name-relevant page on the site. A sitemap is a discovery hint, not a permission,
   so their absence did not block indexing; it just meant nothing here vouched for
   them.
 
   DELIBERATELY ABSENT, and they must stay absent: play.html and gradientlab.html
-  are noindex. Listing a noindex URL here is a contradiction -- the sitemap asks a
-  crawler to index a page the page itself refuses -- and Search Console reports it
+  are noindex. Listing a noindex URL here is a contradiction – the sitemap asks a
+  crawler to index a page the page itself refuses – and Search Console reports it
   as an error against the whole file.
 
   The location values below are apex, no www, matching every canonical link on
@@ -129,5 +129,49 @@
     <lastmod>2026-08-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+   <loc>https://jaydenbetts.design/workspace-study.html</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-portrait.webp</image:loc>
+      <image:title>Jayden Betts, product designer</image:title>
+      <image:caption>Portrait of Jayden Betts, product designer and founder of Apollo</image:caption>
+    </image:image>
+  </url>
+  <url>
+   <loc>https://jaydenbetts.design/head-maker-study.html</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-portrait.webp</image:loc>
+      <image:title>Jayden Betts, product designer</image:title>
+      <image:caption>Portrait of Jayden Betts, product designer and founder of Apollo</image:caption>
+    </image:image>
+  </url>
+  <url>
+   <loc>https://jaydenbetts.design/gradientlab-study.html</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-portrait.webp</image:loc>
+      <image:title>Jayden Betts, product designer</image:title>
+      <image:caption>Portrait of Jayden Betts, product designer and founder of Apollo</image:caption>
+    </image:image>
+  </url>
+  <url>
+   <loc>https://jaydenbetts.design/engine.html</loc>
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-portrait.webp</image:loc>
+      <image:title>Jayden Betts, product designer</image:title>
+      <image:caption>Portrait of Jayden Betts, product designer and founder of Apollo</image:caption>
+    </image:image>
   </url>
 </urlset>
