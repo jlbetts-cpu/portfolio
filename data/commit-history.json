@@ -1490,11 +1490,11 @@
  "last": "2026-09-01",
  "usage": {
   "note": "output is what Claude wrote; cacheRead is context re-read on every turn and is deliberately NOT the headline",
-  "output": 85600818,
-  "input": 3667933,
-  "cacheWrite": 905975481,
-  "cacheRead": 35674039144,
-  "turns": 114080,
+  "output": 85650736,
+  "input": 3668057,
+  "cacheWrite": 906058784,
+  "cacheRead": 35709918625,
+  "turns": 114142,
   "sessions": 449,
   "models": [
    "claude-opus-5",

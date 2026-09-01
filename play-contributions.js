@@ -213,20 +213,29 @@
       plural(longest, "day") + ".";
 
     /* ══ THE USAGE FIGURE ═══════════════════════════════════════════════════════════
-       Same guard as the calendar's: no data, no block. It renders OUTPUT tokens, and the
-       caption says so in words rather than leaving "tokens" to be read as a raw total --
-       the file also carries cacheRead, which is 400x larger and means something else
-       entirely. If a later pass wants a bigger number on the page, the honest one is
-       output + input + cacheWrite; cacheRead is not a candidate. */
+       Same guard as the calendar's: no data, no block.
+
+       THREE OF THE FOUR COUNTERS, AND THE FOURTH IS THE WHOLE POINT. The headline is
+       output + input + cacheWrite -- everything sent to Claude or produced by it. What
+       is deliberately NOT in it is cacheRead, which at 35.7B is 36x the rest put
+       together: it counts the same conversation again on every turn, so it measures how
+       long the sessions ran rather than how much was done. Publishing 36.7B would be a
+       number that is technically in the file and means nothing a reader would assume.
+       He chose this figure over output alone on 2026-09-01.
+
+       AND THE CAPTION SAYS WHICH IT IS, because "995M tokens" with no qualifier invites
+       exactly the wrong reading. The sentence names the exclusion in plain words rather
+       than making the number defend itself. */
     var usage = data.usage;
     var box = document.getElementById("pGitUsage");
     if (box && usage && usage.output) {
       var fig = document.getElementById("pGitTokens");
       var un = document.getElementById("pGitUsageNote");
-      if (fig) fig.textContent = millions(usage.output) + " tokens written";
-      if (un) un.textContent = "Across " + commas(usage.turns) + " turns in " +
-        commas(usage.sessions) + " sessions since " + humanShort(usage.first) +
-        ", from Claude Code's own logs.";
+      var through = (usage.output | 0) + (usage.input | 0) + (usage.cacheWrite | 0);
+      if (fig) fig.textContent = millions(through) + " tokens";
+      if (un) un.textContent = "Sent and generated across " + commas(usage.turns) +
+        " turns in " + commas(usage.sessions) + " sessions since " +
+        humanShort(usage.first) + ", not counting context re-read from cache.";
       box.hidden = false;
     }
 

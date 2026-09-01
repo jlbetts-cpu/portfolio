@@ -2026,10 +2026,12 @@
        API for personal Claude usage, so the number would be hardcoded and ageing. It is
        computed from Claude Code's own transcripts by the same tool that writes the
        calendar, carries the same `generated` stamp, and is one command to refresh.
-       IT HEADLINES OUTPUT, NOT THE RAW SUM. The four counters total 36.7 BILLION, but
-       35.7B of that is cache_read -- the same conversation re-read on every turn, which
-       measures session length rather than work. Output is the only counter that cannot
-       be inflated that way, so it is the one on the page. -->
+       IT IS THREE OF THE FOUR COUNTERS, NOT THE RAW SUM. output + input + cacheWrite is
+       everything sent to Claude or produced by it. cacheRead is left out on purpose: at
+       35.7B it is 36x the other three together, because it counts the same conversation
+       again on every turn -- it measures how long the sessions ran, not how much was
+       done. The caption names that exclusion in words rather than leaving a nine-figure
+       number to be read however a visitor guesses. -->
   <div class="pGitSecond" id="pGitUsage" hidden>
    <p class="pGitEyebrow">Built with Claude</p>
    <h3 class="pGitHead"><span id="pGitTokens">&nbsp;</span></h3>
