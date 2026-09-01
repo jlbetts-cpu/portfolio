@@ -41,11 +41,23 @@ def verify_state(page, state):
           const nodes = Array.from(document.querySelectorAll(`.csItem[data-slug="${project}"] img.csImg`));
           const expected = state === "off" ? originals[project]
             : `images/cs/variants/time/${project}/${state}-1200.webp`;
-          return nodes.length > 0 && nodes.every(img =>
-            img.getAttribute("src") === expected && img.complete && img.naturalWidth > 0 &&
-            (state === "off" ? !img.hasAttribute("srcset") && !img.hasAttribute("sizes")
-              : img.getAttribute("srcset").includes(`${state}-2400.webp 2400w`) && img.hasAttribute("sizes"))
-          );
+          // THE SWAP IS THE CONTRACT; DECODING IS NOT, AND CONFLATING THEM MADE THIS
+          // GATE UNPASSABLE. Home puts several projects in more than one tab panel --
+          // bearings and apollo sit in Featured AND in Case Studies -- and the copy in
+          // the panel that is not open is loading="lazy", so it never fetches and
+          // img.complete is never true for it. Requiring that of EVERY matching node
+          // meant this could only pass on a layout with no tabs, which home has not had
+          // for a long time: it timed out at 20s on a page doing exactly the right thing.
+          // Every node must still carry the right src and srcset -- that is what the
+          // controller is responsible for -- and only the nodes actually being rendered
+          // have to have pixels behind them.
+          return nodes.length > 0 && nodes.every(img => {
+            const attrs = img.getAttribute("src") === expected &&
+              (state === "off" ? !img.hasAttribute("srcset") && !img.hasAttribute("sizes")
+                : img.getAttribute("srcset").includes(`${state}-2400.webp 2400w`) && img.hasAttribute("sizes"));
+            const shown = img.offsetParent !== null;
+            return attrs && (!shown || (img.complete && img.naturalWidth > 0));
+          });
         })
         """,
         arg=[PROJECTS, ORIGINALS, state],

@@ -151,7 +151,26 @@ WINDOW_H = .76          # the plate.  Aspect is preserved inside it.
 # He said it directly: he likes the case study's picture, which is the same scene at full
 # bleed, more than the card's. So the scene gets a bigger box and the photograph stays as
 # a frame around it rather than a field it floats in.
-WINDOW_BOX = {"yowmings": (.76, .80)}
+WINDOW_BOX = {}
+
+# SLUGS WHOSE PRODUCT IS CUT OUT AND STOOD ON THE PHOTOGRAPH, rather than fitted into a
+# window.  Yowmings went through three shapes before this one and the reason it moved is
+# worth keeping: its capture is not a UI screenshot, it is a SCENE, and a scene inside a
+# white rounded panel on grass reads as a mistake -- "the screenshot i dont like it looks
+# like a glitch".  A window works for an app because a reader expects an app to live in
+# one.  Nothing expects a kickoff to.
+#
+# So the white is matted out and the heads, the ball and the uprights stand on the turf
+# directly.  The matte is the same ink machinery build_yowmings() uses, and it is already
+# built to exclude the capture's floor reflections (INK_CORE 130; reflections peak at 90)
+# -- a reflection pasted onto grass is the same glitch in a smaller costume.
+#
+# THEY GET A CONTACT SHADOW, and that is not an exception to this site's shadow rule, it
+# IS the rule: the companion heads cast contact shadows because they are standing on
+# something, and here they are standing on a pitch.  Nothing else in the plate casts.
+MATTE = {"yowmings"}
+MATTE_SCALE = .90       # so the uprights at the capture's edges land inside the frame
+MATTE_SHADOW = (7, 9, .34)   # blur px, drop px, opacity
 RADIUS = .014           # the shipped R3SHORE corner: 17px at 1200, 34px at 2400
 # The site's own --rim-1, inset 0 0 0 1px rgba(9,11,36,.08).  A white product
 # panel standing on a pale pre-dawn sky has no edge of its own, and elevation is
@@ -232,6 +251,37 @@ def rounded(image, size, radius, hairline):
     return scaled
 
 
+def matte_layer(source, size):
+    """The kickoff cut off its white ground, with a contact shadow under it.
+
+    Returned at the plate's full size with everything outside the ink transparent, so
+    build() composites it exactly like a window layer and every state still gets a
+    byte-identical product.
+    """
+    width, height = size
+    capture = Image.open(source).convert("RGB")
+    alpha, ink = ink_matte(capture)
+    inner = (round(width * MATTE_SCALE), round(height * MATTE_SCALE))
+    alpha = alpha.resize(inner, Image.Resampling.LANCZOS)
+    ink = ink.resize(inner, Image.Resampling.LANCZOS)
+    left, top = (width - inner[0]) // 2, (height - inner[1]) // 2
+
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+    blur, drop, strength = MATTE_SHADOW
+    # The shadow scales with the plate, or it is half as heavy at 2400 as at 1200.
+    k = width / 1200
+    cast = alpha.filter(ImageFilter.GaussianBlur(blur * k)).point(
+        lambda v: round(v * strength))
+    shadow = Image.new("RGBA", inner, (9, 11, 36, 255))
+    shadow.putalpha(cast)
+    layer.alpha_composite(shadow, (left, top + round(drop * k)))
+
+    subject = ink.copy()
+    subject.putalpha(alpha)
+    layer.alpha_composite(subject, (left, top))
+    return layer
+
+
 def foreground(slug, size):
     """The product layer, identical in every state.
 
@@ -243,6 +293,8 @@ def foreground(slug, size):
     source = ROOT / "images/cs" / LAYOUTS[slug]
     if not source.exists():
         raise FileNotFoundError(f"{slug}: the case-study screen moved: {source}")
+    if slug in MATTE:
+        return matte_layer(source, size)
     window = Image.open(source).convert("RGB")
     top, bottom = SCREEN_CROP.get(slug, (0.0, 1.0))
     if (top, bottom) != (0.0, 1.0):
@@ -525,7 +577,7 @@ def product_drift(slug, folder=None):
     # a 60 bound, on a plate that measures 24 when sampled correctly.  A slug with a
     # photograph under it has its product in one rectangle and is cropped; only a plate
     # graded in place needs the mask.
-    if slug not in SCENES:
+    if slug not in SCENES or slug in MATTE:
         # The ink is scattered over the whole plate rather than sitting in one
         # rectangle, so the sample is taken through a mask instead of a crop --
         # and the mask is the ink's SILHOUETTE, not the pixels the matte happens
@@ -536,15 +588,20 @@ def product_drift(slug, folder=None):
         # cheeks were inside the ink and turning purple, and this check passed.
         # Sampling the silhouette asks the question that matters -- did anything
         # INSIDE a head move -- and the injection below proves it can fail.
-        plate = Image.open(YOWMINGS / "card-1200.webp").convert("RGB")
-        strength = _strength(plate)
-        opaque = _reconstruct(
-            strength.point(lambda v: 255 if v >= INK_CORE else 0),
-            ImageChops.multiply(
-                _fill_holes(strength.point(lambda v: 255 if v > INK_FLOOR else 0)),
-                _standing(strength),
-            ),
-        ).filter(ImageFilter.MinFilter(5))
+        # THE MASK IS THE PRODUCT LAYER'S OWN, so it cannot drift out of register with
+        # the thing it is measuring.  It used to be rebuilt here from the 1200-wide
+        # capture at full scale; once the matte was scaled to .90 and centred, that
+        # mask sat over GRASS at the edges and reported the sky moving as the product
+        # moving -- mean 1.11, peak 95, on a layer that is byte-identical by
+        # construction.  Asking the layer where it is solid is the same question and
+        # cannot fall out of step with it.
+        #
+        # ONLY WHERE IT IS FULLY OPAQUE, and eroded by 5.  The contact shadow is
+        # deliberately translucent, so the graded photograph shows THROUGH it and it
+        # is supposed to change between states; sampling it would fail every build.
+        # The erosion drops the antialiased rim for the same reason.
+        opaque = foreground(slug, frames[0].size).getchannel("A") \
+            .point(lambda v: 255 if v >= 250 else 0).filter(ImageFilter.MinFilter(5))
         void = Image.new("RGB", frames[0].size)
         samples = [Image.composite(frame, void, opaque) for frame in frames]
     else:

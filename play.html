@@ -26,8 +26,8 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=5329e3e78b">
-<link rel="stylesheet" href="play.css?v=5329e3e78b">
+<link rel="stylesheet" href="tokens.css?v=56e7b114cf">
+<link rel="stylesheet" href="play.css?v=56e7b114cf">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
      remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
@@ -35,7 +35,7 @@
      ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
      is a printed artifact whose materials were settled in the broadcast spec and must not be
      re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
-<link rel="stylesheet" href="tournament.css?v=5329e3e78b">
+<link rel="stylesheet" href="tournament.css?v=56e7b114cf">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
@@ -1211,6 +1211,37 @@
   border-radius:var(--r-lg);corner-shape:var(--corner);overflow:hidden;background:var(--c75)}
  .pCardImg,.pCardShot>.csImgOut{display:block;width:100%;height:auto;aspect-ratio:2/1;
   object-fit:cover;border-radius:inherit}
+ /* ══ THE HOVER ZOOM, THE SAME ONE HOME HAS ══════════════════════════════════════════
+    "there is no clean zoom in like the thumbnails on the home for the games on the play."
+    Correct, and the construction here was already the one that makes it work: .pCardShot
+    carries overflow:hidden and a fixed 2/1 box, and .pCardImg is object-fit:cover inside
+    it -- the same pair as .csFrame/.csImg on home. So the image scales, the frame does
+    not, the crop tightens and NOTHING in the grid reflows. That is the whole reason it
+    reads as expensive rather than as a card growing.
+    THE NUMBERS AND CURVES ARE HOME'S, NOT NEW ONES, and index.html carries the argument
+    for each in full: 1.04, --sp-settle (a spring that settles without overshoot, because
+    a card that bounces under the cursor reads as a toy), and an asymmetry carried by
+    duration alone -- 360 in, 280 out -- after --ease-out was measured spending 96% of a
+    240ms exit in its first 120ms and reading as a snap. Two copies of a value is a risk,
+    so if you retune one, retune both.
+    TRANSFORM ONLY, and deliberately no will-change: promoting six thumbnails to their own
+    layers for the session is memory spent on the five nobody is pointing at.
+    :focus-within, not :focus-visible, because the tab stop inside this cell is the title
+    link and the play button rather than a wrapper around the whole card.
+    Hover-capable pointers only -- on a touch screen :hover latches after a tap and the
+    card would stay zoomed with nothing to release it. ═══════════════════════════════ */
+ @media (hover:hover) and (pointer:fine){
+  .pCardImg{transform:scale(1);transition:transform var(--dur-move) var(--sp-settle)}
+  .pCard:hover .pCardImg,
+  .pCard:focus-within .pCardImg{
+   transform:scale(1.04);transition:transform var(--sp-settle-dur) var(--sp-settle)}
+  /* A cell that cannot be played does not invite the pointer. */
+  .pCard[aria-disabled="true"]:hover .pCardImg{transform:none}
+ }
+ @media (prefers-reduced-motion:reduce){
+  .pCardImg{transition:none}
+  .pCard:hover .pCardImg,.pCard:focus-within .pCardImg{transform:none}
+ }
  /* site-theme.css links AFTER this block, so .csImgOut's own --r-xl would win on source
     order at equal specificity. Two classes deep beats it outright rather than by position;
     see CLAUDE.md on exactly this trap. */
@@ -1634,15 +1665,15 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=5329e3e78b">
-<link rel="stylesheet" href="footer.css?v=5329e3e78b">
-<link rel="stylesheet" href="controls.css?v=5329e3e78b">
-<link rel="stylesheet" href="site-theme.css?v=5329e3e78b">
+<link rel="stylesheet" href="header.css?v=56e7b114cf">
+<link rel="stylesheet" href="footer.css?v=56e7b114cf">
+<link rel="stylesheet" href="controls.css?v=56e7b114cf">
+<link rel="stylesheet" href="site-theme.css?v=56e7b114cf">
 <!-- league.css LINKS LAST, AND THAT IS THE POINT. controls.css and site-theme.css
      both come after this page's own <style> block, so an equal-specificity rule
      written earlier loses on source order and loses SILENTLY -- four League rules
      were lost that way. The League owns the final word on its own screens. -->
-<link rel="stylesheet" href="league.css?v=5329e3e78b">
+<link rel="stylesheet" href="league.css?v=56e7b114cf">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -2075,7 +2106,7 @@ window.__hmGames=true;</script>
      engine are untouched. The stylesheet is linked HERE rather than in <head> for
      the same reason league.css links last -- it is the final word on its own
      object, and a <link> is body-ok. -->
-<link rel="stylesheet" href="league-photos.css?v=5329e3e78b">
+<link rel="stylesheet" href="league-photos.css?v=56e7b114cf">
 <script src="league-photos.js" defer></script>
 <!-- THE LEAGUE'S WATERMARK. One element, painted only under body.hmYow, aria-hidden
      and pointer-none: it is a broadcast mark, not a control. Bottom-right is where a

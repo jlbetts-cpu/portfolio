@@ -144,7 +144,34 @@ def check(page):
     theme_links=[(order,href) for order,href in parser.stylesheet_links if href.split("?",1)[0]=="site-theme.css"]
     assert len(theme_links)==1, f"{page}: expected one site-theme.css"
     theme_order=theme_links[0][0]
-    assert theme_order==max(parser.styles), f"{page}: site-theme.css must be the final stylesheet"
+    # SITE-THEME.CSS LAST, EXCEPT FOR SHEETS THAT ONLY READ THE THEME.
+    # This demanded it be the final themeable style on every page, full stop. play.html
+    # has not satisfied that since the League shipped: league.css and league-photos.css
+    # are linked after it deliberately, and CLAUDE.md records why -- the League's chrome
+    # is meant to win ties. So the gate has been failing on a decision the project made
+    # on purpose, which is the one thing §7 says a gate must not do.
+    #
+    # The RISK the ordering was guarding is still real and is now asserted directly: a
+    # sheet that loads after the theme and rebinds the theme's own custom properties, or
+    # carries its own [data-theme] rules, silently breaks dark mode and the hour with no
+    # error anywhere. A sheet that only READS those tokens cannot.
+    later = [href.split("?", 1)[0] for order, href in parser.stylesheet_links
+             if order > theme_order]
+    for href in later:
+        text = (ROOT / href).read_text(encoding="utf-8")
+        assert "data-theme" not in text, \
+            (f"{page}: {href} loads after site-theme.css and carries its own data-theme "
+             f"rules; at equal specificity it overrides the theme")
+        rebinds = sorted(set(re.findall(r"--(?:theme-[a-z-]+|accent)\s*:", text)))
+        assert not rebinds, \
+            (f"{page}: {href} loads after site-theme.css and rebinds theme tokens", rebinds)
+    # And nothing ELSE may follow it -- an inline <style> after the theme is the same
+    # override with none of the checking above available to it.
+    later_links = {order for order, _ in parser.stylesheet_links if order > theme_order}
+    trailing = {o for o in parser.styles if o > theme_order} - later_links
+    assert not trailing, \
+        (f"{page}: something themeable loads after site-theme.css that is not a "
+         f"read-only stylesheet (an inline <style>?)", sorted(trailing))
     for shared in ("header.css", "footer.css"):
         shared_links=[order for order,href in parser.stylesheet_links if href.split("?",1)[0]==shared]
         assert len(shared_links)==1, f"{page}: expected one {shared}"
@@ -189,7 +216,15 @@ def check_portfolio_adapters():
     assert_semantic_rule(source,"Home footer",('body[data-theme-page="home"] .siteFoot',),"color:var(--theme-ink)")
 
     assert_semantic_rule(source,"About prose",('body[data-theme-page="about"]', '.abBody p'),"color:var(--theme-ink)")
-    assert_semantic_rule(source,"About facts",('body[data-theme-page="about"]', '.abFactV'),"color:var(--theme-ink)")
+    # THE "About facts" ADAPTER IS GONE, and removing this assertion is the fix rather
+    # than a relaxation. It demanded a dark rule for .abFactV, and about.html has no
+    # .abFactV, .abFactK or .abLabel in it -- the facts block was redesigned away. That is
+    # the exact pattern CLAUDE.md §7 names first: "one demanded a dark rule for a class
+    # the redesign had deleted". tools/dark-legibility-contract.py independently found the
+    # same seven dead selectors in site-theme.css from the other direction, and the two
+    # gates could not both be satisfied: one wanted the rule gone, this one required it.
+    # About's prose is still covered by the .abBody p adapter on the line above, and
+    # .abCap, which IS still in the markup, is covered by its own rule.
     # ── THE "About cards" ASSERTION IS INVERTED, AND THIS IS THE REVERSAL ─────
     # It used to require site-theme.css to draw .abLink's dark rim itself:
     #   assert_semantic_rule(... 'body[data-theme-page="about"] .abLink',
@@ -229,7 +264,11 @@ def check_portfolio_adapters():
 
     assert_semantic_rule(source,"Case-study prose",('body[data-theme-page="case-study"]', '.secBody'),"color:var(--theme-ink-soft)")
     assert_semantic_rule(source,"Case-study facts",('body[data-theme-page="case-study"] .facts',),"border-color:var(--theme-rim)")
-    assert_semantic_rule(source,"Case-study rail",('body[data-theme-page="case-study"] .chap[aria-current="true"] .tick',),"background-color:var(--theme-ink)")
+    # THE CHAPTER RAIL IS GONE TOO, same story as "About facts" above: .chap, .chapters,
+    # .clabel and .tick appear in no page's markup and in no script -- only in comments in
+    # the case-study stylesheets recording their own removal. This required a dark rule
+    # for the rail's current tick, so it could only pass while site-theme.css carried
+    # dead CSS, which is what dark-legibility-contract was failing on.
     controls=(ROOT/"controls.css").read_text(encoding="utf-8")
     assert ".ctl--tab[aria-selected=\"true\"]" in controls and "color:var(--ctl-ink-strong)" in controls, "shared case-study tabs must consume semantic control ink"
     assert 'body[data-theme-page="case-study"] .tvTab.on' not in source, "migrated case-study tabs must not keep a competing theme adapter"
@@ -288,14 +327,59 @@ def check_shared_theme_transitions():
     footer=(ROOT/"footer.css").read_text(encoding="utf-8")
     compact_header=re.sub(r"\s+", "", header)
     compact_footer=re.sub(r"\s+", "", footer)
-    assert ".theme-ready.jbNav:is(a,button,.jbDiscGo){transition:colorvar(--theme-duration,400ms)" in compact_header, "header.css: ready-state nav color transition must use --theme-duration"
-    direct_hover=".theme-ready.jbGrp>:is(a,button):not(.jbHome):hover,.theme-ready.jbGrp>.jbDisc:hover>.jbDiscGo,.theme-ready.jbGrp>.jbDisc:focus-within>.jbDiscGo{transition:colorvar(--theme-duration,400ms)"
-    assert direct_hover in compact_header, "header.css: ready-state direct-nav hover/focus color transition is missing"
-    assert compact_header.index(direct_hover)>compact_header.index(".jbGrp>:is(a,button):not(.jbHome):hover,"), "header.css: ready-state direct-nav transition must follow the overriding hover rule"
-    direct_reduced="@media(prefers-reduced-motion:reduce){.theme-ready.jbGrp>:is(a,button):not(.jbHome):hover,.theme-ready.jbGrp>.jbDisc:hover>.jbDiscGo,.theme-ready.jbGrp>.jbDisc:focus-within>.jbDiscGo{transition-duration:0ms}}"
-    assert direct_reduced in compact_header, "header.css: reduced motion must match direct-nav hover/focus specificity"
-    assert compact_header.index(direct_reduced)>compact_header.index(direct_hover), "header.css: direct-nav reduced-motion override must follow its ready transition"
-    assert "@media(prefers-reduced-motion:reduce){.theme-ready.jbNav:is(a,button,.jbDiscGo){transition-duration:0ms}" in compact_header, "header.css: reduced motion must zero ready-state nav color transition"
+    # THE RULE IS ASSERTED BY WHAT IT DOES, NOT BY ITS EXACT SELECTOR TEXT.
+    # This pinned the literal string ".theme-ready.jbNav:is(a,button,.jbDiscGo){...}".
+    # 9c98e24 reshaped that selector -- it is a DESCENDANT now, ".theme-ready .jbNav
+    # :is(a,button)", and .jbDiscGo came out of the list because the descendant form
+    # already covers it. The behaviour this gate exists for never changed: nav links and
+    # buttons cross-fade their colour on --theme-duration when the theme commits. But
+    # the string did, so the gate has been failing on the correct stylesheet since, which
+    # teaches people to ignore it.
+    # It still fails on the things that matter -- the rule going away, losing its
+    # .theme-ready gate, or being switched to a hardcoded duration.
+    nav_ready = re.search(
+        r"\.theme-ready\s+\.jbNav\s*:is\(a,button\)\s*\{([^}]*)\}", header)
+    assert nav_ready, ("header.css: no .theme-ready .jbNav :is(a,button) rule -- nav ink "
+                       "no longer cross-fades when the theme commits")
+    assert "color var(--theme-duration" in re.sub(r"\s+", " ", nav_ready.group(1)), \
+        ("header.css: ready-state nav colour transition must use --theme-duration",
+         nav_ready.group(1).strip())
+    # THE DIRECT-NAV HOVER RULE, again by behaviour rather than by literal text.
+    # The .jbDisc/.jbDiscGo half of this selector became .heroTime > .heroTimeBtn in the
+    # same refactor -- the disc menu IS the hour picker now -- so the pinned string could
+    # never match again. What is actually being protected is unchanged and all three
+    # parts of it are still checked: a ready-state rule exists for the direct nav items
+    # in their hover/focus states, it transitions colour on --theme-duration, and it sits
+    # AFTER the plain hover rule it has to override (source order is the whole mechanism
+    # at equal specificity, which is the trap CLAUDE.md names).
+    direct_hover = re.search(
+        r"\.theme-ready\.jbGrp>:is\(a,button\):not\(\.jbHome\):is\(:hover,:focus-visible\),"
+        r"[^{]*\.heroTimeBtn[^{]*\{transition:colorvar\(--theme-duration,400ms\)", compact_header)
+    assert direct_hover, "header.css: ready-state direct-nav hover/focus colour transition is missing"
+    # THE ORDER NO LONGER DECIDES THIS, so asserting the order would be asserting a
+    # mechanism that is gone. The two rules used to BOTH declare `transition` on the same
+    # hover selector, so at equal specificity the later one won and the ready rule had to
+    # come second. It does not any more: the plain hover rule sets colour and weight, the
+    # ready rule sets the transition, and they no longer compete for a property.
+    # What still has to hold is what the ordering was buying -- nothing after the ready
+    # rule may re-declare `transition` on that hover selector and drop the cross-fade.
+    plain_hover = re.search(
+        r"\.jbGrp>:is\(a,button\):not\(\.jbHome,\[aria-current\]\)"
+        r":is\(:hover,:focus-visible\),[^{]*\{([^}]*)\}", compact_header)
+    assert plain_hover, "header.css: the plain direct-nav hover rule is gone"
+    assert "transition" not in plain_hover.group(1), \
+        ("header.css: the plain direct-nav hover rule declares a transition again; at "
+         "equal specificity it would override the theme cross-fade", plain_hover.group(1))
+    direct_reduced = re.search(
+        r"@media\(prefers-reduced-motion:reduce\)\{\.theme-ready\.jbGrp>:is\(a,button\)"
+        r":not\(\.jbHome\):hover,[^{]*\.heroTimeBtn\{transition-duration:0ms\}\}", compact_header)
+    assert direct_reduced, "header.css: reduced motion must match direct-nav hover/focus specificity"
+    assert direct_reduced.start() > direct_hover.start(), \
+        "header.css: direct-nav reduced-motion override must follow its ready transition"
+    # Same rule, same reason: the selector moved, the requirement did not.
+    assert re.search(r"@media\(prefers-reduced-motion:reduce\)\{\.theme-ready\.jbNav"
+                     r":is\(a,button\)\{transition-duration:0ms\}", compact_header), \
+        "header.css: reduced motion must zero the ready-state nav colour transition"
     # 2026-08-08: the footer became a multi-column component, so this list is its
     # new set of ink-bearing parts. .footReach (the retired centred sentence) and
     # .footIn (which turned out to be the CASE-STUDY PROSE cross-link class, not

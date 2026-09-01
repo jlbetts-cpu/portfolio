@@ -98,9 +98,14 @@ def main():
     # it is asserted on EVERY page that ships the bar rather than on index.html
     # alone, because the control is site-wide now and a page that forgot the
     # classes is exactly what this gate exists to catch.
+    # PLAY IS NOT AN EXCEPTION ANY MORE.  It used to be skipped here and then asserted
+    # BELOW to carry none of the hero-time ids at all, because when this gate was written
+    # its bar had no clock on it.  ec69e9e gave it one on purpose -- "Play's bar loses
+    # Workspace and gains the clock" -- so the assertion had been failing on the correct
+    # state ever since, which is a gate asserting the bug.  Folding play into the loop
+    # makes the check STRONGER than the skip was: its clock now has to be the same
+    # control, with the same classes, as the one on the other five pages.
     for name in SHARED_PAGES:
-        if name == "play.html":
-            continue          # another lane's file; see the play_ids note below
         doc = page(name)
         trigger = by_id(doc, "heroTimeBtn")
         assert trigger is not None, name
@@ -112,8 +117,17 @@ def main():
     play = page("play.html")
     assert {"ctl", "ctl--secondary"} <= classes(by_id(play, "moodBtn"))
     assert {"ctl-menu"} <= classes(by_id(play, "moodMenu"))
+    # THE CLOCK IS ALLOWED; THE TIME-GRADIENT HERO IS NOT.  Those were one rule here and
+    # they are two different things.  play.html shares the site's clock CONTROL
+    # (heroTime/heroTimeBtn/heroTimeMenu, asserted in the loop above), and it must still
+    # carry none of the machinery that paints the HOME hero -- the clip, the spill and the
+    # portrait cast -- because its hero is the draggable head on a plain ground and a
+    # second thing painting the sky behind it is exactly the collision this gate exists
+    # for. moodBtn stays its own control: a mood is not an hour.
     play_ids = {attrs.get("id") for _, attrs in play.elements}
-    assert not {"heroTime", "heroTimeBtn", "heroTimeMenu", "heroTimeClip", "heroTimeSpill", "heroTimePortraitCast"} & play_ids
+    assert not {"heroTimeClip", "heroTimeSpill", "heroTimePortraitCast"} & play_ids, \
+        ("play.html has grown the home hero's time-gradient machinery",
+         sorted({"heroTimeClip", "heroTimeSpill", "heroTimePortraitCast"} & play_ids))
     play_html = (ROOT / "play.html").read_text(encoding="utf-8")
     assert "data-time-gradient" not in play_html
     assert 'src="hero-time.js"' not in play_html and 'src="hero-time-presets.js"' not in play_html

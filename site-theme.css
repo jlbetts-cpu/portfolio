@@ -114,10 +114,10 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 
 /* About uses the same hierarchy as the editorial case studies while keeping the
    sticky gallery composition and every photograph dimension unchanged. */
-:root[data-theme="dark"] body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactV){
+:root[data-theme="dark"] body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p){
  color:var(--theme-ink);
 }
-:root[data-theme="dark"] body[data-theme-page="about"] :is(.abBody .abLabel,.abFactK,.abCap,.abShot figcaption,.amsHint){
+:root[data-theme="dark"] body[data-theme-page="about"] :is(.abCap,.abShot figcaption,.amsHint){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="about"] .abIn{
@@ -172,10 +172,10 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.stepHead,.playerStep,.baCapLabel,.pullBody){
  color:var(--theme-ink);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.statCap,.baBody,.baCap,.playerNote,.baNote){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.baBody,.baCap,.playerNote,.baNote){
  color:var(--theme-ink-soft);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.fvsub,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.shotNote,.hmwLabel,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.hmwLabel,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.secBody,.ovBody,.role,.lede,.baBody) strong,
@@ -185,16 +185,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] .facts{
  border-color:var(--theme-rim);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.chap,.clabel){color:var(--theme-muted)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] .tick{background-color:var(--theme-muted)}
-:root[data-theme="dark"] body[data-theme-page="case-study"] .chap[aria-current="true"] :is(.clabel){color:var(--theme-ink)}
-:root[data-theme="dark"] body[data-theme-page="case-study"] .chap[aria-current="true"] .tick{
- background-color:var(--theme-ink);
-}
-:root[data-theme="dark"] body[data-theme-page="case-study"] .chap:hover .clabel,
-:root[data-theme="dark"] body[data-theme-page="case-study"] .chap:focus-visible .clabel{
- color:var(--theme-focus);
-}
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.wide,.cmp,.cover){
  background-color:var(--theme-elevated);
 }
@@ -224,7 +215,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] .content .footIn:focus-visible{
  color:var(--theme-ink);text-decoration-color:var(--theme-focus);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.footIn,.chap,.scrollbox):focus-visible{
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.footIn,.scrollbox):focus-visible{
  outline-color:var(--theme-focus);
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] .emerge{background-color:var(--theme-page)}
@@ -388,8 +379,8 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 
 /* Theme changes transition as one system only after synchronous bootstrap. */
 .theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal),
-.theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactK,.abFactV),
-.theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.statCap,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.demoLabel,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
+.theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p),
+.theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.demoLabel,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
  transition-property:color,background-color,border-color,box-shadow,text-decoration-color;
  transition-duration:var(--theme-duration);
  transition-timing-function:var(--ease-out);
