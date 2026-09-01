@@ -957,12 +957,24 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    so the phone override is gone and a change to the gutter moves the reel with
    the cards instead of leaving it behind. */
 .csPanel[data-panel="goodness"] .reelStage{padding:var(--work-stage-pad) 0}
-/* ONE GAP, ONE TOKEN. Extras holds two kinds of entry now -- the League .csItem and
-   the reel <section> -- and .csItem+.csItem cannot see across the boundary between
-   them. At 1440 --work-stage-pad is 0px, so without this the two would touch while
-   every pair in Featured and Case Studies is 64px apart. Same token, so the three
-   panels cannot drift again. */
-.csPanel[data-panel="goodness"] :is(.csItem+.reel,.reel+.csItem){margin-top:var(--work-item-gap)}
+/* ── EXTRAS IS ORDERED BY THE CONTAINER, NOT BY THE MARKUP ────────────────────
+   Two jobs, three declarations, and both of them are about a list that is going to
+   grow: the video comes first (his call -- "make sure all the extras are below the
+   video because I love the popcorn animation") and the seam between entries is one
+   number. See the markup for the measurement that prompted it.
+   ORDER, because a hard-coded sequence breaks on the next entry. .reel takes -1 and
+   everything else keeps the default 0, so anything added anywhere in the panel lands
+   under the video. The panel is the only one that needs to be a flex column, so the
+   display is set on [data-panel="goodness"] alone and the other two stay blocks.
+   GAP, because .csItem+.csItem cannot see across the boundary to a <section> -- and
+   at 1440 --work-stage-pad is 0px, so without a seam here the entries would touch
+   while every pair in Featured and Case Studies is 64px apart. A flex gap applies
+   between whatever is adjacent, which is the property that survives the list
+   changing shape; the sibling margin is zeroed inside this panel so they cannot
+   both fire and pay 128px. */
+.csPanel.on[data-panel="goodness"]{display:flex;flex-direction:column;gap:var(--work-item-gap)}
+.csPanel[data-panel="goodness"] .reel{order:-1}
+.csPanel[data-panel="goodness"] .csItem+.csItem{margin-top:0}
 .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
   width:min(calc(var(--page-max) - var(--surface-gutter) * 2),
             calc(100vw - var(--surface-gutter) * 2))!important;aspect-ratio:2/1;
@@ -2884,6 +2896,25 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
+  <!-- ── THE VIDEO IS FIRST AND STAYS FIRST. ─────────────────────────────────────
+       Jayden, 2026-09-01: "make sure all the extras are below the video because I
+       love the popcorn animation." Measured before the move at 1512x950 with Extras
+       selected: the League entry started at y=654 and the reel at y=1383, so the
+       one thing he named was the last thing on the tab.
+       IT IS A RULE, NOT THIS ONE MOVE. Extras is about to hold five entries. The
+       panel is a flex column and `.reel{order:-1}` puts the video ahead of every
+       sibling whatever the markup says, so an entry appended anywhere still lands
+       under it and nobody has to remember to re-sort. The node is ALSO moved to the
+       front here rather than left where it was and pushed by CSS alone: `order`
+       moves the picture and not the tab stop, so DOM order and reading order have
+       to be made to agree by hand. Add new entries AFTER this section.
+       AND THE SEAM IS THE CONTAINER'S GAP NOW. It was a margin on the pair either
+       side of the boundary, which is a rule that has to be rewritten every time the
+       list changes shape. `gap` is declared once, applies between whatever is
+       actually adjacent, and is the same --work-item-gap every pair in Featured and
+       Case Studies is set on. .csItem+.csItem's own margin is zeroed inside this
+       panel so the two cannot add up. -->
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <!-- ── THE LEAGUE LIVES IN EXTRAS. ────────────────────────────────────────────
        Jayden, 2026-09-01: "i think the yowmings league should be in the extras."
        It sat under Case Studies, which is the tab for the client-and-team work a
@@ -2897,12 +2928,12 @@ if(location.hash==="#about")location.replace("about.html");</script>
        .csItem here is what "matching the existing Extras entry" means. No new card
        shape was invented and nothing about this article differs from the one that
        was in the other panel.
-       IT GOES FIRST, and the order is the only judgement call here: the League is
-       the bigger piece and the reel is a trailer, so the tab opens on the thing it
-       is now the home of. Measured at 1512 after the move -- the card's frame and
-       the reel's frame both run 156 -> 1356, both sit 16px under the tab hairline,
-       and the seam between them is 64px, which is --work-item-gap and the same
-       number every pair in Featured and Case Studies is set on. -->
+       IT SITS UNDER THE VIDEO, with everything else Extras grows. That is his
+       call and the panel now enforces it in CSS rather than in this file's line
+       order; see the note at the top of the panel. Measured at 1512 after the move:
+       the card's frame and the reel's frame both run 156 -> 1356 and the seam
+       between them is 64px, which is --work-item-gap and the same number every
+       pair in Featured and Case Studies is set on. -->
   <article class="csItem" data-slug="yowmings">
    <div class="csTrack">
     <div class="csStage">
@@ -2913,7 +2944,6 @@ if(location.hash==="#about")location.replace("about.html");</script>
     </div>
    </div>
   </article>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <!-- Task 5: the head-maker and Gradient Lab cards moved to the Play menu (play.html).
        They are makers, not case studies, and Extras is where the reel lives. -->
  </div>
