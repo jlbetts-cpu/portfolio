@@ -652,33 +652,33 @@ restyled. Numbers below are read live off these frames.</p>
 
 <div class="mobRow">
   <div class="mob">
-    <iframe title="Home at 390" src="header-prototype.html?frame=home&cb=30" loading="eager"></iframe>
+    <iframe title="Home at 390" src="/header-prototype?frame=home&cb=30" loading="eager"></iframe>
     <p><b>Home, at rest.</b> Social row, bar, capsule, headline, head, dock. One layer of header
     furniture, not three.</p>
   </div>
   <div class="mob">
-    <iframe title="Home scrolled at 390" src="header-prototype.html?frame=home&scrolled=1&cb=30" loading="eager"></iframe>
+    <iframe title="Home scrolled at 390" src="/header-prototype?frame=home&scrolled=1&cb=30" loading="eager"></iframe>
     <p><b>Home, scrolled.</b> Row gone, bar alone. <b>The glyphs do not slide in here</b>: see
     the measurement below.</p>
   </div>
   <div class="mob">
-    <iframe title="Case study at 390" src="header-prototype.html?frame=case&cb=30" loading="eager"></iframe>
+    <iframe title="Case study at 390" src="/header-prototype?frame=case&cb=30" loading="eager"></iframe>
     <p><b>Case study.</b> Back arrow + full lockup + Home (lit) + About + Games, inline. The
     reference portfolio has no back affordance at all at this width.</p>
   </div>
   <div class="mob">
-    <iframe title="Mood dock at 390" src="header-prototype.html?frame=home&open=mood&cb=30" loading="eager"></iframe>
+    <iframe title="Mood dock at 390" src="/header-prototype?frame=home&open=mood&cb=30" loading="eager"></iframe>
     <p><b>The dock at 390.</b> The head is proportionally much bigger here, so the dock sits
     directly under it and the panel opens downward, centred, clamped to
     <code>100vw − 32px</code>.</p>
   </div>
   <div class="mob">
-    <iframe title="play.html at 390" src="header-prototype.html?frame=play&cb=30" loading="eager"></iframe>
+    <iframe title="play.html at 390" src="/header-prototype?frame=play&cb=30" loading="eager"></iframe>
     <p><b>play.html.</b> Fixed, centred, one row. The pitch keeps the whole screen below it and
     the page never scrolls.</p>
   </div>
   <div class="mob">
-    <iframe title="gradientlab at 390" src="header-prototype.html?frame=lab&cb=30" loading="eager"></iframe>
+    <iframe title="gradientlab at 390" src="/header-prototype?frame=lab&cb=30" loading="eager"></iframe>
     <p><b>Gradient Lab.</b> <code>--blur-1/2</code> are already <code>0px</code> below 760px, so
     the paper bar costs one tint and no blur; the ink variant keeps <code>--blur-3</code>, which
     that query does not zero.</p>
@@ -819,7 +819,7 @@ function navHTML(ctxName){
   function mark(k){return cur[k]?' aria-current="'+cur[k]+'"':''}
   var h='<nav class="jbNav'+(c.row?'':' hasSoc')+'" aria-label="Primary" data-surface="'
     +c.surface+'"'+(c.back?' data-back="1"':'')+'>';
-  h+='<a class="jbHome" href="index.html" aria-label="'
+  h+='<a class="jbHome" href="/" aria-label="'
     +(c.back?'Back to Jayden Betts, home':'Jayden Betts, home')+'">'
     /* two spans, mirroring index.html's existing .logoLine/.logoL1/.logoL2 so
        adoption is a class rename rather than a restructure */
@@ -827,11 +827,11 @@ function navHTML(ctxName){
     +'<span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span>'
     +'<span class="jbL2">Betts</span></span></a>';
   h+='<span class="jbSep" aria-hidden="true"></span>';
-  h+='<a data-nav-item="home" href="index.html"'+mark('home')+'>Home</a>';
+  h+='<a data-nav-item="home" href="/"'+mark('home')+'>Home</a>';
   /* About is a BUTTON: it toggles the existing in-page overlay, not a route. */
   h+='<button data-nav-item="about" type="button" aria-expanded="'+(ctxName==='about')+'"'
     +mark('about')+'>About</button>';
-  h+='<a data-nav-item="games" href="play.html"'+mark('games')+'>Games</a>';
+  h+='<a data-nav-item="games" href="/play"'+mark('games')+'>Games</a>';
   h+='<span class="jbBarSep" aria-hidden="true"></span>';
   h+=socialsHTML('jbBarSoc');
   return h+'</nav>';
@@ -849,7 +849,7 @@ function dockHTML(){
       +'<span class="jbDot" style="background:'+m[1]+'"></span>'+m[0]+'</button>';
   });
   h+='<div class="jbSepH" aria-hidden="true"></div>';
-  h+='<a href="headmaker.html">'+G.head+'Add your head</a>';
+  h+='<a href="/headmaker">'+G.head+'Add your head</a>';
   h+='<button type="button">'+G.egg+'Add an egghead</button>';
   h+='<div class="jbHeads" role="group" aria-label="Your saved heads">'
     +'<b style="background:linear-gradient(140deg,#5D7A6B,#95B0A2)"></b>'

@@ -237,12 +237,23 @@ def audit(pages_text, sitemap_text, robots_text):
     if len(locs) != len(set(locs)):
         fails.append("sitemap has duplicate <loc> entries")
     loc_set = {l.rstrip("/") for l in locs}
+
+    # CLEAN URLS, 2026-09-02. The site moved to Vercel `cleanUrls`, so the page that
+    # lives in about.html is SERVED at /about and /about.html 301s to it. The
+    # assertions below are unchanged -- every indexable page must be in the sitemap,
+    # no noindex page may be -- but the URL they expect is now derived without the
+    # extension, because a sitemap listing /about.html would now be listing a
+    # redirect rather than the canonical page. That is the exact defect this gate
+    # exists to catch, pointed the other way.
+    def public_url(filename):
+        stem = filename[:-5] if filename.endswith(".html") else filename
+        return (ORIGIN + "/") if stem == "index" else f"{ORIGIN}/{stem}"
+
     for name in indexable:
-        want = (ORIGIN + "/") if name == "index.html" else f"{ORIGIN}/{name}"
-        if want.rstrip("/") not in loc_set:
+        if public_url(name).rstrip("/") not in loc_set:
             fails.append(f"{name}: indexable but absent from sitemap.xml")
     for name in noindexed:
-        if f"{ORIGIN}/{name}".rstrip("/") in loc_set:
+        if public_url(name).rstrip("/") in loc_set:
             fails.append(f"{name}: noindex but LISTED in sitemap.xml -- a contradiction")
     for name, canon in canonicals.items():
         if canon.rstrip("/") not in loc_set:
