@@ -903,8 +903,8 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
                           wheres: rows.map(r => (r.querySelector('.tvDraftOut')||{}).textContent),
                           drawn: rows.filter(r => r.classList.contains('tvDrawn')).length,
                           drawnMarked: rows.filter(r => r.classList.contains('tvDrawn'))
-                                         .filter(r => {const m=r.querySelector('.tvDraftTie');
-                                                       return m && m.textContent.trim().length>1;}).length,
+                                         .filter(r => {const t=r.getAttribute('title');
+                                                       return !!t && t.trim().length>12;}).length,
                         key: !!document.querySelector('.tvDraftKey')}; }""")
                 f.check(not draft.get("why"),
                         "draft %s: the finished cup grows a Draft tab" % at,
@@ -926,6 +926,18 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
                     # ...and where it came from nothing. If any row is separated from the one
                     # above it only by the draw, the key has to be printed.
                     # THE ROW EXPLAINS ITSELF; THERE IS NO LEGEND TO CHECK.
+                    # WHERE THE ACCOUNT LIVES MOVED AGAIN, 2026-09-04. 14a9346
+                    # ("The draft order stops labelling positions it did not have
+                    # to explain") deleted the .tvDraftTie span and its CSS
+                    # outright and moved the explanation onto the row's title.
+                    # The span exists nowhere in the tree now, so this check was
+                    # asserting a decision that had been reversed, and had been
+                    # failing at 320x568 ever since: drawn 4, marked 0.
+                    # THE ASSERTION IS UNCHANGED -- every row separated by the
+                    # draw must still account for itself -- only WHERE it looks
+                    # for that account moved, from a visible span to the title.
+                    # It still fails if a drawn row carries no explanation at
+                    # all, which is the defect actually worth catching.
                     # 2026-08-27. This was `drawn == 0 or key`: a row separated
                     # by the draw had to be accompanied by a key line under the
                     # table, because the row's own marker was a bare "·" that
