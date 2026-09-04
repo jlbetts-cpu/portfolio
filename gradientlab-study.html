@@ -217,7 +217,13 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* --lh-body, so this label resolves to the same 13/19.5 as about.html's
    .abLabel. It was inheriting whatever its parent happened to set (14.56px
    measured) -- one role, two leadings, on pages that sit next to each other. */
-.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
+/* THE SMALL-LABEL FAMILY MOVES TO --c600, 2026-09-04, AND IT WAS MEASURED.
+   Every one of these is --fs-label 12px, which WCAG treats as normal text and
+   wants at 4.5:1. --c500 on this ground is 3.59:1 and failed. --c600 is 5.03:1
+   and is the lightest rung that clears it, so the labels stay the quiet layer
+   they were drawn as. They move together on purpose: fixing .fk alone left the
+   facts keys a shade darker than the Overview label directly above them. */
+.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8)}
 /* THE PAGE TITLE IS HOME'S, AT HOME'S SIZE AND HOME'S SETTING.  2026-08-27.
    docs/house-style.md §11 case-studies-3: "The h1 is 40 where home's is 44 and
@@ -254,7 +260,10 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* project facts, a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
 .facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16) 0}
 .fact{min-width:0}
-.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
+/* --c600, MEASURED. --c500 on this ground is 3.59:1 and --fs-label is 12px, so
+   WCAG wants 4.5:1 here and it failed. --c600 is 5.03:1, the lightest rung on
+   the ramp that clears it, and it is the same call the .proc keys took. */
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);margin:0 0 var(--sp-8)}
 .fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
 /* ── THE FACTS BAND IS ONE LINE PER FACT ON A PHONE.  2026-08-27 ───────────
    Stacked label-over-value it stood ~229px at 390 -- the single tallest block
@@ -274,7 +283,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 /* my role */
 .role{margin:var(--sp-24-40) 0 0}
-.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
+.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);margin:0 0 var(--sp-8);}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
@@ -334,7 +343,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
  .content>.sec{border-top:var(--rule-w) solid var(--rule);margin-top:var(--sp-24-40);padding-top:var(--sp-24-40)}
  .content>.hero+.sec{border-top:0}
 }
-.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
+.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);}
 /* ── FIVE HEADING SIZES BECOME THREE.  2026-08-27 ──────────────────────────
    docs/house-style.md §11 case-studies-3 names this as "the single biggest
    reason they do not feel like home": .head 40 · .secHead 30 · .subHead 26 ·
@@ -472,7 +481,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:var(--rim-1)}
 /* ===== the system: onboarding gallery + the five-step build, one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:var(--sp-24-40) 0 0}
-.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
+.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c600);margin:0}
 /* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
    --fs-lead was tried first and was wrong at the small end: --fs-lead is
    clamp(15,1.4vw,18) and --fs-prose is clamp(16,1.25vw,18), so they agree at 18
