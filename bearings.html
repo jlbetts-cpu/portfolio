@@ -301,6 +301,41 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .role{margin:var(--sp-24-40) 0 0}
 .rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+/* MY ROLE, PULLED OUT OF THE PROSE.  2026-09-04.  Neil, an art director reviewing
+   the site from outside: "if someone is scanning or skimming, they'll miss it and
+   get hung up on the actual project marketing messages... hiring companies will
+   want to understand what it is you are good at and what you contributed to each
+   project. Find a way to make those sections visually, and also stretch them out."
+
+   MEASURED BEFORE THE CHANGE: .role carried background none, border none,
+   padding 0 -- a paragraph with a 40px top margin -- and its label was the same
+   12px --c500 as Overview's. Two consecutive blocks with identical typography, so
+   nothing caught a skimming eye on the one that says what he did. That is the
+   whole defect; it was never the words.
+
+   HAIRLINE AND ROOM, NOT A CARD. This site separates chrome with hairlines and
+   translucency, never elevation, so the block takes a --rule top border and space
+   to breathe. No panel, no tint, no shadow.
+
+   THE ROWS ARE THE "STRETCH IT OUT". The same sentences, re-broken so the SKILL is
+   the first word of every line: concept, research, system, screens. A skimmer who
+   reads only the left column still leaves knowing what he does. */
+.role{margin:var(--sp-40-64) 0 0;padding:var(--sp-24-40) 0 0;border-top:var(--rule-w) solid var(--rule)}
+.role .rlabel{font-size:var(--fs-prose);color:var(--c950);margin:0 0 var(--sp-12)}
+/* SCOPED TO (0,2,0) ON PURPOSE, TWICE OVER.
+   Weight: a bare .roleLead is (0,1,0) and loses to .role p at (0,1,1), so the
+   lead silently rendered at 400.
+   Colour: `.content p{color:var(--c700)}` is ALSO (0,1,1) and is declared later
+   than `.role p{color:var(--c950)}`, so on equal specificity it wins and the
+   role paragraph has been grey rather than ink for as long as both have existed.
+   The rows below are spans, so they were never caught by it -- which is why the
+   lead read lighter than its own detail. (0,2,0) settles both. */
+.role .roleLead{font-weight:600;color:var(--c950)}
+.contrib{list-style:none;margin:var(--sp-24-40) 0 0;padding:0;display:grid;gap:var(--sp-16-32)}
+.contrib li{display:grid;grid-template-columns:minmax(120px,168px) 1fr;gap:var(--sp-16-32);align-items:baseline}
+.contribK{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950)}
+.contribV{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+@media(max-width:640px){.contrib li{grid-template-columns:1fr;gap:var(--sp-4)}}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
    docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
@@ -1448,9 +1483,20 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          div.ov         TWO SENTENCES, and CSS order puts them above the cover
          figure.cover   the time-aware plate, 12/5
          dl.facts       Role / Team / Timeline / [one project-specific] / Year
-         div.role       ONLY where the work was shared and the split matters
-                        (bearings). A solo project says it in .facts and the
-                        lede; a "My role" block there is the facts restated.
+         div.role       ON EVERY CASE STUDY, as of 2026-09-04. The old rule here
+                        was "shared work only, because on a solo project it is
+                        the facts restated" -- Neil, an art director reviewing
+                        the site from outside, gave the counter-argument: a
+                        skimmer never reaches the facts row, and a hiring
+                        company wants to know what Jayden is GOOD AT, which is
+                        not what "Role: Product designer" tells them.
+                        The old rule's worry is still real and still governs the
+                        CONTENT: rows must name a contribution, not retell the
+                        project. The first draft of these failed exactly that
+                        way -- Strata's row repeated the Overview sentence two
+                        inches above it verbatim -- so they were rewritten
+                        contribution-first. If you add a row, check it is not
+                        already said elsewhere on the page.
 
        section.sec  x 3-5, each opened by a hairline on desktop (the first
                     after the hero is suppressed -- .facts draws its own edge)
@@ -1523,7 +1569,13 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="role">
      <span class="rlabel">My role</span>
-     <p class="rv" data-f="0.011"><strong>I led the visual design and built the system.</strong> Early on I proposed making Bearings group-focused, which sharpened the concept. I wrote the interview questions, then led the visual design: <strong>the logo, the type and spacing, and a shared component library</strong> so four designers could ship one product. I designed onboarding, the home page, building a trip, and the My Trips hub.</p>
+     <p class="roleLead rv" data-f="0.011">I led the visual design and built the system four designers worked from.</p>
+     <ul class="contrib rv" data-f="0.011">
+      <li><span class="contribK">Concept</span><span class="contribV">Proposed making Bearings group-focused early on, which sharpened what the product was for.</span></li>
+      <li><span class="contribK">Research</span><span class="contribV">Wrote the interview questions the team took into user sessions.</span></li>
+      <li><span class="contribK">Design system</span><span class="contribV">The logo, the type and spacing, and a shared component library, so four designers could ship one product instead of four.</span></li>
+      <li><span class="contribK">Screens</span><span class="contribV">Onboarding, the home page, building a trip, and the My Trips hub.</span></li>
+     </ul>
     </div>
 
    </section>

@@ -276,6 +276,23 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .role{margin:var(--sp-24-40) 0 0}
 .rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+/* MY ROLE, PULLED OUT OF THE PROSE.  2026-09-04.  Full reasoning in bearings.html.
+   Neil, an art director reviewing the site from outside, found this section
+   invisible to a skimmer: it was typographically identical to Overview directly
+   above it, so the block that says what Jayden did read as more project copy.
+   Hairline and room, never a card -- this site separates chrome with hairlines
+   and translucency, not elevation.
+   .role .roleLead is scoped to (0,2,0) deliberately: `.content p{color:var(--c700)}`
+   in controls.css is (0,1,1) and declared LATER than `.role p{color:var(--c950)}`,
+   so on equal specificity it wins and the lead would render grey at weight 400. */
+.role{margin:var(--sp-40-64) 0 0;padding:var(--sp-24-40) 0 0;border-top:var(--rule-w) solid var(--rule)}
+.role .rlabel{font-size:var(--fs-prose);color:var(--c950);margin:0 0 var(--sp-12)}
+.role .roleLead{font-weight:600;color:var(--c950)}
+.contrib{list-style:none;margin:var(--sp-24-40) 0 0;padding:0;display:grid;gap:var(--sp-16-32)}
+.contrib li{display:grid;grid-template-columns:minmax(120px,168px) 1fr;gap:var(--sp-16-32);align-items:baseline}
+.contribK{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950)}
+.contribV{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
+@media(max-width:640px){.contrib li{grid-template-columns:1fr;gap:var(--sp-4)}}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
    docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
@@ -1435,9 +1452,20 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          div.ov         TWO SENTENCES, and CSS order puts them above the cover
          figure.cover   the time-aware plate, 12/5
          dl.facts       Role / Team / Timeline / [one project-specific] / Year
-         div.role       ONLY where the work was shared and the split matters
-                        (bearings). A solo project says it in .facts and the
-                        lede; a "My role" block there is the facts restated.
+         div.role       ON EVERY CASE STUDY, as of 2026-09-04. The old rule here
+                        was "shared work only, because on a solo project it is
+                        the facts restated" -- Neil, an art director reviewing
+                        the site from outside, gave the counter-argument: a
+                        skimmer never reaches the facts row, and a hiring
+                        company wants to know what Jayden is GOOD AT, which is
+                        not what "Role: Product designer" tells them.
+                        The old rule's worry is still real and still governs the
+                        CONTENT: rows must name a contribution, not retell the
+                        project. The first draft of these failed exactly that
+                        way -- Strata's row repeated the Overview sentence two
+                        inches above it verbatim -- so they were rewritten
+                        contribution-first. If you add a row, check it is not
+                        already said elsewhere on the page.
 
        section.sec  x 3-5, each opened by a hairline on desktop (the first
                     after the hero is suppressed -- .facts draws its own edge)
@@ -1512,6 +1540,17 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="ov">
      <span class="rlabel">Overview</span>
      <p class="ovBody rv" data-f="0.011">Strata is a gamified habit builder: your wins stack up as colorful blocks, Tetris meets Minecraft, until the month becomes a tower you built one habit at a time. I designed and built it end to end in Lovable, then taught myself Xcode and rebuilt it natively.</p>
+    </div>
+
+    <div class="role">
+     <span class="rlabel">My role</span>
+     <p class="roleLead rv" data-f="0.011">I designed and built Strata end to end, then rebuilt it natively.</p>
+     <ul class="contrib rv" data-f="0.011">
+      <li><span class="contribK">Product thinking</span><span class="contribV">Took a class pitch past the slides and built the product, to find out whether the idea actually held.</span></li>
+      <li><span class="contribK">Design and build</span><span class="contribV">Shipped it twice: once in Lovable, then natively after teaching myself Xcode.</span></li>
+      <li><span class="contribK">Iteration</span><span class="contribV">710 edits, and the finding underneath them: AI is a tool for bringing my designs to life, not a replacement for doing the design.</span></li>
+      <li><span class="contribK">Interaction</span><span class="contribV">Designed the payoff. Complete every habit for the day and the whole tower breaks into a dance.</span></li>
+     </ul>
     </div>
    </section>
 
