@@ -293,6 +293,34 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .contribK{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950)}
 .contribV{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 @media(max-width:640px){.contrib li{grid-template-columns:1fr;gap:var(--sp-4)}}
+/* PROCESS, THE PROJECT'S ARC.  2026-09-04.  A Roblox recruiter asked for more on
+   process and timelines. The pages already documented the phases in their section
+   kickers, but only as headings scattered down a long scroll, so the shape of the
+   work was never visible in one glance.
+
+   IT IS NOT A SECOND ROLE BLOCK. .role says what HE did; this says what the WORK
+   did, and the rows are deliberately one clause each so it reads as a timeline
+   rather than as prose competing with the body below it. The first draft of the
+   role rows failed by restating adjacent copy, and this is the same trap one step
+   further on.
+
+   THE KEYS ARE MUTED, NOT INK. Two identical row blocks stacked would read as a
+   template. This shares the .contrib grid for consistency and drops the left
+   column to --c500 so "My role" stays the louder of the pair.
+
+   NO WEEK NUMBERS. The facts row carries the total; how the weeks split is not
+   recorded anywhere on these pages and was not going to be invented here. */
+.proc{margin:var(--sp-32-48) 0 0;padding:var(--sp-24-40) 0 0;border-top:var(--rule-w) solid var(--rule)}
+.proc .rlabel{font-size:var(--fs-prose);color:var(--c950);margin:0 0 var(--sp-4)}
+.proc .procWhen{display:block;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
+  line-height:var(--lh-note);color:var(--c600);margin:0 0 var(--sp-12)}
+.proc .contrib{margin:var(--sp-16-32) 0 0}
+/* --c600, NOT --c500, AND IT WAS MEASURED. --c500 on this ground is 3.59:1, and
+   at 16px/600 this is not WCAG "large text" (that needs 18.66px bold), so it
+   needs 4.5:1 and fails. --c600 measures 5.03:1 and is the lightest rung on the
+   ramp that clears it, while still reading as the quiet half of the pair against
+   the role keys at 19.03:1. */
+.proc .contribK{color:var(--c600)}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
    docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
@@ -1626,6 +1654,17 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
       <li><span class="contribK">Visual design</span><span class="contribV">Held the whole interface in grayscale, so the only colour in the app is the user's own photograph.</span></li>
      </ul>
     </div>
+
+    <div class="proc">
+     <span class="rlabel">Process</span>
+     <span class="procWhen">24 hours, then the months since</span>
+     <ul class="contrib rv" data-f="0.011">
+      <li><span class="contribK">Research</span><span class="contribV">ADHD reward studies, Self-Determination Theory and the Progress Principle, before any screens.</span></li>
+      <li><span class="contribK">Hackathon</span><span class="contribV">The whole loop built in one day: camera, win card, shared feed.</span></li>
+      <li><span class="contribK">Redesign</span><span class="contribV">The always-open feed came out. Wins now unlock once, at sunset.</span></li>
+      <li><span class="contribK">Since</span><span class="contribV">Featured by Major League Hacking, and still changing.</span></li>
+     </ul>
+    </div>
    </section>
 
    <section id="problem" class="sec">
@@ -1780,7 +1819,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  var cover=document.getElementById('cover');
  var head=document.querySelector('.head');
  var glance=document.querySelector('.facts');
- var role=[].slice.call(document.querySelectorAll('.ov .rv, .role .rv'));
+ var role=[].slice.call(document.querySelectorAll('.ov .rv, .role .rv, .proc .rv'));
 
  if(reduce){
   rvs.forEach(reveal);
