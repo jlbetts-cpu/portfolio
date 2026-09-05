@@ -79,7 +79,7 @@
     if (store.sget('di:arrived')) { hero.classList.add('is-ready'); }
     else {
       hero.classList.add('is-arriving');
-      $$('.hero__head > *', hero).forEach((el, i) => el.style.setProperty('--d', i));
+      $$('.hero__head > *, .hero__figure', hero).forEach((el, i) => el.style.setProperty('--d', i));
       requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-ready'); store.sset('di:arrived', '1'); }));
     }
   }
@@ -98,7 +98,7 @@
     const tween = (t) => { const dt = tweenT ? Math.min(.05, (t - tweenT) / 1000) : 0; tweenT = t; const d = target - offset; if (Math.abs(d) < .3) { offset = target; tweening = false; tweenT = 0; place(); return; } offset += d * (1 - Math.exp(-dt / .11)); place(); requestAnimationFrame(tween); };   // time-based, so a slow frame rate cannot shorten a step
     const go = (d) => { target += d; if (!tweening) { tweening = true; tweenT = 0; requestAnimationFrame(tween); } };
     flow.on(place); flow.watch(viewport);
-    const scope = track.closest('.strip') || viewport;
+    const scope = track.closest('.gallery') || viewport;   // the arrows live in the section's nav row, not inside the viewport
     const prev = $('[data-strip-prev]', scope), next = $('[data-strip-next]', scope);
     if (prev) prev.addEventListener('click', () => go(-pitch));
     if (next) next.addEventListener('click', () => go(pitch));

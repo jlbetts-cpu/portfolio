@@ -14,7 +14,8 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const cards = [...document.querySelectorAll('.stack__card')].map(c => Math.round(c.getBoundingClientRect().width));
     return { overflow, lines, edges: [...edges], cards };
   });
-  const ok = r.overflow <= 0 && (w >= 1024 ? r.lines <= 4 : r.lines <= 5) && r.edges.length === 1 && new Set(r.cards).size === 1;
+  // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
+  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && new Set(r.cards).size === 1;
   report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, stack widths ${[...new Set(r.cards)].join('/')}`);
   await pg.close();
 }

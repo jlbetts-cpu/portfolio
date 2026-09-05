@@ -19,7 +19,7 @@ await pg.close();
 pg = await open(b, 1440, 900);
 const r2 = await pg.evaluate(async () => {
   // the flow drifts while the strip or the ring is on screen: bring the strip in first
-  const s = document.querySelector('.strip'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); await new Promise(r => setTimeout(r, 1800));
+  const s = document.querySelector('.gallery'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); await new Promise(r => setTimeout(r, 1800));
   const a0 = window.__di.flow.angle; await new Promise(r => setTimeout(r, 800)); const drifts = window.__di.flow.angle - a0 > 1;
   // the stack: from the top, so the first card is stuck under the header when the second arrives
   scrollTo(0, 0); await new Promise(r => setTimeout(r, 200));

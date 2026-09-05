@@ -5,8 +5,8 @@ const b = await browser();
 const pg = await open(b, 1440, 900);
 const count = await pg.evaluate(() => document.querySelectorAll('[data-photo]').length);
 const names = await pg.evaluate(() => new Set([...document.querySelectorAll('[data-photo]')].map(b => b.dataset.photo)).size);
-// the hero's four are set into the headline and are still: a plain click
-const first = pg.locator('.hero__shape').first();
+// the hero's photograph is still: a plain click
+const first = pg.locator('.hero__figure .photo__open').first();
 const firstName = await first.getAttribute('data-photo');
 await first.click(); await pg.waitForTimeout(400);
 await pg.evaluate(() => { const img = document.querySelector('#lightbox img'); return img && !img.complete ? new Promise(r => { img.onload = img.onerror = r; }) : null; });
@@ -22,7 +22,7 @@ await pg.keyboard.press('Escape'); await pg.waitForTimeout(400);
 const s4 = await pg.evaluate(() => ({ open: document.querySelector('#lightbox').open, focus: document.activeElement && document.activeElement.dataset.photo }));
 report('lightbox: Esc closes and focus returns to the photograph', !s4.open && s4.focus === firstName, JSON.stringify(s4));
 // a strip card opens too, once the pointer has stopped the drift
-await pg.evaluate(() => { const s = document.querySelector('.strip'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.waitForTimeout(500);
+await pg.evaluate(() => { const s = document.querySelector('.gallery'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.waitForTimeout(500);
 // the first strip card that is on screen (the track drifts, so the first in the DOM may be off to the left)
 const visibleIndex = await pg.evaluate(() => [...document.querySelectorAll('.strip__card:not([aria-hidden]) .photo__open')].findIndex(b => { const r = b.getBoundingClientRect(); return r.left > 140 && r.right < innerWidth - 40; }));
 const sc = pg.locator('.strip__card:not([aria-hidden]) .photo__open').nth(Math.max(0, visibleIndex)); const sb = await sc.boundingBox(); await pg.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2); await pg.waitForTimeout(900);
@@ -30,7 +30,7 @@ const sb2 = await sc.boundingBox(); await pg.mouse.click(sb2.x + sb2.width / 2, 
 const stripOpen = await pg.evaluate(() => document.querySelector('#lightbox').open); await pg.keyboard.press('Escape'); await pg.waitForTimeout(400);
 report('lightbox: a strip card opens once the pointer has stopped it', stripOpen);
 // a drag on the strip must not open it (the strip sits in the Gallery section; a pointer over it stops the drift first)
-await pg.evaluate(() => { const s = document.querySelector('.strip'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.waitForTimeout(500);
+await pg.evaluate(() => { const s = document.querySelector('.gallery'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.waitForTimeout(500);
 const dragIndex = await pg.evaluate(() => [...document.querySelectorAll('.strip__card:not([aria-hidden]) .photo__open')].findIndex(b => { const r = b.getBoundingClientRect(); return r.left > 140 && r.right < innerWidth - 40; }));
 const card = pg.locator('.strip__card:not([aria-hidden]) .photo__open').nth(Math.max(0, dragIndex));
 const cb0 = await card.boundingBox(); await pg.mouse.move(cb0.x + cb0.width / 2, cb0.y + cb0.height / 2); await pg.waitForTimeout(900);

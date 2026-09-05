@@ -63,28 +63,21 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-# the hero: the four best photographs, set into the headline as shapes, on the line, like words
-HSIZES='120px'
-def hero_shape(name, kind):
-    m=man[name]
-    return (f'<button class="hero__shape hero__shape--{kind}" type="button" data-photo="{name}" '
-            f'style="--pos:{POS[name]};background-image:url({m["placeholder"]})" '
-            f'aria-label="Open photograph: {html.escape(ALT[name])}">' + picture(name,HSIZES,lazy=False,button=False) + '</button>')
-HERO_TITLE='New tools for cognitive development & emotional understanding'
-hero_title=('New tools ' + hero_shape('yellow-trousers','pill') + ' for cognitive '
-            + hero_shape('boy-fist','circle') + ' development &amp; emotional '
-            + hero_shape('circle-hands','wide') + ' understanding ' + hero_shape('laugh-hat','squircle'))
+# the hero: one photograph, large, on the right four columns
+HERO='yellow-trousers'
+hero_photo=photo(HERO,'4x5','(max-width: 767px) 92vw, (max-width: 1279px) 32vw, 400px',lazy=False,hover=True)
 # the gallery strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
-STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens']
-SSIZES='(max-width: 767px) 236px, (max-width: 1440px) 21vw, 300px'
+# the hero's photograph is not in the gallery: it sits 300px above it
+STRIP=['three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens','kids-bw-small']
+SSIZES='(max-width: 767px) 208px, (max-width: 1440px) 18vw, 268px'
 def strip_cards(hidden):
     return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4,button=not hidden)}</figure>' for i,n in enumerate(STRIP))
 strip=strip_cards(False)+strip_cards(True)
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
 # its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
-RING=[('bow-tie-chairs','round'),('linda-laughing','tilt'),('cast-pose','circle'),('floor-game','round'),('laugh-hat','tilt'),('cast-stage-small','circle'),('three-men','round'),('duo-brick','tilt')]
-RSIZES='(max-width: 767px) 80px, (max-width: 1023px) 120px, 150px'
-ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--{shape}" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n,shape in RING)
+RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
+RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
+ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
 P=[
@@ -95,26 +88,26 @@ P=[
  "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
  "All while having as much fun as possible!",
 ]
-TS='(max-width: 1023px) 300px, 400px'
-def stack_card(num, accent, title, paras, extra, photo_name, shape):
+TS='(max-width: 767px) 92vw, 40vw'
+def stack_card(num, accent, title, paras, extra, photo_name):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
-    extra_html=('<div class="stack__extra">'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card card--tint" data-accent="{accent}" aria-labelledby="stack-{num}">'
-            f'<div><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
+    extra_html=('<div>'+extra+'</div>') if extra else ''
+    return (f'<article class="stack__card card card--wash grid" data-accent="{accent}" aria-labelledby="stack-{num}">'
+            f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
-            f'<div class="stack__stage">{photo(photo_name, shape, TS)}</div></article>')
+            f'<div class="stack__figure">{photo(photo_name, "4x5", TS, hover=True)}</div></article>')
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
-# one hue and one shape each: the circle, the rounded rectangle, the capsule, the rounded square
-stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'','linda-circle','1x1 photo--circle')
-      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing','4x5 photo--round')
-      +stack_card('03','yellow','“What would you do?”',P[3:4],'','two-lines','4x5 photo--pill')
-      +stack_card('04','violet','The end result',P[4:6],btn4,'zoom-group','1x1 photo--round'))
+# the four cards take the logo's arcs in ring order, second through fifth
+stack=(stack_card('01','violet','Welcome to Developmental Improvisation',P[0:2],'','linda-circle')
+      +stack_card('02','orange','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing')
+      +stack_card('03','green','“What would you do?”',P[3:4],'','two-lines')
+      +stack_card('04','pink','The end result',P[4:6],btn4,'zoom-group'))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
-# three testimonials on the reference layout; each card carries its own hue
-TESTI=[('sky',quotes[1]),('yellow',quotes[3]),('pink',quotes[2])]
-pile=''.join(f'<li class="card card--tint testimonial" data-placeholder="true" data-accent="{a}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for a,q in TESTI)
+quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
+# three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
+VOICES=[('card card--line','',quotes[0]),('card card--wash',' data-accent="yellow"',quotes[1]),('card card--line','',quotes[2])]
+pile=''.join(f'<li class="voice {cls}"{acc} data-placeholder="true"><p class="voice__quote">“{q}”</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for cls,acc,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -162,27 +155,31 @@ page=f'''<!DOCTYPE html>
 
 <main id="main">
   <section class="hero" id="top" aria-labelledby="heroTitle">
-    <div class="container hero__head">
-      <h1 class="hero__title" id="heroTitle" aria-label="{HERO_TITLE}">{hero_title}</h1>
-      <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-      <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
+    <div class="container grid hero__grid">
+      <div class="hero__head">
+        <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+        <div class="hero__meta">
+          <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
+          <button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>
+        </div>
+      </div>
+      <div class="hero__figure">{hero_photo}</div>
     </div>
+  </section>
+
+  <section class="gallery" id="gallery" data-accent="magenta" aria-labelledby="galleryLabel">
+    <div class="container gallery__nav">
+      <p class="label" id="galleryLabel">Gallery</p>
+      <div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
+    </div>
+    <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
   </section>
 
   <section class="section" id="welcome" aria-label="Welcome">
-    <div class="container">
-      <div class="stack">{stack}</div>
-    </div>
+    <div class="container"><div class="stack">{stack}</div></div>
   </section>
 
-  <section class="section" id="gallery" data-accent="sky" aria-labelledby="galleryLabel">
-    <div class="strip">
-      <div class="container strip__nav"><p class="section__label" id="galleryLabel">Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
-      <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
-    </div>
-  </section>
-
-  <section class="section ring" id="quote" data-accent="pink" aria-label="Quote">
+  <section class="section ring" id="quote" aria-label="Quote">
     <div class="container">
       <div class="ring__stage">
         <div class="ring__orbit">{ring}</div>
@@ -194,42 +191,31 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="testimonials" data-accent="magenta" aria-labelledby="testimonialsLabel">
+  <section class="section" id="voices" data-accent="yellow" aria-labelledby="voicesLabel">
     <div class="container">
-      <p class="section__label reveal" id="testimonialsLabel">Testimonials</p>
-      <ul class="testimonials reveal">{pile}</ul>
-    </div>
-  </section>
-
-  <section class="section" id="newsletter" data-accent="orange" aria-labelledby="newsletterTitle">
-    <div class="container">
-      <div class="newsletter card card--tint reveal">
-        <div class="newsletter__head"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><h2 id="newsletterTitle">Sign Up for our Newsletter!</h2></div>
-        <div class="newsletter__form">{form('nl')}</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="contact" data-accent="green" aria-labelledby="contactTitle">
-    <div class="container section__grid">
-      <div class="col-head reveal">
-        <h2 class="t-h2" id="contactTitle">To Find Out MORE!</h2>
-      </div>
-      <div class="col-body contact__actions reveal">
-        <a class="btn btn--secondary" href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov@gmail.com</a>
-        <a class="btn btn--secondary" href="tel:+18573523221"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(857) 352-3221</a>
-      </div>
+      <p class="label reveal" id="voicesLabel">Testimonials</p>
+      <ul class="voices reveal">{pile}</ul>
     </div>
   </section>
 </main>
 
-<footer class="footer">
-  <div class="footer__module" data-accent="violet">
-    <div class="footer__grid">
-      <div class="footer__brand">{navlogo}</div>
-      <nav class="footer__col footer__col--contact" aria-labelledby="footContact"><h2 id="footContact">Contact</h2><a href="mailto:developmentalimprov@gmail.com">Email</a><br><a href="tel:+18573523221">Call</a></nav>
+<footer class="close" id="contact">
+  <div class="close__field">
+    <div class="grid close__grid">
+      <div class="close__sign">
+        <svg class="close__mark" aria-hidden="true"><use href="#mark"/></svg>
+        <h2 class="close__title" id="newsletterTitle">Sign Up for our Newsletter!</h2>
+        {form('nl')}
+      </div>
+      <div class="close__reach">
+        <p class="label">Contact</p>
+        <a href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov@gmail.com</a>
+        <a href="tel:+18573523221"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(857) 352-3221</a>
+      </div>
+      <div class="close__foot">
+        <p class="close__copy">© 2026 Developmental Improvisation</p>
+      </div>
     </div>
-    <p class="footer__copy">© 2026 Developmental Improvisation</p>
   </div>
 </footer>
 

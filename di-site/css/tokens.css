@@ -1,81 +1,87 @@
 /* Developmental Improvisation — tokens. The only stylesheet that may contain raw colours, sizes, radii or durations.
-   Light is the default; dark is a choice the visitor makes with the toggle in the header (Jayden, 2026-09-05: "bringing back the dark mode as an option").
-   Colour is flat, never a gradient: it fills a card, a shape or the footer module, and the photographs carry the rest. */
+   Light is the default; dark is a choice the visitor makes with the toggle in the header.
+
+   THE PALETTE IS THE LOGO, READ LITERALLY. The monogram — the "di" itself — is sky. Six arcs ring it, and their order
+   clockwise from the top is magenta, violet, orange, green, pink, yellow. The page spends them in that order, once each,
+   and closes on sky at full strength: the mark's own colour, the loudest note, kept for last. */
 :root {
   color-scheme: light;
   /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97 */
   --bg:          #F7F5F0;
-  --bg-raised:   #FFFFFF;                 /* cards */
-  --bg-sunken:   #EFECE5;                 /* wells, empty photo frames */
-  --bg-overlay:  #FFFFFF;                 /* the sheet, the dialog, inputs */
+  --bg-raised:   #FFFFFF;
+  --bg-sunken:   #EFECE5;
+  --bg-overlay:  #FFFFFF;
   --line:        rgba(27,25,22,.10);
-  --line-strong: rgba(27,25,22,.22);
+  --line-strong: rgba(27,25,22,.20);
   --scrim:       rgba(27,25,22,.48);
-  --glass:       rgba(247,245,240,.82);   /* the header once scrolled */
+  --glass:       rgba(247,245,240,.78);
 
   /* Ink — a warm black and two tiers */
   --ink:    #1B1916;
   --ink-2:  #514C45;                      /* 7.8:1 on the ground */
-  --ink-3:  #736D64;                      /* 4.7:1 on the ground, 5.1:1 on white */
+  --ink-3:  #736D64;                      /* 4.7:1 on the ground */
 
-  /* Brand hues — the seven colours inside the logo. On this site a hue appears only as a flat tint behind ink: a card, the footer module. */
-  --c-green:   #51E596;
-  --c-sky:     #58CDFC;
-  --c-violet:  #7358FC;
+  /* The logo. Sky is the monogram; the six that follow are the arcs, in ring order clockwise from the top. */
+  --c-sky:     #58CDFC;                   /* the mark. Warm black on it: 9.6:1 */
   --c-magenta: #E744E2;
+  --c-violet:  #7358FC;
   --c-orange:  #F0895B;
+  --c-green:   #51E596;
   --c-pink:    #FB9BC9;
   --c-yellow:  #FEE79B;
 
-  /* The accent slot: a section sets data-accent once; a tinted surface mixes --accent into the raised ground at --tint-mix */
+  /* A hue reaches the page two ways and no others: as a WASH behind a whole section or card, and as the one FIELD at the
+     foot of the page. Never as a gradient, never as text. */
   --accent:   var(--c-sky);
-  --tint-mix: 22%;
+  --wash-mix: 16%;                        /* the hue mixed into the raised ground */
   --focus:    var(--ink);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
 
-  /* Type — Sen 800/700 for the display and the titles, Plus Jakarta Sans 400/600 for everything else
-     (Jayden, 2026-09-05: "lets bring in sen ... sen and jakarta compliment each other better") */
-  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Sen", "Avenir Next", "Century Gothic", ui-sans-serif, system-ui, sans-serif;
-  --fs-display: clamp(2.375rem, 1rem + 4.4vw, 5rem);        --lh-display: 1.1;  --ls-display: -0.035em;
-  --fs-h1:      clamp(2.25rem, 1.5rem + 3vw, 3.75rem);      --lh-h1: 1.06;      --ls-h1: -0.03em;
-  --fs-h2:      clamp(1.875rem, 1.4rem + 1.9vw, 2.875rem);  --lh-h2: 1.12;      --ls-h2: -0.025em;
-  --fs-h3:      clamp(1.375rem, 1.2rem + .6vw, 1.625rem);   --lh-h3: 1.2;       --ls-h3: -0.02em;
-  --fs-lead:    clamp(1.125rem, 1rem + .5vw, 1.3125rem);    --lh-lead: 1.45;    --ls-lead: -0.005em;
-  --fs-body:    clamp(1rem, .95rem + .2vw, 1.0625rem);      --lh-body: 1.6;     --ls-body: 0;
-  --fs-small:   0.875rem;                                   --lh-small: 1.5;    --ls-small: 0.005em;
-  --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.01em;
-  --fs-ui:      1rem;
-  /* Measures are in em, never ch: this face's "0" is 0.685em wide and ch lies */
-  --measure-display: 12.25em;   /* four lines of the headline at 1024 and up */
-  --measure-sub: 24em;
-  --measure-h2: 13em;
-  --measure-body: 34em;
-
-  /* Space — 4px grid */
-  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
-  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px; --sp-40: 160px;
-  --page-max: 1280px;
-  --gutter: clamp(20px, 2.8vw, 40px);
-  --grid-gap: clamp(16px, 1.7vw, 24px);
-  --section-y: clamp(72px, 3.5vw + 46px, 112px);           /* 96 at 1440 */
-  --section-y-tight: clamp(40px, 2vw + 24px, 64px);
-  --stack-title: var(--sp-6);
-  --stack-body: var(--sp-4);
-  --stack-cta: var(--sp-8);
-
-  /* Radius by size class */
-  --r-xl: 28px;   /* the popup panel, the newsletter card, the stacked cards, the footer module */
-  --r-lg: 20px;   /* cards, photos */
-  --r-md: 14px;   /* buttons, inputs */
+  /* Corners. Apple's continuous curvature, not a circular arc: corner-shape draws a superellipse, so the radius
+     enters and leaves the straight edge without a visible seam. Chrome 139+; elsewhere it falls back to a plain arc. */
+  --corner: squircle;
+  --r-2xs: 6px;
+  --r-xs:  10px;
+  --r-sm:  14px;   /* buttons, inputs */
+  --r-md:  20px;   /* small tiles */
+  --r-lg:  28px;   /* photographs, cards */
+  --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  --nav-h: 64px;
+  /* Type — Sen 800/700 for the display and the titles, Plus Jakarta Sans 400/600 for everything else.
+     The display runs bigger and tighter than a body face would: at 1440 it is 96px on a 12.5em measure. */
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Sen", "Avenir Next", "Century Gothic", ui-sans-serif, system-ui, sans-serif;
+  --fs-display: clamp(2.75rem, 1.1rem + 5.4vw, 6rem);       --lh-display: 1.02; --ls-display: -0.04em;
+  --fs-h1:      clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);    --lh-h1: 1.04;      --ls-h1: -0.035em;
+  --fs-h2:      clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);    --lh-h2: 1.08;      --ls-h2: -0.03em;
+  --fs-h3:      clamp(1.25rem, 1.05rem + .8vw, 1.625rem);   --lh-h3: 1.16;      --ls-h3: -0.02em;
+  --fs-lead:    clamp(1.0625rem, .95rem + .5vw, 1.25rem);   --lh-lead: 1.45;    --ls-lead: -0.01em;
+  --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.58;    --ls-body: 0;
+  --fs-small:   0.875rem;                                   --lh-small: 1.5;    --ls-small: 0;
+  --fs-label:   0.75rem;                                    --lh-label: 1;      --ls-label: 0.06em;
+  --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.005em;
+  --fs-ui:      0.9375rem;
+  /* Measures are in em, never ch */
+  --measure-display: 12.5em;
+  --measure-h2: 15em;
+  --measure-body: 32em;
+
+  /* Space — 4px grid. The page runs wider and closer to the edge than it did: a 1400 column inside a 16–32px gutter. */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
+  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px;
+  --page-max: 1400px;
+  --gutter: clamp(16px, 2vw, 32px);
+  --grid-gap: clamp(12px, 1.1vw, 20px);
+  --section-y: clamp(56px, 2.2vw + 32px, 88px);
+  --card-pad: clamp(20px, 2.2vw, 40px);
+
+  --nav-h: 60px;
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200;
 
-  /* Motion ladder — durations for things that happen; the strip, the ring and the stack are driven by scroll and have no duration */
+  /* Motion ladder */
   --dur-press: 100ms;
   --dur-state: 160ms;
   --dur-state-out: 240ms;
@@ -87,46 +93,57 @@
   --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);
   --ease-settle: linear(0, 0.094, 0.284, 0.483, 0.653, 0.783, 0.875, 0.934, 0.971, 0.991, 1.001, 1.005, 1.006, 1.006, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1, 1, 1);
   --stagger: 60ms;
-  /* The flow: one angular velocity shared by the strip and the ring. Read by js/main.js. */
-  --flow-drift: 3.75;     /* degrees per second at rest: one revolution of the ring in 96s */
-  --flow-scroll: 0.06;    /* degrees per pixel scrolled */
-  --flow-settle: 0.32;    /* seconds: the time constant of the easing that follows scroll */
-  --strip-px: 6;          /* the gallery moves this many pixels per degree of flow: 22px/s at rest, one card every 15s */
-  --ring-r: 300;          /* the quote ring's radius in px (a plain number; js reads it) */
+  /* The flow: one angular velocity shared by the gallery and the ring. Read by js/main.js. */
+  --flow-drift: 3.75;
+  --flow-scroll: 0.06;
+  --flow-settle: 0.32;
+  --strip-px: 6;
+  --ring-r: 300;
   --ring-n: 8;
 }
 
-/* Dark — the visitor's choice, kept by the toggle in the header. The hues are unchanged; a tint over the dark raised ground reads as a deep version of the same colour. */
+/* Dark — the visitor's choice. The hues do not change; the ground and the ink swap and the wash deepens. */
 :root[data-theme="dark"] {
   color-scheme: dark;
+  /* the dark ground swallows a tint, so every mix goes up by half again */
   --bg:          #131211;
   --bg-raised:   #1C1A18;
   --bg-sunken:   #0E0D0C;
   --bg-overlay:  #1C1A18;
   --line:        rgba(244,241,235,.12);
-  --line-strong: rgba(244,241,235,.24);
+  --line-strong: rgba(244,241,235,.22);
   --scrim:       rgba(0,0,0,.6);
-  --glass:       rgba(19,18,17,.82);
+  --glass:       rgba(19,18,17,.78);
   --ink:    #F4F1EB;
-  --ink-2:  rgba(244,241,235,.74);        /* 9.8:1 */
-  --ink-3:  rgba(244,241,235,.58);        /* 6.1:1 */
-  --tint-mix: 30%;                        /* a hue needs more of itself over the dark ground to read as the same colour */
+  --ink-2:  rgba(244,241,235,.74);
+  --ink-3:  rgba(244,241,235,.58);
   --focus:  var(--c-sky);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: #131211;
 }
 
-/* Accents — one per section or card, set once with data-accent */
-[data-accent="green"]   { --accent: var(--c-green); }
-[data-accent="sky"]     { --accent: var(--c-sky); }
-[data-accent="violet"]  { --accent: var(--c-violet); }
-[data-accent="magenta"] { --accent: var(--c-magenta); }
-[data-accent="orange"]  { --accent: var(--c-orange); }
-[data-accent="pink"]    { --accent: var(--c-pink); }
-[data-accent="yellow"]  { --accent: var(--c-yellow); }
+/* Accents — set once, on a section or a card. The page spends them in the logo's own order.
+   Each carries its own --wash-mix: the seven hues are nowhere near equally dark, and one mix for all of them
+   makes magenta a colour and yellow a rumour. These are the mixes that land every wash at about the same lightness. */
+[data-accent="sky"]     { --accent: var(--c-sky);     --wash-mix: 20%; }
+[data-accent="magenta"] { --accent: var(--c-magenta); --wash-mix: 14%; }
+[data-accent="violet"]  { --accent: var(--c-violet);  --wash-mix: 14%; }
+[data-accent="orange"]  { --accent: var(--c-orange);  --wash-mix: 22%; }
+[data-accent="green"]   { --accent: var(--c-green);   --wash-mix: 26%; }
+[data-accent="pink"]    { --accent: var(--c-pink);    --wash-mix: 26%; }
+[data-accent="yellow"]  { --accent: var(--c-yellow);  --wash-mix: 46%; }
+
+/* dark: a wash must stay DARK. Above about 26% the lighter hues turn into a mid ground and strand --ink-2 on it. */
+:root[data-theme="dark"] [data-accent="sky"]     { --wash-mix: 22%; }
+:root[data-theme="dark"] [data-accent="magenta"] { --wash-mix: 20%; }
+:root[data-theme="dark"] [data-accent="violet"]  { --wash-mix: 22%; }
+:root[data-theme="dark"] [data-accent="orange"]  { --wash-mix: 22%; }
+:root[data-theme="dark"] [data-accent="green"]   { --wash-mix: 22%; }
+:root[data-theme="dark"] [data-accent="pink"]    { --wash-mix: 22%; }
+:root[data-theme="dark"] [data-accent="yellow"]  { --wash-mix: 24%; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
 }
 @media (max-width: 1023px) { :root { --ring-r: 240; } }
-@media (max-width: 767px) { :root { --ring-r: 166; } }
+@media (max-width: 767px)  { :root { --ring-r: 158; } }

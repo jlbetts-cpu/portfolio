@@ -1,4 +1,4 @@
-// Gate: every img has width/height/alt/srcset; nothing served wider than 1.5× its rendered width at 1440; no photograph twice within the strip, within the ring, or among the tiles (the ring may reuse strip photographs).
+// Gate: every img has width/height/alt/srcset; nothing served wider than 1.5× its rendered width at 1440; no photograph twice within the gallery, within the ring, or among the stacked cards (the ring may reuse a gallery photograph).
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 const pg = await open(b, 1440, 900);
@@ -8,8 +8,8 @@ const r = await pg.evaluate(() => {
   const imgs = [...document.querySelectorAll('img')].filter(i => !i.closest('[aria-hidden="true"].strip__card'));
   const missing = imgs.filter(i => !i.getAttribute('width') || !i.getAttribute('height') || i.getAttribute('alt') === null || !i.closest('picture')).length;
   const oversized = imgs.filter(i => i.currentSrc && i.naturalWidth > 0 && i.getBoundingClientRect().width > 0 && i.naturalWidth > i.getBoundingClientRect().width * devicePixelRatio * 1.5 + 100).map(i => `${i.currentSrc.split('/').pop()} ${i.naturalWidth}px for ${Math.round(i.getBoundingClientRect().width)}px`);
-  // groups: the hero's four, the gallery strip, the ring, the stacked cards' tiles. Each unique within itself; the tiles appear nowhere else; the hero's four appear in no tile.
-  const groups = [imgs.filter(i => i.closest('.hero')), imgs.filter(i => i.closest('.strip')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => i.closest('.stack'))].map(g => g.map(i => i.getAttribute('src')));
+  // groups: the hero's photograph, the gallery, the ring, the stacked cards. Each unique within itself; a stacked card's photograph appears nowhere else.
+  const groups = [imgs.filter(i => i.closest('.hero')), imgs.filter(i => i.closest('.gallery')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => i.closest('.stack'))].map(g => g.map(i => i.getAttribute('src')));
   const dupes = groups.flatMap(g => g.filter((s, i) => g.indexOf(s) !== i));
   const tileElsewhere = groups[3].filter(s => groups[0].includes(s) || groups[1].includes(s) || groups[2].includes(s));
   dupes.push(...tileElsewhere);

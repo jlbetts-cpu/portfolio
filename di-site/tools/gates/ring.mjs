@@ -51,7 +51,7 @@ for (const [w, h] of VP) {
   const scrollTurns = Math.abs(s1 - s0) > 12;
   // the strip
   // the strip is in the Gallery section: bring it on screen (the flow drifts only while the strip or the ring is on screen) and let the scroll coupling settle
-  await pg.evaluate(() => { const s = document.querySelector('.strip'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.mouse.move(w / 2, 5);
+  await pg.evaluate(() => { const s = document.querySelector('.gallery'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.mouse.move(w / 2, 5);
   // settled: the scroll part of the flow stops moving (it settles to the net scroll, not to zero)
   for (let k = 0; k < 24; k++) { const a = await pg.evaluate(() => window.__di.flow.scrollAngle); await pg.waitForTimeout(300); const b = await pg.evaluate(() => window.__di.flow.scrollAngle); if (Math.abs(b - a) < 0.04) break; }
   const trackX = () => pg.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-strip]')).transform).m41);

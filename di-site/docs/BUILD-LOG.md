@@ -1,5 +1,22 @@
 # Build log — Developmental Improvisation, home page
 
+## v8 (2026-09-05) — the rebuild on the fundamentals: the superellipse corner, the logo's own order, one shape, one field
+Jayden's seventh review asked for a new prompt and a redesign: "I actually dont like the diffenrt shape pictures I wish they were all the same shape", "The only section I like and want to keep is the circle section", "the margins are too big", "the roundness doesnt have that apple smoothing of the corners", "the colors are also not in the main logo colors combinations", "the design is falling flat ... it looks boring the layouts feel uninspired", "the site needs to be something pintrest worthy like top ui".
+
+**What the research found.** Three sources, in order of usefulness. (1) **The logo itself**, read as a file rather than as a mood: the monogram is sky and six arcs ring it in a fixed order — magenta, violet, orange, green, pink, yellow, clockwise from the top. The site had been treating seven hues as interchangeable, which is why the colour never read as the brand. (2) **Jayden's own portfolio**, which already carries `--corner: squircle` on every control, an `--sp-16-40`-style responsive ladder, inset rims instead of borders, and a display face that runs to 168px. His standard was in the repository the whole time. (3) The current editorial language — bento and asymmetric grids, Apple/Linear-style modular blocks — which is what "not boring" looks like in 2026, and which the page's centred single-column stack was not doing.
+
+**The corner.** `corner-shape: squircle` beside every radius, one declaration on `*`. That is Apple's continuous curvature, natively, in Chrome 139+. It also applies to a 50% radius, so the ring's circles came out as rounded squares until `corner-shape: round` was added back for them — the one rule that makes this system safe.
+
+**Colour.** The six arcs are now spent once each, in ring order, down the page, and the foot of the page is sky at full strength. Each hue carries its own `--wash-mix` (magenta 14% … yellow 46%): one mix for all seven made magenta a colour and yellow a rumour. In dark every mix sits at 20–24% — at 42% the yellow wash became a mid ground and stranded `--ink-2` on it at 3.53:1, which the contrast gate caught.
+
+**Margins.** 1280 column in a 40px gutter → 1400 in `clamp(16px, 2vw, 32px)`. Content now starts 49px from the edge at 1440 instead of 120px.
+
+**Shape.** Four photograph shapes → one: a 4:5 rectangle with the shared corner, everywhere, plus circles in the ring.
+
+**Structure.** Eight sections → six. The hero is editorial — headline on seven columns, one photograph on four, one meta row — and the gallery moved directly under it so the page opens with photographs in motion. Newsletter, contact and footer were three thin bands; they are one sky field.
+
+**Measured after v8.** 35 gate lines pass. Headline five lines at 1440, 1024, 390 and 320. Contrast worst 4.70:1 light and 5.54:1 dark over 38 text nodes each. Targets smallest 44px at four viewports. Stack cards 503px each and equal — the mirrored cards were 751 and 786 until both children were pinned to `grid-row: 1`, because grid's forward-only auto-placement was dropping the mirrored figure to a second row. 25 images on the page, none oversized. Both self-tests still catch their injected bug.
+
 ## v7 (2026-09-05) — Sen, the headline that holds the photographs, flat colour, dark mode back
 Jayden's sixth review: "I dont think the gradient experiment works the clean colored cards looked a lot better", "the hero still looks far too cluttered ... the images fit inside the differnt shapes throughout", "bringing back the dark mode as an option", "just make the footer a colored moduale as well", "lets bring in sen ... sen and jakarta compliment each other better", "the gallery i dont like that it doesnt go all the way across", "im not a big fan of the star in the section header", "make the site in its most minimal and premium form no unnessesary text or information that isnt absolutly necessary".
 

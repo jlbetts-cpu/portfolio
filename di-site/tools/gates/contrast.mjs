@@ -1,5 +1,5 @@
 // Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM,
-// in BOTH themes. The card tints and the footer module are ordinary background-colours, so the same walk covers them.
+// in BOTH themes. The washes and the sky closing field are ordinary background-colours, so the same walk covers them.
 // --self-test: paints --ink-3 onto the ground colour and expects the walk to fail.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');

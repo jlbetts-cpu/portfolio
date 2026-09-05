@@ -6,6 +6,10 @@
 @font-face { font-family: "Sen"; font-style: normal; font-weight: 400 800; font-display: swap; src: url("../fonts/Sen-400-800.woff2") format("woff2"); }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* Every corner on this site is a superellipse, not an arc. One declaration, for everything that takes a radius. */
+* { corner-shape: var(--corner); }
+/* A circle is a circle. corner-shape turns a 50% radius into a superellipse too, so anything meant to be round opts back out. */
+.arrow, .photo--circle, .voice__avatar, .label::before, .btn[aria-busy="true"]::after, .lightbox .dialog__close { corner-shape: round; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--bg); color: var(--ink-2); font-family: var(--font), "Plus Jakarta Sans Fallback"; font-size: var(--fs-body); line-height: var(--lh-body); letter-spacing: var(--ls-body); font-weight: 400; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: clip; }
@@ -28,26 +32,21 @@ ul { margin: 0; padding: 0; list-style: none; }
 .t-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); }
 .t-lead { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); }
 .t-body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
-.t-body--first { color: var(--ink); }
-.t-small { font-size: var(--fs-small); line-height: var(--lh-small); letter-spacing: var(--ls-small); }
+.t-small { font-size: var(--fs-small); line-height: var(--lh-small); }
 .t-caption { font-size: var(--fs-caption); line-height: var(--lh-caption); letter-spacing: var(--ls-caption); color: var(--ink-3); }
-.t-body + .t-body { margin-top: var(--stack-body); }
+.t-body + .t-body { margin-top: var(--sp-4); }
 
 /* Layout */
 .container { max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto; }
 .section { padding-block: var(--section-y); }
-.section .container { position: relative; }
-.section .container::before { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: calc(-1 * var(--section-y)); border-top: 1px solid var(--line); }
-.section__label { display: block; font-size: var(--fs-small); line-height: 1; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--stack-title); }
-.section__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: var(--sp-8); }
-.section__grid > .col-head { grid-column: 1 / -1; }
-.section__grid > .col-body { grid-column: 1 / -1; }
-@media (min-width: 1024px) {
-  .section__grid > .col-head { grid-column: 1 / span 5; }
-  .section__grid > .col-body { grid-column: 7 / span 6; }
-}
+/* the label: 12px caps with a dot in the section's hue. The dot is the only place a hue appears at full strength above the foot. */
+.label { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink-3); }
+.label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+/* the twelve-column grid every section lays out on */
+.grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--grid-gap); }
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.skip { position: fixed; left: var(--sp-4); top: var(--sp-4); z-index: var(--z-skip); padding: var(--sp-3) var(--sp-4); background: var(--ink); color: var(--bg); border-radius: var(--r-md); font-weight: 600; transform: translateY(-200%); }
+.skip { position: fixed; left: var(--sp-4); top: var(--sp-4); z-index: var(--z-skip); padding: var(--sp-3) var(--sp-4); background: var(--ink); color: var(--bg); border-radius: var(--r-sm); font-weight: 600; transform: translateY(-200%); }
 .skip:focus-visible { transform: none; }
 
 /* Reveal on scroll */
