@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v5 (2026-09-05) — the band, the centred hero, the lightbox
+Jayden's fourth review: "the hero still lacks personality or structure", the Maeve reference, "click on images to open them", "constraint is the best design".
+- **The band.** The Maeve reference is a soft colour band across the top of the page fading into white, with the title centred under it. Built as the seven logo hues in wheel order on a strip twice the page's width, blurred 56px at 90%, masked to fade by 480px, with 7% film grain multiplied over it so it reads as light. "The colours rotating": it drifts left by a transform one pass every 72s, so the blurred layer is rasterised once and the animation costs nothing; it holds under reduced motion. The header sits on it: the `contrast` gate samples the darkest pixel behind the links at three moments of the drift.
+- **The hero is centred**: the title sinking into the band's fade, the four skill chips from the copy as the only other colour (each hue at 40% over white, as the reference's chips), the two buttons; then the Gallery row and the strip. The eyebrow and the left/right split are gone; the chips left card 03.
+- **The lightbox.** Every photograph on the page is a button. A native dialog on the ink scrim shows one at a time from a new 1440px set (the pipeline gained a width), arrows and keys move through all of them in page order, swipe on touch, Esc and the scrim close, focus returns to the photograph. A drag on the strip beyond 6px swallows the click that follows, so dragging never opens it. The `lightbox` gate proves each of those.
+
+- **Mid-review notes, also applied.** The stacked cards' bloom follows how much of the card is on screen instead of waiting for the pointer (Jayden: "it comes in so late"). The photographs on the stacked cards are bigger and placed free on a stage, the big one bleeding past the card's edge so part of it sits behind the wall, in four compositions; the text keeps its structure. The colour logo is back in the header, on a white disc with a halo so the band bends around it. The band's hues are each at 66% over white and spread across five page-widths, so two or three show at a time rather than the whole wheel.
+- **Two bugs found by the new gates.** The strip captured the pointer on every pointerdown, so a click's target became the viewport and never reached the photograph's button; it now captures only once a drag passes 6px. The arrow step eased by a fixed fraction per frame, so headless's slower frames finished it 16px short; it is time-based now.
+- **Sen, asked about.** Rendered against Plus Jakarta Sans, Instrument Serif and Fraunces on the hero title (`docs/type-specimen.jpg`). Sen is another geometric sans: rounder and wider, the same voice a little louder, so pairing it adds a second family without contrast. Recommended: keep one family; if the title needs character, the move the Maeve reference makes is a serif for the display only. Not applied; Jayden decides.
+
+Measured after v5: header ink over the darkest pixel of the band ≥ 7.3:1 at three moments of the drift; the lightbox serves ≥ 960px files, a drag does not open it, Esc returns focus; a stacked card 20% on screen shows 5% of its bloom and a card filling the screen shows all of it; the rest as v4.
+
+
 ## v4 (2026-09-05) — one theme, colour contained, the bloom
 Jayden's third review, in his order:
 - **The logo no longer rotates.** The header ring rule and its script are gone; the mark is the black `#mark`.

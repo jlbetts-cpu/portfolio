@@ -3,6 +3,8 @@ import json, html, datetime, re
 root='/home/user/portfolio/di-site'
 man=json.load(open(f'{root}/images/manifest.json'))
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
+navlogo=logo.replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>', ' aria-hidden="true">')
+assert navlogo!=logo
 sprite=open(f'{root}/assets/icons.svg').read().strip()
 star=re.search(r'<path[^>]*/>',open(f'{root}/assets/illustrations/star.svg').read()).group(0)
 whitemark=open(f'{root}/assets/logo/dilogo.svg').read()
@@ -38,13 +40,23 @@ ALT={
 POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'0% 50%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
      'linda-portrait':'22% 40%','boy-fist':'50% 40%','kids-bw-small':'50% 50%','cast-stage-small':'50% 50%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
-def picture(name, sizes, lazy=True, cls='', ratio=None):
-    m=man[name]; srcs=m['sizes']
+USED=[]
+def picture(name, sizes, lazy=True, cls='', ratio=None, button=True):
+    m=man[name]; srcs=[w for w in m['sizes'] if w<=960]
     av=', '.join(f'images/{name}-{w}.avif {w}w' for w in srcs); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in srcs)
     load='loading="lazy" ' if lazy else 'fetchpriority="high" '
     img=(f'<img src="images/{m["jpeg"]}" width="{m["width"]}" height="{m["height"]}" alt="{html.escape(ALT[name])}" '
          f'{load}decoding="async">')
-    return (f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}">{img}</picture>')
+    pic=f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}">{img}</picture>'
+    if name not in USED: USED.append(name)
+    if not button: return pic
+    return f'<button class="photo__open" type="button" data-photo="{name}" aria-label="Open photograph: {html.escape(ALT[name])}">{pic}</button>'
+def lb_data():
+    out={}
+    for n in USED:
+        m=man[n]; big=[w for w in m['sizes'] if w>=960] or [m['sizes'][-1]]
+        out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n]}
+    return json.dumps(out,separators=(',',':'))
 
 def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
     m=man[name]
@@ -56,7 +68,7 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
 STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens']
 SSIZES='(max-width: 767px) 236px, (max-width: 1440px) 21vw, 300px'
 def strip_cards(hidden):
-    return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4)}</figure>' for i,n in enumerate(STRIP))
+    return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4,button=not hidden)}</figure>' for i,n in enumerate(STRIP))
 strip=strip_cards(False)+strip_cards(True)
 # the quote ring: eight shaped photographs; four of them also appear in the strip, far above
 RING=[('bow-tie-chairs','round'),('linda-portrait','tilt'),('yellow-trousers','circle'),('kids-bw-small','round'),('laugh-hat','tilt'),('cast-stage-small','circle'),('three-men','round'),('circle-hands','tilt')]
@@ -72,21 +84,23 @@ P=[
  "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
  "All while having as much fun as possible!",
 ]
-TS='(max-width: 767px) 45vw, (max-width: 1023px) 40vw, 240px'
-def stack_card(num, accent, title, paras, extra, tiles):
+TS='(max-width: 767px) 66vw, (max-width: 1023px) 46vw, 420px'
+TS_SMALL='(max-width: 767px) 36vw, (max-width: 1023px) 26vw, 240px'
+def stack_card(num, accent, title, paras, extra, tiles, shapes=('1x1 photo--round','1x1 photo--circle')):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
-    tl=''.join(photo(t,shp,TS) for t,shp in zip(tiles,['1x1 photo--round','1x1 photo--circle']))
+    tl=''.join(photo(t,shp,TS if k==0 else TS_SMALL) for k,(t,shp) in enumerate(zip(tiles,shapes)))
     extra_html=('<div class="stack__extra">'+extra+'</div>') if extra else ''
     return (f'<article class="stack__card card card--bloom-hover" data-accent="{accent}" aria-labelledby="stack-{num}">'
             f'<div><span class="stack__num" aria-hidden="true">({num})</span><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
-            f'<div class="stack__tiles">{tl}</div></article>')
-chips3='<div class="chips">'+''.join(f'<span class="chip">{c}</span>' for c in ['critical thinking','creative problem-solving','cooperation','communication'])+'</div>'
+            f'<div class="stack__stage">{tl}</div></article>')
+chips_hero=''.join(f'<span class="chip" data-accent="{a}">{c}</span>' for c,a in [('critical thinking','violet'),('creative problem-solving','sky'),('cooperation','orange'),('communication','yellow')])
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
-stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-laughing','linda-circle'])
-      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'])
-      +stack_card('03','yellow','“What would you do?”',P[3:4],chips3,['cast-pose','two-lines'])
-      +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick']))
+# each card: the big photograph first (it bleeds past the card's edge), the small one second
+stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-circle','linda-laughing'],('1x1 photo--circle','1x1 photo--round'))
+      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'],('1x1 photo--round','1x1 photo--tilt'))
+      +stack_card('03','yellow','“What would you do?”',P[3:4],'',['two-lines','cast-pose'],('1x1 photo--round','1x1 photo--circle'))
+      +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick'],('1x1 photo--circle','1x1 photo--round')))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
@@ -131,7 +145,7 @@ page=f'''<!DOCTYPE html>
 
 <header class="nav" id="nav">
   <div class="container nav__bar">
-    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><span class="word">Developmental Improvisation</span></a>
+    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home"><span class="nav__disc">{navlogo}</span><span class="word">Developmental Improvisation</span></a>
     <nav class="nav__links" aria-label="Primary"><a href="/" aria-current="page">Home</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
     <div class="nav__actions"><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
@@ -139,18 +153,14 @@ page=f'''<!DOCTYPE html>
 
 <main id="main">
   <section class="hero" id="top" aria-labelledby="heroTitle">
+    <div class="aurora" aria-hidden="true"><div class="aurora__band"></div><div class="aurora__grain"></div></div>
     <div class="container hero__head">
-      <p class="section__label" data-accent="yellow"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Developmental Improvisation</p>
-      <div class="hero__row">
-        <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
-        <div class="hero__aside">
-          <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-          <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
-        </div>
-      </div>
+      <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+      <div class="chips hero__chips">{chips_hero}</div>
+      <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
     </div>
-    <div class="strip" id="gallery">
-      <div class="container strip__nav"><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
+    <div class="strip" id="gallery" data-accent="sky">
+      <div class="container strip__nav"><p class="section__label"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
       <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
     </div>
   </section>
@@ -165,7 +175,7 @@ page=f'''<!DOCTYPE html>
   <section class="section ring" id="quote" data-accent="pink" aria-label="Quote">
     <div class="container">
       <div class="ring__stage">
-        <div class="ring__orbit" aria-hidden="true">{ring}</div>
+        <div class="ring__orbit">{ring}</div>
         <div class="ring__centre"><div class="reveal">
           <blockquote class="ring__text">“Creativity in motion creates knowledge!”</blockquote>
           <p class="ring__who"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Linda Kellogg Fulton</p>
@@ -213,6 +223,15 @@ page=f'''<!DOCTYPE html>
   </div>
 </footer>
 
+<dialog class="lightbox" id="lightbox" aria-label="Photograph">
+  <div class="lightbox__stage"><figure class="lightbox__figure"></figure></div>
+  <button class="dialog__close lightbox__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <button class="arrow lightbox__prev" type="button" aria-label="Previous photograph"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>
+  <button class="arrow lightbox__next" type="button" aria-label="Next photograph"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+  <p class="sr-only lightbox__live" aria-live="polite"></p>
+</dialog>
+<script type="application/json" id="lbData">{{LBDATA}}</script>
+
 <dialog class="dialog card--bloom" id="newsletterDialog" aria-labelledby="dialogTitle" data-accent="orange">
   <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
   <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
@@ -228,5 +247,6 @@ page=f'''<!DOCTYPE html>
 </body>
 </html>
 '''
+page=page.replace('{LBDATA}', lb_data())
 open(f'{root}/index.html','w').write(page)
 print('index.html', len(page.splitlines()), 'lines', len(page)//1024, 'KB')

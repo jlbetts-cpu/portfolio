@@ -1,42 +1,48 @@
 /* Home page only: the hero and its strip, the stack, the quote ring, the testimonials, newsletter, contact */
 
-/* ---------- Hero: headline left, the strip of photographs below ----------
-   The strip is a loop of photographs on one track, moved by the flow (js/main.js): a slow drift, faster with the scroll,
-   the arrows step one card, and it can be dragged. */
-.hero { position: relative; padding-top: calc(var(--nav-h) + var(--sp-10)); padding-bottom: var(--section-y); overflow: hidden; }
-.hero__head { position: relative; }
-.hero__row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); align-items: end; }
-.hero__title { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: 15em; text-wrap: balance; }
-.hero__aside { display: grid; gap: var(--sp-5); justify-items: start; }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); }
-.hero__actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
-@media (min-width: 1024px) {
-  .hero__row { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--grid-gap); }
-  .hero__aside { padding-bottom: var(--sp-2); }
-}
-.strip { position: relative; margin-top: var(--sp-10); }
-.strip__nav { display: flex; justify-content: flex-end; margin-bottom: var(--sp-5); }
+/* ---------- Hero ----------
+   The band: the seven hues, blurred, drifting through one pass every --dur-aurora, fading into the ground so the title sinks into it.
+   Then the title centred, the four chips (the only other colour), the two buttons, and under them the strip. */
+.hero { position: relative; padding-top: calc(var(--nav-h) + var(--sp-16)); padding-bottom: var(--section-y); overflow: hidden; }
+.aurora { position: absolute; inset: 0 0 auto 0; height: clamp(280px, 40vh, 420px); z-index: 0; pointer-events: none; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 10%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 10%, transparent 100%); }
+.aurora__band { position: absolute; top: -60%; left: 0; width: 500%; height: 160%; opacity: .85; will-change: transform;
+  /* the wheel twice across five page widths, so two or three hues span the page at a time and the loop of one wheel (−50%) is seamless */
+  /* each hue at 66% over white: the header's ink stays ≥ 4.5:1 over the strongest of them */
+  --p-pink: color-mix(in oklab, var(--c-pink) 66%, #fff); --p-magenta: color-mix(in oklab, var(--c-magenta) 66%, #fff); --p-violet: color-mix(in oklab, var(--c-violet) 66%, #fff); --p-sky: color-mix(in oklab, var(--c-sky) 66%, #fff); --p-green: color-mix(in oklab, var(--c-green) 66%, #fff); --p-yellow: color-mix(in oklab, var(--c-yellow) 66%, #fff); --p-orange: color-mix(in oklab, var(--c-orange) 66%, #fff);
+  background: linear-gradient(90deg, var(--p-pink), var(--p-magenta), var(--p-violet), var(--p-sky), var(--p-green), var(--p-yellow), var(--p-orange), var(--p-pink), var(--p-magenta), var(--p-violet), var(--p-sky), var(--p-green), var(--p-yellow), var(--p-orange), var(--p-pink));
+  filter: blur(56px); animation: aurora-drift var(--dur-aurora) linear infinite; }
+@keyframes aurora-drift { to { transform: translate3d(-50%, 0, 0); } }
+/* film grain, so the band reads as light rather than a fill */
+.aurora__grain { position: absolute; inset: 0; opacity: .07; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.hero__head { position: relative; z-index: 1; text-align: center; display: grid; justify-items: center; gap: var(--sp-6); }
+.hero__title { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: var(--measure-display); text-wrap: balance; }
+.hero__chips { justify-content: center; }
+.hero__actions { display: flex; justify-content: center; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-2); }
+.strip { position: relative; margin-top: var(--sp-16); z-index: 1; }
+.strip__nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-5); }
+.strip__nav .section__label { margin-bottom: 0; }
 /* the viewport starts on the column's left edge (cards leave through that line, as in the reference) and runs to the right edge of the screen */
 .strip__viewport { overflow: hidden; margin-left: max(var(--gutter), calc((100vw - var(--page-max)) / 2 + var(--gutter))); touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
 .strip__viewport.is-dragging { cursor: grabbing; }
 .strip__track { display: flex; gap: var(--grid-gap); width: max-content; will-change: transform; }
-.strip__card { flex: none; width: clamp(220px, 21vw, 300px); }
+.strip__card { flex: none; width: clamp(220px, 21vw, 300px); transition: transform var(--dur-move) var(--ease-out); }
 .strip__card img { pointer-events: none; }
-.strip__card { transition: transform var(--dur-move) var(--ease-out); }
 .strip__card:hover { transform: translateY(-4px); }
 /* first paint: once per session */
-.hero.is-arriving .hero__head > *, .hero.is-arriving .hero__row > *, .hero.is-arriving .strip { opacity: 0; transform: translateY(8px); }
-.hero.is-ready .hero__head > *, .hero.is-ready .hero__row > *, .hero.is-ready .strip { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.hero.is-arriving .hero__head > *, .hero.is-arriving .strip { opacity: 0; transform: translateY(8px); }
+.hero.is-ready .hero__head > *, .hero.is-ready .strip { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 @media (max-width: 767px) {
-  .hero { padding-top: calc(var(--nav-h) + var(--sp-8)); }
-  .hero__title { font-size: clamp(1.5rem, 7.6vw, 2.25rem); max-width: none; }
+  .hero { padding-top: calc(var(--nav-h) + var(--sp-10)); }
+  .aurora { height: 280px; }
+  .hero__title { font-size: clamp(1.5rem, 7.6vw, 2.25rem); }
   .hero__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
   .hero__actions .btn { width: 100%; }
-  .strip { margin-top: var(--sp-8); }
+  .strip { margin-top: var(--sp-10); }
   .strip__card { width: 236px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero.is-arriving .hero__head > *, .hero.is-arriving .hero__row > *, .hero.is-arriving .strip { transform: none; }
+  .aurora__band { animation: none; }
+  .hero.is-arriving .hero__head > *, .hero.is-arriving .strip { transform: none; }
   .strip__card:hover { transform: none; }
 }
 
@@ -50,10 +56,26 @@
 .stack__body .t-body { color: var(--ink-2); }
 .stack__body .t-body:first-child { color: var(--ink); }
 .stack__extra { margin-top: var(--sp-6); }
-.stack__tiles { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); min-width: 0; gap: var(--grid-gap); align-self: end; align-items: end; }
+/* The stage: two photographs placed freely, bigger than the column, part of them behind the card's edge (the card clips them) */
+.stack__stage { position: relative; min-width: 0; height: clamp(300px, 62vw, 420px); }
+.stack__stage .photo { position: absolute; margin: 0; }
+.stack__stage .photo--tilt { transform: rotate(45deg); }
+.stack__stage .photo--tilt img { transform: rotate(-45deg) scale(1.45); }
+/* four compositions, one per card */
+.stack__card:nth-child(1) .photo:nth-child(1) { width: 66%; right: -12%; bottom: -10%; }
+.stack__card:nth-child(1) .photo:nth-child(2) { width: 36%; left: 2%; top: 4%; }
+.stack__card:nth-child(2) .photo:nth-child(1) { width: 64%; left: -6%; bottom: -12%; }
+.stack__card:nth-child(2) .photo:nth-child(2) { width: 30%; right: 4%; top: 10%; }
+.stack__card:nth-child(3) .photo:nth-child(1) { width: 70%; right: -8%; bottom: -16%; }
+.stack__card:nth-child(3) .photo:nth-child(2) { width: 32%; left: 0; top: 0; }
+.stack__card:nth-child(4) .photo:nth-child(1) { width: 62%; right: -10%; top: -8%; }
+.stack__card:nth-child(4) .photo:nth-child(2) { width: 38%; left: 4%; bottom: 0; }
 @media (min-width: 1024px) {
-  .stack__card { grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--grid-gap); padding: var(--sp-12); min-height: 520px; }
+  .stack__card { grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--grid-gap); padding: var(--sp-12); min-height: 560px; }
+  .stack__card > div:first-child { padding-right: var(--sp-8); }
   .stack__num { top: var(--sp-12); right: var(--sp-12); }
+  .stack__stage { height: auto; min-height: 460px; margin: calc(-1 * var(--sp-12)) calc(-1 * var(--sp-12)) calc(-1 * var(--sp-12)) 0; }
+  .stack__stage .photo--tilt { transform: rotate(45deg); }
 }
 
 /* ---------- The quote ring ----------

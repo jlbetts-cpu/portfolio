@@ -42,8 +42,6 @@
   --focus:       var(--ink);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
-  --chip-bg:  rgba(27,25,22,.06);
-  --chip-ink: var(--ink);
 
   /* Type — Plus Jakarta Sans, 400 and 600, nothing else */
   --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -92,6 +90,7 @@
   --dur-reveal: 360ms;
   --dur-enter: 500ms;
   --dur-bloom: 480ms;     /* a bloom rising under the pointer */
+  --dur-aurora: 72s;      /* the band at the top of the page: one pass through the seven hues */
   --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);

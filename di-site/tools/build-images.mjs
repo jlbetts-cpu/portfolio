@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const SRC = path.resolve(import.meta.dirname, '../images/src');
 const OUT = path.resolve(import.meta.dirname, '../images');
-const WIDTHS = [320, 480, 960];
+const WIDTHS = [320, 480, 960, 1440];
 const SKIP = /^(letters|\.)/;
 
 await mkdir(OUT, { recursive: true });

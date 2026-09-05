@@ -51,7 +51,8 @@ for (const [w, h] of VP) {
   const scrollTurns = Math.abs(s1 - s0) > 12;
   // the strip
   // back to the top; the scroll coupling settles in five time constants (1.6s) before the drift is measured
-  await pg.evaluate(() => scrollTo(0, 0)); await pg.mouse.move(w / 2, 5); await pg.waitForTimeout(1700);
+  await pg.evaluate(() => scrollTo(0, 0)); await pg.mouse.move(w / 2, 5);
+  await pg.waitForFunction(() => Math.abs(window.__di.flow.scrollAngle) < 0.05, null, { timeout: 8000 }); await pg.waitForTimeout(200);
   const trackX = () => pg.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-strip]')).transform).m41);
   const pitch = await pg.evaluate(() => { const c = document.querySelectorAll('.strip__card'); return c[1].getBoundingClientRect().left - c[0].getBoundingClientRect().left; });
   const x0 = await trackX(); await pg.waitForTimeout(500); const x1 = await trackX();

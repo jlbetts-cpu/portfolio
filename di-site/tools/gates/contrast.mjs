@@ -5,7 +5,8 @@ const b = await browser();
   const pg = await open(b, 1440, 900);
   await pg.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { scrollTo(0, y); await new Promise(r => setTimeout(r, 100)); } });
   const r = await pg.evaluate(() => {
-    const parse = c => { const m = c.match(/[\d.]+/g).map(Number); return m.length === 3 ? [...m, 1] : m; };
+    const cv = document.createElement('canvas'); cv.width = cv.height = 1; const cx = cv.getContext('2d', { willReadFrequently: true });
+    const parse = c => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
     const lum = ([r, g, b]) => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
     const over = (fg, bg) => { const a = fg[3]; return [0, 1, 2].map(i => fg[i] * a + bg[i] * (1 - a)); };
     const base = parse(getComputedStyle(document.body).backgroundColor).slice(0, 3);
@@ -41,6 +42,22 @@ const b = await browser();
     worst = Math.min(worst, (minL + 0.05) / (ink3 + 0.05));
   }
   report('contrast (bloom under the role line)', worst >= 4.5, `worst ${worst.toFixed(2)}:1 for --ink-3 over the bloom`);
+  // the header over the band: the nav links' ink-2 against the darkest pixel behind them, sampled at three moments of the drift
+  await pg.evaluate(() => scrollTo(0, 0)); await pg.waitForTimeout(400);
+  let navWorst = 99;
+  for (const t of [0, 24, 48]) {
+    await pg.evaluate((t) => { document.querySelector('.aurora__band').style.animationDelay = `-${t}s`; }, t); await pg.waitForTimeout(150);
+    const links = await pg.$('.nav__links'); const lb = await links.boundingBox();
+    await pg.evaluate(() => { document.querySelector('.nav').style.visibility = 'hidden'; });
+    const shot = await pg.screenshot({ clip: { x: lb.x - 200, y: lb.y - 8, width: lb.width + 400, height: lb.height + 16 } });
+    await pg.evaluate(() => { document.querySelector('.nav').style.visibility = ''; });
+    const { default: sharp } = await import('sharp');
+    const { data, info } = await sharp(shot).raw().toBuffer({ resolveWithObject: true });
+    const lum = (r, g, b) => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    let minL = 1; for (let i = 0; i < data.length; i += info.channels * 3) { minL = Math.min(minL, lum(data[i], data[i + 1], data[i + 2])); }
+    navWorst = Math.min(navWorst, (minL + 0.05) / (lum(0x1B, 0x19, 0x16) + 0.05));   // the links are --ink
+  }
+  report('contrast (header links over the band)', navWorst >= 4.5, `worst ${navWorst.toFixed(2)}:1 for --ink over the band`);
   await pg.close();
 }
 await b.close();

@@ -80,18 +80,24 @@
     measure(); addEventListener('resize', measure);
     let offset = 0, target = 0, dragging = false, dragX = 0, dragStart = 0, tweening = false;
     const place = () => { const pos = flow.angle * pxPerDeg + offset; const x = ((pos % half) + half) % half; track.style.transform = `translate3d(${(-x).toFixed(2)}px,0,0)`; };
-    const tween = (t) => { const d = target - offset; if (Math.abs(d) < .3) { offset = target; tweening = false; place(); return; } offset += d * .14; place(); requestAnimationFrame(tween); };
-    const go = (d) => { target += d; if (!tweening) { tweening = true; requestAnimationFrame(tween); } };
+    let tweenT = 0;
+    const tween = (t) => { const dt = tweenT ? Math.min(.05, (t - tweenT) / 1000) : 0; tweenT = t; const d = target - offset; if (Math.abs(d) < .3) { offset = target; tweening = false; tweenT = 0; place(); return; } offset += d * (1 - Math.exp(-dt / .11)); place(); requestAnimationFrame(tween); };   // time-based, so a slow frame rate cannot shorten a step
+    const go = (d) => { target += d; if (!tweening) { tweening = true; tweenT = 0; requestAnimationFrame(tween); } };
     flow.on(place); flow.watch(viewport);
     const scope = track.closest('.strip') || viewport;
     const prev = $('[data-strip-prev]', scope), next = $('[data-strip-next]', scope);
     if (prev) prev.addEventListener('click', () => go(-pitch));
     if (next) next.addEventListener('click', () => go(pitch));
-    viewport.addEventListener('pointerdown', (e) => { if (e.button !== 0 && e.pointerType === 'mouse') return; dragging = true; dragX = e.clientX; dragStart = offset; viewport.setPointerCapture(e.pointerId); viewport.classList.add('is-dragging'); flow.hold(track, true); });
-    viewport.addEventListener('pointermove', (e) => { if (!dragging) return; offset = target = dragStart - (e.clientX - dragX); place(); });
+    let moved = false;
+    // the pointer is captured only once this is a drag (6px), so a plain click still reaches the photograph's button
+    viewport.addEventListener('pointerdown', (e) => { if (e.button !== 0 && e.pointerType === 'mouse') return; dragging = true; moved = false; dragX = e.clientX; dragStart = offset; flow.hold(track, true); });
+    viewport.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - dragX; if (!moved && Math.abs(dx) > 6) { moved = true; viewport.classList.add('is-dragging'); try { viewport.setPointerCapture(e.pointerId); } catch {} } if (moved) { offset = target = dragStart - dx; place(); } });
     const release = () => { if (!dragging) return; dragging = false; viewport.classList.remove('is-dragging'); flow.hold(track, false); };
+    viewport.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
     viewport.addEventListener('pointerup', release); viewport.addEventListener('pointercancel', release);
     viewport.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') flow.hold(viewport, true); });
+    let stripTouch;
+    viewport.addEventListener('touchstart', () => { flow.hold(viewport, true); clearTimeout(stripTouch); stripTouch = setTimeout(() => flow.hold(viewport, false), 4000); }, { passive: true });
     viewport.addEventListener('pointerleave', () => flow.hold(viewport, false));
   });
 
@@ -114,6 +120,38 @@
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
     flow.watch(orbit.closest('.ring') || orbit);
   });
+  /* ---- Lightbox: every photograph opens large; arrows and keys move through all of them in page order ---- */
+  const lb = $('#lightbox');
+  const lbData = (() => { try { return JSON.parse($('#lbData').textContent); } catch { return null; } })();
+  if (lb && lbData) {
+    const buttons = $$('.photo__open').filter(b => !b.closest('[aria-hidden="true"]'));
+    const names = [...new Set(buttons.map(b => b.dataset.photo))];
+    const figure = $('.lightbox__figure', lb);
+    const live = $('.lightbox__live', lb);
+    let index = 0, opener = null;
+    const show = (i) => {
+      index = (i + names.length) % names.length;
+      const d = lbData[names[index]];
+      const av = d.avif.map(([w, u]) => `${u} ${w}w`).join(', '), wp = d.webp.map(([w, u]) => `${u} ${w}w`).join(', ');
+      figure.innerHTML = `<picture><source type="image/avif" srcset="${av}" sizes="90vw"><source type="image/webp" srcset="${wp}" sizes="90vw"><img src="${d.jpeg}" width="${d.w}" height="${d.h}" alt="${d.alt}" decoding="async"></picture>`;
+      live.textContent = `Photograph ${index + 1} of ${names.length}. ${d.alt}`;
+      // warm the neighbours
+      for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
+    };
+    const open = (name, from) => { opener = from; show(Math.max(0, names.indexOf(name))); lb.showModal(); $('.lightbox__close', lb).focus({ preventScroll: true }); flow.hold('lightbox', true); };
+    buttons.forEach(b => b.addEventListener('click', () => open(b.dataset.photo, b)));
+    $('.lightbox__prev', lb).addEventListener('click', () => show(index - 1));
+    $('.lightbox__next', lb).addEventListener('click', () => show(index + 1));
+    $('.lightbox__close', lb).addEventListener('click', () => lb.close());
+    lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) lb.close(); });
+    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); } });
+    lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
+    // swipe on touch
+    let sx = null;
+    lb.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 48) show(index + (dx < 0 ? 1 : -1)); }, { passive: true });
+  }
+
   /* ---- Reveal on scroll, once ---- */
   const io = new IntersectionObserver((entries) => {
     for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
@@ -127,7 +165,7 @@
     if (!cards.length) return () => {};
     cards.forEach((c, i) => c.style.setProperty('--i', i));
     const update = () => {
-      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; }); return; }
+      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; c.style.setProperty('--bloom', '1'); }); return; }
       const cover = cards.map((c, i) => {
         const next = cards[i + 1]; if (!next) return 0;
         const r = c.getBoundingClientRect(), nr = next.getBoundingClientRect();
@@ -138,6 +176,10 @@
         depth += cover[i];
         const s = 1 - .045 * Math.min(depth, 3);
         cards[i].style.transform = depth > 0.001 ? `scale(${s.toFixed(4)})` : '';
+        // the bloom rises as the card fills the screen: none below 30% visible, full from 70%, and it fades as the next card covers it
+        const r = cards[i].getBoundingClientRect(); const shown = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / Math.min(r.height, innerHeight);
+        const bloom = clamp((shown - .3) / .4, 0, 1) * (1 - cover[i]);
+        cards[i].style.setProperty('--bloom', bloom.toFixed(3));
       }
     };
     let ticking = false;
@@ -229,5 +271,5 @@
     });
   });
 
-  window.__di = { flow, stackUpdate };   // hooks for tools/gates
+  window.__di = { flow, stackUpdate, lightbox: lb };   // hooks for tools/gates
 })();

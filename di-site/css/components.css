@@ -30,7 +30,8 @@
 
 /* Chips */
 .chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.chip { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--sp-3); border-radius: var(--r-full); background: var(--chip-bg); color: var(--chip-ink); font-size: var(--fs-small); font-weight: 600; line-height: 1; white-space: nowrap; }
+/* a chip is its accent at 40% over white (mixed here, at the chip, so data-accent on the chip itself takes) */
+.chip { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--sp-3); border-radius: var(--r-full); background: color-mix(in oklab, var(--accent) 40%, #fff); color: var(--ink); font-size: var(--fs-small); font-weight: 600; line-height: 1; white-space: nowrap; }
 
 /* Cards */
 .card { position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6); }
@@ -45,12 +46,16 @@
   background:
     radial-gradient(70% calc(var(--bloom-h, 72%) * .64) at 16% 104%, color-mix(in oklab, var(--bloom-b) 46%, #fff) 0%, color-mix(in oklab, var(--bloom-b) 26%, #fff) 22%, color-mix(in oklab, var(--bloom-b) 10%, #fff) 46%, #fff0 72%),
     radial-gradient(160% var(--bloom-h, 72%) at 60% 108%, color-mix(in oklab, var(--bloom-a) 92%, #fff) 0%, color-mix(in oklab, var(--bloom-a) 76%, #fff) 12%, color-mix(in oklab, var(--bloom-a) 52%, #fff) 26%, color-mix(in oklab, var(--bloom-a) 30%, #fff) 40%, color-mix(in oklab, var(--bloom-a) 14%, #fff) 54%, color-mix(in oklab, var(--bloom-a) 5%, #fff) 68%, #fff 82%); }
-.card--bloom-hover::after { opacity: 0; transform: translateY(10%); transition: opacity var(--dur-bloom) var(--ease-out), transform var(--dur-bloom) var(--ease-out); }
+/* --bloom (0…1) is set by js from how much of the card is on screen; the pointer completes it */
+.card--bloom-hover::after { opacity: var(--bloom, 0); transform: translateY(calc((1 - var(--bloom, 0)) * 8%)); transition: opacity var(--dur-state-out) var(--ease-out), transform var(--dur-state-out) var(--ease-out); }
 .card--bloom-hover:hover::after, .card--bloom-hover:focus-within::after { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .card--bloom-hover::after { transform: none; } }
 
-/* Photo */
+/* Photo. Every photograph is a button that opens it in the lightbox. */
 .photo { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-raised) center / cover no-repeat; }
+.photo__open { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: inherit; }
+.photo__open:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
+.photo__open picture { width: 100%; height: 100%; }
 .photo--4x5 { aspect-ratio: 4 / 5; }
 .photo--3x2 { aspect-ratio: 3 / 2; }
 .photo--1x1 { aspect-ratio: 1 / 1; }
@@ -80,10 +85,12 @@
 @media (prefers-reduced-transparency: reduce) { .nav.is-scrolled { background: var(--bg); backdrop-filter: none; } }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-6); }
 .nav__brand { display: inline-flex; align-items: center; gap: var(--sp-3); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
-.nav__brand .mark { width: 30px; height: 32px; color: var(--ink); }
+.nav__disc { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 5px rgba(255,255,255,.4), 0 0 32px 16px rgba(255,255,255,.55); }   /* a disc of light the band bends around (Jayden) */
+.nav__disc .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
 .nav__links { display: flex; align-items: center; gap: var(--sp-5); }
-.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-1); font-size: var(--fs-small); font-weight: 600; color: var(--ink-2); transition: color var(--dur-state) var(--ease-out); }
-.nav__links a:hover, .nav__links a[aria-current="page"] { color: var(--ink); }
+.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-1); font-size: var(--fs-small); font-weight: 400; color: var(--ink); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1.5px; text-decoration-color: transparent; transition: text-decoration-color var(--dur-state) var(--ease-out); }
+.nav__links a:hover { text-decoration-color: currentColor; }
+.nav__links a[aria-current="page"] { font-weight: 600; }
 .nav__actions { display: flex; align-items: center; gap: var(--sp-2); }
 .nav__menu { display: none; }
 @media (max-width: 767px) {
@@ -119,6 +126,31 @@
   @starting-style { .dialog[open] { transform: translateY(24px); } }
 }
 @media (prefers-reduced-motion: reduce) { .dialog, .sheet { transition: opacity var(--dur-state-out) ease; transform: none !important; } }
+
+/* Lightbox: one photograph at a time on the ink scrim, arrows either side, close at the corner. Native <dialog>. */
+.lightbox { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--bg); z-index: var(--z-dialog); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out), display var(--dur-state-out) allow-discrete, overlay var(--dur-state-out) allow-discrete; }
+.lightbox[open] { opacity: 1; transition-duration: var(--dur-enter); }
+@starting-style { .lightbox[open] { opacity: 0; } }
+.lightbox::backdrop { background: rgba(27,25,22,.92); }
+.lightbox__stage { position: absolute; inset: 0; display: grid; place-items: center; padding: calc(var(--nav-h) + var(--sp-4)) var(--sp-20) var(--sp-16); }
+.lightbox__figure { margin: 0; max-width: 100%; max-height: 100%; display: grid; place-items: center; transform: scale(.97); transition: transform var(--dur-enter) var(--ease-out); }
+.lightbox[open] .lightbox__figure { transform: none; }
+@starting-style { .lightbox[open] .lightbox__figure { transform: scale(.97); } }
+.lightbox__figure picture, .lightbox__figure img { max-width: 100%; max-height: calc(100dvh - var(--nav-h) - var(--sp-4) - var(--sp-16)); width: auto; height: auto; object-fit: contain; border-radius: var(--r-lg); }
+.lightbox__close { position: absolute; top: var(--sp-4); right: var(--sp-4); }
+.lightbox__prev { position: absolute; left: var(--sp-4); top: 50%; transform: translateY(-50%); }
+.lightbox__next { position: absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); }
+.lightbox .arrow, .lightbox .dialog__close { background: var(--bg); color: var(--ink); }
+.lightbox .arrow:hover { background: #fff; }
+.lightbox .dialog__close { width: var(--hit); height: var(--hit); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.lightbox .dialog__close:hover { background: #fff; color: var(--ink); }
+@media (max-width: 767px) {
+  .lightbox__stage { padding: calc(var(--nav-h) + var(--sp-2)) var(--sp-4) calc(var(--hit) + var(--sp-8)); }
+  .lightbox__prev { left: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; }
+  .lightbox__next { right: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; }
+  .lightbox__figure picture, .lightbox__figure img { max-height: calc(100dvh - var(--nav-h) - var(--sp-2) - var(--hit) - var(--sp-8)); }
+}
+@media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
 /* Testimonial: a white card, the quote, the person, and the bloom at its foot */
 .testimonial { padding: var(--sp-7) var(--sp-7) var(--sp-24); display: flex; flex-direction: column; }

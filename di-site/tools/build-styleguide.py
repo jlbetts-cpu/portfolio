@@ -5,10 +5,11 @@ man=json.load(open(f'{root}/images/manifest.json'))
 sprite=open(f'{root}/assets/icons.svg').read().strip()
 star=re.search(r'<path[^>]*/>',open(f'{root}/assets/illustrations/star.svg').read()).group(0)
 whitemark=''.join(re.findall(r'<path[^>]*/>',open(f'{root}/assets/logo/dilogo.svg').read())).replace('fill="white"','fill="currentColor"')
+logo=open(f'{root}/assets/logo/inline-logo.html').read().strip().replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>',' aria-hidden="true">')
 STAMP=datetime.date.today().strftime('%Y%m%d')
 
 def pic(name, sizes='200px'):
-    m=man[name]; av=', '.join(f'images/{name}-{w}.avif {w}w' for w in m['sizes']); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in m['sizes'])
+    m=man[name]; ws=[w for w in m['sizes'] if w<=960]; av=', '.join(f'images/{name}-{w}.avif {w}w' for w in ws); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in ws)
     return f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}"><img src="images/{m["jpeg"]}" width="{m["width"]}" height="{m["height"]}" alt="" loading="lazy" decoding="async"></picture>'
 
 HUES=[('green','#51E596','#1F9A5E','10.7'),('sky','#58CDFC','#1A8BC6','9.6'),('violet','#7358FC','#5A45D9','white 4.6'),('magenta','#E744E2','#B72FB3','5.2'),('orange','#F0895B','#C8552A','6.9'),('pink','#FB9BC9','#D14E8E','8.7'),('yellow','#FEE79B','#A67D08','14.1')]
@@ -23,7 +24,7 @@ mini=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--{s
 STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat']
 strip=''.join(f'<figure class="photo photo--4x5 strip__card">{pic(n,"180px")}</figure>' for n in STRIP)*2
 def stackcard(num,acc,title):
-    return f'<article class="stack__card card card--bloom-hover" data-accent="{acc}" style="position:static;min-height:0;grid-template-columns:1fr"><div><span class="stack__num">({num})</span><h3 class="stack__title" style="font-size:var(--fs-h3)">{title}</h3><p class="t-body">White at rest; under the pointer its bloom rises from the foot of the card.</p><div class="stack__extra"><div class="chips"><span class="chip">chip</span></div></div></div></article>'
+    return f'<article class="stack__card card card--bloom-hover" data-accent="{acc}" style="position:static;min-height:0;grid-template-columns:1fr;--bloom:.6"><div><span class="stack__num">({num})</span><h3 class="stack__title" style="font-size:var(--fs-h3)">{title}</h3><p class="t-body">The bloom rises as the card fills the screen and completes under the pointer. On the home page two photographs sit free on a stage at the right, the big one partly behind the edge of the card.</p></div></article>'
 stack=''.join(stackcard(f'0{i+1}',a,t) for i,(a,t) in enumerate([('sky','Sky'),('green','Green'),('yellow','Yellow'),('violet','Violet'),('orange','Orange')]))
 bars=''.join(f'<div class="bar"><span>--sp-{n}</span><i style="width:var(--sp-{n})"></i><span>{v}</span></div>' for n,v in [(1,4),(2,8),(3,12),(4,16),(5,20),(6,24),(8,32),(10,40),(12,48),(16,64),(20,80),(24,96),(32,128),(40,160)])
 motion=''.join(f'<div class="mo" data-dur="{k}"><button class="btn btn--secondary btn--compact" type="button" onclick="play(this)">Play</button><i></i><b>--dur-{k}</b> {v}</div>' for k,v in [('press','100ms · :active'),('state','160ms · hover, focus'),('state-out','240ms · leaving hover, theme'),('move','280ms · position, the pile straightening'),('reveal','360ms · entering on scroll'),('enter','500ms · dialog, first paint')])
@@ -50,7 +51,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 .row {{ display:flex; gap: var(--sp-3); flex-wrap: wrap; align-items:center; }}
 .demo {{ background: var(--bg-raised); border:1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6); }}
 .mini-ring {{ --ring-r: 150; }} .mini-ring .ring__stage {{ height: 420px; margin: 0; }} .mini-ring .ring__item {{ width: 80px; margin-left: -40px; margin-top: -48px; }} .mini-ring .ring__item .photo--tilt {{ width: 66px; margin: 7px; }}
-.mini-strip .strip__viewport {{ margin-left: 0; }} .mini-strip .strip__card {{ width: 180px; }}
+.mini-strip .strip__viewport {{ margin-left: 0; }} .mini-strip .strip__nav {{ justify-content: flex-end; }} .mini-strip .strip__card {{ width: 180px; }}
 .shape-row {{ display: flex; gap: var(--sp-8); align-items: center; }}
 .stack .stack__card + .stack__card {{ margin-top: var(--sp-6); }}
 .flow {{ display:grid; grid-template-columns: 160px 1fr; gap: var(--sp-2) var(--sp-6); font-size: var(--fs-small); color: var(--ink-2); }} .flow b {{ color: var(--ink); font-weight: 600; }}
@@ -62,9 +63,12 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <nav class="sg__index" aria-label="Style guide"><a href="#colour">Colour</a><a href="#type">Type</a><a href="#space">Space</a><a href="#radius">Radius</a><a href="#motion">Motion</a><a href="#buttons">Buttons</a><a href="#chips">Chips &amp; stars</a><a href="#cards">Cards</a><a href="#photos">Photos</a><a href="#orbit">Photographs in motion</a><a href="#stack">Stacked cards</a><a href="#pile">Testimonials</a><a href="#fields">Fields</a><a href="#nav">Header &amp; footer</a></nav>
 <div>
 <h2 class="t-h2" id="colour">Colour</h2>
-<p class="t-body">One theme: a warm off-white ground, a warm black ink, a black mark. Colour is contained: it lives in the photographs and in the blooms, soft eased gradients at the foot of a white card. The seven logo hues never appear as flat surfaces or as text; each has a deeper star tone so the 16px section star reads on the ground.</p>
+<p class="t-body">One theme: a warm off-white ground, a warm black ink, a black mark. Colour is contained: the band at the top of the page, the photographs, the four pastel chips in the hero, the 16px section star, and the blooms at the foot of white cards. The seven logo hues never appear as flat surfaces or as text.</p>
 <h3>Brand hues · the hue, then its star tone</h3><div class="swatches">{hues}</div>
 <h3>Neutrals</h3><div class="swatches">{neutrals}</div>
+<h3>The band</h3>
+<p class="t-body">The seven hues, each at 66% over white, in wheel order on a strip five page-widths wide so two or three span the page at a time, blurred 56px, drifting left one pass every 72s (still under reduced motion), masked so it fades into the ground by 420px, with 7% film grain so it reads as light. The header sits on it: the colour logo on a white disc with a halo of light, the links in ink; the title sinks into the fade.</p>
+<div class="demo" style="position:relative;height:240px;padding:0;overflow:hidden"><div class="aurora" aria-hidden="true" style="height:240px"><div class="aurora__band"></div><div class="aurora__grain"></div></div><p class="t-h3" style="position:relative;text-align:center;padding-top:120px">The title sinks into the fade</p></div>
 <h3>Blooms · each hue with its neighbour on the logo's wheel</h3>
 <p class="t-body">Two eased radial gradients: the hue at the foot's right, mixed toward white in oklab over seven stops so the falloff has no edge; its neighbour, fainter, at the left. Stops end in transparent white, never <code>transparent</code>, which interpolates through black and draws a grey seam. Always on for the testimonials, the newsletter and the popup; rising under the pointer on the stacked cards.</p>
 <div class="swatches" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">{blooms}</div>
@@ -90,16 +94,16 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <div class="demo row"><button class="btn btn--primary">Primary</button><button class="btn btn--secondary">Secondary</button><button class="btn btn--ghost">Ghost</button><button class="btn btn--secondary btn--compact">Compact</button><button class="btn btn--primary" aria-busy="true">Loading</button><button class="btn btn--primary is-done" disabled><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Subscribed</button></div>
 <div class="demo row" style="margin-top:var(--sp-4)"><div class="arrows"><button class="arrow" type="button" aria-label="Previous"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" aria-label="Next"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div><span class="t-caption">the strip's arrows</span></div>
 <h2 class="t-h2" id="chips">Chips &amp; stars</h2>
-<div class="demo"><div class="chips"><span class="chip">critical thinking</span><span class="chip">creative problem-solving</span><span class="chip">cooperation</span><span class="chip">communication</span></div><p class="section__label" style="margin:var(--sp-6) 0 0" data-accent="sky"><svg class="star" aria-hidden="true"><use href="#star"/></svg>The star marks every section label, in the section's star tone</p></div>
+<div class="demo"><div class="chips"><span class="chip" data-accent="violet">critical thinking</span><span class="chip" data-accent="sky">creative problem-solving</span><span class="chip" data-accent="orange">cooperation</span><span class="chip" data-accent="yellow">communication</span></div><p class="section__label" style="margin:var(--sp-6) 0 0" data-accent="sky"><svg class="star" aria-hidden="true"><use href="#star"/></svg>The star marks every section label, in the section's star tone</p></div>
 <h2 class="t-h2" id="cards">Cards</h2>
 <div class="row"><div class="card" style="flex:1 1 240px;min-height:200px"><p class="t-h3">Card</p><p class="t-body">White on the ground, hairline, --r-lg.</p></div><div class="card card--bloom-hover" data-accent="green" style="flex:1 1 240px;min-height:200px"><p class="t-h3">Bloom on hover</p><p class="t-body">The stacked cards.</p></div><div class="card card--bloom" data-accent="orange" style="flex:1 1 240px;min-height:200px"><p class="t-h3">Bloom</p><p class="t-body">The testimonials, the newsletter, the popup.</p></div></div>
 <h2 class="t-h2" id="photos">Photos</h2>
-<p class="t-body">Rectangles for the strip and the 4:5 tiles; three shapes for the ring and the stacked cards' tiles: round (a 28% radius), tilt (a rounded square at 45°), circle. No frames, no outlines.</p>
+<p class="t-body">Rectangles for the strip; three shapes for the ring and the stacked cards' tiles: round (a 28% radius), tilt (a rounded square at 45°), circle. No frames, no outlines. On the home page every photograph is a button that opens it in the lightbox: one photograph at a time on the ink scrim, arrows and keys through the whole set, Esc or the scrim to close, focus back on the photograph.</p>
 <div class="row"><figure class="photo photo--4x5 photo--hover" style="width:180px">{pic('kids-dancing')}</figure><figure class="photo photo--1x1 photo--round" style="width:180px">{pic('cast-pose')}</figure><figure class="photo photo--1x1 photo--tilt" style="width:150px;margin:15px">{pic('laugh-hat')}</figure><figure class="photo photo--1x1 photo--circle" style="width:180px">{pic('circle-hands')}</figure></div>
 <h2 class="t-h2" id="orbit">Photographs in motion</h2>
 <p class="t-body">Two things carry the photographs. <b>The strip</b> (the hero): one loop of 4:5 photographs on a track, moved by the flow at 6px per degree, the arrows step one card, it can be dragged. <b>The ring</b> (the quote): eight shaped photographs on a circle, upright, turning with the flow; hover one to stop it.</p>
 <div class="demo mini-strip"><div class="strip"><div class="strip__nav" style="justify-content:flex-end;margin-bottom:var(--sp-4)"><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div><div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div></div></div>
-<div class="demo ring mini-ring" style="margin-top:var(--sp-4);padding:0"><div class="ring__stage"><div class="ring__orbit" aria-hidden="true">{mini}</div><div class="ring__centre"><p class="ring__text" style="font-size:var(--fs-h3)">“Creativity in motion creates knowledge!”</p></div></div></div>
+<div class="demo ring mini-ring" style="margin-top:var(--sp-4);padding:0"><div class="ring__stage"><div class="ring__orbit">{mini}</div><div class="ring__centre"><p class="ring__text" style="font-size:var(--fs-h3)">“Creativity in motion creates knowledge!”</p></div></div></div>
 <h2 class="t-h2" id="stack">Stacked cards</h2>
 <div class="stack">{stack}</div>
 <h2 class="t-h2" id="pile">Testimonials</h2>
@@ -107,8 +111,8 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <h2 class="t-h2" id="fields">Fields</h2>
 <div class="demo"><form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate style="max-width:520px"><div class="field"><label class="sr-only" for="sg-email">Email</label><input class="input" id="sg-email" type="email" name="email" placeholder="Email" autocomplete="email" required><button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form></div>
 <h2 class="t-h2" id="nav">Header &amp; footer</h2>
-<p class="t-body">See <a href="index.html" style="text-decoration:underline">index.html</a>: the header is transparent on the ground and becomes glass with a hairline once scrolled, with the black mark and the wordmark on the left, the links and Subscribe on the right. The footer is the mark, one line, © and two link columns.</p>
-<div class="demo" style="display:flex;align-items:center;gap:var(--sp-3)"><svg class="mark" style="width:30px;height:32px;color:var(--ink)" aria-hidden="true"><use href="#mark"/></svg><span style="font-size:15px;font-weight:600;color:var(--ink)">Developmental Improvisation</span></div>
+<p class="t-body">See <a href="index.html" style="text-decoration:underline">index.html</a>: the header sits on the band, transparent, and becomes glass with a hairline once scrolled, with the colour logo on its disc and the wordmark on the left, the links and Subscribe on the right. The footer is the black mark, one line, © and two link columns.</p>
+<div class="demo" style="position:relative;overflow:hidden;padding:0;height:120px"><div class="aurora" aria-hidden="true" style="height:120px;-webkit-mask-image:none;mask-image:none"><div class="aurora__band"></div><div class="aurora__grain"></div></div><div style="position:relative;display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-10) var(--sp-6)"><span class="nav__disc">{logo}</span><span style="font-size:15px;font-weight:600;color:var(--ink)">Developmental Improvisation</span></div></div>
 </div></main>
 <script>function play(b){{const m=b.parentElement;m.style.setProperty('--d',getComputedStyle(document.documentElement).getPropertyValue('--dur-'+m.dataset.dur));m.classList.toggle('is-on');}}</script>
 <script src="js/main.js?v={STAMP}" defer></script>
