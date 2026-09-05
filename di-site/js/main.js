@@ -43,7 +43,8 @@
       requestAnimationFrame(frame);
     };
     const wake = () => { if (running) return; running = true; lastT = 0; requestAnimationFrame(frame); };
-    addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; target += d; sTarget += d; wake(); }, { passive: true });
+    // the scroll feeds the flow only while the strip or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
+    addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; if (holds.has('offscreen')) return; target += d; sTarget += d; wake(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
     const stages = new Map();

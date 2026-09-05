@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v6 (2026-09-05) — the serif, the four, the band made quiet and returned, the structure
+Jayden's fifth review: "apply C", "picking the best 4 pictures", "remove the circle", "something structurally isn't premium or something is missing", "the gradients I don't like as much as I thought, the hero one more subtle", "the shapes in the cards look off and not intentional", "the footer lacks colour", "more researched design".
+
+**What was researched, and the principles applied.** The premium sites in the references he has sent (Maeve, the tennis school, the Strategic Plan cards, brandappart) and the ones this design leans on (Apple's product pages, Linear, Stripe) share five habits, and the page was measured against each:
+1. *One idea per section, and every section built the same way.* Label, title, content, in that order, on the same column. The hero was the odd one: a strip attached to it, no tagline, and centred while everything else is left. It is now the tagline and the four best photographs; the strip is a Gallery section of its own with the same label-and-arrows row as every other section.
+2. *Type carries the personality; colour does not.* Instrument Serif for the display and the section titles (his "C"), Plus Jakarta Sans for everything else. The serif is what the Maeve reference was doing that the sans version was not.
+3. *Colour as light, at the edges, not as fills in the middle.* The band drops from 66% to 44% hue over white and 70% opacity, and returns under the footer so the page has a top and a bottom. The stacked cards lose their blooms; the testimonial and newsletter blooms drop from 92% to 62% at their strongest.
+4. *A rule you can see.* The stacked cards had four different photograph compositions, which read as accidents. There is one now: the big rounded square at the outer bottom corner, bleeding past the card's edge, the small circle over its inner top corner; even cards face the other way. The 45° tilt stays in the ring only.
+5. *Nothing decorative that a rule does not explain.* The disc and halo behind the logo are gone; the colour logo sits plain on the quiet band.
+
+Measured after v6: the header ink over the band ≥ 4.5:1 at three moments of the drift; the title three lines at 1440 and on a phone; the band drifts at the top and at the foot; every gate line passes.
+
+
 ## v5 (2026-09-05) — the band, the centred hero, the lightbox
 Jayden's fourth review: "the hero still lacks personality or structure", the Maeve reference, "click on images to open them", "constraint is the best design".
 - **The band.** The Maeve reference is a soft colour band across the top of the page fading into white, with the title centred under it. Built as the seven logo hues in wheel order on a strip twice the page's width, blurred 56px at 90%, masked to fade by 480px, with 7% film grain multiplied over it so it reads as light. "The colours rotating": it drifts left by a transform one pass every 72s, so the blurred layer is rasterised once and the animation costs nothing; it holds under reduced motion. The header sits on it: the `contrast` gate samples the darkest pixel behind the links at three moments of the drift.

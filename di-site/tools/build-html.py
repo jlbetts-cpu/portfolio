@@ -64,7 +64,11 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-# the hero strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
+# the hero: the four best photographs
+FOUR=['yellow-trousers','boy-fist','circle-hands','laugh-hat']
+FSIZES='(max-width: 767px) 45vw, 300px'
+four=''.join(photo(n,'4x5',FSIZES,lazy=False) for n in FOUR)
+# the gallery strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
 STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens']
 SSIZES='(max-width: 767px) 236px, (max-width: 1440px) 21vw, 300px'
 def strip_cards(hidden):
@@ -90,17 +94,17 @@ def stack_card(num, accent, title, paras, extra, tiles, shapes=('1x1 photo--roun
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
     tl=''.join(photo(t,shp,TS if k==0 else TS_SMALL) for k,(t,shp) in enumerate(zip(tiles,shapes)))
     extra_html=('<div class="stack__extra">'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card card--bloom-hover" data-accent="{accent}" aria-labelledby="stack-{num}">'
+    return (f'<article class="stack__card card" data-accent="{accent}" aria-labelledby="stack-{num}">'
             f'<div><span class="stack__num" aria-hidden="true">({num})</span><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
             f'<div class="stack__stage">{tl}</div></article>')
 chips_hero=''.join(f'<span class="chip" data-accent="{a}">{c}</span>' for c,a in [('critical thinking','violet'),('creative problem-solving','sky'),('cooperation','orange'),('communication','yellow')])
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
 # each card: the big photograph first (it bleeds past the card's edge), the small one second
-stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-circle','linda-laughing'],('1x1 photo--circle','1x1 photo--round'))
-      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'],('1x1 photo--round','1x1 photo--tilt'))
-      +stack_card('03','yellow','“What would you do?”',P[3:4],'',['two-lines','cast-pose'],('1x1 photo--round','1x1 photo--circle'))
-      +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick'],('1x1 photo--circle','1x1 photo--round')))
+stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-circle','linda-laughing'])
+      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'])
+      +stack_card('03','yellow','“What would you do?”',P[3:4],'',['two-lines','cast-pose'])
+      +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick']))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
@@ -131,6 +135,7 @@ page=f'''<!DOCTYPE html>
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" href="fonts/PlusJakartaSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/PlusJakartaSans-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/InstrumentSerif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={STAMP}">
 <link rel="stylesheet" href="css/base.css?v={STAMP}">
 <link rel="stylesheet" href="css/components.css?v={STAMP}">
@@ -145,7 +150,7 @@ page=f'''<!DOCTYPE html>
 
 <header class="nav" id="nav">
   <div class="container nav__bar">
-    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home"><span class="nav__disc">{navlogo}</span><span class="word">Developmental Improvisation</span></a>
+    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
     <nav class="nav__links" aria-label="Primary"><a href="/" aria-current="page">Home</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
     <div class="nav__actions"><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
@@ -156,19 +161,24 @@ page=f'''<!DOCTYPE html>
     <div class="aurora" aria-hidden="true"><div class="aurora__band"></div><div class="aurora__grain"></div></div>
     <div class="container hero__head">
       <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+      <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
       <div class="chips hero__chips">{chips_hero}</div>
       <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
     </div>
-    <div class="strip" id="gallery" data-accent="sky">
-      <div class="container strip__nav"><p class="section__label"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
-      <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
-    </div>
+    <div class="container hero__four">{four}</div>
   </section>
 
   <section class="section" id="welcome" data-accent="sky" aria-labelledby="welcomeLabel">
     <div class="container">
       <p class="section__label reveal" id="welcomeLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Welcome</p>
       <div class="stack">{stack}</div>
+    </div>
+  </section>
+
+  <section class="section" id="gallery" data-accent="sky" aria-labelledby="galleryLabel">
+    <div class="strip">
+      <div class="container strip__nav"><p class="section__label" id="galleryLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
+      <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
     </div>
   </section>
 
@@ -216,8 +226,9 @@ page=f'''<!DOCTYPE html>
 </main>
 
 <footer class="footer">
+  <div class="aurora" aria-hidden="true"><div class="aurora__band"></div><div class="aurora__grain"></div></div>
   <div class="container footer__grid">
-    <div class="footer__brand"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><p class="footer__line">Pre-wiring the brain &amp; educating the heart</p><p class="footer__copy">© 2026 Developmental Improvisation</p></div>
+    <div class="footer__brand">{navlogo}<p class="footer__line">Pre-wiring the brain &amp; educating the heart</p><p class="footer__copy">© 2026 Developmental Improvisation</p></div>
     <nav class="footer__col footer__col--menu" aria-labelledby="footMenu"><h2 id="footMenu">Menu</h2><a href="/">Home</a><br><a href="#gallery">Gallery</a><br><a href="#contact">Contact</a></nav>
     <nav class="footer__col footer__col--contact" aria-labelledby="footContact"><h2 id="footContact">Contact</h2><a href="mailto:developmentalimprov@gmail.com">Email</a><br><a href="tel:+18573523221">Call</a><br><a href="#" aria-disabled="true">LinkedIn</a><br><a href="#" aria-disabled="true">Instagram</a><br><a href="#" aria-disabled="true">Facebook</a><br><a href="#" aria-disabled="true">X</a></nav>
   </div>

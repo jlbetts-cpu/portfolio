@@ -1,7 +1,7 @@
 // Gate: the newsletter popup's triggers, close paths, storage and validation.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
-let pg = await open(b, 1440, 900);
+let pg = await open(b, 1440, 900, { popup: true });
 const early = await pg.evaluate(async () => { scrollTo(0, document.documentElement.scrollHeight); await new Promise(r => setTimeout(r, 1500)); return document.querySelector('#newsletterDialog').open; });
 report('dialog: not before 10s even at 100% scroll', early === false);
 await pg.evaluate(() => scrollTo(0, 0)); await pg.waitForTimeout(9000);
@@ -29,7 +29,7 @@ await pg.click('#newsletterDialog button[type=submit]'); await pg.waitForTimeout
 const err = await pg.evaluate(() => document.querySelector('#newsletterDialog .field').classList.contains('is-error'));
 report('dialog: rejects a bad email without a network call', err && requests === 0);
 await pg.close();
-pg = await open(b, 390, 844);
+pg = await open(b, 390, 844, { popup: true });
 await pg.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight * 0.5); }); await pg.waitForTimeout(11000);
 const m = await pg.evaluate(() => { const d = document.querySelector('#newsletterDialog'); const before = scrollY; scrollBy(0, 40); return { open: d.open, modal: d.matches(':modal'), scrolled: scrollY !== before, height: d.getBoundingClientRect().height, vh: innerHeight }; });
 report('dialog: mobile sheet is non-modal and ≤38vh', m.open && !m.modal && m.scrolled && m.height <= m.vh * 0.38 + 1, JSON.stringify(m));

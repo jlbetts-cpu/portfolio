@@ -44,8 +44,8 @@
 .card--bloom::after, .card--bloom-hover::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
   /* --bloom-h is the main light's vertical radius as a share of the card; tall cards set it lower so the bloom stays at the foot */
   background:
-    radial-gradient(70% calc(var(--bloom-h, 72%) * .64) at 16% 104%, color-mix(in oklab, var(--bloom-b) 46%, #fff) 0%, color-mix(in oklab, var(--bloom-b) 26%, #fff) 22%, color-mix(in oklab, var(--bloom-b) 10%, #fff) 46%, #fff0 72%),
-    radial-gradient(160% var(--bloom-h, 72%) at 60% 108%, color-mix(in oklab, var(--bloom-a) 92%, #fff) 0%, color-mix(in oklab, var(--bloom-a) 76%, #fff) 12%, color-mix(in oklab, var(--bloom-a) 52%, #fff) 26%, color-mix(in oklab, var(--bloom-a) 30%, #fff) 40%, color-mix(in oklab, var(--bloom-a) 14%, #fff) 54%, color-mix(in oklab, var(--bloom-a) 5%, #fff) 68%, #fff 82%); }
+    radial-gradient(70% calc(var(--bloom-h, 64%) * .64) at 16% 104%, color-mix(in oklab, var(--bloom-b) 30%, #fff) 0%, color-mix(in oklab, var(--bloom-b) 16%, #fff) 22%, color-mix(in oklab, var(--bloom-b) 6%, #fff) 46%, #fff0 72%),
+    radial-gradient(160% var(--bloom-h, 64%) at 60% 108%, color-mix(in oklab, var(--bloom-a) 62%, #fff) 0%, color-mix(in oklab, var(--bloom-a) 50%, #fff) 12%, color-mix(in oklab, var(--bloom-a) 34%, #fff) 26%, color-mix(in oklab, var(--bloom-a) 20%, #fff) 40%, color-mix(in oklab, var(--bloom-a) 9%, #fff) 54%, color-mix(in oklab, var(--bloom-a) 3%, #fff) 68%, #fff 82%); }
 /* --bloom (0…1) is set by js from how much of the card is on screen; the pointer completes it */
 .card--bloom-hover::after { opacity: var(--bloom, 0); transform: translateY(calc((1 - var(--bloom, 0)) * 8%)); transition: opacity var(--dur-state-out) var(--ease-out), transform var(--dur-state-out) var(--ease-out); }
 .card--bloom-hover:hover::after, .card--bloom-hover:focus-within::after { opacity: 1; transform: none; }
@@ -85,8 +85,7 @@
 @media (prefers-reduced-transparency: reduce) { .nav.is-scrolled { background: var(--bg); backdrop-filter: none; } }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-6); }
 .nav__brand { display: inline-flex; align-items: center; gap: var(--sp-3); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
-.nav__disc { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 5px rgba(255,255,255,.4), 0 0 32px 16px rgba(255,255,255,.55); }   /* a disc of light the band bends around (Jayden) */
-.nav__disc .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
+.nav__brand .logo { width: 30px; height: auto; margin: 0; overflow: visible; }
 .nav__links { display: flex; align-items: center; gap: var(--sp-5); }
 .nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-1); font-size: var(--fs-small); font-weight: 400; color: var(--ink); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1.5px; text-decoration-color: transparent; transition: text-decoration-color var(--dur-state) var(--ease-out); }
 .nav__links a:hover { text-decoration-color: currentColor; }
@@ -119,7 +118,7 @@
 .dialog__close { position: absolute; top: var(--sp-4); right: var(--sp-4); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-md); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
 .dialog__close:hover { color: var(--ink); background: var(--bg-raised); }
 .dialog .mark { width: 32px; height: 34px; color: var(--ink); margin-bottom: var(--sp-5); }
-.dialog h2 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-5); max-width: 12em; }
+.dialog h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); margin-bottom: var(--sp-5); max-width: 10em; }
 @media (max-width: 767px) {
   .dialog { inset: auto 0 0 0; width: 100%; max-height: 38vh; margin: 0; border-radius: var(--r-xl) var(--r-xl) 0 0; transform: translateY(24px); }
   .dialog[open] { transform: none; }
@@ -167,13 +166,15 @@
 .quote__who .star { color: var(--accent-mark); }
 
 /* Footer */
-.footer { padding: var(--sp-16) 0 var(--sp-12); }
+/* the footer: the band returns, fading up from the foot of the page, so the page ends the way it began */
+.footer { position: relative; padding: var(--sp-20) 0 var(--sp-12); overflow: hidden; }
+.footer .aurora { inset: auto 0 0 0; -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, transparent 100%); }
 .footer .container { position: relative; }
 .footer .container::before { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: calc(-1 * var(--sp-16)); border-top: 1px solid var(--line); }
 .footer__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--sp-8) var(--grid-gap); }
 .footer__brand { grid-column: 1 / -1; }
-.footer__brand .mark { width: 30px; height: 32px; color: var(--ink); }
-.footer__line { margin-top: var(--sp-5); font-size: var(--fs-lead); line-height: var(--lh-lead); font-weight: 600; color: var(--ink); max-width: 20em; }
+.footer__brand .logo { width: 36px; height: auto; margin: 0; overflow: visible; }
+.footer__line { margin-top: var(--sp-5); font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: 400; color: var(--ink); max-width: 16em; }
 .footer__copy { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); }
 .footer__col h2 { font-size: var(--fs-small); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-5); }
 .footer__col a { display: inline-flex; align-items: center; min-height: var(--hit); min-width: var(--hit); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out); }

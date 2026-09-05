@@ -5,9 +5,9 @@ For anyone building the next page (Gallery, Contact, About). Every rule has a re
 ## 1. Principles
 1. **Premium is subtraction.** When a screen feels wrong, remove something before adding something.
 2. **Counting is not looking.** Measure, then open the screenshot. Every gate in `tools/gates/` exists because a number once lied.
-3. **One typeface, two weights, no italics, no gradient text.** Hierarchy is size, weight, leading, tracking and ink tier.
+3. **Two faces, no italics, no gradient text.** Instrument Serif, regular only, for the display and the section titles; Plus Jakarta Sans 400 and 600 for everything else. Hierarchy is face, size, leading, tracking and ink tier.
 4. **One theme, light.** A warm off-white ground, a warm black ink, a black mark. No dark mode (Jayden, 2026-09-05: "the whole site should be light mode").
-5. **Colour is contained.** It lives in the band at the top of the page, in the photographs, in the four pastel chips of the hero, in the 16px section star, and in the blooms: soft, eased gradients at the foot of a white card. No flat coloured surface, no coloured text, no coloured logo on the page.
+5. **Colour is contained.** It lives in the band at the top and foot of the page, in the photographs, in the colour logo, in the four pastel chips of the hero, in the 16px section star, and in the blooms at the foot of the testimonial and newsletter cards. No flat coloured surface, no coloured text. The stacked cards are white.
 6. **No shadows.** Depth is a white card on the warm ground plus a hairline. Gradients exist only as blooms, and a bloom is a light, not a fill: it never reaches the top of a card.
 7. **Flat vectors only.** The star comes from the logo file, unchanged. Nothing else is drawn; decorative shapes were tried and removed.
 8. **Motion is a system with two kinds.** Things that happen take a rung of the ladder. Things that turn or stack follow the scroll through one shared value, the flow, and have no duration.
@@ -29,7 +29,7 @@ One theme, `css/tokens.css`. The ground is a warm off-white, not a yellow cream:
 
 **Colour is contained.** The seven hues inside the logo appear on the page in four ways: in **the band** at the top, as the 16px section star (`--m-*`, a deeper tone of each so it reads at ≥ 3:1 on the ground), as the hero's four **chips** (each hue at 40% over white, ink text), and inside a **bloom**. Nothing else is coloured: not a surface, not text, not the logo.
 
-**The band** (`.aurora`) is the reference Jayden sent (Maeve): the seven hues, each at 66% over white, in wheel order on a strip five page-widths wide so two or three span the page at a time, blurred 56px, at 85%, masked so it fades into the ground by 420px (280 on a phone), with 7% film grain multiplied over it so it reads as light rather than a fill. It drifts left one pass every `--dur-aurora` 72s by a transform, so the blurred layer is rasterised once; under reduced motion it holds. The header sits on it: the colour logo on a white disc with a halo of light (Jayden: "pushing the gradient away"), the links in ink with an underline on hover; the title sinks into the fade. The `contrast` gate samples the darkest pixel behind the header links at three moments of the drift, with the header hidden, and requires `--ink` at ≥ 4.5:1 over it (7.3 measured).
+**The band** (`.aurora`) is the reference Jayden sent (Maeve), made quiet: the seven hues, each at 44% over white, in wheel order on a strip five page-widths wide so two or three span the page at a time, blurred 56px, at 70%, masked so it fades into the ground by 360px (240 on a phone), with 6% film grain multiplied over it so it reads as light rather than a fill. It drifts left one pass every `--dur-aurora` 72s by a transform, so the blurred layer is rasterised once; under reduced motion it holds. The header sits on it with the colour logo, plain; the links are ink with an underline on hover; the title sinks into the fade. **It returns under the footer**, fading up from the foot of the page, so the page ends the way it began. The `contrast` gate samples the darkest pixel behind the header links at three moments of the drift, with the header hidden, and requires `--ink` at ≥ 4.5:1 over it.
 
 | Hue | Value | Star tone | Bloom partner |
 |---|---|---|---|
@@ -41,7 +41,7 @@ One theme, `css/tokens.css`. The ground is a warm off-white, not a yellow cream:
 | pink | #FB9BC9 | #D14E8E | magenta |
 | yellow | #FEE79B | #A67D08 | orange |
 
-**The bloom** (`.card--bloom`, `.card--bloom-hover`) is the brand's one gradient, learned from the reference Jayden sent and from the heroes of his own portfolio: a radial gradient anchored below the foot of a white card, its hue mixed toward white in oklab over seven eased stops (100 → 78 → 52 → 30 → 14 → 5 → 0%) so the falloff has no edge, with the hue's partner as a fainter second light at the other corner. Stops end in transparent white, never `transparent`, which interpolates through black and draws a grey seam. It is always on for the testimonials, the newsletter card and the popup. On the stacked cards it follows the scroll: `--bloom` is set by `js/main.js` from how much of the card is on screen (none below 30% visible, all from 70%, fading again as the next card covers it), and the pointer completes it. It never reaches the top of a card; text sits on white.
+**The bloom** (`.card--bloom`, `.card--bloom-hover`) is the brand's one gradient, learned from the reference Jayden sent and from the heroes of his own portfolio: a radial gradient anchored below the foot of a white card, its hue mixed toward white in oklab over seven eased stops (100 → 78 → 52 → 30 → 14 → 5 → 0%) so the falloff has no edge, with the hue's partner as a fainter second light at the other corner. Stops end in transparent white, never `transparent`, which interpolates through black and draws a grey seam. Its strongest stop is the hue at 62% over white. It is on the testimonials, the newsletter card and the popup, and nowhere else: the stacked cards are white, their colour is their photographs. It never reaches the top of a card; text sits on white.
 
 **Accents.** A section sets `data-accent="…"` once; the star reads `--accent-mark`, a bloom reads `--bloom-a` and `--bloom-b`. Down the home page: yellow (hero) → sky → green → yellow → violet (the stack) → pink (the quote ring) → magenta (testimonials, the cards sky, yellow, pink) → orange (newsletter) → green (contact). Never two adjacent sections the same.
 
@@ -50,16 +50,16 @@ Plus Jakarta Sans, 400 and 600, self-hosted latin subsets, `font-display: swap` 
 
 | Role | Size (390 → 1440) | Leading | Tracking | Weight | Colour |
 |---|---|---|---|---|---|
-| display | 34 → 56 (30 on a 390 phone, so the title holds three lines) | 1.04 | −0.03em | 600 | ink |
+| display | 42 → 72, Instrument Serif (32 → 44 on a phone) | 1.0 | −0.01em | 400 | ink |
 | h1 | 36 → 60 | 1.06 | −0.025em | 600 | ink |
-| h2 | 28 → 44 | 1.1 | −0.02em | 600 | ink |
+| h2 | 34 → 54, Instrument Serif | 1.06 | −0.005em | 400 | ink |
 | h3 | 22 → 26 | 1.2 | −0.01em | 600 | ink |
 | lead | 18 → 21 | 1.45 | −0.005em | 400 | ink-2 |
 | body | 16 → 17 | 1.6 | 0 | 400 | ink-2 (first paragraph ink) |
 | small | 14 | 1.5 | +0.005em | 600 for labels | ink-2 |
 | caption | 13 | 1.4 | +0.01em | 400 | ink-3 |
 
-Measures are in `em`: display 15em, sub 24em, h2 16em, body 34em; the quote inside the ring 1.1 × the ring's radius. **Never `ch`** — this face's zero is 0.685em wide, so `24ch` at 48px is 825px and the hero tagline once wrapped into the side cards because of it.
+Measures are in `em`: display 13em, sub 24em, h2 14em, body 34em; the quote inside the ring 1.1 × the ring's radius. **Never `ch`** — this face's zero is 0.685em wide, so `24ch` at 48px is 825px and the hero tagline once wrapped into the side cards because of it.
 
 ## 4. Space, grid, radius, lines
 4px grid: `--sp-1` 4 … `--sp-40` 160 (28 exists for the testimonial card). Column 1200 inside 1280 with a 20→40px gutter; 12 columns, 16→24px gap. Sections: `--section-y` 72 → 96 (1440) → 112, top and bottom, and every section after the hero opens with a hairline drawn on the column. Radius by size class: `--r-xl` 28 (stacked cards, dialog, newsletter card), `--r-lg` 20 (cards, photos), `--r-md` 14 (buttons, inputs), `--r-full` (chips, avatars). Hairlines are the only separator.
@@ -75,7 +75,7 @@ Two kinds. **Things that happen** take a rung of the ladder. **Things that turn,
 | `--dur-reveal` | 360ms | content entering on scroll, the pile's drop |
 | `--dur-enter` | 500ms | the dialog, the hero's first paint |
 | `--dur-bloom` | 480ms | a bloom rising under the pointer |
-| `--dur-aurora` | 72s | the band: one pass through the seven hues |
+| `--dur-aurora` | 72s | the band, top and foot: one pass through the seven hues |
 
 Easings: `--ease-out`, `--ease-in-out`, and two springs as `linear()` (`--ease-pop` for things that just appeared, `--ease-settle` for things that move). Only `transform` and `opacity` animate.
 
@@ -83,7 +83,7 @@ Easings: `--ease-out`, `--ease-in-out`, and two springs as `linear()` (`--ease-p
 
 Under `prefers-reduced-motion` the drift and the scroll coupling are zero (the strip and the ring are still pictures; the arrows and dragging still work), the stack does not scale, reveals become short fades, the pile does not drop. There is no pause control: Jayden removed it. Strict WCAG 2.2.2 would want one for the drift; hover-to-stop and the reduced-motion rule are the mitigation.
 
-**The inventory:** the band's drift · hero first paint · the strip (drift, scroll, arrows, drag) · the strip card's lift · the ring (drift, scroll, hover) · the ring photograph's lift · a bloom rising on a stacked card · link colour · button press · button hover · reveals · the stack · the lightbox's fade and settle · dialog, sheet and form states. Nothing else moves. Not on the site: parallax, marquees, magnetic buttons, cursor effects, text effects, counters, hover glow, confetti, gradient drift.
+**The inventory:** the band's drift, top and foot · hero first paint · the four's lift · the strip (drift, scroll, arrows, drag) · the strip card's lift · the ring (drift, scroll, hover) · the ring photograph's lift · link underline · button press · button hover · reveals · the stack · the lightbox's fade and settle · dialog, sheet and form states. Nothing else moves. Not on the site: parallax, marquees, magnetic buttons, cursor effects, text effects, counters, hover glow, confetti, gradient drift.
 
 ## 6. Components
 Each is on `styleguide.html` in every state, in both themes.
@@ -96,16 +96,16 @@ Each is on `styleguide.html` in every state, in both themes.
 - **Strip** `.strip` + `.strip__viewport` + `.strip__track[data-strip]` + `.strip__card`: §7.
 - **Ring** `.ring` + `.ring__stage` + `.ring__orbit` + `.ring__item` + `.ring__centre`: §7.
 - **Arrow** `.arrow`: a 44px ink circle with a Phosphor arrow; the strip's previous and next.
-- **Stack** `.stack__card`: sticky under the header, each 12px lower than the last (`--i`), scaled by the flow, its bloom by its visibility. The text keeps the left half; the right half is a `.stack__stage` where two shaped photographs sit free, the big one bleeding past the card's edge (the card clips it, so part of it is behind the wall), in one of four compositions.
+- **Stack** `.stack__card`: white, sticky under the header, each 12px lower than the last (`--i`), scaled by the flow; the title in the serif, the chapter number. The text keeps the left half; the right half is a `.stack__stage` with two shaped photographs by one rule: the big rounded square at the outer bottom corner, bleeding past the card's edge (the card clips it, so part of it is behind the wall), the small circle over its inner top corner; even cards face the other way.
 - **Testimonials** `.testimonials` + `.testimonial`: three white bloom cards on a three-column grid, the middle one a step (`--sp-24`) lower, one column below 768. The quote, then the person with a 40px ink initial.
 - **Field** `.field` + `.input`: 48px, error in pink hairline with a message, success swaps the button label and draws a check.
 - **Dialog** `.dialog`: native `<dialog>`, a white panel with the orange bloom; modal on desktop, a non-modal bottom sheet (≤38vh) on mobile; focus lands on the heading.
 - **Sheet** `.sheet`: the mobile menu, from the right.
-- **Nav** `.nav`: transparent on the band, glass with a hairline after 24px of scroll. The colour logo on a 40px white disc with a halo (`.nav__disc`) and the wordmark on the left; Home, Gallery, Contact and Subscribe on the right; on phones the links and Subscribe move into the sheet. The logo does not move.
-- **Footer** `.footer`: the mark, one line, ©, then Menu and Contact columns as words.
+- **Nav** `.nav`: transparent on the band, glass with a hairline after 24px of scroll. The colour logo (30px, plain) and the wordmark on the left; Home, Gallery, Contact and Subscribe on the right; on phones the links and Subscribe move into the sheet. The logo does not move.
+- **Footer** `.footer`: over the band's return, the colour logo, the tagline in the serif, ©, then Menu and Contact columns as words.
 
 ## 7. The strip and the ring
-**The hero** is the Maeve reference Jayden sent: the band, then the title centred (15em, three lines) sinking into the band's fade, the four chips, the two buttons; then the Gallery row (the star label left, the two arrows right) and the strip. The strip's arrow step is a time-based ease (τ 110ms), so a slow frame never shortens it; the pointer is captured only once a drag passes 6px, so a plain click reaches the photograph.
+**The hero** is the Maeve reference Jayden sent: the band, then the title centred in the serif (13em, three lines) sinking into the band's fade, the tagline, the four chips, the two buttons; then **the four**: the best four photographs, 4:5, filling the column in one row (two by two on a phone), each opening the lightbox. **The Gallery** is its own section after the stack: the star label and the two arrows on one row, then the strip. The strip's arrow step is a time-based ease (τ 110ms), so a slow frame never shortens it; the pointer is captured only once a drag passes 6px, so a plain click reaches the photograph.
 ```
 strip card: clamp(220px, 21vw, 300px) wide, 4:5, --r-lg, --grid-gap apart; 236px on a phone
 track: the twelve photographs twice (the second set aria-hidden), left edge on the column, bleeding off the right

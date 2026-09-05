@@ -4,6 +4,8 @@ export const VIEWPORTS = [[1440, 900], [1512, 850], [1280, 720], [1024, 768], [1
 export async function browser() { return chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }); }
 export async function open(b, w, h, opts = {}) {
   const pg = await b.newPage({ viewport: { width: w, height: h }, reducedMotion: opts.reduced ? 'reduce' : 'no-preference' });
+  // the newsletter popup opens by itself after 40% scroll and ten seconds, once a session, and sits over the page; every gate but the dialog gate starts with it already shown
+  if (!opts.popup) await pg.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); } catch {} });
   await pg.goto(URL); await pg.evaluate(() => document.fonts.ready);
   await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
   await pg.waitForTimeout(600);

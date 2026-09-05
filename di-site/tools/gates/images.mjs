@@ -8,9 +8,10 @@ const r = await pg.evaluate(() => {
   const imgs = [...document.querySelectorAll('img')].filter(i => !i.closest('[aria-hidden="true"].strip__card'));
   const missing = imgs.filter(i => !i.getAttribute('width') || !i.getAttribute('height') || i.getAttribute('alt') === null || !i.closest('picture')).length;
   const oversized = imgs.filter(i => i.currentSrc && i.naturalWidth > 0 && i.getBoundingClientRect().width > 0 && i.naturalWidth > i.getBoundingClientRect().width * devicePixelRatio * 1.5 + 100).map(i => `${i.currentSrc.split('/').pop()} ${i.naturalWidth}px for ${Math.round(i.getBoundingClientRect().width)}px`);
-  const groups = [imgs.filter(i => i.closest('.strip')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => !i.closest('.strip') && !i.closest('.ring'))].map(g => g.map(i => i.getAttribute('src')));
+  // groups: the hero's four, the gallery strip, the ring, the stacked cards' tiles. Each unique within itself; the tiles appear nowhere else; the hero's four appear in no tile.
+  const groups = [imgs.filter(i => i.closest('.hero')), imgs.filter(i => i.closest('.strip')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => i.closest('.stack'))].map(g => g.map(i => i.getAttribute('src')));
   const dupes = groups.flatMap(g => g.filter((s, i) => g.indexOf(s) !== i));
-  const tileElsewhere = groups[2].filter(s => groups[0].includes(s) || groups[1].includes(s));
+  const tileElsewhere = groups[3].filter(s => groups[0].includes(s) || groups[1].includes(s) || groups[2].includes(s));
   dupes.push(...tileElsewhere);
   return { count: imgs.length, missing, oversized, dupes };
 });

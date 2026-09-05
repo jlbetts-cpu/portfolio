@@ -8,11 +8,11 @@
 
 > Counting is not looking. Measure, then look at the screenshot.
 
-> One typeface, two weights, no italics, no gradient text.
+> Two faces: Instrument Serif for the display and section titles, Plus Jakarta Sans 400 and 600 for everything else. No italics, no gradient text.
 
 > One theme, light: a warm off-white ground, a warm black ink, a black mark.
 
-> Colour is contained: the band at the top of the page, the photographs, the hero's four pastel chips, the section star, and the blooms at the foot of white cards. No flat coloured surfaces, no coloured text, no coloured logo on the page.
+> Colour is contained: the band at the top and foot of the page, the photographs, the colour logo, the hero's four pastel chips, the section star, and the blooms at the foot of the testimonial and newsletter cards. No flat coloured surfaces, no coloured text.
 
 > No shadows. Depth is a white card on the warm ground plus a hairline. A bloom is a light, not a fill.
 
@@ -34,7 +34,7 @@ One theme. The ground is a warm off-white (hue ≈ 80°, lightness .97), the ink
 | ink / ink-2 / ink-3 | #1B1916 / #514C45 / #736D64 | headings and the mark / body / captions |
 | line / line-strong | ink 10% / 22% | hairlines |
 
-The seven logo hues appear in four ways: in the band at the top (each at 66% over white, in wheel order, two or three across the page at a time, blurred, drifting one pass every 72s, fading into the ground with a little grain), as the 16px section star, as the hero's chips (40% over white), and inside a bloom. The header's logo sits on a white disc with a halo of light.
+The seven logo hues appear in four ways: in the band at the top and the foot (each at 44% over white, in wheel order, two or three across the page at a time, blurred, drifting one pass every 72s, fading into the ground with a little grain), as the 16px section star, as the hero's chips (40% over white), and inside a bloom (the hue at 62% at most).
 
 | Hue | Value | Star tone | Bloom partner |
 |---|---|---|---|
@@ -56,9 +56,9 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 
 | Role | Size (390 → 1440) | Leading | Tracking | Weight |
 |---|---|---|---|---|
-| display | 34 → 56 (30 on a phone) | 1.04 | −0.03em | 600 |
+| display | 42 → 72, Instrument Serif (32 → 44 on a phone) | 1.0 | −0.01em | 400 |
 | h1 | 36 → 60 | 1.06 | −0.025em | 600 |
-| h2 | 28 → 44 | 1.1 | −0.02em | 600 |
+| h2 | 34 → 54, Instrument Serif | 1.06 | −0.005em | 400 |
 | h3 | 22 → 26 | 1.2 | −0.01em | 600 |
 | lead | 18 → 21 | 1.45 | −0.005em | 400 |
 | body | 16 → 17 | 1.6 | 0 | 400 |
@@ -99,23 +99,24 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 | Button | 48px (44 compact), r-md, 16px 600. Primary is ink on the ground; inverts on a coloured surface. |
 | Chip | 32px, r-full, the accent at 40% over white with ink text; the hero's four skills. Not interactive. |
 | Star | The logo's star, 16px, in the section's mark tone, before every section label. |
-| Card | White on the ground with a hairline; bloom cards carry their bloom (testimonials, newsletter, popup); a stacked card's bloom follows how much of it is on screen and completes under the pointer. |
+| Card | White on the ground with a hairline; bloom cards carry their bloom (testimonials, newsletter, popup); the stacked cards are white. |
 | Photo | figure + a button + picture, AVIF/WebP/JPEG at 320/480/960 (1440 in the lightbox), blurred placeholder, crop per photograph; shapes round, tilt and circle for the ring and the stacked cards' tiles. No frames. Every photograph opens in the lightbox. |
 | Lightbox | Native dialog on the ink scrim; one photograph, arrows and keys through the whole set, Esc or the scrim to close, focus returns. |
 | Strip | The hero: one loop of twelve 4:5 photographs on a track, moved by the flow, arrows and drag. |
 | Ring | The quote: eight shaped photographs on a circle, upright, turning with the flow. |
-| Stack | Sticky cards, each 12px lower, scaled by the flow; text left, two free-placed shaped photographs right, the big one partly behind the edge of the card. |
+| Stack | Sticky white cards, each 12px lower, scaled by the flow; the title in the serif left, two shaped photographs right by one rule (big rounded square at the outer bottom corner bleeding past the edge, small circle over its inner top corner), mirrored on even cards. |
 | Testimonials | Three white bloom cards on a grid, the middle one lower; one column on a phone. |
 | Field | 48px input, error in pink hairline with a message, success swaps the button label. |
 | Dialog | Native dialog, white with the orange bloom; modal on desktop, a bottom sheet on mobile. |
-| Nav | Transparent on the band, glass once scrolled: the colour logo on a lit white disc left; links and Subscribe right. The logo does not move. |
-| Footer | The mark, one line, ©, then Menu and Contact columns. |
+| Nav | Transparent on the band, glass once scrolled: the colour logo left; links and Subscribe right. The logo does not move. |
+| Footer | Over the band's return: the colour logo, the tagline in the serif, ©, then Menu and Contact columns. |
 
 ## The strip and the ring
 
 | Parameter | Value |
 |---|---|
-| strip card | clamp(220px, 21vw, 300px) wide, 4:5; 236px on a phone |
+| the hero's four | the best four photographs, 4:5, one row on the column; two by two on a phone |
+| strip card | in the Gallery section: clamp(220px, 21vw, 300px) wide, 4:5; 236px on a phone |
 | strip track | twelve photographs twice; left edge on the column, bleeding right |
 | strip motion | 6px per degree of flow; one card per arrow press; drag |
 | ring radius | 300 (≥1024) · 240 (≥768) · 166 (phone) |

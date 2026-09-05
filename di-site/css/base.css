@@ -2,6 +2,7 @@
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/PlusJakartaSans-400.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/PlusJakartaSans-600.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans Fallback"; src: local("Arial"); size-adjust: 106%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
+@font-face { font-family: "Instrument Serif"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/InstrumentSerif-400.woff2") format("woff2"); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
@@ -18,9 +19,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 ::selection { background: var(--c-sky); color: #1B1916; }
 
 /* Type roles */
-.t-display { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); }
+.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 400; color: var(--ink); }
 .t-h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); }
-.t-h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); }
+.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); max-width: var(--measure-h2); }
 .t-h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); }
 .t-lead { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); }
 .t-body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }

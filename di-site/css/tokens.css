@@ -43,11 +43,12 @@
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
 
-  /* Type — Plus Jakarta Sans, 400 and 600, nothing else */
+  /* Type — Plus Jakarta Sans 400 and 600 for everything, Instrument Serif 400 for the display and the section titles (Jayden: "apply C") */
   --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fs-display: clamp(2.125rem, 1rem + 2.9vw, 3.5rem);        --lh-display: 1.04; --ls-display: -0.03em;
+  --font-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --fs-display: clamp(2.625rem, 1.25rem + 3.6vw, 4.5rem);     --lh-display: 1.0;  --ls-display: -0.01em;
   --fs-h1:      clamp(2.25rem, 1.5rem + 3vw, 3.75rem);      --lh-h1: 1.06;      --ls-h1: -0.025em;
-  --fs-h2:      clamp(1.75rem, 1.3rem + 1.8vw, 2.75rem);    --lh-h2: 1.1;       --ls-h2: -0.02em;
+  --fs-h2:      clamp(2.125rem, 1.5rem + 2.2vw, 3.375rem);  --lh-h2: 1.06;      --ls-h2: -0.005em;
   --fs-h3:      clamp(1.375rem, 1.2rem + .6vw, 1.625rem);   --lh-h3: 1.2;       --ls-h3: -0.01em;
   --fs-lead:    clamp(1.125rem, 1rem + .5vw, 1.3125rem);    --lh-lead: 1.45;    --ls-lead: -0.005em;
   --fs-body:    clamp(1rem, .95rem + .2vw, 1.0625rem);      --lh-body: 1.6;     --ls-body: 0;
@@ -55,9 +56,9 @@
   --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.01em;
   --fs-ui:      1rem;
   /* Measures are in em, never ch: this face's "0" is 0.685em wide and ch lies */
-  --measure-display: 15em;
+  --measure-display: 13em;
   --measure-sub: 24em;
-  --measure-h2: 16em;
+  --measure-h2: 14em;
   --measure-body: 34em;
 
   /* Space — 4px grid */
