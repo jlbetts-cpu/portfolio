@@ -1,5 +1,17 @@
 # Build log — Developmental Improvisation, home page
 
+## v4 (2026-09-05) — one theme, colour contained, the bloom
+Jayden's third review, in his order:
+- **The logo no longer rotates.** The header ring rule and its script are gone; the mark is the black `#mark`.
+- **The soft gradient from his reference, for the testimonials.** brandappart-style articles are blocked from this sandbox (larsenwork.com, MDN), so the technique came from his own portfolio: `hero-time.css` builds each sky as one radial gradient anchored below the box with seven eased stops from the hue to the page colour, and the footer layers two radials veiled toward the page with `color-mix`. Four candidates were rendered side by side on the five hue pairs (single eased radial; two hues; two blurred blobs; two desaturated hues) and looked at. The single eased radial was the closest to the reference; the two-hue versions drew a grey diagonal seam where the gradients crossed, because a stop ending in `transparent` interpolates through black. The bloom that shipped is the eased radial in oklab plus a fainter second light of the partner hue, with every stop ending in transparent white.
+- **The whole site light; colour contained; the logo black.** Dark mode, the toggle, the dark header, the flat coloured surfaces, the coloured chips and the hover fills are all removed. Colour now appears in the photographs, in the blooms (testimonials, newsletter, popup, and rising on a stacked card under the pointer) and as the 16px section star.
+- **The creativity-in-motion ring stays; more of that.** The shaped-photograph language extends to the stacked cards: each card's two tiles are now a rounded square beside a circle.
+- **The vectors are gone.** The arc, the star and the ring shapes, their symbols and their flow bindings are removed.
+- **Testimonials on his reference layout**: three white cards on a grid, the middle one a step lower, the quote, then the person with an ink initial, the bloom at the foot. The tilted pile is gone.
+
+Measured after v4: the caption ink over the darkest bloom pixel under a testimonial's role line ≥ 4.5:1 (the `contrast` gate now reads rendered pixels); a stacked card's bloom reaches opacity 1 under the pointer and 0 after; `ring` 0 / 0 / 0 at three viewports; `layout` 0px overflow at 320; axe 0 violations.
+
+
 ## v3 (2026-09-05) — the strip, the ring, colour on hover, the shapes
 Jayden's second review, in his order:
 - **"I don't like the outline."** The frames are gone; photographs are bare rounded rectangles. On the light ground the anti-aliased edge of a rotated card no longer shows, which is what the frame had been hiding.

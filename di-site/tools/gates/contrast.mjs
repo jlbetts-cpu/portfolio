@@ -1,9 +1,8 @@
-// Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM, in both themes.
+// Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM. Blooms are pseudo-elements; text over them is checked against the card's white, and the bloom's own colour is measured separately below.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
-for (const theme of ['light', 'dark']) {
+{
   const pg = await open(b, 1440, 900);
-  await pg.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
   await pg.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { scrollTo(0, y); await new Promise(r => setTimeout(r, 100)); } });
   const r = await pg.evaluate(() => {
     const parse = c => { const m = c.match(/[\d.]+/g).map(Number); return m.length === 3 ? [...m, 1] : m; };
@@ -24,7 +23,24 @@ for (const theme of ['light', 'dark']) {
     }
     return { n, bad };
   });
-  report(`contrast (${theme})`, r.bad.length === 0, r.bad.length ? r.bad.slice(0, 6).join(' | ') : `${r.n} text nodes ≥ 4.5:1`);
+  report('contrast', r.bad.length === 0, r.bad.length ? r.bad.slice(0, 6).join(' | ') : `${r.n} text nodes ≥ 4.5:1`);
+  // the bloom: read the rendered pixels under the name and role of each testimonial and check the ink against the darkest of them
+  await pg.evaluate(() => document.querySelector('#testimonials').scrollIntoView()); await pg.waitForTimeout(700);
+  const cards = await pg.$$('.testimonial');
+  let worst = 99;
+  for (const c of cards) {
+    // the bloom is strongest at the card's bottom right: sample a text-free column there, level with the role line
+    const who = await c.$('.testimonial__who'); const box = await who.boundingBox(); const cb = await c.boundingBox();
+    const shot = await pg.screenshot({ clip: { x: cb.x + cb.width - 56, y: box.y, width: 40, height: box.height } });
+    const { default: sharp } = await import('sharp');
+    const { data, info } = await sharp(shot).raw().toBuffer({ resolveWithObject: true });
+    const lum = (r, g, b) => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    let minL = 1;
+    for (let i = 0; i < data.length; i += info.channels * 3) { minL = Math.min(minL, lum(data[i], data[i + 1], data[i + 2])); }
+    const ink3 = lum(0x73, 0x6D, 0x64);
+    worst = Math.min(worst, (minL + 0.05) / (ink3 + 0.05));
+  }
+  report('contrast (bloom under the role line)', worst >= 4.5, `worst ${worst.toFixed(2)}:1 for --ink-3 over the bloom`);
   await pg.close();
 }
 await b.close();

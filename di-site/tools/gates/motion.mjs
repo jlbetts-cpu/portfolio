@@ -1,5 +1,5 @@
 // Gate: under reduced motion nothing drifts (ring, strip, shapes), nothing animates after 300ms and reveals still reach opacity 1;
-// without it the ring drifts, the strip drifts, the stack scales the covered card, and the header's ring and the shapes turn with the scroll.
+// without it the ring drifts, the strip drifts, the stack scales the covered card, and a stacked card's bloom rises under the pointer.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 let pg = await open(b, 1440, 900, { reduced: true });
@@ -19,13 +19,15 @@ await pg.close();
 pg = await open(b, 1440, 900);
 const r2 = await pg.evaluate(async () => {
   const a0 = window.__di.flow.angle; await new Promise(r => setTimeout(r, 800)); const drifts = window.__di.flow.angle - a0 > 1;
-  const ring = document.querySelector('.nav .logo__ring'); const shape = document.querySelector('[data-flow]'); const t0 = ring.style.transform, sh0 = shape.style.transform;
-  scrollBy(0, 400); await new Promise(r => setTimeout(r, 600));
-  const ringTurns = ring.style.transform !== t0; const shapesMove = shape.style.transform !== sh0;
   const cards = [...document.querySelectorAll('.stack__card')];
   cards[1].scrollIntoView(); scrollBy(0, -200); await new Promise(r => setTimeout(r, 300));
   const stackScales = /scale\(0\.9/.test(cards[0].style.transform);
-  return { drifts, ringTurns, shapesMove, stackScales };
+  return { drifts, stackScales };
 });
-report('motion (full)', r2.drifts && r2.ringTurns && r2.shapesMove && r2.stackScales, JSON.stringify(r2));
+const c = await pg.$('.stack__card:nth-child(2)'); const box = await c.boundingBox();
+await pg.mouse.move(box.x + 40, box.y + 40); await pg.waitForTimeout(700);
+const bloom = await pg.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.stack__card:nth-child(2)'), '::after').opacity));
+await pg.mouse.move(5, 5); await pg.waitForTimeout(700);
+const bloomGone = await pg.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.stack__card:nth-child(2)'), '::after').opacity));
+report('motion (full)', r2.drifts && r2.stackScales && bloom === 1 && bloomGone === 0, JSON.stringify({ ...r2, bloomOnHover: bloom, bloomAfter: bloomGone }));
 await pg.close(); await b.close();

@@ -15,17 +15,10 @@
   const num = (cs, name, d) => { const v = parseFloat(cs.getPropertyValue(name)); return Number.isFinite(v) ? v : d; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-  /* ---- Theme: light unless the visitor chose dark; the header is dark either way ---- */
-  const applyTheme = (t, animate) => {
-    if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 320); }
-    root.dataset.theme = t;
-    $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
-  };
-  applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light', false);
-  $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
-    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    store.set('di:theme', t); applyTheme(t, true);
-  }));
+  /* ---- Nav: a surface only once there is something under it ---- */
+  const nav = $('#nav');
+  const onScroll = () => nav.classList.toggle('is-scrolled', scrollY > 24);
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
      angle follows target with a time constant of --flow-settle, so a scroll accelerates the arch and it settles back to the drift. */
@@ -121,16 +114,11 @@
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
     flow.watch(orbit.closest('.ring') || orbit);
   });
-  // shapes and the logo's ring of figures move with the scroll part of the flow only, so at rest they are still
-  const SPIN = { spin: .5, 'spin-slow': .2, float: .35 };
-  $$('[data-flow]').forEach(el => { const k = SPIN[el.dataset.flow] || .5; const isFloat = el.dataset.flow === 'float'; flow.on((a, sa) => { el.style.transform = isFloat ? `translate3d(0, ${(-(sa * k) % 40).toFixed(2)}px, 0)` : `rotate(${(sa * k).toFixed(2)}deg)`; }); });
-  $$('.logo__ring').forEach(el => flow.on((a, sa) => { el.style.transform = `rotate(${sa.toFixed(3)}deg)`; }));
-
   /* ---- Reveal on scroll, once ---- */
   const io = new IntersectionObserver((entries) => {
     for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
   }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' });
-  $$('.reveal, .pile').forEach(el => io.observe(el));
+  $$('.reveal').forEach(el => io.observe(el));
   $$('.reveal--stagger').forEach(p => $$(':scope > .reveal', p).forEach((c, i) => c.style.setProperty('--d', Math.min(i, 6))));
 
   /* ---- The stack: a covered card shrinks from its top edge as the next one climbs over it; deeper cards are smaller ---- */
@@ -158,21 +146,6 @@
     update();
     return update;
   })();
-
-  /* ---- Testimonial pile: pager on mobile ---- */
-  const pile = $('.pile');
-  if (pile) {
-    const marks = $$('.pile__pager .star');
-    const pcards = $$('.pile__card', pile);
-    pcards.forEach((c, i) => c.style.setProperty('--d', i));
-    const setActive = () => {
-      const x = pile.scrollLeft + pile.clientWidth / 2;
-      let best = 0, dist = Infinity;
-      pcards.forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - x); if (d < dist) { dist = d; best = i; } });
-      marks.forEach((m, i) => m.classList.toggle('is-active', i === best));
-    };
-    pile.addEventListener('scroll', setActive, { passive: true }); setActive();
-  }
 
   /* ---- Menu sheet (mobile) ---- */
   const sheet = $('#menuSheet');

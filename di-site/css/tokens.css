@@ -1,37 +1,31 @@
 /* Developmental Improvisation — tokens. The only stylesheet that may contain raw colours, sizes, radii or durations.
-   Two themes. Light is the site's default (Jayden, 2026-09-05: "the site would look better in light mode and fit the brand more");
-   dark is a choice the visitor makes with the toggle in the header. The header itself is the same warm black in both. */
+   One theme, light (Jayden, 2026-09-05: "the whole site should be light mode; I want colour contained").
+   Colour lives in the photographs and in the blooms: soft, eased gradients at the foot of a white card. Everything else is ink on the ground. */
 :root {
   color-scheme: light;
-  /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97, not a yellow "cream" */
+  /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97 */
   --bg:          #F7F5F0;
-  --bg-raised:   #FFFFFF;                 /* cards: white lifts off the ground with a hairline, no shadow */
-  --bg-sunken:   #EFECE5;                 /* wells */
-  --bg-overlay:  #FFFFFF;                 /* the menu sheet, inputs */
+  --bg-raised:   #FFFFFF;                 /* cards */
+  --bg-sunken:   #EFECE5;                 /* wells, empty photo frames */
   --line:        rgba(27,25,22,.10);
   --line-strong: rgba(27,25,22,.22);
   --scrim:       rgba(27,25,22,.48);
+  --glass:       rgba(247,245,240,.82);   /* the header once scrolled */
 
-  /* Ink — the same warm black as the header, so the bar and the page share one dark */
+  /* Ink — a warm black and two tiers */
   --ink:    #1B1916;
   --ink-2:  #514C45;                      /* 7.8:1 on the ground */
   --ink-3:  #736D64;                      /* 4.7:1 on the ground, 5.1:1 on white */
-  --ink-contra: #F7F5F0;
 
-  /* The header: dark in both themes */
-  --nav-bg:    #1B1916;
-  --nav-ink:   #F4F1EB;
-  --nav-ink-2: rgba(244,241,235,.72);
-
-  /* Brand hues — the seven colours inside the logo, as surfaces (cards, chips, the arch's frames) */
-  --c-green:   #51E596;   /* dark ink 10.7:1 */
-  --c-sky:     #58CDFC;   /* dark ink 9.6:1 */
-  --c-violet:  #7358FC;   /* dark ink 3.7:1 → this one takes WHITE ink, 4.6:1 */
-  --c-magenta: #E744E2;   /* dark ink 5.2:1 */
-  --c-orange:  #F0895B;   /* dark ink 6.9:1 */
-  --c-pink:    #FB9BC9;   /* dark ink 8.7:1 */
-  --c-yellow:  #FEE79B;   /* dark ink 14.1:1 */
-  /* The same hues as MARKS on the light ground (stars, initials, the pager): deeper so a 16px star still reads. All ≥ 3:1 on --bg. */
+  /* Brand hues — the seven colours inside the logo. On this site they appear only inside a bloom and as the 16px star. */
+  --c-green:   #51E596;
+  --c-sky:     #58CDFC;
+  --c-violet:  #7358FC;
+  --c-magenta: #E744E2;
+  --c-orange:  #F0895B;
+  --c-pink:    #FB9BC9;
+  --c-yellow:  #FEE79B;
+  /* The star's tone on the light ground, one per hue, all ≥ 3:1 on --bg */
   --m-green:   #1F9A5E;
   --m-sky:     #1A8BC6;
   --m-violet:  #5A45D9;
@@ -40,15 +34,16 @@
   --m-pink:    #D14E8E;
   --m-yellow:  #A67D08;
 
-  /* The accent slot. Components read ONLY these. Set with data-accent, never inline. */
+  /* The accent slot: a section sets data-accent once; the star reads --accent-mark, a bloom reads --bloom-a and --bloom-b */
   --accent:      var(--c-sky);
-  --accent-mark: var(--m-sky);            /* small things in the accent: the star, the avatar, the pager */
-  --accent-ink:  #1B1916;                 /* ink on top of the accent at full strength */
+  --accent-mark: var(--m-sky);
+  --bloom-a:     var(--c-sky);
+  --bloom-b:     var(--c-violet);
   --focus:       var(--ink);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
-  --chip-bg:  var(--accent);
-  --chip-ink: var(--accent-ink);
+  --chip-bg:  rgba(27,25,22,.06);
+  --chip-ink: var(--ink);
 
   /* Type — Plus Jakarta Sans, 400 and 600, nothing else */
   --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -62,7 +57,7 @@
   --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.01em;
   --fs-ui:      1rem;
   /* Measures are in em, never ch: this face's "0" is 0.685em wide and ch lies */
-  --measure-display: 12em;
+  --measure-display: 15em;
   --measure-sub: 24em;
   --measure-h2: 16em;
   --measure-body: 34em;
@@ -81,7 +76,7 @@
 
   /* Radius by size class */
   --r-xl: 28px;   /* the popup panel, the newsletter card, the stacked cards */
-  --r-lg: 20px;   /* cards, photos, the arch's frames */
+  --r-lg: 20px;   /* cards, photos */
   --r-md: 14px;   /* buttons, inputs */
   --r-full: 999px;
 
@@ -89,20 +84,21 @@
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200;
 
-  /* Motion ladder — durations for things that happen; the arch and the stack are driven by scroll and have no duration */
+  /* Motion ladder — durations for things that happen; the strip, the ring and the stack are driven by scroll and have no duration */
   --dur-press: 100ms;
   --dur-state: 160ms;
   --dur-state-out: 240ms;
   --dur-move: 280ms;
   --dur-reveal: 360ms;
   --dur-enter: 500ms;
+  --dur-bloom: 480ms;     /* a bloom rising under the pointer */
   --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);
   --ease-settle: linear(0, 0.094, 0.284, 0.483, 0.653, 0.783, 0.875, 0.934, 0.971, 0.991, 1.001, 1.005, 1.006, 1.006, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1, 1, 1);
   --stagger: 60ms;
-  /* The flow: one angular velocity shared by the arch and the logo's ring. Read by js/main.js. */
-  --flow-drift: 3.75;     /* degrees per second at rest: one revolution in 96s */
+  /* The flow: one angular velocity shared by the strip and the ring. Read by js/main.js. */
+  --flow-drift: 3.75;     /* degrees per second at rest: one revolution of the ring in 96s */
   --flow-scroll: 0.06;    /* degrees per pixel scrolled */
   --flow-settle: 0.32;    /* seconds: the time constant of the easing that follows scroll */
   --strip-px: 6;          /* the hero strip moves this many pixels per degree of flow: 22px/s at rest, one card every 15s */
@@ -110,73 +106,17 @@
   --ring-n: 8;
 }
 
-/* Dark: the visitor's choice */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg:          #131211;
-  --bg-raised:   #1C1A18;
-  --bg-sunken:   #0E0D0C;
-  --bg-overlay:  #1C1A18;
-  --line:        rgba(244,241,235,.10);
-  --line-strong: rgba(244,241,235,.22);
-  --scrim:       rgba(0,0,0,.6);
-  --ink:    #F4F1EB;
-  --ink-2:  rgba(244,241,235,.74);        /* 9.8:1 */
-  --ink-3:  rgba(244,241,235,.56);        /* 5.8:1 */
-  --ink-contra: #131211;
-  --accent-mark: var(--accent);           /* on the dark ground the hues read at full strength */
-  --focus: var(--c-sky);
-  --btn-primary-bg: var(--ink);
-  --btn-primary-ink: #131211;
-}
-
-/* Accents — one per section, set once on the section */
-[data-accent="green"]   { --accent: var(--c-green);   --accent-mark: var(--m-green);   --accent-ink: #1B1916; }
-[data-accent="sky"]     { --accent: var(--c-sky);     --accent-mark: var(--m-sky);     --accent-ink: #1B1916; }
-[data-accent="violet"]  { --accent: var(--c-violet);  --accent-mark: var(--m-violet);  --accent-ink: #FFFFFF; }
-[data-accent="magenta"] { --accent: var(--c-magenta); --accent-mark: var(--m-magenta); --accent-ink: #1B1916; }
-[data-accent="orange"]  { --accent: var(--c-orange);  --accent-mark: var(--m-orange);  --accent-ink: #1B1916; }
-[data-accent="pink"]    { --accent: var(--c-pink);    --accent-mark: var(--m-pink);    --accent-ink: #1B1916; }
-[data-accent="yellow"]  { --accent: var(--c-yellow);  --accent-mark: var(--m-yellow);  --accent-ink: #1B1916; }
-:root[data-theme="dark"] [data-accent] { --accent-mark: var(--accent); }
-
-/* A coloured surface: components read the same tokens and come out ink-on-colour. Identical in both themes.
-   data-surface="hover" is the same surface but only under the pointer (Jayden: colour sparingly, on hover for the cards). */
-[data-surface="accent"], [data-surface="hover"]:hover, [data-surface="hover"]:focus-within {
-  background: var(--accent);
-  --ink: var(--accent-ink);
-  --ink-2: color-mix(in srgb, var(--accent-ink) 78%, transparent);   /* ≥ 5.2:1 on every dark-ink hue */
-  --ink-3: color-mix(in srgb, var(--accent-ink) 72%, transparent);   /* ≥ 4.6:1 on sky, the palest with dark ink */
-  --ink-contra: var(--accent);
-  --line: color-mix(in srgb, var(--accent-ink) 16%, transparent);
-  --line-strong: color-mix(in srgb, var(--accent-ink) 32%, transparent);
-  --focus: var(--accent-ink);
-  --accent-mark: var(--accent-ink);
-  --btn-primary-bg: var(--accent-ink);
-  --btn-primary-ink: var(--accent);
-  --chip-bg: var(--accent-ink);
-  --chip-ink: var(--accent);
-  --bg-raised: color-mix(in srgb, var(--accent-ink) 8%, transparent);
-}
-[data-surface="accent"][data-accent="violet"], [data-surface="hover"][data-accent="violet"]:hover, [data-surface="hover"][data-accent="violet"]:focus-within { --ink-2: #FFFFFF; --ink-3: #FFFFFF; --btn-primary-ink: #1B1916; --chip-ink: #1B1916; --btn-primary-bg: #FFFFFF; --chip-bg: #FFFFFF; }   /* white on violet is 4.6:1 — no tiers */
-
-/* The ink surface: the header, in both themes */
-[data-surface="ink"] {
-  background: var(--nav-bg);
-  --ink: var(--nav-ink);
-  --ink-2: var(--nav-ink-2);
-  --ink-3: rgba(244,241,235,.56);
-  --line: rgba(244,241,235,.12);
-  --line-strong: rgba(244,241,235,.28);
-  --bg-raised: rgba(244,241,235,.08);
-  --focus: var(--nav-ink);
-  --btn-primary-bg: var(--nav-ink);
-  --btn-primary-ink: var(--nav-bg);
-}
+/* Accents — one per section, set once on the section. Each hue brings its star tone and its bloom pair (the hue and a neighbour on the logo's wheel). */
+[data-accent="green"]   { --accent: var(--c-green);   --accent-mark: var(--m-green);   --bloom-a: var(--c-green);   --bloom-b: var(--c-sky); }
+[data-accent="sky"]     { --accent: var(--c-sky);     --accent-mark: var(--m-sky);     --bloom-a: var(--c-sky);     --bloom-b: var(--c-violet); }
+[data-accent="violet"]  { --accent: var(--c-violet);  --accent-mark: var(--m-violet);  --bloom-a: var(--c-violet);  --bloom-b: var(--c-pink); }
+[data-accent="magenta"] { --accent: var(--c-magenta); --accent-mark: var(--m-magenta); --bloom-a: var(--c-magenta); --bloom-b: var(--c-orange); }
+[data-accent="orange"]  { --accent: var(--c-orange);  --accent-mark: var(--m-orange);  --bloom-a: var(--c-orange);  --bloom-b: var(--c-yellow); }
+[data-accent="pink"]    { --accent: var(--c-pink);    --accent-mark: var(--m-pink);    --bloom-a: var(--c-pink);    --bloom-b: var(--c-magenta); }
+[data-accent="yellow"]  { --accent: var(--c-yellow);  --accent-mark: var(--m-yellow);  --bloom-a: var(--c-yellow);  --bloom-b: var(--c-orange); }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
 }
 @media (max-width: 1023px) { :root { --ring-r: 240; } }
-@media (max-width: 767px) { :root { --ring-r: 166; }
-}
+@media (max-width: 767px) { :root { --ring-r: 166; } }
