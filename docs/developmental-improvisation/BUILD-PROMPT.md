@@ -1,6 +1,6 @@
-# Developmental Improvisation — build prompt v4
+# Developmental Improvisation — build prompt v5
 
-> **v4, 2026-09-05.** Jayden's third review, on the v3 arch mock: the structure was off, the photographs looked wrongly oriented, the colour cards were empty, and the monogram in the corner was not it. The arch was rebuilt and re-measured: the ring's centre now sits on the fold so the arch is a true half-circle with its bottom cards cut by the edge rather than fading mid-air; sixteen slots instead of twelve so the cards sit close; the side tilt drops from 40° to 18° so faces stay upright; and every card carries a photograph — half of them plain, half of them **framed** (a pastel mat with the photo inset and one word beneath), each photo once plain and once framed on opposite sides of the ring so the visible arc never repeats. Card-on-card overlap, card-under-copy overlap and visible repeats all measure zero at six viewports. The nav corner is the full white mark with the wordmark set in the type. Mocks: `docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg`. Everything from v2 and v3 that is not named here stands.
+> **v5, 2026-09-05.** Jayden's fourth review, plus thirteen photographs from the old site's gallery: the arch is **photographs only, every card upright** — no frames, no tilt, no colour cards in it; the pastel cards with photographs in them are the **stacked cards further down the page**, which now carry structured photo tiles. With 21 usable photographs the arch's sixteen slots are all unique and the "twin" rule is gone. Measured on the mock at six viewports: zero tilt, zero card pixels under copy, zero card-on-card overlap, zero repeats. Mocks: `docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg`, `stack-mock.jpg`. Everything from v2–v4 not named here stands.
 
 > **How to use this file.** Paste everything below the line into a fresh agent session together with the inputs listed in §0. Edit the decisions in §2, §3, §5, §6 and §12 before you send it; everything else is mechanics. Sections marked `[DECIDE]` are the ones Jayden should read.
 
@@ -25,7 +25,7 @@ Read all of this before writing a line of code. Where this prompt makes a decisi
 | Logo, 6 SVG variants | `assets/logo/` | `dilogocolor.svg` (colour), `dilogoyellowstar.svg` (colour, yellow sparkle), `dilogo.svg` (white), `dilogoblack.svg` (black), `dilogobasicwhite.svg` / `dibasicblack.svg` (monogram only, no ring). ViewBox 787×842 for the full mark, 312×304 for the monogram. |
 | Brand palette | §3 of this prompt | Pastels for UI; the saturated hues live only inside the logo. |
 | 12 photographs | `images/src/` | Manifest in §11. Two are HEIC and must be converted. |
-| The old site's gallery | `images/src/gallery/` | **Jayden downloads these** from `developmentalimprovisation.com/gallery-2/` (the build environment cannot reach that domain) and drops them in unrenamed. Cropping rules in §11.1. |
+| 13 gallery photographs | `images/src/gallery/` | Jayden sent these as images in chat; chat images do not land on disk, so **Jayden attaches them as a zip** before the build. They are catalogued in §11.2 with crops. Cropping rules in §11.1. |
 | Old site copy | §10 of this prompt | The **only** words you may put on the page. |
 | Apple design reference | `docs/apple-design.md` | Reasoning on motion, materials and type. Section 3 of this prompt wins where they disagree. |
 | Hero, stack, pile and footer mocks | `docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg`, `stack-mock.jpg` | Rendered with the real photos and the real type. Sketches for order, scale and geometry, not pixels to copy. |
@@ -108,9 +108,9 @@ The logo carries the saturated hues. The interface carries pastel tints of the s
 **Rationing rules — these are what keep five colours professional:**
 - One accent per component. A chip is one colour. A card is one colour. A section takes one accent for its star and chips, set once on the `<section data-accent>`.
 - Sections rotate through the five accents in a fixed order down the page: lavender → sky → mint → butter → blush → lavender. Never two adjacent sections with the same accent; never pick by mood.
-- **Where a pastel may be a full-strength fill:** chips, the star marker, the focus ring, the eight framed cards in the hero arch, and the four stacked cards in §6.3. That is the list. Everything else that is large and coloured uses the `--t-*` tint (the newsletter card).
+- **Where a pastel may be a full-strength fill:** chips, the star marker, the focus ring, and the four stacked cards in §6.3. That is the list. The hero arch has no colour in it — it is photographs and the logo. Everything else that is large and coloured uses the `--t-*` tint (the newsletter card).
 - A pastel surface inverts the ink: everything inside `[data-surface="accent"]` reads `--ink` as `#181818`, and components do this through the tokens below, never by hand.
-- Never more than two pastels visible in one component. All five together only in the hero arch and the logo.
+- Never more than two pastels visible in one component. All five together only in the logo.
 - Photographs are never tinted, overlaid or duotoned.
 - Text is never a pastel. Not headings, not links (links are white with a hairline underline), not numbers. On a pastel surface, text is `#181818`.
 - The logo hues appear nowhere outside the logo. Not as a tint, not as a glow, not as a gradient.
@@ -258,7 +258,7 @@ One class per component, BEM-ish, no utility soup, no `!important`. Each compone
 | Button | `.btn` + `--primary` (`--btn-primary-bg` / `--btn-primary-ink`) / `--secondary` (transparent, hairline) / `--ghost` (text only, nav on mobile) / `--compact` (44px, `--fs-small`, nav only) | height 48, `padding: 0 var(--sp-5)`, `--fs-ui` 600, `--r-md`, gap 8 for an optional trailing 20px icon. States per §3.7. Loading state swaps the label for a 16px stroke spinner (the only spinner on the site). On a pastel surface it inverts through the tokens in §3.1. |
 | Chip | `.chip` | height 32, `padding: 0 var(--sp-3)`, `--fs-small` 600, `background: var(--chip-bg)`, `color: var(--chip-ink)`, `--r-full`. Not interactive. Pastel on the dark ground; dark on a pastel card. |
 | Card | `.card` | `background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6)` (`--sp-8` ≥1024). `.card--tint` uses `--accent-tint`. |
-| Pastel card | `.card--accent` | `data-surface="accent"`, no border. Two forms: the **framed card** in the arch (§6.1: 4:5, `--r-lg`, padding 8% of its width, a square `.photo` inset at a radius of 6.5% of the card width, the word below it at 10.5% of the card width, 600, `--ink`; the word is hidden below 120px card width) and the **stacked card** (§6.3, `--r-xl`). |
+| Pastel card | `.card--accent` | `data-surface="accent"`, `--r-xl`, no border. Used only for the four stacked cards (§6.3), each with its structured photo tiles. |
 | Photo | `.photo` | `<figure>` wrapping `<picture>`; `aspect-ratio` by modifier (`--4x5`, `--3x2`, `--1x1`); `border-radius: var(--r-lg)`; `overflow: hidden`; image `object-fit: cover`; optional `.photo__caption` in `--fs-caption --ink-3` **outside** the image, never overlaid. |
 | Orbit | `.orbit` + `.orbit__item` + `.orbit__card` | §6.1. Sixteen items on a ring; per-item keyframes for position and for visibility; `pointer-events: none` on the ring, `auto` on the cards, so hovering a card pauses the ring through `.orbit:hover`; a 44px pause/play control. |
 | Stack | `.stack` + `.stack__card` | §6.3. Sticky, full-column pastel cards with a number, an h3, body, and either photo tiles or chips bottom-right; the card beneath the current one recedes. |
@@ -275,7 +275,7 @@ One class per component, BEM-ish, no utility soup, no `!important`. Each compone
 | Skip link | `.skip` | First focusable element; visible on focus at `--z-skip`. |
 | Event (for later) | `.event` | A card with date (`--fs-h3` 600), title, one-line meta and a secondary button. Built on the style guide with placeholder content; not placed on the home page. |
 
-Rules for the style guide page: it uses the same tokens and components (it is a page on the site, at `/styleguide.html`, `noindex`); it shows every colour with its contrast ratio against `--bg` printed next to it (computed at build, not typed); every type role at its 390 and 1440 sizes; every spacing token as a bar; every component in every state; the motion ladder with a "play" button per rung; the star marker, the figure symbol with the figures band, an orbit of four cards (two plain, two framed), one stacked card in each of the five colours, and a three-card pile. It has a sticky left index. It is not pretty for its own sake — it is complete.
+Rules for the style guide page: it uses the same tokens and components (it is a page on the site, at `/styleguide.html`, `noindex`); it shows every colour with its contrast ratio against `--bg` printed next to it (computed at build, not typed); every type role at its 390 and 1440 sizes; every spacing token as a bar; every component in every state; the motion ladder with a "play" button per rung; the star marker, the figure symbol with the figures band, an orbit of four photo cards, one stacked card in each of the five colours with its tile group, and a three-card pile. It has a sticky left index. It is not pretty for its own sake — it is complete.
 
 ## 5. Illustration and iconography — build the brand around the logo `[DECIDE]`
 
@@ -319,7 +319,7 @@ Order is fixed: nav · hero arch · figures band · the stack · quote · testim
 - The nav never casts a shadow and never has a solid ground at the top of the page.
 
 ### 6.1 Hero (`#top`, `.orbit`) — the arch
-The reference is Jayden's pin: tilted rounded cards on an arch around centred copy, rotating slowly, stopping when you hover a photo. The v4 geometry was mocked with the real photographs and hit-tested at six viewports; use these numbers.
+The reference is Jayden's pin: rounded photo cards on an arch around centred copy, rotating slowly, stopping when you hover a photo. Jayden's rulings across four rounds: photographs only in the arch, **every card upright**, no frames, no colour cards, a clean structured arc. The v5 geometry was mocked with the real photographs and hit-tested at six viewports; use these numbers.
 
 **Geometry (desktop, ≥768px).** Everything derives from the hero's height and the viewport's width:
 ```css
@@ -327,33 +327,19 @@ The reference is Jayden's pin: tilted rounded cards on an arch around centred co
          --r:  min(48vw, calc((var(--hero-h) - 88px) / 1.19)); /* ring radius: 682 at 1440×900, 531 at 1280×720, 492 at 1024×768, 640 at 1512×850, 733 at 1920×1080 */
          --cw: calc(var(--r) * .26);                            /* card width, 4:5 → 177×222 at 1440×900. At .3 the cards overlapped each other at the sides */
          --cx: 50%; --cy: var(--hero-h);                        /* the ring's centre is ON the fold: the arch is a true half-circle and its bottom cards are cut by the edge, not faded mid-air */
-         --k: .22;                                              /* tilt = k × angle → 18° at the sides. .45 turned faces sideways and Jayden called the photos "not the right orientation" */
          --n: 16; }
 ```
-- **Sixteen slots, 22.5° apart.** Slot `i` sits at `θ = i × 22.5° + φ` (`φ` the rotation) at `(cx + r·sin θ, cy − r·cos θ)`, tilted by `k·θ`: `transform: rotate(θ) translateY(calc(-1 * var(--r))) rotate(calc(-1 * θ * (1 − k)))`. The arc step is `2πr/16 ≈ 0.39r`; the card height is `1.25 × 0.26r = 0.325r`, so adjacent cards at the sides keep a gap of ~0.07r (46px at 1440). Never let the card height exceed the arc step — that is what made v3 overlap.
-- **Visibility.** Fully visible while `|θ| ≤ 82°`, fading to 0 by `92°` (opacity keyframes), invisible around the bottom. With the centre on the fold the cards at ±90° are already half below the edge; the fade only stops a leaving card and its arriving twin from being seen together at the two bottom corners. Reduced motion: frame 0, same visibility.
-- **Rotation.** One revolution per `--dur-orbit` (96s), linear, clockwise. Per-item keyframes (`@keyframes orbit`: `rotate 0→360deg`, `translateY(-r)`, counter-rotate `0→−280.8deg` for k = .22; `@keyframes orbit-fade` with the 82°/92° stops expressed as percentages of the cycle), each item `animation-delay: calc(-1 * i / 16 * var(--dur-orbit))`. Only `transform` and `opacity`; `will-change: transform` on the sixteen items and nothing else; `animation-play-state: paused` when `document.hidden`.
+- **Sixteen slots, 22.5° apart, every card upright.** Slot `i` sits at `θ = i × 22.5° + φ` (`φ` the rotation) at `(cx + r·sin θ, cy − r·cos θ)` with **no tilt**: `transform: rotate(θ) translateY(calc(-1 * var(--r))) rotate(calc(-1 * θ))` — the counter-rotation cancels the orbit rotation exactly, so the card keeps its edges parallel to the viewport while it travels. (Tilted versions at 40° and 18° were both rejected: "all the photos should be turned right… upright and in a clean arch".) The arc step is `2πr/16 ≈ 0.39r`; the card height is `0.325r`, so adjacent cards at the sides keep a gap of ~0.07r (46px at 1440).
+- **Visibility.** Fully visible while `|θ| ≤ 82°`, fading to 0 by `92°` (opacity keyframes), invisible around the bottom. With the centre on the fold the cards at ±90° are already half below the edge; the fade only stops a leaving card from lingering at a bottom corner. Reduced motion: frame 0, same visibility.
+- **Rotation.** One revolution per `--dur-orbit` (96s), linear, clockwise. Per-item keyframes (`@keyframes orbit`: `rotate 0→360deg`, `translateY(-r)`, counter-rotate `0→−360deg`; `@keyframes orbit-fade` with the 82°/92° stops as percentages of the cycle), each item `animation-delay: calc(-1 * i / 16 * var(--dur-orbit))`. Only `transform` and `opacity`; `will-change: transform` on the sixteen items and nothing else; `animation-play-state: paused` when `document.hidden`.
 - **Hover / touch.** `.orbit { pointer-events: none } .orbit__card { pointer-events: auto } .orbit:hover .orbit__item { animation-play-state: paused }` — hovering any card pauses the whole ring. The hovered card scales `1.04` inside its item over `--dur-move --ease-out` and its hairline goes to `--line-strong`. Nothing else happens. On touch, a tap pauses for 4s. A 44px pause/play control sits at the hero's bottom-right (`aria-pressed`, `pause`/`play` icons, `--ink-2`, no ground until hover): WCAG 2.2.2.
-- **Two card types, alternating.** A **plain card** is a `.photo--4x5` at `--r-lg` with a hairline. A **framed card** is `.card--accent` (§4): a pastel mat, a square photo inset, and one of the five words from paragraphs 4–5 beneath it in `--ink` (`#181818` on the pastel). Every card carries a photograph — Jayden: "don't keep them as just colored cards".
-- **The sixteen slots.** Eight photographs — **2, 7, 3, 1, 6, 5, 12, 4** — each once plain and once framed, the two placed eight slots (180°) apart so the visible half-circle never shows the same photograph twice. Reading clockwise from the top at φ = 0:
-
-| Slot | Card | Slot | Card |
-|---|---|---|---|
-| 0 | 2 plain | 8 | 2 framed · blush **instinct** |
-| 1 | 7 framed · lavender **intellect** | 9 | 7 plain |
-| 2 | 3 plain | 10 | 3 framed · lavender **intellect** |
-| 3 | 1 framed · sky **cooperation** | 11 | 1 plain |
-| 4 | 6 plain | 12 | 6 framed · sky **cooperation** |
-| 5 | 5 framed · mint **communication** | 13 | 5 plain |
-| 6 | 12 plain | 14 | 12 framed · mint **communication** |
-| 7 | 4 framed · butter **compassion** | 15 | 4 plain |
-
-Colours repeat across the ring (five colours, eight frames) but the visible arc never shows two frames of the same colour side by side. Photo 4 (Linda) is the eighth photograph and also the tile on stack card (01); that is the one deliberate repeat on the page, a full screen apart. When Linda supplies classroom photographs, replace 12 first, then the framed twins.
+- **One card type.** A `.photo--4x5` at `--r-lg` with a hairline. Nothing on it, nothing around it.
+- **The sixteen photographs, one per slot, none repeated.** Reading clockwise from the top at φ = 0, chosen so colour and B&W alternate and no two group shots sit side by side: **2 · G9 · 7 · G12 · 3 · G1 · 1 · G4 · 6 · G7 · 5 · G8 · 12 · G5 · 4 · G3** (originals by number from §11, gallery photographs by G-number from §11.2, crops as given there). Photo 12 (the 2011 boy) stays for now because it is the only non-gallery child photo; it is the first to go when Linda sends more.
 - **The copy block** is centred horizontally and **anchored to the ring's inner edge**: `top: calc(var(--cy) − var(--r) * .81 + 24px)` (the top card's inner edge is at `cy − r + 0.19r`). Inside: the colour logo (`dilogocolor.svg`) at `min(140px, calc(var(--hero-h) * .155), 10vw)`; `--sp-6` below, the `h1` (visually hidden "Developmental Improvisation" + the visible tagline in `display` at `clamp(2rem, min(3.6vw, calc(var(--hero-h) * .054)), 3rem)` with `max-width: var(--measure-display)` on the h1 itself); `--sp-3` below, the sub-tagline in `lead --ink-2`, `max-width: var(--measure-sub)`; `--sp-7` below, primary **Sign Up for our Newsletter!** and secondary **Contact** side by side. Bottom margin under the buttons: 97px at 1440×900, 30 at 1280×720, 14 at 1024×768 (the one tight case — the arch is width-limited there; accept it).
-- **Mobile (≤767px).** The arch becomes a fan across the top and the copy sits below it: `--r: 300px; --cw: 76px; --cy: 447px`, fully visible while `|θ| ≤ 50°`, gone by `62°` (five cards showing); the framed cards drop their word (unreadable under 120px); the copy block starts at `top: 350px` (logo 72px, display `2rem`, buttons stacked full-width to 320px). 105px under the buttons at 390×844.
-- **Measured on the mock, and the `orbit` gate in §14 repeats it:** across a full 22.5° step in 1° increments at 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844 — zero card pixels under any text line, the logo or a button; zero card pixels painted over another card's centre region; zero photographs visible twice; the topmost card ≥ 88px from the viewport top.
+- **Mobile (≤767px).** The arch becomes a fan across the top and the copy sits below it: `--r: 300px; --cw: 76px; --cy: 447px`, fully visible while `|θ| ≤ 50°`, gone by `62°` (five cards showing); the copy block starts at `top: 350px` (logo 72px, display `2rem`, buttons stacked full-width to 320px). 105px under the buttons at 390×844.
+- **Measured on the mock, and the `orbit` gate in §14 repeats it:** across a full 22.5° step in 1° increments at 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844 — every visible card's computed rotation is 0°; zero card pixels under any text line, the logo or a button; zero card pixels painted over another card's centre region; zero photographs visible twice; the topmost card ≥ 88px from the viewport top.
 - **First paint:** the logo `scale(.96) → 1` and fades over `--dur-enter --ease-out`; then h1, sub, buttons with `--stagger`; then the ring fades in over `--dur-enter`, already turning. Under 900ms, once per session. Nothing else animates on load.
-- **Nothing else.** No gradient, no ground behind the ring, no scroll indicator, no decorative shapes.
+- **Nothing else.** No gradient, no ground behind the ring, no scroll indicator, no decorative shapes, no colour.
 
 ### 6.2 Figures band (`.figures`)
 §5.2. Directly under the hero, `--section-y-tight` above and below, standing on the column hairline. No text.
@@ -362,17 +348,17 @@ Colours repeat across the ring (five colours, eight frames) but the visible arc 
 From the Brand Appart video: full-width coloured cards, each a chapter, each sticking under the nav while the next slides up over it and the one beneath recedes. Here the chapters are the old site's six paragraphs, in order, on the brand's pastels.
 
 - Section head: star + label **Welcome** (left, above the stack, not on a card).
-- Four `.stack__card` elements, each `.card--accent` (`data-surface="accent"`), `--r-xl`, `padding: var(--sp-12)` (`--sp-8` on mobile), `min-height: 520px` desktop, a 7/5 inner grid. Top-left: the h3 (`--fs-h2` size, 600, `--measure-h2`); top-right: the chapter number in `--fs-small` 600 `--ink-3`, written `(01)`; below the h3: the copy in `body`, `--measure-body`; bottom-right of the card: the tiles or chips. All ink is `#181818` through the surface tokens.
+- Four `.stack__card` elements, each `.card--accent` (`data-surface="accent"`), `--r-xl`, `padding: var(--sp-12)` (`--sp-8` on mobile), `min-height: 520px` desktop, a 7/5 inner grid. Top-left: the h3 (`--fs-h2` size, 600, `--measure-h2`); top-right: the chapter number in `--fs-small` 600 `--ink-3`, written `(01)`; below the h3: the copy in `body`, `--measure-body`; below the copy, chips or the button where the table says so. **Right column, bottom-aligned: the photo tiles** — this is where the "colour cards with structured photos in them" live (Jayden: "I meant for the cards further down the page"). A tile group is two `.photo` tiles side by side, each 4:5, `--r-lg`, equal widths filling the right column with `--grid-gap` between them (about 150px each at 1440), bottom edges on one line, captions in `--fs-caption` at `--ink-3` beneath only where a name is known. Never one huge photo, never three sizes, never a collage. All ink is `#181818` through the surface tokens.
 
-| # | Accent | h3 (from the copy) | Body | Bottom-right |
-|---|---|---|---|---|
-| (01) | lavender | **Welcome to Developmental Improvisation** | paragraphs 1 and 2 | photo **4** (Linda) as a 150px-wide 4:5 tile with the caption **Linda Kellogg Fulton** beneath it — the page's one deliberate repeat (she is also slot 7/15 of the arch), a full screen apart |
-| (02) | sky | **Safe, educational, and thrilling exercises and games** (a phrase from paragraph 3, sentence case) | paragraph 3 | nothing; the card stays quiet |
-| (03) | mint | **"What would you do?"** | paragraph 4 | chips **critical thinking · creative problem-solving · cooperation · communication** (dark chips on the pastel) |
-| (04) | butter | **The end result** (the opening words of paragraph 5) | paragraphs 5 and 6 | the primary button **Sign Up for our Newsletter!** (inverted: dark on the pastel), which opens the popup |
+| # | Accent | h3 (from the copy) | Body | Below the copy | Tiles (right column) |
+|---|---|---|---|---|---|
+| (01) | lavender | **Welcome to Developmental Improvisation** | paragraphs 1 and 2 | — | **G2** (Linda leading five children in a circle) · **G6** (a workshop group with Linda on the screen) |
+| (02) | sky | **Safe, educational, and thrilling exercises and games** (a phrase from paragraph 3, sentence case) | paragraph 3 | — | **G11** (children dancing in the bright studio) · **G10** (children running) |
+| (03) | mint | **"What would you do?"** | paragraph 4 | chips **critical thinking · creative problem-solving · cooperation · communication** (dark chips on the pastel) | **G13** (the whole cast posing on the set) · **G3** cropped tight on the meeting hands (a second crop of the arch's G3 is the page's one deliberate repeat, a full screen apart) |
+| (04) | butter | **The end result** (the opening words of paragraph 5) | paragraphs 5 and 6 | the primary button **Sign Up for our Newsletter!** (inverted: dark on the pastel), which opens the popup | **G12** cropped to the boy in the middle · **G4** cropped to the small boy with the red bow tie |
 
 - **Stacking.** Each card is `position: sticky; top: calc(var(--nav-h) + var(--sp-6))`; cards are `--sp-6` apart in flow, and the section's height is the sum of the cards so the last one scrolls away normally. The card beneath the current one recedes: `transform: perspective(1200px) rotateX(6deg) scale(.96); transform-origin: 50% 100%` with `opacity: .9`, over `--dur-move --ease-out`. Drive it with a two-state class from an IntersectionObserver on the *next* card (when the next card's top crosses the sticky line, the current one gets `is-under`); where `animation-timeline: view()` is supported you may use it as an enhancement for a continuous version, but the class version must work everywhere and is the one the gate tests. Reduced motion: no transform, no perspective, cards simply stack.
-- **Mobile.** Same sticky stack, one column inside the card, `min-height: auto`, tiles and chips below the copy.
+- **Mobile.** Same sticky stack, one column inside the card, `min-height: auto`, the two tiles side by side below the copy at 3:2 each.
 - **Contrast.** `#181818` on every pastel is ≥ 13:1; `rgba(24,24,24,.72)` is ≥ 7:1. The `contrast` gate checks it from the DOM.
 
 ### 6.4 Quote (`.quote`, accent blush)
@@ -402,11 +388,11 @@ Column hairline on top, `padding: var(--sp-16) 0 var(--sp-12)`, `--bg`. ≥1024:
 No stats row, no logo wall, no "as seen in", no FAQ, no pricing, no map, no chat widget, no cookie banner (no cookies are set; `localStorage` for popup state is not a cookie and needs no banner), no back-to-top button, no scroll progress bar, no cursor effects, no particles, no marquee, no bento, no gradient, no star ratings, no gallery grid (the arch is the gallery until the Gallery page exists).
 
 ### 6.10 Photo allocation
-| Photo | Where |
+| Photographs | Where |
 |---|---|
-| 2, 7, 3, 1, 6, 5, 12, 4 | The arch, each once plain and once framed, per the slot table in §6.1 |
-| 4 | Also the Linda tile on stack card (01) — the one deliberate repeat |
-| 8 | Not on the page; the stand-in if photo 12 fails at 177px wide |
+| 2, G9, 7, G12, 3, G1, 1, G4, 6, G7, 5, G8, 12, G5, 4, G3 | The arch, one per slot in that order (§6.1) |
+| G2, G6 · G11, G10 · G13, G3 (tight crop) · G12, G4 (tight crops) | The four stacked cards' tile pairs (§6.3); G3, G12 and G4 reappear here in different crops, a full screen from the arch |
+| 8 | Not on the page |
 | 9, 10, 11 | Not on the page (letters; permission needed) |
 
 ## 7. The newsletter popup (`.dialog`)
@@ -437,7 +423,7 @@ Verified against token files and third-party extractions of Material 3, Spotify,
 9. **Radius by size class.** Cards 12–20, big blocks 24–32 (Figma 24, Material 28, Pinterest 32); buttons are one shape site-wide. → `--r-xl 28 / --r-lg 20 / --r-md 14 / --r-full`, Jayden's own ladder, inside the observed range.
 10. **96px between sections at desktop, 1200–1280 max width.** Linear, Figma, Notion, Framer, Raycast, Sentry, Warp, Miro all at 96; photo-dense sites (Airbnb, Pinterest) at 64. → `--section-y` lands on 96 at 1440 and `--section-y-tight` on ~53 for photo bands.
 
-**The kids'-brand trap, stated once:** playfulness is spent in the mark, the photographs and one or two micro-interactions — never in the chrome. Duolingo's entire playful chrome is a 4px ledge under its buttons; Headspace's is one breathing circle; everything else in those systems is as strict as Linear. Here the budget is: the logo, the photographs, the turning arch, the eight framed cards in it, the four stacked cards, the figures band's bob, and the testimonial pile's tilt. That is the whole allowance — and it is already generous, which is why everything else on the page is grey, flat, left-aligned and on the grid.
+**The kids'-brand trap, stated once:** playfulness is spent in the mark, the photographs and one or two micro-interactions — never in the chrome. Duolingo's entire playful chrome is a 4px ledge under its buttons; Headspace's is one breathing circle; everything else in those systems is as strict as Linear. Here the budget is: the logo, the photographs, the turning arch, the four stacked cards, the figures band's bob, and the testimonial pile's tilt. That is the whole allowance — and it is already generous, which is why everything else on the page is grey, flat, left-aligned and on the grid.
 
 **Motion values that were actually verifiable:** Material `short 50–200ms`, `medium 250–400ms`, `long 450–600ms`, `emphasized-decelerate cubic-bezier(0.05, 0.7, 0.1, 1)` for things entering; Apple press `scale(0.95)` on `:active`; Headspace tap `scale(0.98)`, canvas cross-fade 600ms, breathing sphere 4s `scale 1 → 1.04` with no spring; Slack spring 250ms at damping 0.8; Duolingo's press 80ms linear. The ladder in §3.6 sits inside these.
 
@@ -448,7 +434,7 @@ Twelve. Each has a trigger, a property, a duration and a reason. If you want a t
 | # | Where | Trigger | What moves | Duration / easing | Reason |
 |---|---|---|---|---|---|
 | 1 | Hero | page load, once per session | logo `scale .96→1` + opacity; then tagline, sub, buttons with `--stagger`; then the ring fades in already turning | `--dur-enter --ease-out` | Continuity — the page arrives in reading order, it does not pop |
-| 2 | Hero arch | always; pause on hover, touch, the control | sixteen items orbit at `k = .22` tilt, cut by the fold, fading only at the two bottom corners | `--dur-orbit` linear | The reference: photos and colour turning around the mark |
+| 2 | Hero arch | always; pause on hover, touch, the control | sixteen upright photo cards orbit, cut by the fold, fading only at the two bottom corners | `--dur-orbit` linear | The reference: photographs turning around the mark |
 | 3 | Hero arch card | hover / focus | the card `scale(1.04)`, hairline `.08 → .16`, and the ring stops | `--dur-move --ease-out` | "The photos stopping if you hover over it" |
 | 4 | Nav | scroll > 24px | ground → `--glass`, hairline fades in | `--dur-state` | Wayfinding — the bar becomes a surface only when there is something under it |
 | 5 | Nav links, footer links | hover / focus | colour `--ink-2 → --ink` | `--dur-state` in, `--dur-state-out` out | Feedback |
@@ -531,18 +517,18 @@ Eleven of the twelve photographs are of adults in workshops; one is of a child. 
 
 | # | File | Size / orientation | What it shows | Use |
 |---|---|---|---|---|
-| 1 | `27096601-DB24-458B-9670-845A4B914EC3.JPG` | 1440×960 landscape, B&W | Three adult participants standing in a row, arms linked, mid-exercise, focused | **Arch, slots 3 (framed, sky) and 11 (plain).** Soft focus — fine at 177px. |
-| 2 | `271AA5F7-78F1-4288-A6D2-25E35598A277.JPEG` | 1280×1707 portrait, colour | Bright workshop room, a participant in yellow trousers mid-step and laughing on a foam-mat floor, the group watching | **Arch, slots 0 (plain, the top at φ = 0) and 8 (framed, blush).** Best "creativity in motion" frame. |
-| 3 | `3528DF95-C76F-410F-89F0-CD868EA5DB54.JPG` | 960×1440 portrait, colour | A participant in a bucket hat laughing hard, "HELLO my name is" sticker | **Arch, slots 2 (plain) and 10 (framed, lavender).** Joy. |
-| 4 | `360AC4E9-9695-4879-8C64-5AD5AC1B419A.JPG` | 960×1440 portrait, B&W | Linda (white hair, glasses) mid-laugh, leading a session, participants behind her | **Arch, slots 7 (framed, butter) and 15 (plain)**, and the Linda tile on stack card (01). |
-| 5 | `9C752690-2CD5-4F26-BED6-227732891668.JPG` | 960×1440 portrait, colour | Linda on stage with a lapel mic holding a foam baton prop, patterned shirt, teaching | **Arch, slots 5 (framed, mint) and 13 (plain).** |
-| 6 | `A0982FD3-7ED2-48E6-81AC-7F83E630ABC4.JPEG` | 1707×1280 landscape, colour | Floor-level group game, a participant in green crawling, hands raised around | **Arch, slots 4 (plain) and 12 (framed, sky).** Pairs with "safe, educational, and thrilling". |
-| 7 | `C053CD9C-8A24-41CE-9EC9-BD92E8BB0071.JPG` | 1440×960 landscape, B&W | Participants reaching their hands toward each other in a circle, one smiling at the centre | **Arch, slots 1 (framed, lavender) and 9 (plain).** This is the brand's picture: the circle, the hands. |
+| 1 | `27096601-DB24-458B-9670-845A4B914EC3.JPG` | 1440×960 landscape, B&W | Three adult participants standing in a row, arms linked, mid-exercise, focused | **Arch, slot 6.** Soft focus — fine at 177px. |
+| 2 | `271AA5F7-78F1-4288-A6D2-25E35598A277.JPEG` | 1280×1707 portrait, colour | Bright workshop room, a participant in yellow trousers mid-step and laughing on a foam-mat floor, the group watching | **Arch, slot 0** (the top at φ = 0). Best "creativity in motion" frame. |
+| 3 | `3528DF95-C76F-410F-89F0-CD868EA5DB54.JPG` | 960×1440 portrait, colour | A participant in a bucket hat laughing hard, "HELLO my name is" sticker | **Arch, slot 4.** Joy. |
+| 4 | `360AC4E9-9695-4879-8C64-5AD5AC1B419A.JPG` | 960×1440 portrait, B&W | Linda (white hair, glasses) mid-laugh, leading a session, participants behind her | **Arch, slot 14.** |
+| 5 | `9C752690-2CD5-4F26-BED6-227732891668.JPG` | 960×1440 portrait, colour | Linda on stage with a lapel mic holding a foam baton prop, patterned shirt, teaching | **Arch, slot 10.** |
+| 6 | `A0982FD3-7ED2-48E6-81AC-7F83E630ABC4.JPEG` | 1707×1280 landscape, colour | Floor-level group game, a participant in green crawling, hands raised around | **Arch, slot 8.** |
+| 7 | `C053CD9C-8A24-41CE-9EC9-BD92E8BB0071.JPG` | 1440×960 landscape, B&W | Participants reaching their hands toward each other in a circle, one smiling at the centre | **Arch, slot 2.** This is the brand's picture: the circle, the hands. |
 | 8 | `IMG_0230.JPEG` | 1024×472 landscape, colour | Wide shot of a small conference room, Linda at the front, screen and chairs | Stand-in for the arch only if photo 12 fails at 177px (low resolution, poor light); otherwise not on the home page. |
 | 9 | `IMG_1548.HEIC` | 3213×5712 portrait | A handwritten thank-you letter to Linda on a paper fan, page 1 | Source material only. Not for publication without permission. Convert to JPEG and keep in `images/src/letters/`. |
 | 10 | `IMG_1549.HEIC` | 3213×5712 portrait | The same letter, page 2 | Same. |
 | 11 | `Scan Jun 7, 2026 at 7.10 PM.JPG` | 2090×2946 portrait | A handwritten postcard (China Post) to Linda, signed "Ray 2026" | Same. |
-| 12 | `awards4-light.JPEG` | 2592×3872 portrait, colour | A boy in a blue sweater, fist raised, another child behind him, dark stage (2011, Nikon D40X) | The only child photo. Grainy. **Arch, slots 6 (plain) and 14 (framed, mint)**, tight crop on the boy — at 177px it held in the mock; if it does not in yours, fall back to 8 and say so. |
+| 12 | `awards4-light.JPEG` | 2592×3872 portrait, colour | A boy in a blue sweater, fist raised, another child behind him, dark stage (2011, Nikon D40X) | Grainy. **Arch, slot 12**, tight crop on the boy — at 177px it held in the mock; if it does not in yours, replace it with G13 cropped to one child and say so. |
 
 ### 11.1 The gallery set — crop by looking
 Jayden asked for photographs from the old site's gallery (`developmentalimprovisation.com/gallery-2/`) to be used as well, "cropped in an appealing way". They arrive in `images/src/gallery/`, unlisted above. For each one:
@@ -551,17 +537,36 @@ Jayden asked for photographs from the old site's gallery (`developmentalimprovis
 - **Inset crop, 1:1.** Tighter: one person or one gesture, centred, room around it. A 1:1 crop is not the 4:5 crop with the bottom cut off — choose it separately.
 - **Tone.** Do not convert to B&W, do not tint. If a photo is much brighter or busier than the set, it goes in a framed card, where the mat calms it, not a plain one.
 - **Children.** A child's face on the page needs a signed release (§15). Until that is confirmed, prefer crops where children are seen from behind or at a distance, and say which photos are waiting on releases.
-- **Where they go.** Replace photo 12 first, then the framed twins in §6.1 (slots 8–15) one at a time, so each new photograph retires a repeat. With **sixteen usable photographs the twin rule retires entirely**: every slot is unique, and the framed/plain alternation stays. Update the slot table in `MANIFEST.md`, not by hand in three places.
+- **Where they go.** §6.1 and §6.3 assign every one. When Linda sends more, photo 12 goes first, then any arch slot whose photograph is a wide group shot (they read best as stack tiles, not as 177px cards). Update the slot list in `MANIFEST.md`, not by hand in three places.
 - Name them by content like the rest (`gallery-circle-warmup`, `gallery-two-hands`), never by the old site's filenames.
 
-**Colour and black-and-white.** Four of the usable photos are B&W. Do not convert colour photos to B&W to match, and do not tint B&W photos. On the dark ground the mix reads as editorial; in the arch no two B&W photographs are adjacent (the slot order in §6.1 is set that way).
+### 11.2 The thirteen gallery photographs, with crops
+Jayden sent these from the old site's gallery. Numbers are in the order they arrived; the crops were chosen by looking at each at full size. `object-position` values are the starting point — confirm each at its rendered size. Most show children; the old site published them, but confirm the releases (§15) before launch.
+
+| # | What it shows | Size | Arch crop (4:5) | Tile crop (4:5 / 3:2) |
+|---|---|---|---|---|
+| G1 | Six teenagers in white shirts and ties bent forward in a line, a conga, on a stage with a green wall | 2000×1328 | Centre-right on the laughing girl with the blue tie and the two beside her, `65% 45%` | — |
+| G2 | Linda (plaid shirt, grey hair) with five children in a circle on a black stage, arms out | 690×613, low resolution | — (too small for the arch) | Stack (01): full frame at 3:2, or 4:5 on Linda and the two children to her right, `45% 50%`. Never above 480px wide. |
+| G3 | Children in two facing lines reaching their hands across to each other on a stage | 2000×1500 | Centre on the meeting hands, `52% 55%` | Stack (03): a tighter 3:2 on the two central children's hands |
+| G4 | Three boys in white shirts and bow ties (orange, red, green) in front of a brick wall with a café sign | 2000×1333 | The small boy with the red bow tie and the tall boy's arm above him, `45% 55%` — **the café sign must be out of frame** (a third party's logo) | Stack (04): tight on the small boy, `48% 60%` |
+| G5 | Three teenagers in a scene: a boy in plaid and a bowler hat shaking a skeleton-gloved hand, a girl in black, a girl in yellow | 1536×1152 | The handshake, `30% 45%` | — |
+| G6 | A workshop group in a bright studio posing on a green floor under a screen showing Linda on a video call | 2000×1500 | — (a wide story picture) | Stack (01): 3:2 centred so the screen and the front row both show, `50% 55%` |
+| G7 | Three teenagers in white shirts and ties on a grey set, mid-scene, one with a yellow tie reaching, one with a blue tie, one pushing | 1536×1024 | The boy with the blue tie and the girl pushing, `55% 45%` | — |
+| G8 | Two children seated on folding chairs (a red bow tie, a pink bow tie) and a girl with a blue bow tie crouching towards them | 1536×1266 | The two seated children, `22% 50%` | — |
+| G9 | Three young men in white shirts and ties in close conversation, one with a hand on his chest | 2000×1328 | The middle one, hand on chest, `50% 40%` | — |
+| G10 | Children running and jumping across a bright studio with a Christmas tree | 1129×750 | — (wide, small) | Stack (02): 3:2 on the centre four, `50% 50%` |
+| G11 | Children dancing in the same studio in front of a wall sign, one mid-spin | 1536×1024 | — (wide) | Stack (02): 3:2 on the centre five, `50% 50%`, the wall lettering cropped as far as possible |
+| G12 | Three children in blue "Total Improv" T-shirts dancing on a black stage | 1536×1310 | The curly-haired boy in the middle, `40% 50%` | Stack (04): tight on the same boy, `38% 45%` |
+| G13 | Ten children posing together on a stage set, arms out | 1536×1450 | — (a group) | Stack (03): 4:5 on the centre of the group, `50% 55%` |
+
+**Colour and black-and-white.** Four of the usable photos are B&W. Do not convert colour photos to B&W to match, and do not tint B&W photos. On the dark ground the mix reads as editorial; in the arch no two B&W photographs are adjacent and no two wide group shots are adjacent (the slot order in §6.1 is set that way).
 
 **Pipeline** (`tools/build-images.mjs`, run with Node + `sharp`):
 - Read `images/src/`, apply EXIF orientation, strip metadata.
 - Emit AVIF and WebP at widths 320, 480, 960, 1440 (never upscale beyond source), plus a JPEG fallback at 960. Quality: AVIF 55, WebP 78, JPEG 82.
 - Emit a 24px-wide blurred WebP placeholder for each, inlined as a `data:` URI background on the `<picture>` wrapper, so nothing pops in.
 - Name outputs by content, not by the source's UUID: `hero-01-yellow-trousers`, `hero-02-laugh`, `circle-hands`, `linda-laughing`, `linda-stage`, `floor-game`, `row-linked-arms`, `boy-fist`. Record the mapping in `images/MANIFEST.md`.
-- Every `<img>` has explicit `width`/`height`, `loading="lazy"` except the arch photos, `decoding="async"`, and `sizes`. The arch photos are served at 480 wide at most — they render at 177px or less. Each photograph is loaded once and reused for its framed twin.
+- Every `<img>` has explicit `width`/`height`, `loading="lazy"` except the arch photos, `decoding="async"`, and `sizes`. The arch photos are served at 480 wide at most — they render at 177px or less.
 - Target: the home page's images total under 900 KB on first paint at 1440 wide and under 500 KB at 390 wide. Measure with the network panel and report the number.
 
 ## 12. Stack, hosting, forms, icons, fonts — the technical decisions `[DECIDE]`
@@ -648,11 +653,11 @@ Write each as a script in `tools/gates/` that exits non-zero on failure and has 
 | Gate | Passes when |
 |---|---|
 | `targets` | Every `a, button, input, [role=button]` has a bounding box ≥ 44×44 at 1440, 1024, 390 and 320, except `p a`. Print the smallest. |
-| `contrast` | Every text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 for text ≥ 24px), **including every text node inside the four pastel stack cards and the eight framed arch cards**. Computed from the DOM, not from the token table. |
+| `contrast` | Every text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 for text ≥ 24px), **including every text node inside the four pastel stack cards**. Computed from the DOM, not from the token table. |
 | `tokens` | No stylesheet other than `tokens.css` contains a hex colour, an `rgb(`, a `px` font-size, a `ms`/`s` duration or a `border-radius` value that is not a `var()`; **no stylesheet contains `-gradient(`**. |
 | `type` | Only `font-weight: 400` and `600` occur in computed styles; `font-style` is never `italic`; exactly one `font-family` is used for text. |
 | `layout` | At each viewport: no horizontal overflow (`document.documentElement.scrollWidth === innerWidth`); the hero tagline wraps to 3 lines at every desktop viewport and ≤4 at 390; every `.container` inner edge and every section hairline lands on the column (1440: 120 → 1320); the four stack cards have identical widths; the stack's sticky top equals `--nav-h + --sp-6`. |
-| `orbit` | At 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844, stepping the rotation 0…22° in 1° steps: (a) for every text line box (`Range.getClientRects()` on the h1 and sub), the logo box and each button box, sample points every 6px and `document.elementsFromPoint` — **zero** points where an `.orbit__card` with opacity > 0 is painted; (b) for every visible card, sample the central 60% of its box every 8px — **zero** points where the topmost card is a different card (no card-on-card overlap); (c) **zero** angles at which the same photograph is visible twice; (d) the topmost visible card's top ≥ 88px; (e) no card intersects the nav's box; (f) hovering a card sets every item's `animation-play-state` to `paused` and leaving resumes it; the pause control does the same. `--self-test`: set `--cw` to `.3` and expect (b) to fail at 1440×900; set `--k` to 1 and expect (a) to fail at 1024×768. |
+| `orbit` | At 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844, stepping the rotation 0…22° in 1° steps: (a) every visible card's computed rotation (from its `DOMMatrix`) is 0° ± 0.5°; (b) for every text line box (`Range.getClientRects()` on the h1 and sub), the logo box and each button box, sample points every 6px and `document.elementsFromPoint` — **zero** points where an `.orbit__card` with opacity > 0 is painted; (c) for every visible card, sample the central 60% of its box every 8px — **zero** points where the topmost card is a different card; (d) **zero** angles at which the same photograph is visible twice; (e) the topmost visible card's top ≥ 88px; (f) no card intersects the nav's box; (g) hovering a card sets every item's `animation-play-state` to `paused` and leaving resumes it; the pause control does the same. `--self-test`: set `--cw` to `.3` and expect (c) to fail at 1440×900; drop the counter-rotation and expect (a) to fail. |
 | `stack` | Scrolling to each card's sticky position leaves the previous card with `is-under` and a computed transform that is not `none`; the last card scrolls off normally; with reduced motion no card has a transform. |
 | `motion` | With `prefers-reduced-motion: reduce` emulated: no element has a running animation after 300ms (`document.getAnimations().length === 0`); reveals still reach `opacity: 1`; the arch is drawn at frame 0. Without it: an arch item's transform and a figure's transform each differ between two frames 800ms apart; each pause control stops its own region. |
 | `perf` | Lighthouse (mobile preset, throttled) ≥ 95 performance, 100 accessibility, ≥ 95 best practices, 100 SEO. CLS = 0. LCP < 2.0s. Total transfer on first load < 1.2 MB at 1440, < 700 KB at 390. Print all six numbers. |
@@ -666,7 +671,7 @@ Write each as a script in `tools/gates/` that exits non-zero on failure and has 
 ## 15. Needs from Linda (put these in `docs/BUILD-LOG.md` and in your reply, not on the page)
 1. Which phone number is right: (857) 352-3221 or (877) 352-3221.
 2. Social profile URLs for Facebook, X, Instagram, LinkedIn — or which of them to drop.
-3. Classroom photographs of children with signed releases — the current set is adults in workshops plus one 2011 child photo. The same for any child in the old gallery's photographs.
+3. Confirmation that the thirteen gallery photographs have releases for the children in them (the old site published them; confirm rather than assume), and more classroom photographs as they exist.
 4. Permission to quote the two handwritten letters (the paper fan, the postcard) as testimonials, and from their authors.
 5. Three real testimonials with name and role.
 6. The newsletter provider and its form endpoint.
@@ -686,7 +691,7 @@ The same content re-cut for Notion's Markdown importer: H1 page title, H2 per se
 2. **Tokens and style guide first.** `tokens.css`, `base.css`, `components.css`, `styleguide.html` with every component and state. Screenshot it. Look. Fix. This is half the job and it is the half that gets reused.
 3. Fonts: subset, self-host, preload, `size-adjust` fallback. Measure CLS.
 4. Assets: logo variants in place, favicon set, icon sprite, the star and figure symbols, the figures band. Render each alone at 2× and look.
-5. Images: run the pipeline, write `MANIFEST.md`, confirm the eight arch photos at 177px (plain) and 148px (inset) and the Linda tile at 150px by looking at them (photo 12 especially).
+5. Images: run the pipeline, write `MANIFEST.md`, confirm the sixteen arch crops at 177px and the eight stack tiles at their rendered sizes by looking at them (photo 12 and every child's face especially).
 6. `index.html`: build the arch first and run the `orbit` gate before anything else is on the page — its geometry is the riskiest thing here. Then the remaining sections in order, one at a time, screenshotting each at 1440 and 390 before starting the next.
 7. Motion: hero first paint, the arch's hover pause, the stack's recede, the pile's drop, reveals, the figures band, states. Then reduced motion. Then look again with motion off.
 8. The dialog and the form, both entry points, all storage cases.
@@ -700,7 +705,7 @@ Do not skip to step 6. Do not build the hero first "to see the vibe" — the vib
 Jayden skims. Five lines, then numbers.
 - Line 1: anything **not** done, or "Everything in §13 is built."
 - Line 2: the one thing you changed because you looked at a screenshot.
-- Lines 3–5: the decisions you made where this prompt left a choice (photo 12 or 8 in the arch, each framed card's inset crop, the pile's exact offsets, the display weight if you flagged it, anything else), one per line.
+- Lines 3–5: the decisions you made where this prompt left a choice (any crop you changed from §11.2, whether photo 12 held, the pile's exact offsets, the display weight if you flagged it, anything else), one per line.
 - Then the gate table from §14 with the measured numbers.
 - Then §15 as a list.
 - Then the paths of the screenshots.
