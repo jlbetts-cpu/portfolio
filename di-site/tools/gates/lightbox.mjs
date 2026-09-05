@@ -3,10 +3,10 @@
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 const pg = await open(b, 1440, 900);
-const count = await pg.evaluate(() => document.querySelectorAll('.photo__open').length);
-const names = await pg.evaluate(() => new Set([...document.querySelectorAll('.photo__open')].map(b => b.dataset.photo)).size);
-// the hero's four are still: a plain click
-const first = pg.locator('.hero__four .photo__open').first();
+const count = await pg.evaluate(() => document.querySelectorAll('[data-photo]').length);
+const names = await pg.evaluate(() => new Set([...document.querySelectorAll('[data-photo]')].map(b => b.dataset.photo)).size);
+// the hero's four are set into the headline and are still: a plain click
+const first = pg.locator('.hero__shape').first();
 const firstName = await first.getAttribute('data-photo');
 await first.click(); await pg.waitForTimeout(400);
 await pg.evaluate(() => { const img = document.querySelector('#lightbox img'); return img && !img.complete ? new Promise(r => { img.onload = img.onerror = r; }) : null; });

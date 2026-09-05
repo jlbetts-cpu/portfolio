@@ -1,5 +1,22 @@
 # Build log — Developmental Improvisation, home page
 
+## v7 (2026-09-05) — Sen, the headline that holds the photographs, flat colour, dark mode back
+Jayden's sixth review: "I dont think the gradient experiment works the clean colored cards looked a lot better", "the hero still looks far too cluttered ... the images fit inside the differnt shapes throughout", "bringing back the dark mode as an option", "just make the footer a colored moduale as well", "lets bring in sen ... sen and jakarta compliment each other better", "the gallery i dont like that it doesnt go all the way across", "im not a big fan of the star in the section header", "make the site in its most minimal and premium form no unnessesary text or information that isnt absolutly necessary".
+
+**The hero.** The reference (Josha.io) sets photographs into the headline as shapes. The four best photographs now sit on the line inside the `<h1>` — capsule, circle, rounded rectangle, squircle — one to a line at 1024 and up. Everything else that was in the hero is gone: the four chips, the second button, and the row of four photographs under the title. What is left is the headline, the tagline and one button. The shapes are `clamp(44px, 5.1vw, 74px)` tall, which is the 44px tap floor built into the size; on a phone the floor is 1.16em of the type, so the headline's leading opens from 1.16 to 1.42 and the lines stay evenly spaced. The `<h1>` carries an `aria-label` of the plain sentence, so the heading reads as one sentence while each shape keeps its own button label.
+
+**Colour.** Every gradient is gone — the band at the top and the foot, and the blooms on the cards. A hue is now a flat tint mixed into the raised ground on the element that carries `data-accent`: 22% in light, 30% in dark. The four stacked cards, the three testimonials, the newsletter and the popup are tinted; so is the footer, which is one rounded module inset from the page edges.
+
+**Dark mode.** Back as a toggle in the header, applied before first paint by an inline script so there is no flash, and stored. The `contrast` gate now walks every visible text node in **both** themes — 44 nodes each, worst 4.70:1 light and 4.80:1 dark — which is a stronger assertion than the two hand-placed pixel samplers it replaces, and it has a `--self-test`.
+
+**Type.** Sen replaces Instrument Serif: 800 for the display, 700 for the titles, over Plus Jakarta Sans 400/600. One variable latin file, 18KB, for every weight.
+
+**Subtraction.** Removed: the star before every section label, the Welcome and Contact eyebrows, the chapter numbers on the cards, the "Email or Call Here:" line, the Home link in the nav, the sheet and the footer, the footer's tagline repeat, the footer's Menu column, and its four dead social links. The stacked cards went from two photographs each to one, in one shape, sized by height so every card shows the same amount of picture.
+
+**The gallery** now runs edge to edge instead of starting at the column.
+
+**Measured after v7.** 35 gate lines pass. Headline four lines at 1440 and 1024, five at 390 and 320. Contrast worst 4.70:1 (light) / 4.80:1 (dark) over 44 text nodes each. Targets smallest 44px at four viewports. 28 images on the page, none oversized — a 160px rendition was added to the pipeline because a 74px circle should not pull a 320px file. `contrast --self-test` and `ring --self-test` both catch their injected bug.
+
 ## v6 (2026-09-05) — the serif, the four, the band made quiet and returned, the structure
 Jayden's fifth review: "apply C", "picking the best 4 pictures", "remove the circle", "something structurally isn't premium or something is missing", "the gradients I don't like as much as I thought, the hero one more subtle", "the shapes in the cards look off and not intentional", "the footer lacks colour", "more researched design".
 

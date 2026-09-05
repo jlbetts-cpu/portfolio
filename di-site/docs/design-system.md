@@ -3,127 +3,131 @@
 For anyone building the next page (Gallery, Contact, About). Every rule has a reason. If you cannot say what an element is *for*, delete it. The live version of every component is `styleguide.html`; the tokens are `css/tokens.css`, the only file allowed to contain raw values.
 
 ## 1. Principles
-1. **Premium is subtraction.** When a screen feels wrong, remove something before adding something.
+1. **Premium is subtraction.** When a screen feels wrong, remove something before adding something. Nothing is on the page that the page could do without.
 2. **Counting is not looking.** Measure, then open the screenshot. Every gate in `tools/gates/` exists because a number once lied.
-3. **Two faces, no italics, no gradient text.** Instrument Serif, regular only, for the display and the section titles; Plus Jakarta Sans 400 and 600 for everything else. Hierarchy is face, size, leading, tracking and ink tier.
-4. **One theme, light.** A warm off-white ground, a warm black ink, a black mark. No dark mode (Jayden, 2026-09-05: "the whole site should be light mode").
-5. **Colour is contained.** It lives in the band at the top and foot of the page, in the photographs, in the colour logo, in the four pastel chips of the hero, in the 16px section star, and in the blooms at the foot of the testimonial and newsletter cards. No flat coloured surface, no coloured text. The stacked cards are white.
-6. **No shadows.** Depth is a white card on the warm ground plus a hairline. Gradients exist only as blooms, and a bloom is a light, not a fill: it never reaches the top of a card.
-7. **Flat vectors only.** The star comes from the logo file, unchanged. Nothing else is drawn; decorative shapes were tried and removed.
+3. **Two faces, no italics, no gradient text.** Sen — 800 for the display, 700 for titles — and Plus Jakarta Sans 400 and 600 for everything else. They share a geometry, so the pairing reads as one voice. Hierarchy is face, size, leading, tracking and ink tier.
+4. **Two themes, one palette.** Light is the default; dark is the visitor's choice, kept in `localStorage` and read before first paint. The hues do not change between them; the ground and the ink swap and the tint deepens.
+5. **Colour is flat.** It appears in exactly three places: the photographs, a tinted card, and the footer module. There are no gradients anywhere on the site (Jayden, 2026-09-05: "I dont think the gradient experiment works the clean colored cards looked a lot better"). No coloured text.
+6. **No shadows.** Depth is a tinted or raised card on the ground plus a hairline.
+7. **Photographs are the only pictures.** No illustrations, no decorative vectors, no stars. Four shapes hold the photographs and that is the whole vocabulary.
 8. **Motion is a system with two kinds.** Things that happen take a rung of the ladder. Things that turn or stack follow the scroll through one shared value, the flow, and have no duration.
 9. **Copy is verbatim from the old site.** Placeholders carry `data-placeholder="true"`.
-10. **44px targets, measured.** The `targets` gate prints the smallest.
+10. **44px targets, measured.** The `targets` gate prints the smallest. The headline's inline photographs are sized `clamp(44px, 5.1vw, 74px)` for exactly this reason.
 11. **Every interruption is polite.** The newsletter dialog waits for both 40% scroll and ten seconds, once per session, thirty days after a dismissal.
 
 ## 2. Colour
-One theme, `css/tokens.css`. The ground is a warm off-white, not a yellow cream: hue ≈ 80°, lightness .97, chroma near zero. Ink is a warm black. The header is transparent on the ground and becomes glass with a hairline once scrolled; the mark in it is black.
+Two themes in `css/tokens.css`. The light ground is a warm off-white, not a yellow cream: hue ≈ 80°, lightness .97, chroma near zero. The dark ground is the same hue at lightness .07. Ink is a warm black, or a warm off-white in dark.
 
-| Token | Value | Use |
-|---|---|---|
-| `--bg` | #F7F5F0 | the ground |
-| `--bg-raised` | #FFFFFF | cards |
-| `--bg-sunken` | #EFECE5 | wells, empty photo frames |
-| `--ink` / `--ink-2` / `--ink-3` | #1B1916 / #514C45 (7.8:1) / #736D64 (4.7:1) | headings and the mark / body / captions |
-| `--line` / `--line-strong` | ink 10% / 22% | hairlines |
-| `--glass` | ground at 82% | the header once scrolled |
-
-**Colour is contained.** The seven hues inside the logo appear on the page in four ways: in **the band** at the top, as the 16px section star (`--m-*`, a deeper tone of each so it reads at ≥ 3:1 on the ground), as the hero's four **chips** (each hue at 40% over white, ink text), and inside a **bloom**. Nothing else is coloured: not a surface, not text, not the logo.
-
-**The band** (`.aurora`) is the reference Jayden sent (Maeve), made quiet: the seven hues, each at 44% over white, in wheel order on a strip five page-widths wide so two or three span the page at a time, blurred 56px, at 70%, masked so it fades into the ground by 360px (240 on a phone), with 6% film grain multiplied over it so it reads as light rather than a fill. It drifts left one pass every `--dur-aurora` 72s by a transform, so the blurred layer is rasterised once; under reduced motion it holds. The header sits on it with the colour logo, plain; the links are ink with an underline on hover; the title sinks into the fade. **It returns under the footer**, fading up from the foot of the page, so the page ends the way it began. The `contrast` gate samples the darkest pixel behind the header links at three moments of the drift, with the header hidden, and requires `--ink` at ≥ 4.5:1 over it.
-
-| Hue | Value | Star tone | Bloom partner |
+| Token | Light | Dark | Use |
 |---|---|---|---|
-| green | #51E596 | #1F9A5E | sky |
-| sky | #58CDFC | #1A8BC6 | violet |
-| violet | #7358FC | #5A45D9 | pink |
-| magenta | #E744E2 | #B72FB3 | orange |
-| orange | #F0895B | #C8552A | yellow |
-| pink | #FB9BC9 | #D14E8E | magenta |
-| yellow | #FEE79B | #A67D08 | orange |
+| `--bg` | #F7F5F0 | #131211 | the ground |
+| `--bg-raised` | #FFFFFF | #1C1A18 | cards, and the base a tint mixes into |
+| `--bg-sunken` | #EFECE5 | #0E0D0C | wells, empty photo frames |
+| `--bg-overlay` | #FFFFFF | #1C1A18 | the sheet, the dialog, inputs |
+| `--ink` / `--ink-2` / `--ink-3` | #1B1916 / #514C45 / #736D64 | #F4F1EB / 74% / 58% | headings and the mark / body / captions |
+| `--line` / `--line-strong` | ink 10% / 22% | off-white 12% / 24% | hairlines |
+| `--glass` | ground at 82% | ground at 82% | the header once scrolled |
 
-**The bloom** (`.card--bloom`, `.card--bloom-hover`) is the brand's one gradient, learned from the reference Jayden sent and from the heroes of his own portfolio: a radial gradient anchored below the foot of a white card, its hue mixed toward white in oklab over seven eased stops (100 → 78 → 52 → 30 → 14 → 5 → 0%) so the falloff has no edge, with the hue's partner as a fainter second light at the other corner. Stops end in transparent white, never `transparent`, which interpolates through black and draws a grey seam. Its strongest stop is the hue at 62% over white. It is on the testimonials, the newsletter card and the popup, and nowhere else: the stacked cards are white, their colour is their photographs. It never reaches the top of a card; text sits on white.
+**Colour is flat.** The seven hues inside the logo appear as **tints**: `color-mix(in oklab, var(--accent) var(--tint-mix), var(--bg-raised))`, where `--tint-mix` is 22% in light and 30% in dark — a hue needs more of itself over the dark ground to read as the same colour. The mix happens on the element that carries `data-accent`; mixing it at `:root` resolves once and every card comes out the same colour (that bug shipped once, in the chips).
 
-**Accents.** A section sets `data-accent="…"` once; the star reads `--accent-mark`, a bloom reads `--bloom-a` and `--bloom-b`. Down the home page: yellow (hero) → sky → green → yellow → violet (the stack) → pink (the quote ring) → magenta (testimonials, the cards sky, yellow, pink) → orange (newsletter) → green (contact). Never two adjacent sections the same.
+| Hue | Value |
+|---|---|
+| green | #51E596 |
+| sky | #58CDFC |
+| violet | #7358FC |
+| magenta | #E744E2 |
+| orange | #F0895B |
+| pink | #FB9BC9 |
+| yellow | #FEE79B |
+
+**Accents.** A section or a card sets `data-accent="…"` once. Down the home page: sky → green → yellow → violet (the four stacked cards) → sky, yellow, pink (the testimonials) → orange (the newsletter) → violet (the footer module). Never two adjacent surfaces the same. The `contrast` gate walks every visible text node in **both themes** and requires 4.5:1 (3:1 at ≥ 24px) against its effective background, which is what covers the tints; `--self-test` paints the ink onto the ground and must fail.
 
 ## 3. Type
-Plus Jakarta Sans, 400 and 600, self-hosted latin subsets, `font-display: swap` with a size-adjusted fallback so the swap does not move layout. Chosen from eight faces: the tallest x-height of the warm geometrics (0.536 em), so 14px holds in both themes; angled `t` and `y` give it identity without novelty.
+Sen and Plus Jakarta Sans, self-hosted latin subsets, `font-display: swap` with a size-adjusted fallback so the swap does not move layout. Sen ships as **one variable file, 18KB for every weight from 400 to 800**. Jakarta was chosen from eight faces for the tallest x-height among the warm geometrics (0.536 em); Sen answers it with the same circular bowls and a flatter terminal, which is why the pair reads as one family rather than two.
 
-| Role | Size (390 → 1440) | Leading | Tracking | Weight | Colour |
+| Role | Size (390 → 1440) | Leading | Tracking | Face | Colour |
 |---|---|---|---|---|---|
-| display | 42 → 72, Instrument Serif (32 → 44 on a phone) | 1.0 | −0.01em | 400 | ink |
-| h1 | 36 → 60 | 1.06 | −0.025em | 600 | ink |
-| h2 | 34 → 54, Instrument Serif | 1.06 | −0.005em | 400 | ink |
-| h3 | 22 → 26 | 1.2 | −0.01em | 600 | ink |
-| lead | 18 → 21 | 1.45 | −0.005em | 400 | ink-2 |
-| body | 16 → 17 | 1.6 | 0 | 400 | ink-2 (first paragraph ink) |
-| small | 14 | 1.5 | +0.005em | 600 for labels | ink-2 |
-| caption | 13 | 1.4 | +0.01em | 400 | ink-3 |
+| display | 38 → 80 (32 below 360) | 1.16 (1.42 on a phone) | −0.035em | Sen 800 | ink |
+| h1 | 36 → 60 | 1.06 | −0.03em | Sen 800 | ink |
+| h2 | 30 → 46 | 1.12 | −0.025em | Sen 700 | ink |
+| h3 | 22 → 26 | 1.2 | −0.02em | Sen 700 | ink |
+| lead | 18 → 21 | 1.45 | −0.005em | Jakarta 400 | ink-2 |
+| body | 16 → 17 | 1.6 | 0 | Jakarta 400 | ink-2 (first paragraph ink) |
+| label | 14 | 1 | +0.04em, uppercase | Jakarta 600 | ink-3 |
+| caption | 13 | 1.4 | +0.01em | Jakarta 400 | ink-3 |
 
-Measures are in `em`: display 13em, sub 24em, h2 14em, body 34em; the quote inside the ring 1.1 × the ring's radius. **Never `ch`** — this face's zero is 0.685em wide, so `24ch` at 48px is 825px and the hero tagline once wrapped into the side cards because of it.
+Measures are in `em`: display 12.25em (four lines at 1024 and up), sub 24em, h2 13em, body 34em; the quote inside the ring 1.1 × the ring's radius. **Never `ch`** — Jakarta's zero is 0.685em wide, so `24ch` at 48px is 825px and the hero tagline once wrapped into the side cards because of it.
+
+The display's leading is set on the hero, not in the tokens, because it has to hold an inline photograph: the shape is 0.68em above the baseline and 0.18em below, which fits inside 1.16 leading. On a phone the 44px tap floor is 1.16em of the type, so the leading opens to 1.42 and the lines stay evenly spaced.
 
 ## 4. Space, grid, radius, lines
-4px grid: `--sp-1` 4 … `--sp-40` 160 (28 exists for the testimonial card). Column 1200 inside 1280 with a 20→40px gutter; 12 columns, 16→24px gap. Sections: `--section-y` 72 → 96 (1440) → 112, top and bottom, and every section after the hero opens with a hairline drawn on the column. Radius by size class: `--r-xl` 28 (stacked cards, dialog, newsletter card), `--r-lg` 20 (cards, photos), `--r-md` 14 (buttons, inputs), `--r-full` (chips, avatars). Hairlines are the only separator.
+4px grid: `--sp-1` 4 … `--sp-40` 160. Column 1200 inside 1280 with a 20→40px gutter; 12 columns, 16→24px gap. Sections: `--section-y` 72 → 96 (1440) → 112, top and bottom, and every section after the hero opens with a hairline drawn on the column. Radius by size class: `--r-xl` 28 (stacked cards, dialog, newsletter, the footer module), `--r-lg` 20 (cards, photos), `--r-md` 14 (buttons, inputs), `--r-full` (the capsule, avatars). Hairlines are the only separator. The gallery is the one thing that leaves the column: it runs the full width of the screen.
 
 ## 5. Motion
-Two kinds. **Things that happen** take a rung of the ladder. **Things that turn, slide or stack** are driven by the scroll and have no duration: the hero strip, the quote ring, and the stacked cards. Reference: brandappart.com, where everything goes with the scroll. The logo does not move.
+Two kinds. **Things that happen** take a rung of the ladder. **Things that turn, slide or stack** are driven by the scroll and have no duration: the gallery, the quote ring, and the stacked cards. Reference: brandappart.com, where everything goes with the scroll. The logo does not move.
 
 | Token | Value | For |
 |---|---|---|
 | `--dur-press` | 100ms | `:active` scale .97 |
-| `--dur-state` / `--dur-state-out` | 160 / 240ms | hover, focus, colour; the theme cross-fade |
-| `--dur-move` | 280ms | position or size changes, the pile's straighten, the arch card's lift |
-| `--dur-reveal` | 360ms | content entering on scroll, the pile's drop |
+| `--dur-state` / `--dur-state-out` | 160 / 240ms | hover, focus, colour |
+| `--dur-move` | 280ms | position or size changes, a photograph's lift |
+| `--dur-reveal` | 360ms | content entering on scroll |
 | `--dur-enter` | 500ms | the dialog, the hero's first paint |
-| `--dur-bloom` | 480ms | a bloom rising under the pointer |
-| `--dur-aurora` | 72s | the band, top and foot: one pass through the seven hues |
+
+The theme swap is one 240ms cross-fade of background, border and text on the whole document (`.is-theming`), not a transition declared per component.
 
 Easings: `--ease-out`, `--ease-in-out`, and two springs as `linear()` (`--ease-pop` for things that just appeared, `--ease-settle` for things that move). Only `transform` and `opacity` animate.
 
-**The flow** (`js/main.js`) is one angle shared by everything that moves with the page. It has a drift, `--flow-drift` 3.75°/s (one revolution of the ring in 96s), plus `--flow-scroll` 0.06° for every pixel scrolled in the scroll's direction; the rendered angle follows that target through an exponential easing with time constant `--flow-settle` 0.32s, so a scroll accelerates everything and it settles back to the drift. **The strip** moves `--strip-px` 6px per degree: 22px/s at rest, one card every 15 seconds; the arrows step exactly one card with a short ease, and dragging moves it directly. **The ring** places eight photographs at the angle plus 45° each, upright. A photograph under the pointer (strip or ring) eases the drift to a stop in about half a second and leaving eases it back; a touch holds it for four seconds; when neither the strip nor the ring is on screen the flow holds. The stack: a covered card scales from its top edge by 4.5% for each card above it, in step with how far the next card has climbed over it; no state flips, no transitions.
+**The flow** (`js/main.js`) is one angle shared by everything that moves with the page. It has a drift, `--flow-drift` 3.75°/s (one revolution of the ring in 96s), plus `--flow-scroll` 0.06° for every pixel scrolled in the scroll's direction; the rendered angle follows that target through an exponential easing with time constant `--flow-settle` 0.32s, so a scroll accelerates everything and it settles back to the drift. **The gallery** moves `--strip-px` 6px per degree: 22px/s at rest, one card every 15 seconds; the arrows step exactly one card with a short ease, and dragging moves it directly. **The ring** places eight photographs at the angle plus 45° each, upright. A photograph under the pointer eases the drift to a stop in about half a second and leaving eases it back; a touch holds it for four seconds; when neither the gallery nor the ring is on screen the flow holds, and scroll deltas are dropped so nothing whooshes on arrival.
 
-Under `prefers-reduced-motion` the drift and the scroll coupling are zero (the strip and the ring are still pictures; the arrows and dragging still work), the stack does not scale, reveals become short fades, the pile does not drop. There is no pause control: Jayden removed it. Strict WCAG 2.2.2 would want one for the drift; hover-to-stop and the reduced-motion rule are the mitigation.
+Under `prefers-reduced-motion` the drift and the scroll coupling are zero (the gallery and the ring are still pictures; the arrows and dragging still work), the stack does not scale and reveals become short fades. There is no pause control: Jayden removed it. Strict WCAG 2.2.2 would want one for the drift; hover-to-stop and the reduced-motion rule are the mitigation.
 
-**The inventory:** the band's drift, top and foot · hero first paint · the four's lift · the strip (drift, scroll, arrows, drag) · the strip card's lift · the ring (drift, scroll, hover) · the ring photograph's lift · link underline · button press · button hover · reveals · the stack · the lightbox's fade and settle · dialog, sheet and form states. Nothing else moves. Not on the site: parallax, marquees, magnetic buttons, cursor effects, text effects, counters, hover glow, confetti, gradient drift.
+**The inventory:** hero first paint · the headline shape's lift · the gallery (drift, scroll, arrows, drag) · the gallery card's lift · the ring (drift, scroll, hover) · the ring photograph's lift · link underline · button press · button hover · reveals · the stack's scale · the theme cross-fade · the lightbox's fade and settle · dialog, sheet and form states. Nothing else moves. Not on the site: parallax, marquees, magnetic buttons, cursor effects, text effects, counters, hover glow, confetti, gradient drift.
 
 ## 6. Components
 Each is on `styleguide.html` in every state, in both themes.
-- **Button** `.btn` + `--primary` / `--secondary` / `--ghost` / `--compact`: 48px (44 compact), `--r-md`, 16px 600. Primary is ink on the ground and inverts on a coloured surface through the tokens. Loading via `aria-busy`.
-- **Chip** `.chip`: 32px, `--r-full`, the accent at 40% over white with ink text; the hero's four skills, one hue each. Not interactive.
-- **Star** `.star`: the logo's four-point star, 16px, in the section's mark tone, before every section label. Nowhere else.
-- **Card** `.card` (white on the ground, hairline), `.card--bloom` (with its bloom: the testimonials, the newsletter, the popup), `.card--bloom-hover` (the bloom rises under the pointer: the stacked cards).
-- **Photo** `.photo` + `--4x5` / `--3x2` / `--1x1`, and the shapes `--round` (28% radius), `--tilt` (a rounded square at 45°), `--circle`: `<figure>` wrapping a `.photo__open` button wrapping `<picture>` (AVIF, WebP, JPEG at 320/480/960 on the page, 1440 in the lightbox), blurred placeholder as a background, `object-position` per photograph via `--pos`. No frames, no outlines. The ring and the stacked cards' tiles use the shapes (round beside circle on every card); the strip stays rectangular.
-- **Lightbox** `.lightbox`: native `<dialog>` on the ink scrim at 92%; one photograph at a time, contained, `--r-lg`; close at the corner, arrows either side (below the photograph on a phone); ← → and swipe move through every photograph on the page in order, Esc and the scrim close, focus returns to the photograph that opened it; the next and previous files are warmed. A drag on the strip beyond 6px never opens it. The flow holds while it is open.
-- **Strip** `.strip` + `.strip__viewport` + `.strip__track[data-strip]` + `.strip__card`: §7.
+- **Button** `.btn` + `--primary` / `--secondary` / `--ghost` / `--compact`: 48px (44 compact), `--r-md`, 16px 600. Primary is ink on the ground and inverts through the tokens in dark. Loading via `aria-busy`.
+- **Theme toggle** `.theme`: 44px, moon on the light ground, sun on the dark; sets `data-theme` on `<html>` and stores the choice. The inline script in `<head>` applies it before first paint so there is no flash.
+- **Card** `.card` (the raised ground, hairline) and `.card--tint` (the accent mixed into the raised ground; the stacked cards, the testimonials, the newsletter, the popup).
+- **Photo** `.photo` + `--4x5` / `--3x2` / `--1x1`, and the four shapes `--round` (28% radius), `--tilt` (a rounded square at 45°), `--circle`, `--pill` (`--r-full`): a `<figure>` wrapping a `.photo__open` button wrapping `<picture>` (AVIF, WebP, JPEG at 160/320/480/960 on the page, 1440 in the lightbox), blurred placeholder as a background, `object-position` per photograph via `--pos`. The 160px rendition exists because a 74px circle should not pull a 320px file.
+- **Headline shape** `.hero__shape` + `--pill` / `--circle` / `--squircle` / `--wide`: the same photograph treatment set on the line inside the `<h1>`, as an inline-block `<button>` carrying `data-photo`. The `<h1>` has an `aria-label` of the plain sentence so the heading reads cleanly while each shape keeps its own button label.
+- **Lightbox** `.lightbox`: native `<dialog>` on the ink scrim at 92%; one photograph at a time, contained, `--r-lg`; close at the corner, arrows either side (below the photograph on a phone); ← → and swipe move through every photograph on the page in order, Esc and the scrim close, focus returns to the photograph that opened it; the next and previous files are warmed. Everything with `data-photo` opens it. A drag on the gallery beyond 6px never opens it. The flow holds while it is open.
+- **Gallery** `.strip` + `.strip__viewport` + `.strip__track[data-strip]` + `.strip__card`: §7.
 - **Ring** `.ring` + `.ring__stage` + `.ring__orbit` + `.ring__item` + `.ring__centre`: §7.
-- **Arrow** `.arrow`: a 44px ink circle with a Phosphor arrow; the strip's previous and next.
-- **Stack** `.stack__card`: white, sticky under the header, each 12px lower than the last (`--i`), scaled by the flow; the title in the serif, the chapter number. The text keeps the left half; the right half is a `.stack__stage` with two shaped photographs by one rule: the big rounded square at the outer bottom corner, bleeding past the card's edge (the card clips it, so part of it is behind the wall), the small circle over its inner top corner; even cards face the other way.
-- **Testimonials** `.testimonials` + `.testimonial`: three white bloom cards on a three-column grid, the middle one a step (`--sp-24`) lower, one column below 768. The quote, then the person with a 40px ink initial.
+- **Arrow** `.arrow`: a 44px ink circle with a Phosphor arrow; the gallery's previous and next.
+- **Stack** `.stack__card`: a tinted card, sticky under the header, each 12px lower than the last (`--i`), scaled by the flow. The text keeps one column; the other holds **one** photograph in **one** shape, sized by height so every card shows the same amount of picture whatever the shape's ratio. Even cards put the photograph on the left.
+- **Testimonials** `.testimonials` + `.testimonial`: three tinted cards on a three-column grid, the middle one a step (`--sp-24`) lower, one column below 768. The quote, then the person with a 40px ink initial.
 - **Field** `.field` + `.input`: 48px, error in pink hairline with a message, success swaps the button label and draws a check.
-- **Dialog** `.dialog`: native `<dialog>`, a white panel with the orange bloom; modal on desktop, a non-modal bottom sheet (≤38vh) on mobile; focus lands on the heading.
+- **Dialog** `.dialog`: native `<dialog>`, a tinted panel; modal on desktop, a non-modal bottom sheet (≤38vh) on mobile; focus lands on the heading.
 - **Sheet** `.sheet`: the mobile menu, from the right.
-- **Nav** `.nav`: transparent on the band, glass with a hairline after 24px of scroll. The colour logo (30px, plain) and the wordmark on the left; Home, Gallery, Contact and Subscribe on the right; on phones the links and Subscribe move into the sheet. The logo does not move.
-- **Footer** `.footer`: over the band's return, the colour logo, the tagline in the serif, ©, then Menu and Contact columns as words.
+- **Nav** `.nav`: transparent on the ground, glass with a hairline after 24px of scroll. The colour logo (30px, plain) and the wordmark on the left; Gallery, Contact, the theme toggle and Subscribe on the right; on phones the links and Subscribe move into the sheet. There is no "Home" link — the logo is the way home. The logo does not move.
+- **Footer** `.footer__module`: one tinted module inset from the page edges, `--r-xl`: the colour logo, a contact column, and the copyright under a hairline.
 
-## 7. The strip and the ring
-**The hero** is the Maeve reference Jayden sent: the band, then the title centred in the serif (13em, three lines) sinking into the band's fade, the tagline, the four chips, the two buttons; then **the four**: the best four photographs, 4:5, filling the column in one row (two by two on a phone), each opening the lightbox. **The Gallery** is its own section after the stack: the star label and the two arrows on one row, then the strip. The strip's arrow step is a time-based ease (τ 110ms), so a slow frame never shortens it; the pointer is captured only once a drag passes 6px, so a plain click reaches the photograph.
+## 7. The hero, the gallery and the ring
+**The hero** is one headline and nothing else (Jayden, 2026-09-05: "the hero still looks far too cluttered ... the images fit inside the differnt shapes"). The four best photographs are set into the sentence as shapes — capsule, circle, rounded rectangle, squircle — one to a line at 1024 and up; under it the tagline and one button. The chips, the second button and the row of four photographs below the title are gone.
 ```
-strip card: clamp(220px, 21vw, 300px) wide, 4:5, --r-lg, --grid-gap apart; 236px on a phone
-track: the twelve photographs twice (the second set aria-hidden), left edge on the column, bleeding off the right
+shape: clamp(44px, 5.1vw, 74px) tall, aspect by kind, vertical-align −0.18em (−0.22em on a phone)
+headline: 12.25em measure → four lines at 1024 and up, five on a phone, five at 320 (font steps to 32px)
+```
+**The gallery** is its own section after the stack: the label and the two arrows on the column, then the track **edge to edge across the screen** (Jayden: "the gallery i dont like that it doesnt go all the way across"). The arrow step is a time-based ease (τ 110ms), so a slow frame never shortens it; the pointer is captured only once a drag passes 6px, so a plain click reaches the photograph.
+```
+gallery card: clamp(220px, 21vw, 300px) wide, 4:5, --r-lg, --grid-gap apart; 236px on a phone
+track: the twelve photographs twice (the second set aria-hidden), full width, bleeding off both edges
 motion: x = −((angle × 6 + offset) mod half the track); offset moves by one card per arrow press (eased) or by the drag
 ```
-**The ring** replaces the plain quote: the circular gallery from the video Jayden sent (eight shaped photographs turning around a centre panel, upright).
+**The ring** carries the quote: the circular gallery from the video Jayden sent (eight shaped photographs turning around a centre panel, upright).
 ```
 --ring-r: 300 (≥1024) · 240 (≥768) · 166 (phone)          radius in px, a plain number js reads
 items: 150 · 120 · 80px, shapes cycling round → tilt → circle, centred on the circle; upright always
 stage height: 2 × (r + 96 · 80 · 56); the centre panel 1.1r wide (1.24r on a phone), the quote at min(h2, 40px)
 ```
-The `ring` gate steps a full slot at three viewports and requires zero photograph pixels under the quote, zero photograph-on-photograph overlap, every item inside the stage, that a hovered photograph stops the drift and leaving resumes it, that 300px of scroll turns the ring by more than the drift would, that the strip drifts, and that an arrow press moves the track exactly one card.
+The `ring` gate steps a full slot at three viewports and requires zero photograph pixels under the quote, zero photograph-on-photograph overlap, every item inside the stage, that a hovered photograph stops the drift and leaving resumes it, that 300px of scroll turns the ring by more than the drift would, that the gallery drifts, and that an arrow press moves the track exactly one card and lands on the arrow.
 
 ## 8. Photography
-Every photograph has a factual `alt`, explicit dimensions, `loading="lazy"` except the first five strip cards, and a crop set by looking at it at its rendered size (`tools/gates` has no crop gate; the contact sheet is a scratch script and the eye). Colour and B&W are never mixed by conversion; in the strip and the ring no two B&W photographs are adjacent. The ring may reuse four of the strip's photographs (they are a screen apart); the tiles are unique. A face cut by the frame's edge is a reason to change the crop or the photograph. Children's faces need releases confirmed with Linda. The pipeline is `tools/build-images.mjs`; the source folder is gitignored.
+Every photograph has a factual `alt`, explicit dimensions, `loading="lazy"` except the hero's four and the first five gallery cards, and a crop set by looking at it at its rendered size. Colour and B&W are never mixed by conversion; in the gallery and the ring no two B&W photographs are adjacent. The ring may reuse four of the gallery's photographs (they are a screen apart); the stacked cards' photographs appear nowhere else. A face cut by the frame's edge is a reason to change the crop or the photograph. Children's faces need releases confirmed with Linda. The pipeline is `tools/build-images.mjs`; the source folder is gitignored.
 
 ## 9. Copy
-Only sentences from the old site. Labels may be single words or phrases from them. Placeholders are lorem with `data-placeholder="true"`. The `copy` gate fails on any other string.
+Only sentences from the old site, and only the ones the page needs. Labels may be single words or phrases from them. Placeholders are lorem with `data-placeholder="true"`. The `copy` gate fails on any other string.
 
 ## 10. Gates
-`tools/gates/run-all.sh` runs them serially: layout, targets, contrast (text on its ground, the caption ink over the darkest bloom pixel, the header links over the band), copy, images, motion (drift, the band, the stack, a bloom rising and leaving), ring (the ring and the strip), lightbox (opens, serves ≥ 960px, keys and arrows, Esc and focus return, a drag does not open it, the scrim closes), dialog, a11y. `ring.mjs --self-test` shrinks the ring and must fail. Each exits non-zero on failure and prints the number it measured. `orbit.mjs --self-test` injects an overlap and must fail.
+`tools/gates/run-all.sh` runs them serially: layout (overflow, the headline's line count, the column, equal card widths), targets, contrast (every text node in both themes), copy, images, motion (the flow drifts, the stack scales, and under reduced motion nothing does), ring (the ring and the gallery), lightbox (opens, serves ≥ 960px, keys and arrows, Esc and focus return, a drag does not open it, the scrim closes), dialog, a11y. Each exits non-zero on failure and prints the number it measured. `ring.mjs --self-test` shrinks the ring and must fail; `contrast.mjs --self-test` paints the ink onto the ground and must fail. Every gate but `dialog` starts with the newsletter popup already marked shown, so it cannot open over the thing being measured.

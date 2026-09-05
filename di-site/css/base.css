@@ -2,7 +2,8 @@
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/PlusJakartaSans-400.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/PlusJakartaSans-600.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans Fallback"; src: local("Arial"); size-adjust: 106%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
-@font-face { font-family: "Instrument Serif"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/InstrumentSerif-400.woff2") format("woff2"); }
+/* Sen ships as one variable latin file: every weight from 400 to 800 out of 18KB */
+@font-face { font-family: "Sen"; font-style: normal; font-weight: 400 800; font-display: swap; src: url("../fonts/Sen-400-800.woff2") format("woff2"); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
@@ -17,12 +18,14 @@ h1, h2, h3, p, figure { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { background: var(--c-sky); color: #1B1916; }
+/* the theme swap: one short cross-fade of the whole page, not a per-property transition */
+.is-theming, .is-theming * { transition: background-color 240ms linear, border-color 240ms linear, color 240ms linear !important; }
 
 /* Type roles */
-.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 400; color: var(--ink); }
-.t-h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); }
-.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); max-width: var(--measure-h2); }
-.t-h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); }
+.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); }
+.t-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 800; color: var(--ink); }
+.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: var(--measure-h2); }
+.t-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); }
 .t-lead { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); }
 .t-body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
 .t-body--first { color: var(--ink); }
@@ -35,8 +38,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .section { padding-block: var(--section-y); }
 .section .container { position: relative; }
 .section .container::before { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: calc(-1 * var(--section-y)); border-top: 1px solid var(--line); }
-.section__label { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-small); line-height: 1; font-weight: 600; color: var(--ink-2); margin-bottom: var(--stack-title); }
-.section__label .star { width: 16px; height: 18px; color: var(--accent-mark); }
+.section__label { display: block; font-size: var(--fs-small); line-height: 1; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--stack-title); }
 .section__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: var(--sp-8); }
 .section__grid > .col-head { grid-column: 1 / -1; }
 .section__grid > .col-body { grid-column: 1 / -1; }

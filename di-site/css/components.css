@@ -24,32 +24,23 @@
 .arrow .icon { width: 20px; height: 20px; }
 .arrows { display: flex; gap: var(--sp-2); }
 
+/* The theme toggle: moon on the light ground, sun on the dark */
+.theme { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-md); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
+.theme:hover { color: var(--ink); background: var(--bg-raised); }
+.theme .icon { width: 22px; height: 22px; }
+.theme .icon--sun { display: none; }
+:root[data-theme="dark"] .theme .icon--sun { display: block; }
+:root[data-theme="dark"] .theme .icon--moon { display: none; }
+
 /* Icons */
 .icon { width: 24px; height: 24px; fill: currentColor; flex: none; }
-.star { width: 16px; height: 18px; fill: currentColor; flex: none; }
-
-/* Chips */
-.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-/* a chip is its accent at 40% over white (mixed here, at the chip, so data-accent on the chip itself takes) */
-.chip { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--sp-3); border-radius: var(--r-full); background: color-mix(in oklab, var(--accent) 40%, #fff); color: var(--ink); font-size: var(--fs-small); font-weight: 600; line-height: 1; white-space: nowrap; }
 
 /* Cards */
 .card { position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6); }
 @media (min-width: 1024px) { .card { padding: var(--sp-8); } }
-/* The bloom: the section's hue rising from the foot of a white card, eased toward white in oklab over seven stops so the falloff
-   has no edge (the technique of Jayden's portfolio heroes), with its neighbour on the logo's wheel as a fainter second light at the
-   other corner. Stops end in transparent WHITE (#fff0): ending in `transparent` interpolates through black and draws a grey seam.
-   .card--bloom shows it always; .card--bloom-hover raises it under the pointer. */
-.card--bloom, .card--bloom-hover { overflow: hidden; isolation: isolate; }
-.card--bloom::after, .card--bloom-hover::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
-  /* --bloom-h is the main light's vertical radius as a share of the card; tall cards set it lower so the bloom stays at the foot */
-  background:
-    radial-gradient(70% calc(var(--bloom-h, 64%) * .64) at 16% 104%, color-mix(in oklab, var(--bloom-b) 30%, #fff) 0%, color-mix(in oklab, var(--bloom-b) 16%, #fff) 22%, color-mix(in oklab, var(--bloom-b) 6%, #fff) 46%, #fff0 72%),
-    radial-gradient(160% var(--bloom-h, 64%) at 60% 108%, color-mix(in oklab, var(--bloom-a) 62%, #fff) 0%, color-mix(in oklab, var(--bloom-a) 50%, #fff) 12%, color-mix(in oklab, var(--bloom-a) 34%, #fff) 26%, color-mix(in oklab, var(--bloom-a) 20%, #fff) 40%, color-mix(in oklab, var(--bloom-a) 9%, #fff) 54%, color-mix(in oklab, var(--bloom-a) 3%, #fff) 68%, #fff 82%); }
-/* --bloom (0…1) is set by js from how much of the card is on screen; the pointer completes it */
-.card--bloom-hover::after { opacity: var(--bloom, 0); transform: translateY(calc((1 - var(--bloom, 0)) * 8%)); transition: opacity var(--dur-state-out) var(--ease-out), transform var(--dur-state-out) var(--ease-out); }
-.card--bloom-hover:hover::after, .card--bloom-hover:focus-within::after { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .card--bloom-hover::after { transform: none; } }
+/* A tinted card: the section's hue, flat, mixed into the raised ground at --tint-mix. No gradient anywhere on this site.
+   The mix happens HERE, on the element that carries data-accent — mixing it at :root resolves once and every card comes out the same colour. */
+.card--tint { background: color-mix(in oklab, var(--accent) var(--tint-mix), var(--bg-raised)); border-color: transparent; }
 
 /* Photo. Every photograph is a button that opens it in the lightbox. */
 .photo { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-raised) center / cover no-repeat; }
@@ -64,6 +55,7 @@
 .photo--tilt { border-radius: 30%; transform: rotate(45deg); }
 .photo--tilt img { transform: rotate(-45deg) scale(1.45); }
 .photo--circle { border-radius: 50%; }
+.photo--pill { border-radius: var(--r-full); }
 .photo picture { width: 100%; height: 100%; }
 .photo img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); transition: transform var(--dur-move) var(--ease-out); }
 .photo--hover:hover img, .photo--hover:focus-within img { transform: scale(1.02); }
@@ -151,37 +143,33 @@
 }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
-/* Testimonial: a white card, the quote, the person, and the bloom at its foot */
-.testimonial { padding: var(--sp-7) var(--sp-7) var(--sp-24); display: flex; flex-direction: column; }
-.testimonial__quote { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink); margin-bottom: var(--sp-6); text-wrap: pretty; }
+/* Testimonial: a tinted card, the quote, the person */
+.testimonial { padding: var(--sp-7); display: flex; flex-direction: column; }
+.testimonial__quote { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink); margin-bottom: var(--sp-10); text-wrap: pretty; flex: 1 1 auto; }
 .testimonial__who { display: flex; align-items: center; gap: var(--sp-3); }
 .testimonial__avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex: none; }
 .testimonial__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.3; }
-.testimonial__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
+.testimonial__role { font-size: var(--fs-caption); color: var(--ink-2); line-height: 1.3; }
 
 /* Quote */
 .quote { text-align: center; }
 .quote__text { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); max-width: var(--measure-h2); margin-inline: auto; }
 .quote__who { display: inline-flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-6); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
-.quote__who .star { color: var(--accent-mark); }
 
-/* Footer */
-/* the footer: the band returns, fading up from the foot of the page, so the page ends the way it began */
-.footer { position: relative; padding: var(--sp-20) 0 var(--sp-12); overflow: hidden; }
-.footer .aurora { inset: auto 0 0 0; -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, transparent 100%); }
-.footer .container { position: relative; }
-.footer .container::before { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: calc(-1 * var(--sp-16)); border-top: 1px solid var(--line); }
-.footer__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--sp-8) var(--grid-gap); }
+/* Footer — one coloured module, the same tint as a card, inset from the page edges (Jayden: "just make the footer a colored moduale as well") */
+.footer { padding: var(--sp-8) var(--gutter) var(--sp-8); }
+.footer__module { max-width: var(--page-max); margin-inline: auto; padding: var(--sp-12) var(--sp-8) var(--sp-8); border-radius: var(--r-xl); background: color-mix(in oklab, var(--accent) var(--tint-mix), var(--bg-raised)); }
+.footer__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--sp-10) var(--grid-gap); }
 .footer__brand { grid-column: 1 / -1; }
-.footer__brand .logo { width: 36px; height: auto; margin: 0; overflow: visible; }
-.footer__line { margin-top: var(--sp-5); font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: 400; color: var(--ink); max-width: 16em; }
-.footer__copy { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); }
-.footer__col h2 { font-size: var(--fs-small); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-5); }
+.footer__brand .logo { width: 44px; height: auto; margin: 0; overflow: visible; }
+.footer__line { margin-top: var(--sp-5); font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); max-width: 14em; }
+.footer__copy { margin-top: var(--sp-12); padding-top: var(--sp-5); border-top: 1px solid var(--line); font-size: var(--fs-caption); color: var(--ink-2); }
+.footer__col h2 { font-size: var(--fs-small); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-3); }
 .footer__col a { display: inline-flex; align-items: center; min-height: var(--hit); min-width: var(--hit); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out); }
 .footer__col a:hover { color: var(--ink); }
 @media (min-width: 1024px) {
+  .footer__module { padding: var(--sp-16) var(--sp-12) var(--sp-12); }
   .footer__grid { grid-template-columns: repeat(12, 1fr); }
   .footer__brand { grid-column: 1 / span 6; }
-  .footer__col--menu { grid-column: 7 / span 3; }
-  .footer__col--contact { grid-column: 10 / span 3; }
+    .footer__col--contact { grid-column: 10 / span 3; }
 }

@@ -1,5 +1,5 @@
 // Developmental Improvisation — image pipeline.
-// Reads images/src/*, writes AVIF + WebP at 320/480/960/1440 (never upscaling), a JPEG fallback at 960,
+// Reads images/src/*, writes AVIF + WebP at 160/320/480/960/1440 (never upscaling), a JPEG fallback at 960,
 // and a 24px blurred WebP placeholder as a data URI, into images/. Writes images/manifest.json.
 import sharp from 'sharp';
 import { readdir, mkdir, writeFile, stat } from 'node:fs/promises';
@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const SRC = path.resolve(import.meta.dirname, '../images/src');
 const OUT = path.resolve(import.meta.dirname, '../images');
-const WIDTHS = [320, 480, 960, 1440];
+const WIDTHS = [160, 320, 480, 960, 1440];   // 160 is for the hero shapes and the ring: a 74px circle should not pull a 320px file
 const SKIP = /^(letters|\.)/;
 
 await mkdir(OUT, { recursive: true });

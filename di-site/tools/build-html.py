@@ -6,7 +6,6 @@ logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
 navlogo=logo.replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>', ' aria-hidden="true">')
 assert navlogo!=logo
 sprite=open(f'{root}/assets/icons.svg').read().strip()
-star=re.search(r'<path[^>]*/>',open(f'{root}/assets/illustrations/star.svg').read()).group(0)
 whitemark=open(f'{root}/assets/logo/dilogo.svg').read()
 whitemark_paths=''.join(re.findall(r'<path[^>]*/>',whitemark)).replace('fill="white"','fill="currentColor"')
 STAMP=datetime.date.today().strftime('%Y%m%d')
@@ -64,18 +63,26 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-# the hero: the four best photographs
-FOUR=['yellow-trousers','boy-fist','circle-hands','laugh-hat']
-FSIZES='(max-width: 767px) 45vw, 300px'
-four=''.join(photo(n,'4x5',FSIZES,lazy=False) for n in FOUR)
+# the hero: the four best photographs, set into the headline as shapes, on the line, like words
+HSIZES='120px'
+def hero_shape(name, kind):
+    m=man[name]
+    return (f'<button class="hero__shape hero__shape--{kind}" type="button" data-photo="{name}" '
+            f'style="--pos:{POS[name]};background-image:url({m["placeholder"]})" '
+            f'aria-label="Open photograph: {html.escape(ALT[name])}">' + picture(name,HSIZES,lazy=False,button=False) + '</button>')
+HERO_TITLE='New tools for cognitive development & emotional understanding'
+hero_title=('New tools ' + hero_shape('yellow-trousers','pill') + ' for cognitive '
+            + hero_shape('boy-fist','circle') + ' development &amp; emotional '
+            + hero_shape('circle-hands','wide') + ' understanding ' + hero_shape('laugh-hat','squircle'))
 # the gallery strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
 STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens']
 SSIZES='(max-width: 767px) 236px, (max-width: 1440px) 21vw, 300px'
 def strip_cards(hidden):
     return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4,button=not hidden)}</figure>' for i,n in enumerate(STRIP))
 strip=strip_cards(False)+strip_cards(True)
-# the quote ring: eight shaped photographs; four of them also appear in the strip, far above
-RING=[('bow-tie-chairs','round'),('linda-portrait','tilt'),('yellow-trousers','circle'),('kids-bw-small','round'),('laugh-hat','tilt'),('cast-stage-small','circle'),('three-men','round'),('circle-hands','tilt')]
+# the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
+# its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
+RING=[('bow-tie-chairs','round'),('linda-laughing','tilt'),('cast-pose','circle'),('floor-game','round'),('laugh-hat','tilt'),('cast-stage-small','circle'),('three-men','round'),('duo-brick','tilt')]
 RSIZES='(max-width: 767px) 80px, (max-width: 1023px) 120px, 150px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--{shape}" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n,shape in RING)
 
@@ -88,29 +95,26 @@ P=[
  "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
  "All while having as much fun as possible!",
 ]
-TS='(max-width: 767px) 66vw, (max-width: 1023px) 46vw, 420px'
-TS_SMALL='(max-width: 767px) 36vw, (max-width: 1023px) 26vw, 240px'
-def stack_card(num, accent, title, paras, extra, tiles, shapes=('1x1 photo--round','1x1 photo--circle')):
+TS='(max-width: 1023px) 300px, 400px'
+def stack_card(num, accent, title, paras, extra, photo_name, shape):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
-    tl=''.join(photo(t,shp,TS if k==0 else TS_SMALL) for k,(t,shp) in enumerate(zip(tiles,shapes)))
     extra_html=('<div class="stack__extra">'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card" data-accent="{accent}" aria-labelledby="stack-{num}">'
-            f'<div><span class="stack__num" aria-hidden="true">({num})</span><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
+    return (f'<article class="stack__card card card--tint" data-accent="{accent}" aria-labelledby="stack-{num}">'
+            f'<div><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
-            f'<div class="stack__stage">{tl}</div></article>')
-chips_hero=''.join(f'<span class="chip" data-accent="{a}">{c}</span>' for c,a in [('critical thinking','violet'),('creative problem-solving','sky'),('cooperation','orange'),('communication','yellow')])
+            f'<div class="stack__stage">{photo(photo_name, shape, TS)}</div></article>')
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
-# each card: the big photograph first (it bleeds past the card's edge), the small one second
-stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-circle','linda-laughing'])
-      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'])
-      +stack_card('03','yellow','“What would you do?”',P[3:4],'',['two-lines','cast-pose'])
-      +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick']))
+# one hue and one shape each: the circle, the rounded rectangle, the capsule, the rounded square
+stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'','linda-circle','1x1 photo--circle')
+      +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing','4x5 photo--round')
+      +stack_card('03','yellow','“What would you do?”',P[3:4],'','two-lines','4x5 photo--pill')
+      +stack_card('04','violet','The end result',P[4:6],btn4,'zoom-group','1x1 photo--round'))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
-# three testimonials on the reference layout; each card carries its own hue pair for the bloom
+# three testimonials on the reference layout; each card carries its own hue
 TESTI=[('sky',quotes[1]),('yellow',quotes[3]),('pink',quotes[2])]
-pile=''.join(f'<li class="card card--bloom testimonial" data-placeholder="true" data-accent="{a}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for a,q in TESTI)
+pile=''.join(f'<li class="card card--tint testimonial" data-placeholder="true" data-accent="{a}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for a,q in TESTI)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -125,7 +129,7 @@ page=f'''<!DOCTYPE html>
 <meta name="description" content="{html.escape(P[0])}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
 <meta name="theme-color" content="#F7F5F0">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(P[0])}">
 <meta property="og:type" content="website">
@@ -135,7 +139,7 @@ page=f'''<!DOCTYPE html>
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" href="fonts/PlusJakartaSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/PlusJakartaSans-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/InstrumentSerif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Sen-400-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={STAMP}">
 <link rel="stylesheet" href="css/base.css?v={STAMP}">
 <link rel="stylesheet" href="css/components.css?v={STAMP}">
@@ -143,41 +147,37 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>document.documentElement.classList.add('js')</script>
+<script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="star" viewBox="489.5 285 57.8 66">{star}</symbol><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
 
 <header class="nav" id="nav">
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
-    <nav class="nav__links" aria-label="Primary"><a href="/" aria-current="page">Home</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
-    <div class="nav__actions"><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
+    <nav class="nav__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
+    <div class="nav__actions"><button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
 </header>
 
 <main id="main">
   <section class="hero" id="top" aria-labelledby="heroTitle">
-    <div class="aurora" aria-hidden="true"><div class="aurora__band"></div><div class="aurora__grain"></div></div>
     <div class="container hero__head">
-      <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+      <h1 class="hero__title" id="heroTitle" aria-label="{HERO_TITLE}">{hero_title}</h1>
       <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-      <div class="chips hero__chips">{chips_hero}</div>
-      <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
+      <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
     </div>
-    <div class="container hero__four">{four}</div>
   </section>
 
-  <section class="section" id="welcome" data-accent="sky" aria-labelledby="welcomeLabel">
+  <section class="section" id="welcome" aria-label="Welcome">
     <div class="container">
-      <p class="section__label reveal" id="welcomeLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Welcome</p>
       <div class="stack">{stack}</div>
     </div>
   </section>
 
   <section class="section" id="gallery" data-accent="sky" aria-labelledby="galleryLabel">
     <div class="strip">
-      <div class="container strip__nav"><p class="section__label" id="galleryLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
+      <div class="container strip__nav"><p class="section__label" id="galleryLabel">Gallery</p><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
       <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
     </div>
   </section>
@@ -188,7 +188,7 @@ page=f'''<!DOCTYPE html>
         <div class="ring__orbit">{ring}</div>
         <div class="ring__centre"><div class="reveal">
           <blockquote class="ring__text">“Creativity in motion creates knowledge!”</blockquote>
-          <p class="ring__who"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Linda Kellogg Fulton</p>
+          <p class="ring__who">Linda Kellogg Fulton</p>
         </div></div>
       </div>
     </div>
@@ -196,14 +196,14 @@ page=f'''<!DOCTYPE html>
 
   <section class="section" id="testimonials" data-accent="magenta" aria-labelledby="testimonialsLabel">
     <div class="container">
-      <p class="section__label reveal" id="testimonialsLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Testimonials</p>
+      <p class="section__label reveal" id="testimonialsLabel">Testimonials</p>
       <ul class="testimonials reveal">{pile}</ul>
     </div>
   </section>
 
   <section class="section" id="newsletter" data-accent="orange" aria-labelledby="newsletterTitle">
     <div class="container">
-      <div class="newsletter card card--bloom reveal">
+      <div class="newsletter card card--tint reveal">
         <div class="newsletter__head"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><h2 id="newsletterTitle">Sign Up for our Newsletter!</h2></div>
         <div class="newsletter__form">{form('nl')}</div>
       </div>
@@ -213,9 +213,7 @@ page=f'''<!DOCTYPE html>
   <section class="section" id="contact" data-accent="green" aria-labelledby="contactTitle">
     <div class="container section__grid">
       <div class="col-head reveal">
-        <p class="section__label"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Contact</p>
         <h2 class="t-h2" id="contactTitle">To Find Out MORE!</h2>
-        <p class="t-lead" style="margin-top:var(--sp-4)">Email or Call Here:</p>
       </div>
       <div class="col-body contact__actions reveal">
         <a class="btn btn--secondary" href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov@gmail.com</a>
@@ -226,11 +224,12 @@ page=f'''<!DOCTYPE html>
 </main>
 
 <footer class="footer">
-  <div class="aurora" aria-hidden="true"><div class="aurora__band"></div><div class="aurora__grain"></div></div>
-  <div class="container footer__grid">
-    <div class="footer__brand">{navlogo}<p class="footer__line">Pre-wiring the brain &amp; educating the heart</p><p class="footer__copy">© 2026 Developmental Improvisation</p></div>
-    <nav class="footer__col footer__col--menu" aria-labelledby="footMenu"><h2 id="footMenu">Menu</h2><a href="/">Home</a><br><a href="#gallery">Gallery</a><br><a href="#contact">Contact</a></nav>
-    <nav class="footer__col footer__col--contact" aria-labelledby="footContact"><h2 id="footContact">Contact</h2><a href="mailto:developmentalimprov@gmail.com">Email</a><br><a href="tel:+18573523221">Call</a><br><a href="#" aria-disabled="true">LinkedIn</a><br><a href="#" aria-disabled="true">Instagram</a><br><a href="#" aria-disabled="true">Facebook</a><br><a href="#" aria-disabled="true">X</a></nav>
+  <div class="footer__module" data-accent="violet">
+    <div class="footer__grid">
+      <div class="footer__brand">{navlogo}</div>
+      <nav class="footer__col footer__col--contact" aria-labelledby="footContact"><h2 id="footContact">Contact</h2><a href="mailto:developmentalimprov@gmail.com">Email</a><br><a href="tel:+18573523221">Call</a></nav>
+    </div>
+    <p class="footer__copy">© 2026 Developmental Improvisation</p>
   </div>
 </footer>
 
@@ -243,7 +242,7 @@ page=f'''<!DOCTYPE html>
 </dialog>
 <script type="application/json" id="lbData">{{LBDATA}}</script>
 
-<dialog class="dialog card--bloom" id="newsletterDialog" aria-labelledby="dialogTitle" data-accent="orange">
+<dialog class="dialog card--tint" id="newsletterDialog" aria-labelledby="dialogTitle" data-accent="orange">
   <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
   <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
   <h2 id="dialogTitle" tabindex="-1">Sign Up for our Newsletter!</h2>
@@ -252,7 +251,7 @@ page=f'''<!DOCTYPE html>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">
   <div class="sheet__head"><svg class="mark" style="width:28px;height:30px;color:var(--ink)" aria-hidden="true"><use href="#mark"/></svg><button class="btn btn--ghost btn--compact" type="button" data-close-menu>Close</button></div>
-  <nav class="sheet__links" aria-label="Primary"><a href="/">Home</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
+  <nav class="sheet__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
   <button class="btn btn--primary" type="button" data-open-dialog data-close-menu>Subscribe</button>
 </dialog>
 </body>

@@ -1,11 +1,11 @@
 // Gate: under reduced motion nothing drifts (ring, strip, shapes), nothing animates after 300ms and reveals still reach opacity 1;
-// without it the ring drifts, the strip drifts, the stack scales the covered card, and a stacked card's bloom rises under the pointer.
+// without it the ring drifts, the strip drifts, and the stack scales the covered card.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 let pg = await open(b, 1440, 900, { reduced: true });
 await pg.waitForTimeout(300);
 const r1 = await pg.evaluate(async () => {
-  const running = document.getAnimations().filter(a => a.playState === 'running').length;   // includes the band: under reduced motion it must not run
+  const running = document.getAnimations().filter(a => a.playState === 'running').length;
   const a0 = window.__di.flow.angle; const t0 = document.querySelector('[data-strip]').style.transform;
   await new Promise(r => setTimeout(r, 500));
   const still = Math.abs(window.__di.flow.angle - a0) < 0.01 && document.querySelector('[data-strip]').style.transform === t0;
@@ -26,11 +26,7 @@ const r2 = await pg.evaluate(async () => {
   const cards = [...document.querySelectorAll('.stack__card')];
   scrollTo(0, scrollY + cards[1].getBoundingClientRect().top - 200); await new Promise(r => setTimeout(r, 300));
   const stackScales = /scale\(0\.9/.test(cards[0].style.transform);
-  const band = document.querySelector('.aurora__band'); const b0 = getComputedStyle(band).transform; await new Promise(r => setTimeout(r, 400)); const bandDrifts = getComputedStyle(band).transform !== b0;
-  return { drifts, stackScales, bandDrifts };
+  return { drifts, stackScales };
 });
-// the band also returns at the foot of the page and drifts there
-await pg.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await pg.waitForTimeout(300);
-const footBand = await pg.evaluate(async () => { const el = document.querySelector('.footer .aurora__band'); const t0 = getComputedStyle(el).transform; await new Promise(r => setTimeout(r, 400)); return getComputedStyle(el).transform !== t0; });
-report('motion (full)', r2.drifts && r2.stackScales && r2.bandDrifts && footBand, JSON.stringify({ ...r2, footerBandDrifts: footBand }));
+report('motion (full)', r2.drifts && r2.stackScales, JSON.stringify(r2));
 await pg.close(); await b.close();

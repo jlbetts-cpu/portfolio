@@ -1,51 +1,46 @@
-/* Home page only: the hero and its strip, the stack, the quote ring, the testimonials, newsletter, contact */
+/* Home page only: the hero, the gallery, the stack, the quote ring, the testimonials, newsletter, contact */
 
 /* ---------- Hero ----------
-   A quiet band of the hues at the top, fading into the ground; the title in the serif, the tagline, the four chips, the two buttons;
-   then the four best photographs on the column. The band drifts one pass every --dur-aurora; still under reduced motion. */
-.hero { position: relative; padding-top: calc(var(--nav-h) + var(--sp-16)); padding-bottom: var(--section-y); overflow: hidden; }
-.aurora { position: absolute; inset: 0 0 auto 0; height: clamp(240px, 36vh, 360px); z-index: 0; pointer-events: none; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); }
-.aurora__band { position: absolute; top: -60%; left: 0; width: 500%; height: 160%; opacity: .7; will-change: transform;
-  /* each hue at 44% over white: a tint, not a fill; two or three across the page at a time */
-  --p-pink: color-mix(in oklab, var(--c-pink) 44%, #fff); --p-magenta: color-mix(in oklab, var(--c-magenta) 44%, #fff); --p-violet: color-mix(in oklab, var(--c-violet) 44%, #fff); --p-sky: color-mix(in oklab, var(--c-sky) 44%, #fff); --p-green: color-mix(in oklab, var(--c-green) 44%, #fff); --p-yellow: color-mix(in oklab, var(--c-yellow) 44%, #fff); --p-orange: color-mix(in oklab, var(--c-orange) 44%, #fff);
-  background: linear-gradient(90deg, var(--p-pink), var(--p-magenta), var(--p-violet), var(--p-sky), var(--p-green), var(--p-yellow), var(--p-orange), var(--p-pink), var(--p-magenta), var(--p-violet), var(--p-sky), var(--p-green), var(--p-yellow), var(--p-orange), var(--p-pink));
-  filter: blur(56px); animation: aurora-drift var(--dur-aurora) linear infinite; }
-@keyframes aurora-drift { to { transform: translate3d(-50%, 0, 0); } }
-/* film grain, so the band reads as light rather than a fill */
-.aurora__grain { position: absolute; inset: 0; opacity: .06; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.hero__head { position: relative; z-index: 1; text-align: center; display: grid; justify-items: center; gap: var(--sp-6); }
-.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 400; color: var(--ink); max-width: var(--measure-display); text-wrap: balance; }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); margin-top: calc(-1 * var(--sp-2)); }
-.hero__chips { justify-content: center; }
-.hero__actions { display: flex; justify-content: center; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-2); }
-/* the four: one row on the column, 4:5, the lightbox behind each */
-.hero__four { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); margin-top: var(--sp-16); }
-.hero__four .photo { transition: transform var(--dur-move) var(--ease-out); }
-.hero__four .photo:hover { transform: translateY(-4px); }
+   One headline, and the four best photographs are set into it as shapes, on the line, like words
+   (Jayden, 2026-09-05: "the images fit inside the differnt shapes"). Under it the tagline and one action. Nothing else. */
+.hero { padding-top: calc(var(--nav-h) + var(--sp-16)); padding-bottom: var(--section-y); }
+.hero__head { text-align: center; display: grid; justify-items: center; gap: var(--sp-8); }
+.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: 1.16; letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); max-width: var(--measure-display); }
+/* a photograph set on the line: sized in vw so it tracks the type, with the 44px tap floor built into the clamp */
+.hero__shape { display: inline-block; vertical-align: -0.18em; height: clamp(44px, 5.1vw, 74px); margin-inline: .12em; overflow: hidden; padding: 0; border: 0; background: var(--bg-sunken) center / cover no-repeat; cursor: zoom-in; transition: transform var(--dur-move) var(--ease-out); }
+.hero__shape:hover { transform: translateY(-3px); }
+.hero__shape:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.hero__shape--pill    { aspect-ratio: 16 / 10; border-radius: var(--r-full); }
+.hero__shape--squircle{ aspect-ratio: 1;       border-radius: 30%; }
+.hero__shape--circle  { aspect-ratio: 1;       border-radius: 50%; }
+.hero__shape--wide    { aspect-ratio: 17 / 10; border-radius: .26em; }
+.hero__shape picture { width: 100%; height: 100%; }
+.hero__shape img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); }
+.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); }
 /* first paint: once per session */
-.hero.is-arriving .hero__head > *, .hero.is-arriving .hero__four { opacity: 0; transform: translateY(8px); }
-.hero.is-ready .hero__head > *, .hero.is-ready .hero__four { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.hero.is-arriving .hero__head > * { opacity: 0; transform: translateY(8px); }
+.hero.is-ready .hero__head > * { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 @media (max-width: 767px) {
   .hero { padding-top: calc(var(--nav-h) + var(--sp-10)); }
-  .aurora { height: 240px; }
-  .hero__title { font-size: clamp(2rem, 9.6vw, 2.75rem); }
-  .hero__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
-  .hero__actions .btn { width: 100%; }
-  .hero__four { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--sp-10); }
+  /* the tap floor is 1.16em of this type, so the lines open up to hold a shape without pushing each other apart */
+  .hero__title { line-height: 1.42; }
+  .hero__shape { vertical-align: -0.22em; }
+  .hero__head { gap: var(--sp-6); }
 }
+/* below 360px the headline's own minimum is wider than the screen: step it down so it stays five lines */
+@media (max-width: 359px) { .hero__title { font-size: 2rem; } }
 @media (prefers-reduced-motion: reduce) {
-  .aurora__band { animation: none; }
-  .hero.is-arriving .hero__head > *, .hero.is-arriving .hero__four { transform: none; }
-  .hero__four .photo:hover { transform: none; }
+  .hero.is-arriving .hero__head > * { transform: none; }
+  .hero__shape:hover { transform: none; }
 }
 
-/* ---------- Gallery: the strip ----------
-   One loop of photographs on a track, moved by the flow (js/main.js): a slow drift, faster with the scroll,
-   the arrows step one card, and it can be dragged; clipped at the column's left edge, running to the right edge of the screen. */
+/* ---------- Gallery ----------
+   One loop of photographs, edge to edge across the screen (Jayden: "the gallery ... doesnt go all the way across"),
+   moved by the flow (js/main.js): a slow drift, faster with the scroll, the arrows step one card, and it can be dragged. */
 .strip { position: relative; }
 .strip__nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-6); }
 .strip__nav .section__label { margin-bottom: 0; }
-.strip__viewport { overflow: hidden; margin-left: max(var(--gutter), calc((100vw - var(--page-max)) / 2 + var(--gutter))); touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.strip__viewport { overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
 .strip__viewport.is-dragging { cursor: grabbing; }
 .strip__track { display: flex; gap: var(--grid-gap); width: max-content; will-change: transform; }
 .strip__card { flex: none; width: clamp(220px, 21vw, 300px); transition: transform var(--dur-move) var(--ease-out); }
@@ -55,27 +50,21 @@
 @media (prefers-reduced-motion: reduce) { .strip__card:hover { transform: none; } }
 
 /* ---------- The stack ----------
-   White cards. Sticky, each 12px lower than the one before;
-   js/main.js scales a covered card down from its top edge in step with how far the next card has climbed over it. */
+   Four coloured cards, one hue each, flat. Sticky, each 12px lower than the one before; js/main.js scales a covered card
+   down from its top edge in step with how far the next card has climbed over it. One photograph per card, in one shape. */
 .stack { display: grid; gap: var(--sp-6); }
-.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6) + var(--i, 0) * var(--sp-3)); padding: var(--sp-8); display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-8); border-radius: var(--r-xl); overflow: hidden; transform-origin: 50% 0; will-change: transform; }   /* overflow hidden: the big photograph is clipped by the card's edge */
-.stack__num { display: block; margin-bottom: var(--sp-3); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
-.stack__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); max-width: var(--measure-h2); margin-bottom: var(--sp-5); text-wrap: balance; }
+.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6) + var(--i, 0) * var(--sp-3)); padding: var(--sp-8); display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-10); border-radius: var(--r-xl); overflow: hidden; transform-origin: 50% 0; will-change: transform; }
+.stack__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: var(--measure-h2); margin-bottom: var(--sp-5); text-wrap: balance; }
 .stack__body .t-body { color: var(--ink-2); }
 .stack__body .t-body:first-child { color: var(--ink); }
-.stack__extra { margin-top: var(--sp-6); }
-/* The stage: one rule, repeated. The big photograph (a rounded square) sits at the outer bottom corner and bleeds past the card's
-   edge, so part of it is behind the wall; the small one (a circle) overlaps its inner top corner. Odd cards face right, even cards face left. */
-.stack__stage { position: relative; min-width: 0; height: clamp(300px, 64vw, 440px); }
-.stack__stage .photo { position: absolute; margin: 0; }
-.stack__stage .photo:nth-child(1) { width: 64%; bottom: -10%; right: -10%; }
-.stack__stage .photo:nth-child(2) { width: 32%; top: 8%; left: 10%; }
-.stack__card:nth-child(even) .stack__stage .photo:nth-child(1) { right: auto; left: -10%; }
-.stack__card:nth-child(even) .stack__stage .photo:nth-child(2) { left: auto; right: 10%; }
+.stack__extra { margin-top: var(--sp-8); }
+.stack__stage { display: grid; place-items: center; min-width: 0; }
+.stack__stage .photo { height: clamp(240px, 56vw, 300px); width: auto; max-width: 100%; margin: 0; }
 @media (min-width: 1024px) {
-  .stack__card { grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--grid-gap); padding: var(--sp-12); min-height: 520px; }
-  .stack__card > div:first-child { padding-right: var(--sp-8); }
-  .stack__stage { height: auto; min-height: 424px; margin: calc(-1 * var(--sp-12)) calc(-1 * var(--sp-12)) calc(-1 * var(--sp-12)) 0; }
+  .stack__card { grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--sp-12); padding: var(--sp-12); min-height: 520px; align-items: center; }
+  .stack__stage .photo { height: clamp(300px, 28vw, 400px); }
+  /* even cards put the photograph on the left, so the eye crosses the stack rather than running down one side */
+  .stack__card:nth-child(even) > div:first-child { order: 2; }
 }
 
 /* ---------- The quote ring ----------
@@ -89,9 +78,8 @@
 .ring__item .photo:hover { transform: scale(1.04); }
 .ring__item .photo--tilt:hover { transform: rotate(45deg) scale(1.04); }
 .ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--ring-r) * 1.1px); text-align: center; z-index: 2; }
-.ring__text { font-family: var(--font-display); font-size: min(var(--fs-h2), 2.75rem); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); text-wrap: balance; }
-.ring__who { display: inline-flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-5); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
-.ring__who .star { color: var(--accent-mark); }
+.ring__text { font-family: var(--font-display); font-size: min(var(--fs-h2), 2.5rem); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); text-wrap: balance; }
+.ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
 @media (max-width: 1023px) {
   .ring__item { width: 120px; margin-left: -60px; margin-top: -60px; }
   .ring__item .photo--tilt { width: 100px; margin: 10px; }
@@ -107,7 +95,7 @@
 }
 @media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } .ring__item .photo--tilt:hover { transform: rotate(45deg); } }
 
-/* ---------- Testimonials: three white cards, the middle one lower, each with its bloom (the reference Jayden sent) ---------- */
+/* ---------- Testimonials: three tinted cards, the middle one lower ---------- */
 .testimonials { display: grid; grid-template-columns: minmax(0,1fr); gap: var(--grid-gap); }
 .testimonials > .card { align-self: start; }
 @media (min-width: 768px) {
@@ -115,12 +103,12 @@
   .testimonials > .card:nth-child(2) { margin-top: var(--sp-24); }
 }
 
-/* ---------- Newsletter: a white card with its bloom ---------- */
-.newsletter { --bloom-h: 90%; padding: var(--sp-8) var(--sp-8) var(--sp-12); display: grid; gap: var(--sp-6); border-radius: var(--r-xl); }
+/* ---------- Newsletter: one tinted card ---------- */
+.newsletter { padding: var(--sp-8); display: grid; gap: var(--sp-6); border-radius: var(--r-xl); }
 .newsletter .mark { width: 40px; height: 43px; color: var(--ink); margin-bottom: var(--sp-5); }
-.newsletter h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); max-width: 10em; }
+.newsletter h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 10em; }
 @media (min-width: 1024px) {
-  .newsletter { padding: var(--sp-12) var(--sp-12) var(--sp-20); grid-template-columns: repeat(12, 1fr); column-gap: var(--grid-gap); align-items: center; }
+  .newsletter { padding: var(--sp-12); grid-template-columns: repeat(12, 1fr); column-gap: var(--grid-gap); align-items: center; }
   .newsletter__head { grid-column: 1 / span 5; }
   .newsletter__form { grid-column: 7 / span 6; }
 }

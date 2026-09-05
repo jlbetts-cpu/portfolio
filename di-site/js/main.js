@@ -15,6 +15,19 @@
   const num = (cs, name, d) => { const v = parseFloat(cs.getPropertyValue(name)); return Number.isFinite(v) ? v : d; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+  /* ---- Theme: light unless the visitor chose dark. The choice is read before first paint by the inline script in <head>. ---- */
+  const applyTheme = (t, animate) => {
+    if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
+    root.dataset.theme = t;
+    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#131211' : '#F7F5F0';
+    $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
+  };
+  applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light', false);
+  $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
+    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    store.set('di:theme', t); applyTheme(t, true);
+  }));
+
   /* ---- Nav: a surface only once there is something under it ---- */
   const nav = $('#nav');
   const onScroll = () => nav.classList.toggle('is-scrolled', scrollY > 24);
@@ -66,7 +79,7 @@
     if (store.sget('di:arrived')) { hero.classList.add('is-ready'); }
     else {
       hero.classList.add('is-arriving');
-      $$('.hero__head > *, .hero__row > *, .strip', hero).forEach((el, i) => el.style.setProperty('--d', i));
+      $$('.hero__head > *', hero).forEach((el, i) => el.style.setProperty('--d', i));
       requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-ready'); store.sset('di:arrived', '1'); }));
     }
   }
@@ -125,7 +138,7 @@
   const lb = $('#lightbox');
   const lbData = (() => { try { return JSON.parse($('#lbData').textContent); } catch { return null; } })();
   if (lb && lbData) {
-    const buttons = $$('.photo__open').filter(b => !b.closest('[aria-hidden="true"]'));
+    const buttons = $$('[data-photo]').filter(b => !b.closest('[aria-hidden="true"]'));
     const names = [...new Set(buttons.map(b => b.dataset.photo))];
     const figure = $('.lightbox__figure', lb);
     const live = $('.lightbox__live', lb);
@@ -166,7 +179,7 @@
     if (!cards.length) return () => {};
     cards.forEach((c, i) => c.style.setProperty('--i', i));
     const update = () => {
-      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; c.style.setProperty('--bloom', '1'); }); return; }
+      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; }); return; }
       const cover = cards.map((c, i) => {
         const next = cards[i + 1]; if (!next) return 0;
         const r = c.getBoundingClientRect(), nr = next.getBoundingClientRect();
@@ -177,10 +190,6 @@
         depth += cover[i];
         const s = 1 - .045 * Math.min(depth, 3);
         cards[i].style.transform = depth > 0.001 ? `scale(${s.toFixed(4)})` : '';
-        // the bloom rises as the card fills the screen: none below 30% visible, full from 70%, and it fades as the next card covers it
-        const r = cards[i].getBoundingClientRect(); const shown = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / Math.min(r.height, innerHeight);
-        const bloom = clamp((shown - .3) / .4, 0, 1) * (1 - cover[i]);
-        cards[i].style.setProperty('--bloom', bloom.toFixed(3));
       }
     };
     let ticking = false;
