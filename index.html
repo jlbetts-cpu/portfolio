@@ -349,7 +349,19 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 @media(prefers-reduced-motion:reduce){.speech .tw{animation:none!important;opacity:1}}
 @media(max-width:1000px){.hero{gap:16px}.stagewrap{width:clamp(340px,46vw,520px)}}
 @media(max-width:760px){
- .wrap{padding:0 24px}.work{padding:0 var(--sp-24)}.cases .caseInset{--case-inset:var(--sp-24)}.cases .csStageInner{padding:0 var(--sp-24)}nav{gap:16px;padding:24px 0 0}nav a{font-size:var(--fs-tab)}
+ .wrap{padding:0 24px}.work{padding:0 var(--sp-24)}.cases .caseInset{--case-inset:var(--sp-24)}.cases .csStageInner{padding:0 var(--sp-24)}/* THE BARE `nav` RULE IS GONE, 2026-09-04. footer-band-contract carried a
+   waiver for it: index.html's .footTop measured 449.1px at 390 against 425.1
+   on the other seven pages. The waiver said the rule was aimed at .jbNav and
+   advised scoping it there. MEASURED, IT WAS NEITHER.
+   `.jbNav` is (0,1,0) and this was (0,0,1), so the rule never reached .jbNav at
+   all -- it computes gap 8px / padding-top 0 with and without it, as does
+   .csTabs. The ONLY nav taking it was .footNav, which was picking up
+   padding-top:24px, and 449.1 - 425.1 is exactly that 24.
+   Scoping it to .jbNav would have been wrong twice: it fixes the footer by
+   accident, and at (0,1,0) it would newly TIE with the real .jbNav rule and
+   could start winning at <=760px on a nav it had never touched. A rule that
+   only reaches something it was not aimed at is deleted, not re-pointed. */
+nav a{font-size:var(--fs-tab)}
  .hero{grid-template-columns:1fr;min-height:auto;padding:32px 0 8px;gap:16px;text-align:left}
  h1{font-size:clamp(34px,9.2vw,46px);max-width:16ch}.sub{font-size:var(--fs-body);max-width:90%}
  .stagewrap{justify-self:center;width:clamp(280px,82vw,400px);margin-top:8px}

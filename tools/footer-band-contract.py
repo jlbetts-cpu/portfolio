@@ -422,13 +422,15 @@ MIN_CELL_ROWS = 3
 # file, so the fix is handed over rather than applied. The tool prints the waiver
 # on every green run so it cannot sit here unnoticed; delete the entry the day
 # the patch lands and this check starts protecting all eight pages.
-FOOT_TOP_WAIVED = {
-    "index.html": (449.1, "index.html:327 has a bare `nav{gap:16px;padding:24px 0 0}` "
-                          "inside @media(max-width:760px), aimed at .jbNav. Scope it "
-                          "to .jbNav (proven: .jbNav and .csTabs compute identically "
-                          "with and without it at 390, 760 and 1440) and delete this "
-                          "entry."),
-}
+# EMPTY SINCE 2026-09-04, AND IT SHOULD STAY THAT WAY. index.html's leak was the
+# bare `nav{gap:16px;padding:24px 0 0}` and it is now deleted, so .footTop
+# measures 425.1 at 390 on all eight pages and this check protects every one of
+# them. The waiver's own advice was to scope that rule to .jbNav; measuring first
+# showed the rule never reached .jbNav (.jbNav is (0,1,0), the rule was (0,0,1)),
+# and that the only nav taking it was .footNav, whose padding-top:24px is exactly
+# the 449.1 - 425.1 the waiver recorded. Scoping would have tied it with the real
+# .jbNav rule instead of removing it. Add an entry here only with a measurement.
+FOOT_TOP_WAIVED = {}
 FOOT_TOP_TOL = 1.5
 WAIVED_SEEN = []
 
