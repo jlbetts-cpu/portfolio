@@ -364,15 +364,14 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    recorded anywhere on these pages and was not going to be invented here. */
 .proc{margin:var(--sp-32-48) 0 0;padding:var(--sp-24-40) 0 0;border-top:var(--rule-w) solid var(--rule)}
 .proc .rlabel{font-size:var(--fs-prose);color:var(--c950);margin:0 0 var(--sp-4)}
-.proc .procWhen{display:block;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
-  line-height:var(--lh-note);color:var(--c600);margin:0 0 var(--sp-12)}
 .proc .contrib{margin:var(--sp-16-32) 0 0}
-/* --c600, NOT --c500, AND IT WAS MEASURED. --c500 on this ground is 3.59:1, and
-   at 16px/600 this is not WCAG "large text" (that needs 18.66px bold), so it
-   needs 4.5:1 and fails. --c600 measures 5.03:1 and is the lightest rung on the
-   ramp that clears it, while still reading as the quiet half of the pair against
-   the role keys at 19.03:1. */
-.proc .contribK{color:var(--c600)}
+/* THE KEY IS A LABEL, SO IT TAKES THE LABEL RUNG.  Corrected 2026-09-04.
+   The first version set these to --c600 at --fs-prose, which is the label COLOUR
+   at the body SIZE -- a combination the ladder does not contain, and the reason
+   this block read as a different design language than the one above it. The
+   facts row already solves exactly this shape: .fk is a 12px --c600 key beside a
+   prose value. This is that, laid out in a row instead of a column. */
+.proc .contribK{font-size:var(--fs-label);line-height:var(--lh-note);color:var(--c600)}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
    docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
@@ -1617,7 +1616,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="proc">
      <span class="rlabel">Process</span>
-     <span class="procWhen">5 weeks, four designers and a lead</span>
      <ul class="contrib rv" data-f="0.011">
       <li><span class="contribK">Research</span><span class="contribV">Interviews and a survey of how groups plan a trip. 90% of the people surveyed plan as a group.</span></li>
       <li><span class="contribK">Concept</span><span class="contribV">Roadie and Google Maps both assume a single planner, so the group itself became the product.</span></li>
