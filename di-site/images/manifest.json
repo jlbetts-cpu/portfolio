@@ -1,0 +1,299 @@
+{
+ "blue-shirts": {
+  "source": "blue-shirts.jpg",
+  "width": 1536,
+  "height": 1311,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAADwBACdASoYABQAPu1mqk2ppaQiMAgBMB2JZgDCoNmwVgPzfAhGvm8ZspR/QlPPFVQA/uosFO/F3VTVkQ73FXlYHS0So0I6FKaP1Y31dWU87nN00RQiQis5GUsmpEiGrYawBNW9Y2aC1YqsQWu4weXoem4+fsHCMJ+qQwKcReYvVwTKUAA=",
+  "jpeg": "blue-shirts-960.jpg"
+ },
+ "bow-tie-chairs": {
+  "source": "bow-tie-chairs.jpg",
+  "width": 1536,
+  "height": 1273,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAADQBACdASoYABQAPuFgqU2opaQiMAwBEBwJZwAAQvfcKBfv1XE4Uv9SMNOPfbe9BAD+9DKq8fkZM22GSHB5rkJghnZvPqqlAmkQlPAi8oUcGR19aAMAK8BXhn/D/bBoaFsrocMYB1XDRSJt6Rx/OPsLc+uuny+IkIAAAA==",
+  "jpeg": "bow-tie-chairs-960.jpg"
+ },
+ "bow-ties-wall": {
+  "source": "bow-ties-wall.jpg",
+  "width": 2048,
+  "height": 1365,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAADwAwCdASoYABAAPu1Ct1apoqakGAEwHYlsAJ0ygAl9U4Vqx37aMc/0AP5PCLUpDqtz1X17wePSJr/mOZ+8aoeC4/ON2bbKXsq1t7Mn4nB9PhmAty05ahykCd6QfF8zSwWO85crwXD5IgfHRex0ow5BGmGCXFEYAAA=",
+  "jpeg": "bow-ties-wall-960.jpg"
+ },
+ "boy-fist": {
+  "source": "boy-fist.jpg",
+  "width": 2592,
+  "height": 3872,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAABwBgCdASoYACQAPt1WpU2opKOiNVv8ARAbiWYAvzgXwPCdzBvuUJZTKXcZX0ht8vByvzZRF3fHOl0YBAAA/vaObm5Ei/ARSbi3BZTzVlwpZJMorxWn8MILUYAcI6+JqfARRWcexgK8cF4ZgdlhrWREnIq6+5ONZL6akTDS1sI5fYsEC3TAbAAQZ1aR342+uwFK4O6muozZWsVaj7H4xV5cxmlc6/bwlXF1iuGQAAA=",
+  "jpeg": "boy-fist-960.jpg"
+ },
+ "cast-pose": {
+  "source": "cast-pose.jpg",
+  "width": 1536,
+  "height": 1431,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAwBQCdASoYABYAPu1krE6ppaQiKA1RMB2JQBbZAe10pw2NTFD5qWeAieVOdfp8ZIpgAAD+7t4B77N69oPeKvq4VtcckilthhSYhd3kbw8IjzrE4AzJSq45q3DiGwLrex6V6fYZpLjNu0IRVFDmE+NAuJUGtrqfDl91BO1QjKmOOjz+xP5PfoAA",
+  "jpeg": "cast-pose-960.jpg"
+ },
+ "cast-stage-small": {
+  "source": "cast-stage-small.jpg",
+  "width": 600,
+  "height": 450,
+  "sizes": [
+   320,
+   480
+  ],
+  "placeholder": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAACQBQCdASoYABIAPuliqk2pJaQiMBgMASAdCWMAuxtf7b/APRAE39f58J/+9CljZkcQ1h88AAD+8qIA/6y5jg9Mae0SVKduUNzZ+kdbdXNkhnbz81RdV/YNJFF62vtMX56NGQ7qDmrFLsVZJTxeCJ5+mSmQUDmE7NtBiXf5kiUZcAAA",
+  "jpeg": "cast-stage-small-960.jpg"
+ },
+ "circle-hands": {
+  "source": "circle-hands.jpg",
+  "width": 1440,
+  "height": 960,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAwCdASoYABAAPu1kqU2ppaQiMAgBMB2JaQAASmUi+3hY30c6zbwAAP6rrunCiUjdaJHVnX+OdwfpRkj5JyI8/qjP7++ev/2pFBc/0OkRy+5x7Pdfu5wkiZIbDUCzI6CYKCAhn8gAAA==",
+  "jpeg": "circle-hands-960.jpg"
+ },
+ "conga-line": {
+  "source": "conga-line.jpg",
+  "width": 2048,
+  "height": 1360,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQBACdASoYABAAPu1iqU2ppaQiMAgBMB2JQBOmUAA+mU/YFtcDADsWUAD+3OGtmgo0gBeBRuJzsNjNOe/It0bf6Do29+//r7e9K7JSxO1CIo9W3SC1H7t0vj5r9bG2lq6nZu/Cl/qLvjV/sxZugAAA",
+  "jpeg": "conga-line-960.jpg"
+ },
+ "duo-brick": {
+  "source": "duo-brick.jpg",
+  "width": 1536,
+  "height": 1024,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAABQBACdASoYABAAPu1iqU2ppaQiMAgBMB2JZACdMoR4GBsCywnUXKXdzrgAAP7um4o7oQ0EsidvNx4l2YTJSkzw5m5G2uXCILr/QlYVS+1cAgavFQJ64X/JO+N0surJFTdgBg10fCD25nU4AAA=",
+  "jpeg": "duo-brick-960.jpg"
+ },
+ "floor-game": {
+  "source": "floor-game.jpg",
+  "width": 1707,
+  "height": 1280,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAACwBQCdASoYABIAPu1oq0+ppiOiMBgIATAdiUATplBmFSOQC1ET9r9hk/017JKl9O0cqI0etKAA/q1Ebv67sI1WckZPN7F5bAoXMzKKkUaQmsMzQ4lTZDH1sJT1wzwXiZHq3WppSFhc7zAcOWyf6u7lqjL8twoNZnvXyhg41YbLKiXrA8+7syczjhZ34y+EZMJqm8Y86xWBOgsAAAA=",
+  "jpeg": "floor-game-960.jpg"
+ },
+ "kids-bw-small": {
+  "source": "kids-bw-small.jpg",
+  "width": 956,
+  "height": 491,
+  "sizes": [
+   320,
+   480
+  ],
+  "placeholder": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAADwAwCdASoYAAwAPu1oqk6ppiQiMAgBMB2JaQAAWlxTl1FNEphUJI2AAP70KNuIEkdOYJ7vnxdxChXNcPD9ZpG7TLT4/yFg+mG1eQCpazLJLLVK604bJlnY9jcT3MgA",
+  "jpeg": "kids-bw-small-960.jpg"
+ },
+ "kids-dancing": {
+  "source": "kids-dancing.png",
+  "width": 1536,
+  "height": 1023,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAAAQBACdASoYABAAPu1mqk4ppaOiMAgBMB2JYwDG9B3F2My1oEM1oNhKAAD92W813S+eiQhpRDHaBwxNbYtuSfa02maEhoyBUFKYPAUq4Hn5UOwzBmK7aHJQxhew13YK6oYXhiJcA8kXD3AkYgAAAA==",
+  "jpeg": "kids-dancing-960.jpg"
+ },
+ "kids-running": {
+  "source": "kids-running.jpg",
+  "width": 1125,
+  "height": 750,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoYABAAPu1iqk2ppaQiMAgBMB2JYwDE2BYnmTSSZ+QgAP5gvFcFcCn/Wtg0Dc3nJLZK9am1an1VkQUeW0LmqV/tJZcu3woJPSkEqM+vJJ2b2aFh+rMxzLkggE1cU82gAAA=",
+  "jpeg": "kids-running-960.jpg"
+ },
+ "laugh-hat": {
+  "source": "laugh-hat.jpg",
+  "width": 960,
+  "height": 1440,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAABQBgCdASoYACQAPu1orU+ppaQiKrgMATAdiUAXz3JwEbeiPZJcCSwsj00zxTjhOm8nhAu2mjx4pR0D0AD+dX0G+ijvpKwPwW94a2trLyHJ79l4ugWI/G0375TKW+w+TUIeJ8t+iHrIl5u96jKeTAhCHyz56LR/9tk1QwqsNdLTDBaoisjtr5oB9c9oVx1dQiQzphy7ojpxEe9cAAA=",
+  "jpeg": "laugh-hat-960.jpg"
+ },
+ "linda-circle": {
+  "source": "linda-circle.jpg",
+  "width": 693,
+  "height": 613,
+  "sizes": [
+   320,
+   480
+  ],
+  "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAQBQCdASoYABUAPu1or1CppaQiqAqpMB2JQBYjcnAaJYj4cgcfsBqSNXz1GtO0an+QAP7xbRnGkMWN6mpuS3I9+RGEuOoX2ViopCDaf2W1+RVR7KhsB86bKP2BLLYTbsgca4Xpl8yVZhrZC7YLgMQ+vngGpB66XGqH6/9ForSPGqPgt6MgkAAA",
+  "jpeg": "linda-circle-960.jpg"
+ },
+ "linda-laughing": {
+  "source": "linda-laughing.jpg",
+  "width": 960,
+  "height": 1440,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAADQBQCdASoYACQAPu1gqU4ppSOiMBVdUTAdiWkAAHG0YrPlpyaV7x5hDM7FLa6j/0FAnMAs3cdAAPP8AI4ztLCpXHrLeQb+mNx22/rQJoF+AxHbbDse6udVcE75ybn8rJIwLGQA1ndz28v/v2mZTp7AhQWLxbQiWHGFsfn+XSkFn7aqBjk3UwmrKTU356oAAAA=",
+  "jpeg": "linda-laughing-960.jpg"
+ },
+ "linda-portrait": {
+  "source": "linda-portrait.jpg",
+  "width": 1536,
+  "height": 1073,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAADQAwCdASoYABEAPu1kqU2ppaQiMAgBMB2JaQAATvrGiO6CxR9f2eAA/vQyXfbSvqrDboWNsnbulJBAxgjamaNtfi4d2T+9eQAAAA==",
+  "jpeg": "linda-portrait-960.jpg"
+ },
+ "linda-stage": {
+  "source": "linda-stage.jpg",
+  "width": 960,
+  "height": 1440,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAABwBgCdASoYACQAPu1sr1GppaQipWsxMB2JQBeUhc2vnrSErtaN/4yCvdIehiZyNd3A1OtIv4UoWBXlreAA/vhIz8n1x0KKBsL7uVpDtJqat1n+mDGiwd8EUeo7+QMIuXpx2ZgmjqDvqo4ygQbXlENigLslmJio1N2yYvoe9CTV2J6sVlEzvtNnk7EyyKgr9B9rf2UaiJlG/TIE4SgAAA==",
+  "jpeg": "linda-stage-960.jpg"
+ },
+ "row-linked-arms": {
+  "source": "row-linked-arms.jpg",
+  "width": 1440,
+  "height": 960,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADwAwCdASoYABAAPu1iqk4ppaQiMAgBMB2JaQATwAESG+gyhZeAlA2AAP7xgIak8Mf9lolkH5GZwkSYybH/DdITLxvGU4iKHZ7nvPGR//tbcdc2NnUeerKDeXK4bGArTqcvG+0E/Y9c2vQzo9fsbles0AAAAA==",
+  "jpeg": "row-linked-arms-960.jpg"
+ },
+ "scene-handshake": {
+  "source": "scene-handshake.jpg",
+  "width": 1536,
+  "height": 1152,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQBACdASoYABIAPu1mqk2ppaQiMAgBMB2JZwAAW/CRRgLj7TaKYAv9Jj6m6QAA/uk/M2FLJBtFHI09yGew4tApnfdbvV0ZnqfH4NhLZBvlrIZua7KY3Iwxq3mCulcDpHpo2m3mJ2NSjIAAAAA=",
+  "jpeg": "scene-handshake-960.jpg"
+ },
+ "three-men": {
+  "source": "three-men.jpg",
+  "width": 2560,
+  "height": 1700,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAABQBACdASoYABAAPu1iqk2ppaQiMAgBMB2JQBOmUABwNxVUspKtuvu3MjGQAP7buE60pJEeb5vYC9jpgEo0fVrgmDKsGAn4DAknvlAZndec9J6T3kskwY721RsoFgSOUhdZybmvwxcXCNHiMw8HNAxNoxa4D5DgO+JIW64YSY5I/5Vs6lXCAAAA",
+  "jpeg": "three-men-960.jpg"
+ },
+ "three-teens": {
+  "source": "three-teens.jpg",
+  "width": 1536,
+  "height": 1028,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADQAwCdASoYABAAPu1oqk6ppiQiMAgBMB2JZwAAQtXJt34AM9pxVAAA/sJyxjFlpRqT7YockcNec8FfZ+WoMcF5LRrSZ/dEGCQgsaRtodFexMp3ZCNETW/DTmKGhZWvMzWPJT5MvNryFoky8MAAAA==",
+  "jpeg": "three-teens-960.jpg"
+ },
+ "two-lines": {
+  "source": "two-lines.jpg",
+  "width": 2560,
+  "height": 1920,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAACwBACdASoYABIAPu1kqU2ppaQiMAgBMB2JZQC2yCHbX+O8dERwDpPRjnoJrRKAAP7mA3Ad10/dCk7iyJF5kvU+M9TX6Oj+h9NclpwsxO6XVOSQtk8rF/72+StytytNGD/ktB4Q3Ol9pomllg5Om6KTPA7iHsPOkPyB0xUCUkwAAA==",
+  "jpeg": "two-lines-960.jpg"
+ },
+ "yellow-trousers": {
+  "source": "yellow-trousers.jpg",
+  "width": 1280,
+  "height": 1707,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAADQBQCdASoYACAAPu1eqE6ppKOiMBgMATAdiWIAt9ja/AAyOiaT+1GWHDYfPY7ccUDqcIKSAJ4AAPh243YD2wJN3aPKs2xupYrOKvIN+7rrydMq6GFGbsXUin2zWALPKPYkjyNe2gYhYDPLqFxT0GuMWi3zjWcBbOlV7+efXFCiPhU3omoRostvQ0FpQIKz33enm+C2Gxt+AE2En4vndCC8Gklbks5W4S2+cU5pF5byX38Ng0aXAAAA",
+  "jpeg": "yellow-trousers-960.jpg"
+ },
+ "zoom-group": {
+  "source": "zoom-group.jpg",
+  "width": 2560,
+  "height": 1920,
+  "sizes": [
+   320,
+   480,
+   960
+  ],
+  "placeholder": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBACdASoYABIAPu1mqk8ppaOiKA1RMB2JQAAEj70NZ2AD9MT9hcz/VmtbIaAA+56EiF/8je10owXyln94Z2NkbQ+Xk520hjwGTle+P/SJcoxt+YNKh8Ymn3XNYeKHZSzw6B0jEb8LBu0EkAWALkTgAAA=",
+  "jpeg": "zoom-group-960.jpg"
+ }
+}

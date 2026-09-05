@@ -1,0 +1,123 @@
+/* Developmental Improvisation — tokens. The only stylesheet that may contain raw colours, sizes, radii or durations. */
+:root {
+  /* Ground — dark is the brand's default */
+  --bg:          #181818;
+  --bg-raised:   #212121;                 /* cards, nav ground = white 4% over --bg */
+  --bg-overlay:  #262626;                 /* popup panel, inputs = white 6% */
+  --line:        rgba(255,255,255,.08);
+  --line-strong: rgba(255,255,255,.16);
+  --scrim:       rgba(24,24,24,.64);
+  --glass:       rgba(24,24,24,.72);
+
+  /* Ink — the only colours text may use on the dark ground */
+  --ink:    #FFFFFF;
+  --ink-2:  rgba(255,255,255,.72);
+  --ink-3:  rgba(255,255,255,.48);
+  --ink-contra: #181818;                  /* the opposite of --ink; flips inside a coloured surface */
+
+  /* Brand hues — the seven colours inside the logo (Jayden: "these should be the card colors, not the pastel") */
+  --c-green:   #51E596;   /* dark ink 11.0:1 */
+  --c-sky:     #58CDFC;   /* dark ink 9.8:1 */
+  --c-violet:  #7358FC;   /* dark ink 3.8:1 → this one takes WHITE ink, 4.6:1 */
+  --c-magenta: #E744E2;   /* dark ink 5.4:1 — not used as a surface in v1 */
+  --c-orange:  #F0895B;   /* dark ink 7.1:1 */
+  --c-pink:    #FB9BC9;   /* dark ink 9.0:1 */
+  --c-yellow:  #FEE79B;   /* dark ink 14.5:1 */
+
+  /* Tints for LARGE dark surfaces (the newsletter card): each hue at 16% over --bg, precomputed */
+  --t-green: #21392C; --t-sky: #22353C; --t-violet: #27223C; --t-magenta: #391F38; --t-orange: #3B2A23; --t-pink: #3C2D34; --t-yellow: #3D392D;
+
+  /* The accent slot. Components read ONLY these. Set with data-accent, never inline. */
+  --accent:      var(--c-sky);
+  --accent-tint: var(--t-sky);
+  --accent-ink:  #181818;                 /* ink on top of the accent at full strength */
+  --focus:       var(--c-sky);
+  --btn-primary-bg:  #FFFFFF;
+  --btn-primary-ink: #181818;
+  --chip-bg:  var(--accent);
+  --chip-ink: var(--accent-ink);
+
+  /* Type — Plus Jakarta Sans, 400 and 600, nothing else */
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-display: clamp(2rem, 3.6vw, 3rem);                  --lh-display: 1.04; --ls-display: -0.03em;
+  --fs-h1:      clamp(2.25rem, 1.5rem + 3vw, 3.75rem);      --lh-h1: 1.06;      --ls-h1: -0.025em;
+  --fs-h2:      clamp(1.75rem, 1.3rem + 1.8vw, 2.75rem);    --lh-h2: 1.1;       --ls-h2: -0.02em;
+  --fs-h3:      clamp(1.375rem, 1.2rem + .6vw, 1.625rem);   --lh-h3: 1.2;       --ls-h3: -0.01em;
+  --fs-lead:    clamp(1.125rem, 1rem + .5vw, 1.3125rem);    --lh-lead: 1.45;    --ls-lead: -0.005em;
+  --fs-body:    clamp(1rem, .95rem + .2vw, 1.0625rem);      --lh-body: 1.6;     --ls-body: 0;
+  --fs-small:   0.875rem;                                   --lh-small: 1.5;    --ls-small: 0.005em;
+  --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.01em;
+  --fs-ui:      1rem;
+  /* Measures are in em, never ch: this face's "0" is 0.685em wide and ch lies */
+  --measure-display: 14em;
+  --measure-sub: 24em;
+  --measure-h2: 16em;
+  --measure-body: 34em;
+
+  /* Space — 4px grid */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
+  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px; --sp-40: 160px;
+  --page-max: 1280px;
+  --gutter: clamp(20px, 2.8vw, 40px);
+  --grid-gap: clamp(16px, 1.7vw, 24px);
+  --section-y: clamp(72px, 3.5vw + 46px, 112px);           /* 96 at 1440 */
+  --section-y-tight: clamp(40px, 2vw + 24px, 64px);
+  --stack-title: var(--sp-6);
+  --stack-body: var(--sp-4);
+  --stack-cta: var(--sp-8);
+
+  /* Radius by size class */
+  --r-xl: 28px;   /* the popup panel, the newsletter card, the stacked cards */
+  --r-lg: 20px;   /* cards, photos */
+  --r-md: 14px;   /* buttons, inputs */
+  --r-full: 999px;
+
+  --nav-h: 64px;
+  --hit: 44px;
+  --z-nav: 50; --z-dialog: 100; --z-skip: 200;
+
+  /* Motion ladder */
+  --dur-press: 100ms;
+  --dur-state: 160ms;
+  --dur-state-out: 240ms;
+  --dur-move: 280ms;
+  --dur-reveal: 360ms;
+  --dur-enter: 500ms;
+  --dur-orbit: 96s;      /* the hero arch and the logo's ring: one revolution */
+  --dur-bob: 3.2s;       /* the figures' bob */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);
+  --ease-settle: linear(0, 0.094, 0.284, 0.483, 0.653, 0.783, 0.875, 0.934, 0.971, 0.991, 1.001, 1.005, 1.006, 1.006, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1, 1, 1);
+  --stagger: 60ms;
+}
+
+/* Accents — one per section, set once on the section */
+[data-accent="green"]   { --accent: var(--c-green);   --accent-tint: var(--t-green);   --accent-ink: #181818; }
+[data-accent="sky"]     { --accent: var(--c-sky);     --accent-tint: var(--t-sky);     --accent-ink: #181818; }
+[data-accent="violet"]  { --accent: var(--c-violet);  --accent-tint: var(--t-violet);  --accent-ink: #FFFFFF; }
+[data-accent="magenta"] { --accent: var(--c-magenta); --accent-tint: var(--t-magenta); --accent-ink: #181818; }
+[data-accent="orange"]  { --accent: var(--c-orange);  --accent-tint: var(--t-orange);  --accent-ink: #181818; }
+[data-accent="pink"]    { --accent: var(--c-pink);    --accent-tint: var(--t-pink);    --accent-ink: #181818; }
+[data-accent="yellow"]  { --accent: var(--c-yellow);  --accent-tint: var(--t-yellow);  --accent-ink: #181818; }
+
+/* A coloured surface: components read the same tokens and come out ink-on-colour */
+[data-surface="accent"] {
+  background: var(--accent);
+  --ink: var(--accent-ink);
+  --ink-2: color-mix(in srgb, var(--accent-ink) 78%, transparent);   /* ≥ 5.4:1 on every dark-ink hue */
+  --ink-3: color-mix(in srgb, var(--accent-ink) 72%, transparent);   /* ≥ 4.7:1 on sky, the palest with dark ink */
+  --ink-contra: var(--accent);
+  --line: color-mix(in srgb, var(--accent-ink) 16%, transparent);
+  --line-strong: color-mix(in srgb, var(--accent-ink) 32%, transparent);
+  --focus: var(--accent-ink);
+  --btn-primary-bg: var(--accent-ink);
+  --btn-primary-ink: var(--accent);
+  --chip-bg: var(--accent-ink);
+  --chip-ink: var(--accent);
+}
+[data-surface="accent"][data-accent="violet"] { --ink-2: #FFFFFF; --ink-3: #FFFFFF; --btn-primary-ink: #181818; --chip-ink: #181818; --btn-primary-bg: #FFFFFF; --chip-bg: #FFFFFF; }   /* white on violet is 4.6:1 — no tiers */
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-bob: 0s; --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; }
+}
