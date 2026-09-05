@@ -3,6 +3,7 @@
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const root = document.documentElement;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = matchMedia('(max-width: 767px)');
   const store = {
@@ -11,13 +12,57 @@
     sget(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
     sset(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
   };
+  const num = (cs, name, d) => { const v = parseFloat(cs.getPropertyValue(name)); return Number.isFinite(v) ? v : d; };
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-  /* ---- Nav: a surface only once there is something under it ---- */
-  const nav = $('#nav');
-  const onScroll = () => nav.classList.toggle('is-scrolled', scrollY > 24);
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  /* ---- Theme: light unless the visitor chose dark; the header is dark either way ---- */
+  const applyTheme = (t, animate) => {
+    if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 320); }
+    root.dataset.theme = t;
+    $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
+  };
+  applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light', false);
+  $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
+    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    store.set('di:theme', t); applyTheme(t, true);
+  }));
 
-  /* ---- Hero: first paint once per session; pause control; hidden tab ---- */
+  /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
+     angle follows target with a time constant of --flow-settle, so a scroll accelerates the arch and it settles back to the drift. */
+  const flow = (() => {
+    let drift, perPx, settle;
+    const readTokens = () => { const cs = getComputedStyle(root); drift = num(cs, '--flow-drift', 3.75); perPx = num(cs, '--flow-scroll', .09); settle = num(cs, '--flow-settle', .32); };
+    readTokens();
+    let target = 0, angle = 0, sTarget = 0, sAngle = 0, lastY = scrollY, lastT = 0, hold = 1, running = false;
+    const holds = new Set();
+    const listeners = new Set();
+    const emit = () => { for (const fn of listeners) fn(angle, sAngle); };
+    const frame = (t) => {
+      const dt = lastT ? Math.min(.05, (t - lastT) / 1000) : 0; lastT = t;
+      hold += ((holds.size ? 0 : 1) - hold) * (1 - Math.exp(-dt / .18));
+      if (hold < .005) hold = 0; else if (hold > .995) hold = 1;
+      target += drift * hold * dt;
+      const k = 1 - Math.exp(-dt / settle);
+      angle += (target - angle) * k; sAngle += (sTarget - sAngle) * k;
+      emit();
+      const idle = Math.abs(target - angle) < .002 && Math.abs(sTarget - sAngle) < .002 && drift * hold < .01;
+      if (idle || document.hidden) { running = false; lastT = 0; return; }
+      requestAnimationFrame(frame);
+    };
+    const wake = () => { if (running) return; running = true; lastT = 0; requestAnimationFrame(frame); };
+    addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; target += d; sTarget += d; wake(); }, { passive: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+    reduced.addEventListener('change', () => { readTokens(); wake(); });
+    return {
+      on(fn) { listeners.add(fn); fn(angle, sAngle); wake(); },
+      hold(key, on) { if (on) holds.add(key); else holds.delete(key); wake(); },
+      get angle() { return angle; },
+      get held() { return holds.size > 0; },
+      set(a) { angle = target = a; emit(); },   // test hook
+    };
+  })();
+
+  /* ---- Hero: the arch ---- */
   const hero = $('#top');
   if (hero) {
     if (store.sget('di:arrived')) { hero.classList.add('is-ready'); }
@@ -26,32 +71,37 @@
       $$('.hero__copy > *', hero).forEach((el, i) => el.style.setProperty('--d', i));
       requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-ready'); store.sset('di:arrived', '1'); }));
     }
-    const pause = $('.orbit__pause', hero);
-    pause.addEventListener('click', () => {
-      const on = hero.classList.toggle('is-paused');
-      pause.setAttribute('aria-pressed', String(on));
-      pause.setAttribute('aria-label', on ? 'Play the photo carousel' : 'Pause the photo carousel');
-    });
-    document.addEventListener('visibilitychange', () => hero.classList.toggle('is-hidden', document.hidden));
-    // touch: a tap on a card pauses the ring for 4s
+    // the arch drifts only while it is on screen
+    new IntersectionObserver(([en]) => flow.hold('offscreen', !en.isIntersecting), { threshold: 0 }).observe(hero);
+  }
+  $$('.orbit__ring').forEach(ring => {
+    const box = ring.closest('.hero') || ring.parentElement;
+    const items = $$('.orbit__item', ring);
+    let n, k, fadeA, fadeB;
+    const readGeometry = () => { const cs = getComputedStyle(box); n = num(cs, '--n', 14); k = num(cs, '--k', .4); fadeA = num(cs, '--fade-a', 80); fadeB = num(cs, '--fade-b', 92); };
+    readGeometry();
+    addEventListener('resize', readGeometry);
+    const render = (a) => {
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const s = ((a + i * 360 / n) % 360 + 540) % 360 - 180;   // signed angle from the top, −180…180
+        const abs = Math.abs(s);
+        if (abs >= fadeB) { if (it.style.visibility !== 'hidden') { it.style.visibility = 'hidden'; it.style.opacity = '0'; } continue; }
+        it.style.visibility = 'visible';
+        it.style.opacity = (abs <= fadeA ? 1 : 1 - (abs - fadeA) / (fadeB - fadeA)).toFixed(3);
+        // orbit to the angle, out to the radius, then lean: k × the signed angle, so both halves lean into the arch
+        it.style.transform = `rotate(${s.toFixed(3)}deg) translateY(calc(-1 * var(--r))) rotate(${(-(1 - k) * s).toFixed(3)}deg)`;
+      }
+    };
+    flow.on(render);
+    // pointer over a photograph: the drift eases to a stop; away: it eases back
+    ring.addEventListener('pointerover', (e) => { if (e.target.closest('.orbit__card')) flow.hold(ring, true); });
+    ring.addEventListener('pointerout', (e) => { if (e.target.closest('.orbit__card') && !(e.relatedTarget && e.relatedTarget.closest('.orbit__card'))) flow.hold(ring, false); });
     let touchTimer;
-    hero.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('.orbit__card')) return;
-      hero.classList.add('is-paused'); clearTimeout(touchTimer);
-      touchTimer = setTimeout(() => { if (pause.getAttribute('aria-pressed') !== 'true') hero.classList.remove('is-paused'); }, 4000);
-    }, { passive: true });
-  }
-
-  /* ---- Figures band pause ---- */
-  const figures = $('.figures');
-  if (figures) {
-    const fp = $('.figures__pause', figures);
-    fp.addEventListener('click', () => {
-      const on = figures.classList.toggle('is-paused');
-      fp.setAttribute('aria-pressed', String(on));
-      fp.setAttribute('aria-label', on ? 'Play the figures' : 'Pause the figures');
-    });
-  }
+    ring.addEventListener('touchstart', (e) => { if (!e.target.closest('.orbit__card')) return; flow.hold(ring, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(ring, false), 4000); }, { passive: true });
+  });
+  // the logo's ring of figures turns with the scroll
+  $$('.logo__ring').forEach(r => flow.on((a, sa) => { r.style.transform = `rotate(${sa.toFixed(3)}deg)`; }));
 
   /* ---- Reveal on scroll, once ---- */
   const io = new IntersectionObserver((entries) => {
@@ -60,23 +110,31 @@
   $$('.reveal, .pile').forEach(el => io.observe(el));
   $$('.reveal--stagger').forEach(p => $$(':scope > .reveal', p).forEach((c, i) => c.style.setProperty('--d', Math.min(i, 6))));
 
-  /* ---- The stack: the card beneath the current one recedes ---- */
-  const cards = $$('.stack__card');
-  if (cards.length) {
-    const stickyTop = () => parseFloat(getComputedStyle(cards[0]).top) || 88;
-    let ticking = false;
+  /* ---- The stack: a covered card shrinks from its top edge as the next one climbs over it; deeper cards are smaller ---- */
+  const stackUpdate = (() => {
+    const cards = $$('.stack__card');
+    if (!cards.length) return () => {};
+    cards.forEach((c, i) => c.style.setProperty('--i', i));
     const update = () => {
-      ticking = false;
-      const top = stickyTop() + 1;
-      cards.forEach((c, i) => {
-        const next = cards[i + 1];
-        const under = !!next && next.getBoundingClientRect().top <= top + c.offsetHeight * 0.5;
-        c.classList.toggle('is-under', under && !reduced.matches);
+      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; }); return; }
+      const cover = cards.map((c, i) => {
+        const next = cards[i + 1]; if (!next) return 0;
+        const r = c.getBoundingClientRect(), nr = next.getBoundingClientRect();
+        return clamp((r.bottom - nr.top) / r.height, 0, 1);
       });
+      let depth = 0;
+      for (let i = cards.length - 1; i >= 0; i--) {
+        depth += cover[i];
+        const s = 1 - .045 * Math.min(depth, 3);
+        cards[i].style.transform = depth > 0.001 ? `scale(${s.toFixed(4)})` : '';
+      }
     };
-    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    let ticking = false;
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; update(); }); } };
+    addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll);
     update();
-  }
+    return update;
+  })();
 
   /* ---- Testimonial pile: pager on mobile ---- */
   const pile = $('.pile');
@@ -174,4 +232,6 @@
       }
     });
   });
+
+  window.__di = { flow, stackUpdate };   // hooks for tools/gates
 })();

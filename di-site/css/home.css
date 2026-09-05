@@ -1,86 +1,52 @@
-/* Home page only: the arch, the figures band, the stack, the pile, newsletter, contact */
+/* Home page only: the arch, the stack, the pile, newsletter, contact */
 
-/* ---------- Hero: the arch ---------- */
-.hero { --hero-h: clamp(640px, 100svh, 960px); --r: min(48vw, calc((var(--hero-h) - 88px) / 1.29)); --cw: calc(var(--r) * .32); --k: .4; --n: 14;
-  position: relative; height: var(--hero-h); overflow: hidden; }
+/* ---------- Hero: the arch ----------
+   Geometry is CSS; the motion is js/main.js (the "flow": a slow drift plus whatever the visitor scrolls, eased).
+   The hero sits under the dark header, so the top card can come within 40px of the hero's top edge. */
+.hero { --hero-h: clamp(640px, 100svh, 960px); --r: min(48vw, calc((var(--hero-h) - 40px) / 1.29)); --cw: calc(var(--r) * .32); --k: .4; --n: 14; --fade-a: 80; --fade-b: 92;
+  position: relative; margin-top: var(--nav-h); height: var(--hero-h); overflow: hidden; }
 .orbit__ring { position: absolute; left: 50%; top: calc(var(--hero-h) - var(--r) * .08); width: 0; height: 0; pointer-events: none; }
-.orbit__item { position: absolute; left: 0; top: 0; width: var(--cw); aspect-ratio: 4 / 5; margin-left: calc(var(--cw) / -2); margin-top: calc(var(--cw) * -.625);
-  will-change: transform; animation: orbit var(--dur-orbit) linear infinite, orbit-fade var(--dur-orbit) linear infinite; animation-delay: calc(-1 * var(--i) / var(--n) * var(--dur-orbit)); }
-/* The tilt is k × the SIGNED angle from the top (−180…180), so both halves of the arch lean the same way.
-   A single 0→360 sweep would give the left half tilts of 100°+ (that was v1's "wrong orientation"), so the
-   counter-rotation jumps at 50% — while the card is invisible at the bottom of the ring. */
-@keyframes orbit {
-  0%       { transform: rotate(0deg)   translateY(calc(-1 * var(--r))) rotate(0deg); }
-  50%      { transform: rotate(180deg) translateY(calc(-1 * var(--r))) rotate(calc(-180deg * (1 - var(--k)))); }
-  50.0001% { transform: rotate(180deg) translateY(calc(-1 * var(--r))) rotate(calc(-180deg - 180deg * var(--k))); }
-  100%     { transform: rotate(360deg) translateY(calc(-1 * var(--r))) rotate(-360deg); }
-}
-/* visible for |angle| ≤ 80°, gone by 92° (as fractions of a revolution) */
-@keyframes orbit-fade { 0%, 22.2% { opacity: 1; } 25.6%, 74.4% { opacity: 0; } 77.8%, 100% { opacity: 1; } }
-.orbit__card { width: 100%; height: 100%; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-raised); border: 1px solid var(--line); pointer-events: auto; transition: transform var(--dur-move) var(--ease-out), border-color var(--dur-move) var(--ease-out); }
-.orbit__card picture, .orbit__card img { width: 100%; height: 100%; }
-.orbit__card img { object-fit: cover; object-position: var(--pos, 50% 50%); }
-.orbit__card:hover, .orbit__card:focus-within { transform: scale(1.04); border-color: var(--line-strong); }
-.hero:hover .orbit__item, .hero.is-paused .orbit__item, .hero.is-hidden .orbit__item { animation-play-state: paused; }
-.hero:hover .logo__ring, .hero.is-paused .logo__ring, .hero.is-hidden .logo__ring { animation-play-state: paused; }
-.orbit__pause { position: absolute; left: 50%; transform: translateX(-50%); bottom: var(--sp-4); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-md); color: var(--ink-2); z-index: 3; transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
-.orbit__pause:hover { color: var(--ink); background: var(--bg-raised); }
-.orbit__pause .icon--play { display: none; }
-.hero.is-paused .orbit__pause .icon--play { display: block; }
-.hero.is-paused .orbit__pause .icon--pause { display: none; }
-
-.hero__copy { position: absolute; left: 50%; top: calc(var(--hero-h) - var(--r) * .88 + 24px); transform: translateX(-50%); width: min(100% - 2 * var(--gutter), 900px); text-align: center; z-index: 2; }
-.logo { height: min(140px, calc(var(--hero-h) * .155), 10vw); width: auto; margin: 0 auto var(--sp-6); overflow: visible; }
-.logo__ring { transform-box: view-box; transform-origin: 393.1px 420.9px; animation: ring-turn var(--dur-orbit) linear infinite; }
-@keyframes ring-turn { to { transform: rotate(360deg); } }
-.hero__title { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: var(--measure-display); margin: 0 auto var(--sp-3); }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); margin: 0 auto var(--sp-7); }
+.orbit__item { position: absolute; left: 0; top: 0; width: var(--cw); aspect-ratio: 4 / 5; margin-left: calc(var(--cw) / -2); margin-top: calc(var(--cw) * -.625); will-change: transform, opacity; visibility: hidden; }
+/* Each photograph sits in a frame of one brand hue (--c, set per slot); the frame is the edge, so no fringe shows on a rotated card */
+.orbit__card { width: 100%; height: 100%; padding: var(--frame); background: var(--c, var(--accent)); border-radius: var(--r-lg); pointer-events: auto; transition: transform var(--dur-move) var(--ease-out); }
+.orbit__photo { width: 100%; height: 100%; border-radius: calc(var(--r-lg) - var(--frame)); overflow: hidden; background: var(--bg-sunken) center / cover no-repeat; }
+.orbit__photo picture, .orbit__photo img { width: 100%; height: 100%; }
+.orbit__photo img { object-fit: cover; object-position: var(--pos, 50% 50%); }
+.orbit__card:hover, .orbit__card:focus-within { transform: scale(1.04); }
+/* The copy hangs from the fold, 24px above it, so on every screen height it sits in the lowest, widest part of the arch */
+.hero__copy { position: absolute; left: 50%; bottom: max(var(--sp-6), calc(var(--nav-h) + var(--hero-h) - 100svh + var(--sp-6))); transform: translateX(-50%); width: min(100% - 2 * var(--gutter), 900px); text-align: center; z-index: 2; }
+.hero__title { font-size: min(var(--fs-display), calc(var(--hero-h) * .058)); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: var(--measure-display); margin: 0 auto var(--sp-4); text-wrap: balance; }
+.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); margin: 0 auto var(--sp-8); }
 .hero__actions { display: flex; justify-content: center; gap: var(--sp-3); flex-wrap: wrap; }
 /* first paint: once per session */
 .hero.is-arriving .hero__copy > * { opacity: 0; transform: translateY(8px); }
 .hero.is-arriving .orbit__ring { opacity: 0; }
 .hero.is-ready .hero__copy > * { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.hero.is-ready .hero__copy .logo { transform: none; }
-.hero.is-ready .orbit__ring { opacity: 1; transition: opacity var(--dur-enter) var(--ease-out) calc(var(--stagger) * 4); }
+.hero.is-ready .orbit__ring { opacity: 1; transition: opacity var(--dur-enter) var(--ease-out) calc(var(--stagger) * 3); }
+/* the logo's ring of figures turns with the scroll; its centre is the ring's inner circle, measured, not the box */
+.logo__ring { transform-box: view-box; transform-origin: 393px 451.7px; will-change: transform; }
 
-@media (max-height: 780px) and (min-width: 768px) { .orbit__pause { left: auto; right: var(--gutter); transform: none; background: var(--bg-raised); } }
+@media (max-width: 1199px) and (min-width: 768px) { .hero { --r: min(52vw, calc((var(--hero-h) - 40px) / 1.29)); } }
 @media (max-width: 767px) {
-  .hero { --r: 360px; --cw: 116px; }
-  .orbit__ring { top: 532px; }
-  .orbit__item { animation-name: orbit, orbit-fade-m; }
-  @keyframes orbit-fade-m { 0%, 11.7% { opacity: 1; } 15.6%, 84.4% { opacity: 0; } 88.3%, 100% { opacity: 1; } }
-  .hero__copy { top: 300px; }
-  .logo { height: 72px; margin-bottom: var(--sp-4); }
-  .hero__title { font-size: clamp(1.625rem, 8vw, 2rem); }
+  .hero { --hero-h: clamp(640px, calc(100svh - var(--nav-h) - 60px), 900px); --r: 340px; --cw: 128px; --fade-a: 34; --fade-b: 46; }
+  .orbit__ring { top: 500px; }
+  .hero__copy { top: 356px; bottom: auto; }
+  .hero__title { font-size: clamp(1.75rem, 8.4vw, 2.125rem); }
   .hero__sub { margin-bottom: var(--sp-5); }
   .hero__actions { flex-direction: column; align-items: stretch; max-width: 320px; margin-inline: auto; }
-  .orbit__pause { bottom: var(--sp-4); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .orbit__item, .logo__ring { animation-play-state: paused; }
   .hero.is-arriving .hero__copy > * { transform: none; }
+  .orbit__card:hover, .orbit__card:focus-within { transform: none; }
 }
 
-/* ---------- Figures band ---------- */
-.figures { position: relative; padding: var(--section-y-tight) 0; }
-.figures__row { display: flex; justify-content: center; align-items: flex-end; gap: 0; overflow: hidden; border-bottom: 1px solid var(--line); }
-.figure { flex: none; width: 96px; height: 48px; color: var(--c); animation: bob var(--dur-bob) var(--ease-in-out) infinite alternate; animation-delay: calc(var(--i) * 120ms); }
-@media (min-width: 1024px) { .figure { width: 128px; height: 64px; } }
-@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
-.figures.is-paused .figure { animation-play-state: paused; }
-.figures__pause { position: absolute; right: var(--gutter); bottom: calc(var(--section-y-tight) - var(--hit) / 2 - 2px); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-md); color: var(--ink-3); transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
-.figures__pause:hover { color: var(--ink); background: var(--bg-raised); }
-.figures__pause .icon--play { display: none; }
-.figures.is-paused .figures__pause .icon--play { display: block; }
-.figures.is-paused .figures__pause .icon--pause { display: none; }
-@media (prefers-reduced-motion: reduce) { .figure { animation: none; } }
-
-/* ---------- The stack ---------- */
-.stack { display: grid; gap: var(--sp-6); perspective: 1200px; }
-.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6)); padding: var(--sp-8); min-height: auto; display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-8); transform-origin: 50% 100%; transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-move) var(--ease-out); }
-.stack__card.is-under { transform: perspective(1200px) rotateX(6deg) scale(.96); opacity: .9; }
+/* ---------- The stack ----------
+   Sticky cards, each 12px lower than the one before, so the covered cards show as coloured edges above the current one.
+   js/main.js scales a covered card down from its top edge in step with how far the next card has climbed over it. */
+.stack { display: grid; gap: var(--sp-6); }
+.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6) + var(--i, 0) * var(--sp-3)); padding: var(--sp-8); display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-8); transform-origin: 50% 0; will-change: transform; }
 .stack__num { position: absolute; top: var(--sp-8); right: var(--sp-8); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
-.stack__title { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); margin-bottom: var(--sp-5); padding-right: var(--sp-16); }
+.stack__title { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); margin-bottom: var(--sp-5); padding-right: var(--sp-16); text-wrap: balance; }
 .stack__body .t-body { color: var(--ink-2); }
 .stack__body .t-body:first-child { color: var(--ink); }
 .stack__extra { margin-top: var(--sp-6); }
@@ -91,12 +57,11 @@
   .stack__num { top: var(--sp-12); right: var(--sp-12); }
   .stack__tiles .photo { aspect-ratio: 4 / 5; }
 }
-@media (prefers-reduced-motion: reduce) { .stack__card.is-under { transform: none; opacity: 1; } }
 
 /* ---------- Testimonial pile ---------- */
-.pile { position: relative; height: 560px; }
+.pile { position: relative; height: 660px; }
 .pile__card { position: absolute; left: var(--x); top: var(--y); transform: rotate(var(--rot)); transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-reveal) var(--ease-settle); }
-.pile:not(.is-in) .pile__card { opacity: 0; transform: translateY(-40px) rotate(calc(var(--rot) - 4deg)); }
+.js .pile:not(.is-in) .pile__card { opacity: 0; transform: translateY(-40px) rotate(calc(var(--rot) - 4deg)); }
 .pile.is-in .pile__card { opacity: 1; transition: transform var(--dur-reveal) var(--ease-settle), opacity var(--dur-reveal) var(--ease-settle); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .pile.is-in .pile__card:hover, .pile.is-in .pile__card:focus-within { transform: rotate(0deg) scale(1.02); transition: transform var(--dur-move) var(--ease-out); z-index: 2; }
 @media (max-width: 1023px) {
@@ -106,11 +71,11 @@
 }
 .pile__pager { display: none; justify-content: center; gap: var(--sp-3); margin-top: var(--sp-4); }
 .pile__pager .star { width: 10px; height: 11px; color: var(--ink-3); transition: color var(--dur-state) var(--ease-out); }
-.pile__pager .star.is-active { color: var(--accent); }
+.pile__pager .star.is-active { color: var(--accent-mark); }
 @media (max-width: 1023px) { .pile__pager { display: flex; } }
-@media (prefers-reduced-motion: reduce) { .pile:not(.is-in) .pile__card { transform: rotate(var(--rot)); } }
+@media (prefers-reduced-motion: reduce) { .js .pile:not(.is-in) .pile__card { transform: rotate(var(--rot)); } }
 
-/* ---------- Newsletter ---------- */
+/* ---------- Newsletter: a full-strength brand surface ---------- */
 .newsletter { padding: var(--sp-8); display: grid; gap: var(--sp-6); border-radius: var(--r-xl); }
 .newsletter .mark { width: 40px; height: 43px; color: var(--ink); margin-bottom: var(--sp-5); }
 .newsletter h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: 10em; }

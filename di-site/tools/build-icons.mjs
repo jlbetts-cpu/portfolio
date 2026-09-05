@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const mono = await readFile(path.join(root, 'assets/logo/dilogobasicwhite.svg'));
 const colour = await readFile(path.join(root, 'assets/logo/dilogocolor.svg'));
-const bg = { r: 24, g: 24, b: 24, alpha: 1 };
+const bg = { r: 27, g: 25, b: 22, alpha: 1 };
 // app icons: the white monogram on the dark ground with breathing room
 for (const size of [192, 512, 180]) {
   const inner = Math.round(size * 0.6);

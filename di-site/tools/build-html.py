@@ -3,8 +3,9 @@ import json, html, datetime, re
 root='/home/user/portfolio/di-site'
 man=json.load(open(f'{root}/images/manifest.json'))
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
+navlogo=logo.replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>', ' aria-hidden="true">')
+assert navlogo!=logo
 sprite=open(f'{root}/assets/icons.svg').read().strip()
-fig=re.search(r'<path[^>]*/>',open(f'{root}/assets/illustrations/figure.svg').read()).group(0)
 star=re.search(r'<path[^>]*/>',open(f'{root}/assets/illustrations/star.svg').read()).group(0)
 whitemark=open(f'{root}/assets/logo/dilogo.svg').read()
 whitemark_paths=''.join(re.findall(r'<path[^>]*/>',whitemark)).replace('fill="white"','fill="currentColor"')
@@ -18,7 +19,7 @@ ALT={
  'laugh-hat':'A participant in a bucket hat laughs with his eyes closed',
  'conga-line':'Six teenagers in white shirts and ties bend forward in a line across a stage',
  'linda-laughing':'Linda Kellogg Fulton laughs while leading a session',
- 'bow-ties-wall':'A tall boy and a small boy in white shirts and bow ties strike poses in front of a brick wall',
+ 'boy-fist':'A boy in a blue shirt punches the air and laughs, another boy behind him',
  'floor-game':'A participant in green crawls across the floor during a group game while others raise their hands',
  'three-teens':'Three teenagers in white shirts and ties play a scene on a grey set',
  'row-linked-arms':'Three participants stand in a row with their arms linked',
@@ -34,8 +35,8 @@ ALT={
  'zoom-group':'A workshop group poses on a green floor under a screen showing Linda on a video call',
  'duo-brick':'Two adults in white shirts play a scene in front of a brick wall',
 }
-POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'20% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'0% 50%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
-     'linda-portrait':'50% 40%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
+POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'0% 50%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
+     'linda-portrait':'30% 35%','boy-fist':'50% 40%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
 def picture(name, sizes, lazy=True, cls='', ratio=None):
     m=man[name]; srcs=m['sizes']
@@ -51,12 +52,12 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-ORBIT=['yellow-trousers','bow-tie-chairs','circle-hands','blue-shirts','laugh-hat','conga-line','linda-laughing','bow-ties-wall','floor-game','three-teens','row-linked-arms','scene-handshake','linda-stage','three-men']
-OSIZES='(max-width: 767px) 116px, (max-width: 1440px) 15vw, 230px'
-orbit=''.join(f'<div class="orbit__item" style="--i:{i}"><div class="orbit__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,OSIZES,lazy=i>4)}</div></div>' for i,n in enumerate(ORBIT))
+ORBIT=['yellow-trousers','bow-tie-chairs','circle-hands','blue-shirts','laugh-hat','conga-line','linda-portrait','boy-fist','floor-game','three-teens','row-linked-arms','scene-handshake','linda-stage','three-men']
+OSIZES='(max-width: 767px) 128px, (max-width: 1440px) 16vw, 240px'
+# one brand hue per frame; seven hues over fourteen slots, so no two neighbours share one and slot 13 (magenta) meets slot 0 (sky)
+FRAMES=['sky','green','yellow','pink','orange','violet','magenta']*2
+orbit=''.join(f'<div class="orbit__item" style="--i:{i}"><div class="orbit__card" style="--c:var(--c-{FRAMES[i]})"><div class="orbit__photo" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,OSIZES,lazy=i>4)}</div></div></div>' for i,n in enumerate(ORBIT))
 
-HUES=['sky','green','yellow','pink','orange','violet']
-figures=''.join(f'<svg class="figure" style="--i:{i};--c:var(--c-{HUES[i%6]})" aria-hidden="true"><use href="#figure"/></svg>' for i in range(30))
 
 P=[
  "Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.",
@@ -77,14 +78,15 @@ def stack_card(num, accent, title, paras, extra, tiles):
             f'<div class="stack__tiles">{tl}</div></article>')
 chips3='<div class="chips">'+''.join(f'<span class="chip">{c}</span>' for c in ['critical thinking','creative problem-solving','cooperation','communication'])+'</div>'
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
-stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-portrait','linda-circle'])
+stack=(stack_card('01','sky','Welcome to Developmental Improvisation',P[0:2],'',['linda-laughing','linda-circle'])
       +stack_card('02','green','Safe, educational, and thrilling exercises and games',P[2:3],'',['kids-dancing','kids-running'])
       +stack_card('03','yellow','“What would you do?”',P[3:4],chips3,['cast-pose','two-lines'])
       +stack_card('04','violet','The end result',P[4:6],btn4,['zoom-group','duo-brick']))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat, duis aute irure.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
-POSE=[('0px','40px','-5deg','sky'),('380px','0px','3deg','green'),('760px','60px','-2deg','yellow'),('200px','300px','4deg','pink'),('600px','320px','-6deg','orange')]
+quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
+# five cards in two rows; the rows touch only at rotated corners, so no quote is hidden under another card
+POSE=[('0px','40px','-5deg','sky'),('380px','0px','3deg','green'),('760px','60px','-2deg','yellow'),('200px','368px','4deg','pink'),('600px','384px','-6deg','magenta')]
 pile=''.join(f'<li class="pile__card card testimonial" data-placeholder="true" data-accent="{a}" style="--x:{x};--y:{y};--rot:{r}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for q,(x,y,r,a) in zip(quotes,POSE))
 pager=''.join(f'<svg class="star{" is-active" if i==0 else ""}" aria-hidden="true"><use href="#star"/></svg>' for i in range(5))
 
@@ -100,8 +102,8 @@ page=f'''<!DOCTYPE html>
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(P[0])}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#181818">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#1B1916">
+<meta name="color-scheme" content="light dark">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(P[0])}">
 <meta property="og:type" content="website">
@@ -118,15 +120,16 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
+<script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="figure" viewBox="189 -1 414 208">{fig}</symbol><symbol id="star" viewBox="489.5 285 57.8 66">{star}</symbol><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="star" viewBox="489.5 285 57.8 66">{star}</symbol><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
 
-<header class="nav" id="nav">
+<header class="nav" id="nav" data-surface="ink">
   <div class="container nav__bar">
-    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><span class="word">Developmental Improvisation</span></a>
+    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
     <nav class="nav__links" aria-label="Primary"><a href="/" aria-current="page">Home</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
-    <div class="nav__actions"><button class="btn btn--secondary btn--compact" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
+    <div class="nav__actions"><button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
 </header>
 
@@ -134,15 +137,11 @@ page=f'''<!DOCTYPE html>
   <section class="hero" id="top" aria-labelledby="heroTitle">
     <div class="orbit__ring" id="gallery" aria-hidden="true">{orbit}</div>
     <div class="hero__copy">
-      {logo}
       <h1 class="hero__title" id="heroTitle"><span class="sr-only">Developmental Improvisation. </span>New tools for cognitive development &amp; emotional understanding</h1>
       <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
       <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
     </div>
-    <button class="orbit__pause" type="button" aria-pressed="false" aria-label="Pause the photo carousel"><svg class="icon icon--pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="icon icon--play" aria-hidden="true"><use href="#i-play"/></svg></button>
   </section>
-
-  <div class="figures"><div class="figures__row" aria-hidden="true">{figures}</div><button class="figures__pause" type="button" aria-pressed="false" aria-label="Pause the figures"><svg class="icon icon--pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="icon icon--play" aria-hidden="true"><use href="#i-play"/></svg></button></div>
 
   <section class="section" id="welcome" data-accent="sky" aria-labelledby="welcomeLabel">
     <div class="container">
@@ -158,7 +157,7 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="testimonials" data-accent="orange" aria-labelledby="testimonialsLabel">
+  <section class="section" id="testimonials" data-accent="magenta" aria-labelledby="testimonialsLabel">
     <div class="container">
       <p class="section__label reveal" id="testimonialsLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Testimonials</p>
       <ul class="pile" tabindex="0" aria-label="Testimonials, scroll sideways on small screens">{pile}</ul>
@@ -166,9 +165,9 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="newsletter" data-accent="sky" aria-labelledby="newsletterTitle">
+  <section class="section" id="newsletter" data-accent="orange" aria-labelledby="newsletterTitle">
     <div class="container">
-      <div class="newsletter card card--tint reveal">
+      <div class="newsletter card card--accent reveal" data-surface="accent">
         <div class="newsletter__head"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><h2 id="newsletterTitle">Sign Up for our Newsletter!</h2></div>
         <div class="newsletter__form">{form('nl')}</div>
       </div>
@@ -198,7 +197,7 @@ page=f'''<!DOCTYPE html>
   </div>
 </footer>
 
-<dialog class="dialog" id="newsletterDialog" aria-labelledby="dialogTitle">
+<dialog class="dialog" id="newsletterDialog" aria-labelledby="dialogTitle" data-accent="orange" data-surface="accent">
   <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
   <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
   <h2 id="dialogTitle" tabindex="-1">Sign Up for our Newsletter!</h2>
