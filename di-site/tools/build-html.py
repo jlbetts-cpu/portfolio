@@ -20,6 +20,8 @@ ALT={
  'conga-line':'Six teenagers in white shirts and ties bend forward in a line across a stage',
  'linda-laughing':'Linda Kellogg Fulton laughs while leading a session',
  'boy-fist':'A boy in a blue shirt punches the air and laughs, another boy behind him',
+ 'kids-bw-small':'Four children in white shirts sit and stand together on a stage, in black and white',
+ 'cast-stage-small':'A cast of eight in white shirts and coloured ties takes a bow on a lit stage',
  'floor-game':'A participant in green crawls across the floor during a group game while others raise their hands',
  'three-teens':'Three teenagers in white shirts and ties play a scene on a grey set',
  'row-linked-arms':'Three participants stand in a row with their arms linked',
@@ -36,7 +38,7 @@ ALT={
  'duo-brick':'Two adults in white shirts play a scene in front of a brick wall',
 }
 POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'0% 50%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
-     'linda-portrait':'30% 35%','boy-fist':'50% 40%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
+     'linda-portrait':'22% 40%','boy-fist':'50% 40%','kids-bw-small':'50% 50%','cast-stage-small':'50% 50%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
 def picture(name, sizes, lazy=True, cls='', ratio=None):
     m=man[name]; srcs=m['sizes']
@@ -52,11 +54,16 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-ORBIT=['yellow-trousers','bow-tie-chairs','circle-hands','blue-shirts','laugh-hat','conga-line','linda-portrait','boy-fist','floor-game','three-teens','row-linked-arms','scene-handshake','linda-stage','three-men']
-OSIZES='(max-width: 767px) 128px, (max-width: 1440px) 16vw, 240px'
-# one brand hue per frame; seven hues over fourteen slots, so no two neighbours share one and slot 13 (magenta) meets slot 0 (sky)
-FRAMES=['sky','green','yellow','pink','orange','violet','magenta']*2
-orbit=''.join(f'<div class="orbit__item" style="--i:{i}"><div class="orbit__card" style="--c:var(--c-{FRAMES[i]})"><div class="orbit__photo" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,OSIZES,lazy=i>4)}</div></div></div>' for i,n in enumerate(ORBIT))
+# the hero strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
+STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens']
+SSIZES='(max-width: 767px) 236px, (max-width: 1440px) 21vw, 300px'
+def strip_cards(hidden):
+    return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4)}</figure>' for i,n in enumerate(STRIP))
+strip=strip_cards(False)+strip_cards(True)
+# the quote ring: eight shaped photographs; four of them also appear in the strip, far above
+RING=[('bow-tie-chairs','round'),('linda-portrait','tilt'),('yellow-trousers','circle'),('kids-bw-small','round'),('laugh-hat','tilt'),('cast-stage-small','circle'),('three-men','round'),('circle-hands','tilt')]
+RSIZES='(max-width: 767px) 80px, (max-width: 1023px) 120px, 150px'
+ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--{shape}" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n,shape in RING)
 
 
 P=[
@@ -72,7 +79,7 @@ def stack_card(num, accent, title, paras, extra, tiles):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
     tl=''.join(photo(t,'4x5',TS) for t in tiles)
     extra_html=('<div class="stack__extra">'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card card--accent" data-accent="{accent}" data-surface="accent" aria-labelledby="stack-{num}">'
+    return (f'<article class="stack__card card card--hover" data-accent="{accent}" data-surface="hover" aria-labelledby="stack-{num}">'
             f'<div><span class="stack__num" aria-hidden="true">({num})</span><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
             f'<div class="stack__tiles">{tl}</div></article>')
@@ -87,7 +94,7 @@ LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod t
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", LOREM+" Ut enim ad minim veniam, quis nostrud.", LOREM, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
 # five cards in two rows; the rows touch only at rotated corners, so no quote is hidden under another card
 POSE=[('0px','40px','-5deg','sky'),('380px','0px','3deg','green'),('760px','60px','-2deg','yellow'),('200px','368px','4deg','pink'),('600px','384px','-6deg','magenta')]
-pile=''.join(f'<li class="pile__card card testimonial" data-placeholder="true" data-accent="{a}" style="--x:{x};--y:{y};--rot:{r}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for q,(x,y,r,a) in zip(quotes,POSE))
+pile=''.join(f'<li class="pile__card card card--hover testimonial" data-placeholder="true" data-accent="{a}" data-surface="hover" style="--x:{x};--y:{y};--rot:{r}"><p class="testimonial__quote">“{q}”</p><div class="testimonial__who"><span class="testimonial__avatar" aria-hidden="true">FL</span><div><div class="testimonial__name">First Last</div><div class="testimonial__role">Role, Organization</div></div></div></li>' for q,(x,y,r,a) in zip(quotes,POSE))
 pager=''.join(f'<svg class="star{" is-active" if i==0 else ""}" aria-hidden="true"><use href="#star"/></svg>' for i in range(5))
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
@@ -122,7 +129,7 @@ page=f'''<!DOCTYPE html>
 <body>
 <script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="star" viewBox="489.5 285 57.8 66">{star}</symbol><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="star" viewBox="489.5 285 57.8 66">{star}</symbol><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol><symbol id="arc" viewBox="0 0 100 100"><path d="M 14 34 A 40 40 0 0 0 86 34"/></symbol><symbol id="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></symbol></svg>
 {sprite}
 
 <header class="nav" id="nav" data-surface="ink">
@@ -135,11 +142,20 @@ page=f'''<!DOCTYPE html>
 
 <main id="main">
   <section class="hero" id="top" aria-labelledby="heroTitle">
-    <div class="orbit__ring" id="gallery" aria-hidden="true">{orbit}</div>
-    <div class="hero__copy">
-      <h1 class="hero__title" id="heroTitle"><span class="sr-only">Developmental Improvisation. </span>New tools for cognitive development &amp; emotional understanding</h1>
-      <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-      <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
+    <div class="container hero__head">
+      <p class="section__label" data-accent="yellow"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Developmental Improvisation</p>
+      <div class="hero__row">
+        <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+        <div class="hero__aside">
+          <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
+          <div class="hero__actions"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button><a class="btn btn--secondary" href="#contact">Contact</a></div>
+        </div>
+      </div>
+      <div class="shapes shapes--hero" aria-hidden="true"><svg class="shape shape--arc" data-flow="spin" style="--c:var(--c-sky)"><use href="#arc"/></svg><svg class="shape shape--star" data-flow="spin-slow" style="--c:var(--c-yellow)"><use href="#star"/></svg></div>
+    </div>
+    <div class="strip" id="gallery">
+      <div class="container strip__nav"><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div>
+      <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
     </div>
   </section>
 
@@ -150,16 +166,22 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section quote" data-accent="pink" aria-label="Quote">
-    <div class="container reveal">
-      <blockquote class="quote__text">“Creativity in motion creates knowledge!”</blockquote>
-      <p class="quote__who"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Linda Kellogg Fulton</p>
+  <section class="section ring" id="quote" data-accent="pink" aria-label="Quote">
+    <div class="container">
+      <div class="ring__stage">
+        <div class="ring__orbit" aria-hidden="true">{ring}</div>
+        <div class="ring__centre"><div class="reveal">
+          <blockquote class="ring__text">“Creativity in motion creates knowledge!”</blockquote>
+          <p class="ring__who"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Linda Kellogg Fulton</p>
+        </div></div>
+      </div>
     </div>
   </section>
 
   <section class="section" id="testimonials" data-accent="magenta" aria-labelledby="testimonialsLabel">
     <div class="container">
       <p class="section__label reveal" id="testimonialsLabel"><svg class="star" aria-hidden="true"><use href="#star"/></svg>Testimonials</p>
+      <div class="shapes shapes--pile" aria-hidden="true"><svg class="shape shape--star" data-flow="spin-slow" style="--c:var(--c-green)"><use href="#star"/></svg><svg class="shape shape--arc" data-flow="spin" style="--c:var(--c-magenta)"><use href="#arc"/></svg></div>
       <ul class="pile" tabindex="0" aria-label="Testimonials, scroll sideways on small screens">{pile}</ul>
       <div class="pile__pager" aria-hidden="true">{pager}</div>
     </div>
@@ -168,6 +190,7 @@ page=f'''<!DOCTYPE html>
   <section class="section" id="newsletter" data-accent="orange" aria-labelledby="newsletterTitle">
     <div class="container">
       <div class="newsletter card card--accent reveal" data-surface="accent">
+        <div class="shapes shapes--newsletter" aria-hidden="true"><svg class="shape shape--star" data-flow="spin-slow" style="--c:var(--c-yellow)"><use href="#star"/></svg><svg class="shape shape--ring" data-flow="float"><use href="#ring"/></svg></div>
         <div class="newsletter__head"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><h2 id="newsletterTitle">Sign Up for our Newsletter!</h2></div>
         <div class="newsletter__form">{form('nl')}</div>
       </div>

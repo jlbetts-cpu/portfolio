@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v3 (2026-09-05) — the strip, the ring, colour on hover, the shapes
+Jayden's second review, in his order:
+- **"I don't like the outline."** The frames are gone; photographs are bare rounded rectangles. On the light ground the anti-aliased edge of a rotated card no longer shows, which is what the frame had been hiding.
+- **"The arch is not what I'm going for, but I want that circle around the quote, like brandappart's see-more-work and the video."** The video (4.4s, 60fps, 27 frames looked at) shows eight photographs in alternating rounded squares and 45° tilted squares, upright, turning around a centre panel. That is now the quote section: eight shaped photographs (round → tilt → circle) on a 300px circle around “Creativity in motion creates knowledge!”, turning with the flow, stopping under the pointer. brandappart.com itself is blocked by this sandbox's proxy, so the video and the tennis reference were the sources.
+- **"Colour sparingly, only on hover for the cards."** The stacked cards and the testimonials are white at rest and take their hue under the pointer through a `data-surface="hover"` token flip, crossing over in 240ms. The newsletter card is the one permanent coloured surface.
+- **"More vectors, a few well-designed shapes with flow."** Three marks drawn from the logo's own vocabulary: the star, the arc of the ring, the ring. Three placements (hero, testimonials, newsletter), one hue each, moved only by the scroll part of the flow so they are still at rest and never read as spinners. Not the figures: he found a row of them creepy.
+- **"Research what the new hero should be, focusing on images."** Four options were weighed. (A) A full-bleed photograph with the title over it: one image, and the copy would have to sit on a scrim, which the brand's flat rule forbids. (B) A photograph grid or collage: static, and it competes with the stack's tiles right below. (C) The ring as the hero: it is now the quote's, and a circle of small photographs is not "photos as the main focus". (D) The tennis-school reference he attached: eyebrow, a big title on the left, a row of tall photo cards below that bleed off the right, arrows to move them. D is built, with the strip driven by the flow (22px/s at rest, faster with the scroll, one card per arrow press, draggable) so the hero moves the way the rest of the page does. Cards are 300×375 at 1440, four and a third visible; 236px wide on a phone.
+
+Measured after v3: `ring` 0 photograph pixels under the quote, 0 photograph-on-photograph, 0 items outside the stage at three viewports; the arrow steps the strip by exactly one pitch (324px at 1440); hover stops the drift within 0.05°; `contrast` 64+ nodes ≥ 4.5:1 in both themes; axe 0 violations in both themes; `layout` 0px overflow at 320, the title 3 lines at every width.
+
+
 ## v2 (2026-09-05) — light by default, the flow, the frames
 Jayden's review of v1, in his order, and what was done:
 - **"The di isn't in the middle of the people."** Measured, not eyeballed: the ring's inner circle is centred at (393, 451.7) in the 787×842 file, and the letters' box sat 18 units above and 5 left of it. The `d`, `i` and star are moved by (+5, +18) in every logo file; the ring's rotation origin is the inner circle's centre, not the box's.

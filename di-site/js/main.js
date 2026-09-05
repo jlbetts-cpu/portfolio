@@ -53,55 +53,78 @@
     addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; target += d; sTarget += d; wake(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
+    const stages = new Map();
+    const stageIO = new IntersectionObserver((entries) => { for (const en of entries) stages.set(en.target, en.isIntersecting); const any = [...stages.values()].some(Boolean); if (any) holds.delete('offscreen'); else holds.add('offscreen'); wake(); }, { threshold: 0 });
     return {
+      watch(el) { stages.set(el, true); stageIO.observe(el); },
       on(fn) { listeners.add(fn); fn(angle, sAngle); wake(); },
       hold(key, on) { if (on) holds.add(key); else holds.delete(key); wake(); },
       get angle() { return angle; },
+      get scrollAngle() { return sAngle; },
       get held() { return holds.size > 0; },
       set(a) { angle = target = a; emit(); },   // test hook
     };
   })();
 
-  /* ---- Hero: the arch ---- */
+  /* ---- Hero: first paint once per session ---- */
   const hero = $('#top');
   if (hero) {
     if (store.sget('di:arrived')) { hero.classList.add('is-ready'); }
     else {
       hero.classList.add('is-arriving');
-      $$('.hero__copy > *', hero).forEach((el, i) => el.style.setProperty('--d', i));
+      $$('.hero__head > *, .hero__row > *, .strip', hero).forEach((el, i) => el.style.setProperty('--d', i));
       requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add('is-ready'); store.sset('di:arrived', '1'); }));
     }
-    // the arch drifts only while it is on screen
-    new IntersectionObserver(([en]) => flow.hold('offscreen', !en.isIntersecting), { threshold: 0 }).observe(hero);
   }
-  $$('.orbit__ring').forEach(ring => {
-    const box = ring.closest('.hero') || ring.parentElement;
-    const items = $$('.orbit__item', ring);
-    let n, k, fadeA, fadeB;
-    const readGeometry = () => { const cs = getComputedStyle(box); n = num(cs, '--n', 14); k = num(cs, '--k', .4); fadeA = num(cs, '--fade-a', 80); fadeB = num(cs, '--fade-b', 92); };
-    readGeometry();
-    addEventListener('resize', readGeometry);
+
+  /* ---- The strip: one loop of photographs on a track, moved by the flow; the arrows step a card; it can be dragged ---- */
+  $$('[data-strip]').forEach(track => {
+    const viewport = track.parentElement;
+    const cards = [...track.children];
+    const n = cards.length / 2;
+    let pitch = 0, half = 0, pxPerDeg = 6;
+    const measure = () => { const a = cards[0].getBoundingClientRect(), b = cards[1].getBoundingClientRect(); pitch = b.left - a.left; half = pitch * n; pxPerDeg = num(getComputedStyle(root), '--strip-px', 6); };
+    measure(); addEventListener('resize', measure);
+    let offset = 0, target = 0, dragging = false, dragX = 0, dragStart = 0, tweening = false;
+    const place = () => { const pos = flow.angle * pxPerDeg + offset; const x = ((pos % half) + half) % half; track.style.transform = `translate3d(${(-x).toFixed(2)}px,0,0)`; };
+    const tween = (t) => { const d = target - offset; if (Math.abs(d) < .3) { offset = target; tweening = false; place(); return; } offset += d * .14; place(); requestAnimationFrame(tween); };
+    const go = (d) => { target += d; if (!tweening) { tweening = true; requestAnimationFrame(tween); } };
+    flow.on(place); flow.watch(viewport);
+    const scope = track.closest('.strip') || viewport;
+    const prev = $('[data-strip-prev]', scope), next = $('[data-strip-next]', scope);
+    if (prev) prev.addEventListener('click', () => go(-pitch));
+    if (next) next.addEventListener('click', () => go(pitch));
+    viewport.addEventListener('pointerdown', (e) => { if (e.button !== 0 && e.pointerType === 'mouse') return; dragging = true; dragX = e.clientX; dragStart = offset; viewport.setPointerCapture(e.pointerId); viewport.classList.add('is-dragging'); flow.hold(track, true); });
+    viewport.addEventListener('pointermove', (e) => { if (!dragging) return; offset = target = dragStart - (e.clientX - dragX); place(); });
+    const release = () => { if (!dragging) return; dragging = false; viewport.classList.remove('is-dragging'); flow.hold(track, false); };
+    viewport.addEventListener('pointerup', release); viewport.addEventListener('pointercancel', release);
+    viewport.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') flow.hold(viewport, true); });
+    viewport.addEventListener('pointerleave', () => flow.hold(viewport, false));
+  });
+
+  /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
+  $$('.ring__orbit').forEach(orbit => {
+    const items = $$('.ring__item', orbit);
+    let r = 300, n = items.length;
+    const read = () => { const cs = getComputedStyle(root); r = num(cs, '--ring-r', 300); };
+    read(); addEventListener('resize', read);
     const render = (a) => {
       for (let i = 0; i < items.length; i++) {
-        const it = items[i];
-        const s = ((a + i * 360 / n) % 360 + 540) % 360 - 180;   // signed angle from the top, −180…180
-        const abs = Math.abs(s);
-        if (abs >= fadeB) { if (it.style.visibility !== 'hidden') { it.style.visibility = 'hidden'; it.style.opacity = '0'; } continue; }
-        it.style.visibility = 'visible';
-        it.style.opacity = (abs <= fadeA ? 1 : 1 - (abs - fadeA) / (fadeB - fadeA)).toFixed(3);
-        // orbit to the angle, out to the radius, then lean: k × the signed angle, so both halves lean into the arch
-        it.style.transform = `rotate(${s.toFixed(3)}deg) translateY(calc(-1 * var(--r))) rotate(${(-(1 - k) * s).toFixed(3)}deg)`;
+        const t = (a + i * 360 / n) * Math.PI / 180;
+        items[i].style.transform = `translate3d(${(r * Math.sin(t)).toFixed(2)}px, ${(-r * Math.cos(t)).toFixed(2)}px, 0)`;
       }
     };
     flow.on(render);
-    // pointer over a photograph: the drift eases to a stop; away: it eases back
-    ring.addEventListener('pointerover', (e) => { if (e.target.closest('.orbit__card')) flow.hold(ring, true); });
-    ring.addEventListener('pointerout', (e) => { if (e.target.closest('.orbit__card') && !(e.relatedTarget && e.relatedTarget.closest('.orbit__card'))) flow.hold(ring, false); });
+    orbit.addEventListener('pointerover', (e) => { if (e.target.closest('.photo')) flow.hold(orbit, true); });
+    orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo'))) flow.hold(orbit, false); });
     let touchTimer;
-    ring.addEventListener('touchstart', (e) => { if (!e.target.closest('.orbit__card')) return; flow.hold(ring, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(ring, false), 4000); }, { passive: true });
+    orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
+    flow.watch(orbit.closest('.ring') || orbit);
   });
-  // the logo's ring of figures turns with the scroll
-  $$('.logo__ring').forEach(r => flow.on((a, sa) => { r.style.transform = `rotate(${sa.toFixed(3)}deg)`; }));
+  // shapes and the logo's ring of figures move with the scroll part of the flow only, so at rest they are still
+  const SPIN = { spin: .5, 'spin-slow': .2, float: .35 };
+  $$('[data-flow]').forEach(el => { const k = SPIN[el.dataset.flow] || .5; const isFloat = el.dataset.flow === 'float'; flow.on((a, sa) => { el.style.transform = isFloat ? `translate3d(0, ${(-(sa * k) % 40).toFixed(2)}px, 0)` : `rotate(${(sa * k).toFixed(2)}deg)`; }); });
+  $$('.logo__ring').forEach(el => flow.on((a, sa) => { el.style.transform = `rotate(${sa.toFixed(3)}deg)`; }));
 
   /* ---- Reveal on scroll, once ---- */
   const io = new IntersectionObserver((entries) => {

@@ -12,7 +12,7 @@
 
 > Light by default, dark by choice, the header dark in both. The toggle in the header sets the theme and remembers it.
 
-> Colour lives on surfaces and the logo. Text is ink or an ink tier, and flips inside a coloured card.
+> Colour is spent sparingly: the photographs, the logo, three shapes, the newsletter card, and a card's hue under the pointer. Text is ink or an ink tier, and flips inside a coloured surface.
 
 > No shadows, no gradients. Depth is a white card on the warm ground plus a hairline.
 
@@ -35,21 +35,21 @@ Two themes from one sheet. Light is the default: a warm off-white ground (hue �
 | line / line-strong | ink 10% / 22% | ink 10% / 22% | hairlines |
 | nav-bg / nav-ink | #1B1916 / #F4F1EB | same | the header |
 
-The seven hues inside the logo are the palette. As surfaces they are the stacked cards, the newsletter card and popup, the chips, and the 3px frame around every photograph in the arch. As marks on the light ground they use a deeper tone so a 16px star still reads.
+The seven hues inside the logo are the palette. As surfaces they are the newsletter card and popup, the chips, the three shapes, and the stacked and testimonial cards under the pointer only. As marks on the light ground they use a deeper tone so a 16px star still reads. Photographs carry no frame.
 
 | Hue | Surface | Mark (light) | Dark ink on it | Where |
 |---|---|---|---|---|
-| green | #51E596 | #1F9A5E | 10.7:1 | stack card 02, contact |
-| sky | #58CDFC | #1A8BC6 | 9.6:1 | stack card 01, chips, selection |
-| violet | #7358FC | #5A45D9 | white ink 4.6:1 | stack card 04 only |
-| magenta | #E744E2 | #B72FB3 | 5.2:1 | testimonials |
+| green | #51E596 | #1F9A5E | 10.7:1 | stack card 02 on hover, a star |
+| sky | #58CDFC | #1A8BC6 | 9.6:1 | stack card 01 on hover, chips, the hero arc |
+| violet | #7358FC | #5A45D9 | white ink 4.6:1 | stack card 04 on hover only |
+| magenta | #E744E2 | #B72FB3 | 5.2:1 | testimonials, their arc |
 | orange | #F0895B | #C8552A | 6.9:1 | the newsletter card and popup |
-| pink | #FB9BC9 | #D14E8E | 8.7:1 | the quote |
-| yellow | #FEE79B | #A67D08 | 14.1:1 | stack card 03, chips |
+| pink | #FB9BC9 | #D14E8E | 8.7:1 | the quote ring's star |
+| yellow | #FEE79B | #A67D08 | 14.1:1 | stack card 03 on hover, the hero star |
 
-> A section sets `data-accent` once. Down the home page: sky → green → yellow → violet → pink → magenta → orange → green. Never two adjacent sections the same. The arch's frames cycle all seven twice.
+> A section sets `data-accent` once. Down the home page: yellow → sky → green → yellow → violet → pink → magenta → orange → green. Never two adjacent sections the same.
 
-> `data-surface="accent"` paints the hue and flips ink, hairlines, focus, buttons and chips. `data-surface="ink"` is the header.
+> `data-surface="accent"` paints the hue and flips ink, hairlines, focus, buttons and chips. `data-surface="hover"` does the same under the pointer only. `data-surface="ink"` is the header.
 
 ## Type
 
@@ -57,7 +57,7 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 
 | Role | Size (390 → 1440) | Leading | Tracking | Weight |
 |---|---|---|---|---|
-| display | 34 → 56, capped at 5.8% of the hero's height | 1.04 | −0.03em | 600 |
+| display | 34 → 56 (30 on a phone) | 1.04 | −0.03em | 600 |
 | h1 | 36 → 60 | 1.06 | −0.025em | 600 |
 | h2 | 28 → 44 | 1.1 | −0.02em | 600 |
 | h3 | 22 → 26 | 1.2 | −0.01em | 600 |
@@ -87,7 +87,7 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 | dur-reveal | 360ms | content entering on scroll |
 | dur-enter | 500ms | the popup, the hero's first paint |
 
-> The flow: one angle shared by everything that turns. A drift of 3.75°/s (one revolution in 96s) plus 0.06° per pixel scrolled, eased with a 0.32s time constant. Hovering a photograph eases the drift to a stop. The header logo's ring turns by the scroll part only. The stack: a covered card scales from its top edge by 4.5% per card above it, in step with the scroll.
+> The flow: one angle shared by everything that moves with the page. A drift of 3.75°/s plus 0.06° per pixel scrolled, eased with a 0.32s time constant. The hero strip moves 6px per degree (22px/s at rest, one card every 15s); the arrows step one card; it can be dragged. The quote ring turns by the angle. Hovering a photograph eases the drift to a stop. The header ring and the three shapes move by the scroll part only. The stack: a covered card scales from its top edge by 4.5% per card above it, in step with the scroll.
 
 > Reduced motion: the drift and scroll coupling are zero, the stack does not scale, reveals become short fades, the pile does not drop.
 
@@ -99,9 +99,11 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 | Theme toggle | 44px icon button in the header; moon offers dark, sun offers light. |
 | Chip | 32px, r-full, accent fill with dark text. Not interactive. |
 | Star | The logo's star, 16px, in the section's mark tone, before every section label. |
-| Card | White on the ground with a hairline; accent cards are full-strength hue at r-xl. |
-| Photo | figure + picture, AVIF/WebP/JPEG at 320/480/960, blurred placeholder, crop per photograph. |
-| Orbit | Fourteen framed photographs on a half-circle, leaning 0.4 × their angle, driven by the flow. |
+| Card | White on the ground with a hairline; hover cards take their hue under the pointer (the stack, the testimonials); the accent card is full-strength hue at r-xl (the newsletter). |
+| Photo | figure + picture, AVIF/WebP/JPEG at 320/480/960, blurred placeholder, crop per photograph; shapes round, tilt and circle for the ring. No frames. |
+| Strip | The hero: one loop of twelve 4:5 photographs on a track, moved by the flow, arrows and drag. |
+| Ring | The quote: eight shaped photographs on a circle, upright, turning with the flow. |
+| Shape | Star, arc and ring drawn from the logo, one hue each, moved by the scroll; three placements. |
 | Stack | Sticky cards, each 12px lower, scaled by the flow. |
 | Pile | Five tilted testimonials; a scroll-snap row with a star pager under 1024. |
 | Field | 48px input, error in pink hairline with a message, success swaps the button label. |
@@ -109,22 +111,20 @@ Plus Jakarta Sans, 400 and 600, self-hosted. Tracking tightens as size grows, le
 | Nav | The dark bar in both themes: colour logo left; links, theme toggle and Subscribe right. |
 | Footer | The mark, one line, ©, then Menu and Contact columns. |
 
-## The arch
+## The strip and the ring
 
 | Parameter | Value |
 |---|---|
-| hero height | clamp(640px, 100svh, 960px), under the 64px header |
-| radius | min(48vw, (hero − 40px) / 1.29); 52vw under 1200px wide |
-| card | radius × .32, 4:5, in a 3px frame |
-| ring centre | (50%, hero − .08 × radius) |
-| lean | .4 × the signed angle from the top |
-| slots | 14, 25.7° apart; visible to 80°, gone by 92° |
-| copy | anchored 24px above the fold |
-| mobile | radius 340, card 128, visible to 34°, gone by 46° |
+| strip card | clamp(220px, 21vw, 300px) wide, 4:5; 236px on a phone |
+| strip track | twelve photographs twice; left edge on the column, bleeding right |
+| strip motion | 6px per degree of flow; one card per arrow press; drag |
+| ring radius | 300 (≥1024) · 240 (≥768) · 166 (phone) |
+| ring items | 150 · 120 · 80px, shapes round → tilt → circle, upright |
+| ring centre | the quote at min(h2, 40px), 1.1 × radius wide |
 
 ## Photographs
 
-Every photograph has a factual alt, explicit dimensions, lazy loading except the first five arch cards, and a crop set by looking at it at its rendered size. No two B&W cards adjacent in the arch. A face cut by a frame's edge is a reason to change the crop or the photograph. Children's faces need releases confirmed with Linda.
+Every photograph has a factual alt, explicit dimensions, lazy loading except the first five strip cards, and a crop set by looking at it at its rendered size. No two B&W photographs adjacent in the strip or the ring. A face cut by a frame's edge is a reason to change the crop or the photograph. Children's faces need releases confirmed with Linda.
 
 ## Copy
 
@@ -132,4 +132,4 @@ Only sentences from the old site. Placeholders are lorem with `data-placeholder=
 
 ## Gates
 
-`tools/gates/run-all.sh`, serially: layout, targets, contrast (both themes), copy, images, motion, orbit, dialog, a11y (both themes). Each prints the number it measured. `orbit.mjs --self-test` injects an overlap and must fail.
+`tools/gates/run-all.sh`, serially: layout, targets, contrast (both themes), copy, images, motion, ring, dialog, a11y (both themes). Each prints the number it measured. `ring.mjs --self-test` shrinks the ring and must fail.

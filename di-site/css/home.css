@@ -1,50 +1,58 @@
-/* Home page only: the arch, the stack, the pile, newsletter, contact */
+/* Home page only: the hero and its strip, the stack, the quote ring, the pile, newsletter, contact */
 
-/* ---------- Hero: the arch ----------
-   Geometry is CSS; the motion is js/main.js (the "flow": a slow drift plus whatever the visitor scrolls, eased).
-   The hero sits under the dark header, so the top card can come within 40px of the hero's top edge. */
-.hero { --hero-h: clamp(640px, 100svh, 960px); --r: min(48vw, calc((var(--hero-h) - 40px) / 1.29)); --cw: calc(var(--r) * .32); --k: .4; --n: 14; --fade-a: 80; --fade-b: 92;
-  position: relative; margin-top: var(--nav-h); height: var(--hero-h); overflow: hidden; }
-.orbit__ring { position: absolute; left: 50%; top: calc(var(--hero-h) - var(--r) * .08); width: 0; height: 0; pointer-events: none; }
-.orbit__item { position: absolute; left: 0; top: 0; width: var(--cw); aspect-ratio: 4 / 5; margin-left: calc(var(--cw) / -2); margin-top: calc(var(--cw) * -.625); will-change: transform, opacity; visibility: hidden; }
-/* Each photograph sits in a frame of one brand hue (--c, set per slot); the frame is the edge, so no fringe shows on a rotated card */
-.orbit__card { width: 100%; height: 100%; padding: var(--frame); background: var(--c, var(--accent)); border-radius: var(--r-lg); pointer-events: auto; transition: transform var(--dur-move) var(--ease-out); }
-.orbit__photo { width: 100%; height: 100%; border-radius: calc(var(--r-lg) - var(--frame)); overflow: hidden; background: var(--bg-sunken) center / cover no-repeat; }
-.orbit__photo picture, .orbit__photo img { width: 100%; height: 100%; }
-.orbit__photo img { object-fit: cover; object-position: var(--pos, 50% 50%); }
-.orbit__card:hover, .orbit__card:focus-within { transform: scale(1.04); }
-/* The copy hangs from the fold, 24px above it, so on every screen height it sits in the lowest, widest part of the arch */
-.hero__copy { position: absolute; left: 50%; bottom: max(var(--sp-6), calc(var(--nav-h) + var(--hero-h) - 100svh + var(--sp-6))); transform: translateX(-50%); width: min(100% - 2 * var(--gutter), 900px); text-align: center; z-index: 2; }
-.hero__title { font-size: min(var(--fs-display), calc(var(--hero-h) * .058)); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: var(--measure-display); margin: 0 auto var(--sp-4); text-wrap: balance; }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); margin: 0 auto var(--sp-8); }
-.hero__actions { display: flex; justify-content: center; gap: var(--sp-3); flex-wrap: wrap; }
+/* ---------- Hero: headline left, the strip of photographs below ----------
+   The strip is a loop of photographs on one track, moved by the flow (js/main.js): a slow drift, faster with the scroll,
+   the arrows step one card, and it can be dragged. */
+.hero { position: relative; padding-top: calc(var(--nav-h) + var(--sp-10)); padding-bottom: var(--section-y); overflow: hidden; }
+.hero__head { position: relative; }
+.hero__row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); align-items: end; }
+.hero__title { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: 15em; text-wrap: balance; }
+.hero__aside { display: grid; gap: var(--sp-5); justify-items: start; }
+.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: var(--measure-sub); }
+.hero__actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.shapes--hero { right: var(--gutter); top: calc(-1 * var(--sp-2)); display: flex; align-items: flex-start; gap: var(--sp-4); }
+.shapes--hero .shape--arc { --size: 112px; }
+.shapes--hero .shape--star { --size: 40px; margin-top: var(--sp-2); }
+@media (min-width: 1024px) {
+  .hero__row { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--grid-gap); }
+  .hero__aside { padding-bottom: var(--sp-2); }
+  .shapes--hero .shape--arc { --size: 144px; }
+  .shapes--hero .shape--star { --size: 48px; }
+}
+.strip { position: relative; margin-top: var(--sp-10); }
+.strip__nav { display: flex; justify-content: flex-end; margin-bottom: var(--sp-5); }
+/* the viewport starts on the column's left edge (cards leave through that line, as in the reference) and runs to the right edge of the screen */
+.strip__viewport { overflow: hidden; margin-left: max(var(--gutter), calc((100vw - var(--page-max)) / 2 + var(--gutter))); touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.strip__viewport.is-dragging { cursor: grabbing; }
+.strip__track { display: flex; gap: var(--grid-gap); width: max-content; will-change: transform; }
+.strip__card { flex: none; width: clamp(220px, 21vw, 300px); }
+.strip__card img { pointer-events: none; }
+.strip__card { transition: transform var(--dur-move) var(--ease-out); }
+.strip__card:hover { transform: translateY(-4px); }
 /* first paint: once per session */
-.hero.is-arriving .hero__copy > * { opacity: 0; transform: translateY(8px); }
-.hero.is-arriving .orbit__ring { opacity: 0; }
-.hero.is-ready .hero__copy > * { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.hero.is-ready .orbit__ring { opacity: 1; transition: opacity var(--dur-enter) var(--ease-out) calc(var(--stagger) * 3); }
-/* the logo's ring of figures turns with the scroll; its centre is the ring's inner circle, measured, not the box */
-.logo__ring { transform-box: view-box; transform-origin: 393px 451.7px; will-change: transform; }
-
-@media (max-width: 1199px) and (min-width: 768px) { .hero { --r: min(52vw, calc((var(--hero-h) - 40px) / 1.29)); } }
+.hero.is-arriving .hero__head > *, .hero.is-arriving .hero__row > *, .hero.is-arriving .strip { opacity: 0; transform: translateY(8px); }
+.hero.is-ready .hero__head > *, .hero.is-ready .hero__row > *, .hero.is-ready .strip { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 @media (max-width: 767px) {
-  .hero { --hero-h: clamp(640px, calc(100svh - var(--nav-h) - 60px), 900px); --r: 340px; --cw: 128px; --fade-a: 34; --fade-b: 46; }
-  .orbit__ring { top: 500px; }
-  .hero__copy { top: 356px; bottom: auto; }
-  .hero__title { font-size: clamp(1.75rem, 8.4vw, 2.125rem); }
-  .hero__sub { margin-bottom: var(--sp-5); }
-  .hero__actions { flex-direction: column; align-items: stretch; max-width: 320px; margin-inline: auto; }
+  .hero { padding-top: calc(var(--nav-h) + var(--sp-8)); }
+  .hero__title { font-size: clamp(1.5rem, 7.6vw, 2.25rem); max-width: none; }
+  .hero__actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 320px; }
+  .hero__actions .btn { width: 100%; }
+  .shapes--hero { top: calc(-1 * var(--sp-6)); gap: var(--sp-2); }
+  .shapes--hero .shape--arc { --size: 64px; }
+  .shapes--hero .shape--star { --size: 24px; margin-top: 0; }
+  .strip { margin-top: var(--sp-8); }
+  .strip__card { width: 236px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero.is-arriving .hero__copy > * { transform: none; }
-  .orbit__card:hover, .orbit__card:focus-within { transform: none; }
+  .hero.is-arriving .hero__head > *, .hero.is-arriving .hero__row > *, .hero.is-arriving .strip { transform: none; }
+  .strip__card:hover { transform: none; }
 }
 
 /* ---------- The stack ----------
-   Sticky cards, each 12px lower than the one before, so the covered cards show as coloured edges above the current one.
+   White cards that take their hue under the pointer (data-surface="hover"). Sticky, each 12px lower than the one before;
    js/main.js scales a covered card down from its top edge in step with how far the next card has climbed over it. */
 .stack { display: grid; gap: var(--sp-6); }
-.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6) + var(--i, 0) * var(--sp-3)); padding: var(--sp-8); display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-8); transform-origin: 50% 0; will-change: transform; }
+.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-6) + var(--i, 0) * var(--sp-3)); padding: var(--sp-8); display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; gap: var(--sp-8); border-radius: var(--r-xl); transform-origin: 50% 0; will-change: transform; }
 .stack__num { position: absolute; top: var(--sp-8); right: var(--sp-8); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
 .stack__title { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); margin-bottom: var(--sp-5); padding-right: var(--sp-16); text-wrap: balance; }
 .stack__body .t-body { color: var(--ink-2); }
@@ -58,16 +66,49 @@
   .stack__tiles .photo { aspect-ratio: 4 / 5; }
 }
 
+/* ---------- The quote ring ----------
+   Eight shaped photographs on a circle around the quote, upright, turning with the flow. --ring-r is a plain number in tokens.css. */
+.ring { position: relative; }
+.ring__stage { position: relative; height: calc((var(--ring-r) + 96) * 2px); margin-inline: calc(-1 * var(--gutter)); overflow: hidden; }
+.ring__orbit { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.ring__item { position: absolute; left: 0; top: 0; width: 150px; margin-left: -75px; margin-top: -75px; will-change: transform; }
+.ring__item .photo { transition: transform var(--dur-move) var(--ease-out); }
+.ring__item .photo--tilt { width: 124px; margin: 13px; }
+.ring__item .photo:hover { transform: scale(1.04); }
+.ring__item .photo--tilt:hover { transform: rotate(45deg) scale(1.04); }
+.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--ring-r) * 1.1px); text-align: center; z-index: 2; }
+.ring__text { font-size: min(var(--fs-h2), 2.5rem); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 400; color: var(--ink); text-wrap: balance; }
+.ring__who { display: inline-flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-5); font-size: var(--fs-small); font-weight: 600; color: var(--ink-3); }
+.ring__who .star { color: var(--accent-mark); }
+@media (max-width: 1023px) {
+  .ring__item { width: 120px; margin-left: -60px; margin-top: -60px; }
+  .ring__item .photo--tilt { width: 100px; margin: 10px; }
+  .ring__stage { height: calc((var(--ring-r) + 80) * 2px); }
+}
+@media (max-width: 767px) {
+  .ring__item { width: 80px; margin-left: -40px; margin-top: -40px; }
+  .ring__item .photo--tilt { width: 66px; margin: 7px; }
+  .ring__stage { height: calc((var(--ring-r) + 56) * 2px); }
+  .ring__centre { width: calc(var(--ring-r) * 1.24px); }
+  .ring__text { font-size: 1.375rem; }
+  .ring__who { margin-top: var(--sp-3); }
+}
+@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } .ring__item .photo--tilt:hover { transform: rotate(45deg); } }
+
 /* ---------- Testimonial pile ---------- */
 .pile { position: relative; height: 660px; }
-.pile__card { position: absolute; left: var(--x); top: var(--y); transform: rotate(var(--rot)); transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-reveal) var(--ease-settle); }
+.pile__card { position: absolute; left: var(--x); top: var(--y); transform: rotate(var(--rot)); transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-reveal) var(--ease-settle), background-color var(--dur-state-out) var(--ease-out), border-color var(--dur-state-out) var(--ease-out); }
 .js .pile:not(.is-in) .pile__card { opacity: 0; transform: translateY(-40px) rotate(calc(var(--rot) - 4deg)); }
-.pile.is-in .pile__card { opacity: 1; transition: transform var(--dur-reveal) var(--ease-settle), opacity var(--dur-reveal) var(--ease-settle); transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.pile.is-in .pile__card:hover, .pile.is-in .pile__card:focus-within { transform: rotate(0deg) scale(1.02); transition: transform var(--dur-move) var(--ease-out); z-index: 2; }
+.pile.is-in .pile__card { opacity: 1; transition: transform var(--dur-reveal) var(--ease-settle), opacity var(--dur-reveal) var(--ease-settle), background-color var(--dur-state-out) var(--ease-out), border-color var(--dur-state-out) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.pile.is-in .pile__card:hover, .pile.is-in .pile__card:focus-within { transform: rotate(0deg) scale(1.02); transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state-out) var(--ease-out), border-color var(--dur-state-out) var(--ease-out); z-index: 2; }
+.shapes--pile { right: calc(var(--gutter) + var(--sp-4)); top: calc(-1 * var(--sp-10)); display: flex; gap: var(--sp-3); align-items: flex-end; }
+.shapes--pile .shape--arc { --size: 96px; }
+.shapes--pile .shape--star { --size: 28px; margin-bottom: var(--sp-8); }
 @media (max-width: 1023px) {
   .pile { height: auto; display: flex; gap: var(--grid-gap); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); padding-bottom: var(--sp-2); scrollbar-width: none; }
   .pile::-webkit-scrollbar { display: none; }
   .pile__card { position: static; flex: 0 0 84vw; max-width: 340px; scroll-snap-align: start; transform: none !important; }
+  .shapes--pile { display: none; }
 }
 .pile__pager { display: none; justify-content: center; gap: var(--sp-3); margin-top: var(--sp-4); }
 .pile__pager .star { width: 10px; height: 11px; color: var(--ink-3); transition: color var(--dur-state) var(--ease-out); }
@@ -75,15 +116,20 @@
 @media (max-width: 1023px) { .pile__pager { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .js .pile:not(.is-in) .pile__card { transform: rotate(var(--rot)); } }
 
-/* ---------- Newsletter: a full-strength brand surface ---------- */
-.newsletter { padding: var(--sp-8); display: grid; gap: var(--sp-6); border-radius: var(--r-xl); }
+/* ---------- Newsletter: the one permanent colour surface ---------- */
+.newsletter { position: relative; padding: var(--sp-8); display: grid; gap: var(--sp-6); border-radius: var(--r-xl); overflow: hidden; }
 .newsletter .mark { width: 40px; height: 43px; color: var(--ink); margin-bottom: var(--sp-5); }
 .newsletter h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: 10em; }
+.shapes--newsletter { right: var(--sp-6); top: var(--sp-6); display: flex; gap: var(--sp-3); align-items: flex-start; }
+.shapes--newsletter .shape--star { --size: 32px; }
+.shapes--newsletter .shape--ring { --size: 72px; color: var(--ink); opacity: .16; margin-top: var(--sp-3); }
 @media (min-width: 1024px) {
   .newsletter { padding: var(--sp-12); grid-template-columns: repeat(12, 1fr); column-gap: var(--grid-gap); align-items: center; }
   .newsletter__head { grid-column: 1 / span 5; }
   .newsletter__form { grid-column: 7 / span 6; }
+  .shapes--newsletter { right: var(--sp-12); top: var(--sp-8); }
 }
+@media (max-width: 767px) { .shapes--newsletter { display: none; } }
 
 /* ---------- Contact ---------- */
 .contact__actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-self: center; }

@@ -17,6 +17,13 @@
 .btn--secondary[aria-busy="true"]::after { border-color: var(--ink); border-right-color: transparent; }
 .btn.is-done .icon { color: currentColor; }
 
+/* Round arrow buttons (the hero strip) */
+.arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) ease-out, background-color var(--dur-state) var(--ease-out); }
+.arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); }
+.arrow:active { transform: scale(.94); }
+.arrow .icon { width: 20px; height: 20px; }
+.arrows { display: flex; gap: var(--sp-2); }
+
 /* Icons */
 .icon { width: 24px; height: 24px; fill: currentColor; flex: none; }
 .star { width: 16px; height: 18px; fill: currentColor; flex: none; }
@@ -29,12 +36,26 @@
 .card { background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6); }
 @media (min-width: 1024px) { .card { padding: var(--sp-8); } }
 .card--accent { background: var(--accent); border: 0; border-radius: var(--r-xl); }
+/* colour on hover: the surface tokens flip under the pointer (tokens.css); these carry the change over --dur-state-out */
+.card--hover, .card--hover :not(img, picture, svg, use) { transition: background-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out), border-color var(--dur-state-out) var(--ease-out); }
+.card--hover:hover, .card--hover:focus-within { border-color: transparent; }
+
+/* Shapes — three marks drawn from the logo: the star, the arc of the ring, the ring. Decorative, one hue each, moved by the flow. */
+.shape { display: block; width: var(--size, 48px); height: var(--size, 48px); color: var(--c, var(--accent-mark)); fill: currentColor; will-change: transform; }
+.shape--star { aspect-ratio: 57.8 / 66; height: auto; }
+.shape--arc, .shape--ring { fill: none; stroke: currentColor; stroke-width: 14; stroke-linecap: round; }
+.shapes { position: absolute; pointer-events: none; }
 
 /* Photo */
 .photo { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-raised) center / cover no-repeat; }
 .photo--4x5 { aspect-ratio: 4 / 5; }
 .photo--3x2 { aspect-ratio: 3 / 2; }
 .photo--1x1 { aspect-ratio: 1 / 1; }
+/* shaped photographs (the quote ring): a rounded square, one tilted 45°, a circle */
+.photo--round { border-radius: 28%; }
+.photo--tilt { border-radius: 30%; transform: rotate(45deg); }
+.photo--tilt img { transform: rotate(-45deg) scale(1.45); }
+.photo--circle { border-radius: 50%; }
 .photo picture { width: 100%; height: 100%; }
 .photo img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); transition: transform var(--dur-move) var(--ease-out); }
 .photo--hover:hover img, .photo--hover:focus-within img { transform: scale(1.02); }

@@ -84,7 +84,6 @@
   --r-lg: 20px;   /* cards, photos, the arch's frames */
   --r-md: 14px;   /* buttons, inputs */
   --r-full: 999px;
-  --frame: 3px;   /* the coloured frame around each arch photograph */
 
   --nav-h: 64px;
   --hit: 44px;
@@ -104,8 +103,11 @@
   --stagger: 60ms;
   /* The flow: one angular velocity shared by the arch and the logo's ring. Read by js/main.js. */
   --flow-drift: 3.75;     /* degrees per second at rest: one revolution in 96s */
-  --flow-scroll: 0.06;    /* degrees per pixel scrolled: a screen of scroll turns the arch about three slots */
+  --flow-scroll: 0.06;    /* degrees per pixel scrolled */
   --flow-settle: 0.32;    /* seconds: the time constant of the easing that follows scroll */
+  --strip-px: 6;          /* the hero strip moves this many pixels per degree of flow: 22px/s at rest, one card every 15s */
+  --ring-r: 300;          /* the quote ring's radius in px (a plain number; js reads it) */
+  --ring-n: 8;
 }
 
 /* Dark: the visitor's choice */
@@ -138,8 +140,9 @@
 [data-accent="yellow"]  { --accent: var(--c-yellow);  --accent-mark: var(--m-yellow);  --accent-ink: #1B1916; }
 :root[data-theme="dark"] [data-accent] { --accent-mark: var(--accent); }
 
-/* A coloured surface: components read the same tokens and come out ink-on-colour. Identical in both themes. */
-[data-surface="accent"] {
+/* A coloured surface: components read the same tokens and come out ink-on-colour. Identical in both themes.
+   data-surface="hover" is the same surface but only under the pointer (Jayden: colour sparingly, on hover for the cards). */
+[data-surface="accent"], [data-surface="hover"]:hover, [data-surface="hover"]:focus-within {
   background: var(--accent);
   --ink: var(--accent-ink);
   --ink-2: color-mix(in srgb, var(--accent-ink) 78%, transparent);   /* ≥ 5.2:1 on every dark-ink hue */
@@ -155,7 +158,7 @@
   --chip-ink: var(--accent);
   --bg-raised: color-mix(in srgb, var(--accent-ink) 8%, transparent);
 }
-[data-surface="accent"][data-accent="violet"] { --ink-2: #FFFFFF; --ink-3: #FFFFFF; --btn-primary-ink: #1B1916; --chip-ink: #1B1916; --btn-primary-bg: #FFFFFF; --chip-bg: #FFFFFF; }   /* white on violet is 4.6:1 — no tiers */
+[data-surface="accent"][data-accent="violet"], [data-surface="hover"][data-accent="violet"]:hover, [data-surface="hover"][data-accent="violet"]:focus-within { --ink-2: #FFFFFF; --ink-3: #FFFFFF; --btn-primary-ink: #1B1916; --chip-ink: #1B1916; --btn-primary-bg: #FFFFFF; --chip-bg: #FFFFFF; }   /* white on violet is 4.6:1 — no tiers */
 
 /* The ink surface: the header, in both themes */
 [data-surface="ink"] {
@@ -173,4 +176,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
+}
+@media (max-width: 1023px) { :root { --ring-r: 240; } }
+@media (max-width: 767px) { :root { --ring-r: 166; }
 }
