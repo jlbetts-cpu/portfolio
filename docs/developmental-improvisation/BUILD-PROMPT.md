@@ -1,11 +1,11 @@
-# Developmental Improvisation — build prompt v2
+# Developmental Improvisation — build prompt v3
 
-> **v2, 2026-09-05.** Four changes from v1, all from Jayden's review of the v1 mock: the hero gradient is gone (flat `#181818` everywhere); one logo on screen at a time (the nav mark appears only after the hero mark has scrolled out); photos lead, each used once, on the column, in a fixed grid, no marquee; and the two one-shot illustrations are cut from the home page so the figures band is the only drawn thing. The v2 mock is `docs/developmental-improvisation/hero-mock-desktop.jpg` / `hero-mock-mobile.jpg`. Plus Jakarta Sans is confirmed.
+> **v3, 2026-09-05.** Jayden's second review, applied and mocked: the hero is an **arch of tilted cards** that rotates slowly with the copy inside it (his Pinterest reference), and the arch mixes **five pastel colour cards** in with the seven photographs; the nav gets the white monogram back so the top-left is not empty; the **brand star replaces the dot** as the section marker; the body of the page is four full-width **pastel cards that stack as you scroll** (from the Brand Appart video he sent); testimonials are a **tilted pile of cards** that drop in; the footer is built like his portfolio's (mark, one line, ©, then Menu and Contact columns). Every geometry number in §6.1 was measured on a mock at six viewports with zero card pixels under any text (`docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg`); the stack, pile and footer are in `stack-mock.jpg`. v2's flat ground, one-typeface, no-gradient, no-shadow rules all stand.
 
 > **How to use this file.** Paste everything below the line into a fresh agent session together with the inputs listed in §0. Edit the decisions in §2, §3, §5, §6 and §12 before you send it; everything else is mechanics. Sections marked `[DECIDE]` are the ones Jayden should read.
 
 
-**Contents.** §0 Inputs · §1 Non-negotiables · §2 The brand · §3 Design system (colour, type, space, no gradients, no shadows, motion, states) · §4 Components and the style guide · §5 Illustration and icons · §6 The home page, section by section · §7 The newsletter popup · §8 Research: the colour rules and where they come from · §9 The micro-interaction inventory · §10 Copy · §11 Photo manifest and pipeline · §12 Stack, hosting, forms, icons, fonts · §13 Deliverables and file structure · §14 Gates · §15 Needs from Linda · §16 The two documents · §17 Process · §18 How to reply
+**Contents.** §0 Inputs · §1 Non-negotiables · §2 The brand · §3 Design system (colour incl. pastel surfaces, type, space, no gradients, no shadows, motion, states) · §4 Components and the style guide · §5 The star, the figure, icons · §6 The home page: arch, band, stack, quote, pile, newsletter, contact, footer · §7 The newsletter popup · §8 Research: the colour rules and where they come from · §9 The micro-interaction inventory · §10 Copy · §11 Photo manifest and pipeline · §12 Stack, hosting, forms, icons, fonts · §13 Deliverables and file structure · §14 Gates · §15 Needs from Linda · §16 The two documents · §17 Process · §18 How to reply
 
 ---
 
@@ -27,7 +27,7 @@ Read all of this before writing a line of code. Where this prompt makes a decisi
 | 12 photographs | `images/src/` | Manifest in §11. Two are HEIC and must be converted. |
 | Old site copy | §10 of this prompt | The **only** words you may put on the page. |
 | Apple design reference | `docs/apple-design.md` | Reasoning on motion, materials and type. Section 3 of this prompt wins where they disagree. |
-| Hero and Welcome reference | `docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg` | The v2 mock Jayden approved the direction of: flat ground, one logo, a 4-up photo grid on the column. A sketch for order and scale, not pixels to copy. |
+| Hero, stack, pile and footer mocks | `docs/developmental-improvisation/hero-mock-desktop.jpg`, `hero-mock-mobile.jpg`, `stack-mock.jpg` | Rendered with the real photos and the real type. Sketches for order, scale and geometry, not pixels to copy. |
 | Font specimen and logo sheet | `docs/developmental-improvisation/font-specimen.jpg`, `logo-variants.jpg` | Rendered during research; look at them once. |
 | This prompt | — | The spec. |
 
@@ -42,7 +42,7 @@ These are settled. They are not preferences.
 3. **One typeface, two weights, no italics, no gradient text, no letter-spaced uppercase eyebrows.** Hierarchy comes from size, weight (400/600), leading, tracking and colour tier. Nothing else.
 4. **Colour lives on shapes, chips, illustration and the logo. Body text is only white or a white tier.** Headings are white. No coloured headings, no coloured paragraphs, **no gradient anywhere** — not in the hero, not behind the logo, not on a button, not in the footer. The ground is flat `#181818` from top to bottom.
 5. **No shadows.** Chrome separates with hairlines and translucency. Elevation on a dark ground is a lighter surface plus a hairline, never a drop shadow.
-6. **Flat vectors only.** No texture, no noise, no grain, no 3D, no glassmorphism cards, no blurred blobs floating behind cards, no emoji, no stock illustration packs, no AI-generated imagery. Photographs are the only "texture" on the site.
+6. **Flat vectors only.** No texture, no noise, no grain, no glassmorphism cards, no blurred blobs floating behind cards, no emoji, no stock illustration packs, no AI-generated imagery. Photographs are the only "texture" on the site. The one 3D-looking thing is the stacked card's 6° `rotateX` as it recedes (§6.3); nothing else has perspective.
 7. **Motion is a system.** Use the ladder in §3.6. Every animation has a purpose you can name (feedback, continuity, attention, ambience). Ambient motion is slow, small and stops under `prefers-reduced-motion`.
 8. **Copy is verbatim from §10.** Do not write marketing copy. Do not invent taglines, stats, claims, names, schools, awards or quotes. Placeholders carry `data-placeholder="true"` in the markup and use the exact placeholder strings given in §10.4.
 9. **44px minimum hit target, measured** with `getBoundingClientRect`, not declared. The one exception is inline links inside a paragraph.
@@ -105,13 +105,30 @@ The logo carries the saturated hues. The interface carries pastel tints of the s
 ```
 
 **Rationing rules — these are what keep five colours professional:**
-- One accent per component. A chip is one colour. A card is one colour. A section takes one accent for its dots and chips, set once on the `<section data-accent>`.
+- One accent per component. A chip is one colour. A card is one colour. A section takes one accent for its star and chips, set once on the `<section data-accent>`.
 - Sections rotate through the five accents in a fixed order down the page: lavender → sky → mint → butter → blush → lavender. Never two adjacent sections with the same accent; never pick by mood.
-- At 100% a pastel is used only on things smaller than ~120px on their long side (chip, dot, icon, illustration figure, focus ring, 2px underline). Anything larger uses the `--t-*` tint.
-- Never more than two pastels visible in one component. Never all five together except in the illustration band (§5) and the logo.
-- Photographs are never tinted, overlaid or duotoned. Never put a gradient over a photo.
-- Text is never coloured. Not headings, not links (links are white with a hairline underline), not numbers.
+- **Where a pastel may be a full-strength fill:** chips, the star marker, the focus ring, the five colour cards in the hero arch, and the four stacked cards in §6.3. That is the list. Everything else that is large and coloured uses the `--t-*` tint (the newsletter card).
+- A pastel surface inverts the ink: everything inside `[data-surface="accent"]` reads `--ink` as `#181818`, and components do this through the tokens below, never by hand.
+- Never more than two pastels visible in one component. All five together only in the hero arch and the logo.
+- Photographs are never tinted, overlaid or duotoned.
+- Text is never a pastel. Not headings, not links (links are white with a hairline underline), not numbers. On a pastel surface, text is `#181818`.
 - The logo hues appear nowhere outside the logo. Not as a tint, not as a glow, not as a gradient.
+
+```css
+/* A pastel surface. Components read the same tokens and simply come out dark-on-pastel. */
+[data-surface="accent"] {
+  background: var(--accent);
+  --ink:    #181818;
+  --ink-2:  rgba(24,24,24,.72);   /* ≥ 7:1 on every pastel */
+  --ink-3:  rgba(24,24,24,.56);
+  --line:   rgba(24,24,24,.16);
+  --line-strong: rgba(24,24,24,.32);
+  --focus:  #181818;               /* the sky ring is invisible on lavender */
+  --btn-primary-bg: #181818; --btn-primary-ink: #FFFFFF;   /* the white button inverts on a pastel */
+  --chip-bg: #181818; --chip-ink: #FFFFFF;                  /* so do chips */
+}
+:root { --focus: var(--c-sky); --btn-primary-bg: #FFFFFF; --btn-primary-ink: #181818; --chip-bg: var(--accent); --chip-ink: #181818; }
+```
 
 ### 3.2 Type
 
@@ -136,19 +153,22 @@ Tracking and leading are size-specific (Apple §15). Never one `letter-spacing` 
   --fs-caption: 0.8125rem;                                 --lh-caption: 1.4;  --ls-caption: 0.01em;   /* 13 captions, meta, footer small print */
   --fs-ui:      1rem;                                                                                     /* 16 button labels, inputs, 600 */
 
-  --measure-body: 60ch;   /* paragraphs */
-  --measure-display: 24ch;/* hero tagline — set on the h1 itself, see §6.1 */
-  --measure-h2: 26ch;
+  /* Measures are in em, never ch: Plus Jakarta Sans's "0" is 0.685em wide, so 24ch at 48px is 825px and the tagline
+     spilled to two wide lines in the v3 mock. 14em at 48px is 672px and wraps to the three lines the arch was built for. */
+  --measure-display: 14em;  /* hero tagline — on the h1 itself */
+  --measure-sub: 24em;      /* hero sub-tagline */
+  --measure-h2: 16em;
+  --measure-body: 34em;     /* ≈ 60 characters of this face */
 }
 ```
 
-Roles, and nothing outside them: `display` (hero tagline only, 600), `h1` (page title on inner pages, 600), `h2` (section title, 600; pull quotes use `h2` size at 400), `h3` (card title, 600), `lead` (400, `--ink-2`), `body` (400, `--ink-2`; first paragraph of a section may be `--ink`), `label` (`--fs-small` 600 `--ink-2`, sentence case, sits above an h2 with an 8px accent dot before it), `small`, `caption` (`--ink-3`), `ui` (600). Numbers use `font-variant-numeric: tabular-nums` only in the phone number.
+Roles, and nothing outside them: `display` (hero tagline only, 600), `h1` (page title on inner pages, 600), `h2` (section title, 600; pull quotes use `h2` size at 400), `h3` (card title, 600), `lead` (400, `--ink-2`), `body` (400, `--ink-2`; first paragraph of a section may be `--ink`), `label` (`--fs-small` 600 `--ink-2`, sentence case, sits above an h2 with the 16px brand star before it), `small`, `caption` (`--ink-3`), `ui` (600). Numbers use `font-variant-numeric: tabular-nums` only in the phone number.
 
 ### 3.3 Space, grid, radius, lines
 
 ```css
 :root {
-  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
   --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px;
   --sp-32: 128px; --sp-40: 160px;
 
@@ -161,7 +181,7 @@ Roles, and nothing outside them: `display` (hero tagline only, 600), `h1` (page 
   --stack-body: var(--sp-4);    /* paragraph → paragraph */
   --stack-cta: var(--sp-8);     /* text → buttons */
 
-  --r-xl: 28px;   /* the popup panel and the newsletter card — surfaces, not items */
+  --r-xl: 28px;   /* the popup panel, the newsletter card, the four stacked cards — surfaces, not items */
   --r-lg: 20px;   /* cards, gallery photos, testimonial cards */
   --r-md: 14px;   /* buttons, inputs */
   --r-full: 999px;/* chips, dots, avatars */
@@ -196,7 +216,8 @@ None. Not on cards, not on the popup, not on buttons, not on hover. The popup se
   --dur-move: 280ms;     /* something changes position or size */
   --dur-reveal: 360ms;   /* content entering on scroll */
   --dur-enter: 500ms;    /* the popup, the hero's first paint */
-  --dur-bob: 3.2s;       /* the figures' bob — the only loop on the site */
+  --dur-orbit: 96s;      /* the hero arch: one full revolution; a new card enters every 8s */
+  --dur-bob: 3.2s;       /* the figures' bob */
 
   --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -207,7 +228,7 @@ None. Not on cards, not on the popup, not on buttons, not on hover. The popup se
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-bob: 0s; --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; }
-  /* reveals become opacity-only; the figures band stands still */
+  /* reveals become opacity-only; the figures band stands still; the arch holds its first frame; the stack does not tilt; the pile does not drop */
 }
 ```
 
@@ -217,7 +238,7 @@ Reduced motion is not "no motion": a reveal still fades, a button still changes 
 
 ### 3.7 Focus, states, targets
 
-- `:focus-visible` — `outline: 2px solid var(--c-sky); outline-offset: 2px;` on every interactive element, same colour site-wide, never removed. Focus is not hover: no scale.
+- `:focus-visible` — `outline: 2px solid var(--focus); outline-offset: 2px;` on every interactive element, never removed; `--focus` is sky on the dark ground and `#181818` inside a pastel surface (§3.1). Focus is not hover: no scale.
 - Hover — a state change of `--dur-state`. Primary button: `--ink` → `#F2F1F1`. Secondary: `--line` → `--line-strong`. Links: underline `--line-strong` → `--ink`. Photo cards: image `scale(1.02)` inside `overflow:hidden`, `--dur-move`.
 - Active — `transform: scale(.97)` at `--dur-press` on buttons and chips-as-links. Nothing else scales on press.
 - Disabled — `--ink-3` text, no hover, `cursor: default`.
@@ -230,26 +251,30 @@ One class per component, BEM-ish, no utility soup, no `!important`. Each compone
 | Component | Class | Spec |
 |---|---|---|
 | Container | `.container` | `max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto`. |
-| Grid | `.grid` + `.grid--2/3/4` | 12-col CSS grid, `gap: var(--grid-gap)`. Photo rows use `.photo-row--3/4` (§4 Photo). |
-| Section | `.section` + `.section__head` | `padding-block: var(--section-y)`; opens with the column hairline (§3.3) — every section except the hero; head = label (with dot) → h2 → lead, **left-aligned**; `.section__head--center` exists for the hero and the quote only. Two-column sections use `.section__grid` = 12-col grid with the head in columns 1–5 and the content in 7–12 (≥1024), stacked below. |
-| Label dot | `.dot` | 8px circle `background: var(--accent)`, inline, `margin-right: var(--sp-2)`, vertically centred on the label's x-height. The only decoration a label gets. |
-| Button | `.btn` + `--primary` (white ground, `--ink-on-accent` text) / `--secondary` (transparent, hairline) / `--ghost` (no border, text only, nav CTA on mobile) | height 48, `padding: 0 var(--sp-5)`, `--fs-ui` 600, `--r-md`, gap 8 for an optional trailing 20px icon. `.btn--compact` is height 44 with `padding: 0 var(--sp-4)` and `--fs-small`, for the nav only. States per §3.7. Loading state swaps the label for a 16px stroke spinner (the only spinner on the site). |
-| Chip | `.chip` | height 32, `padding: 0 var(--sp-3)`, `--fs-small` 600, `background: var(--accent)`, `color: var(--ink-on-accent)`, `--r-full`. Not interactive. Chips are the only 100% colour fill bigger than a dot. |
-| Card | `.card` | `background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6)` (`--sp-8` ≥1024). `.card--tint` uses `--accent-tint` instead of raised (max one tinted card per row). |
-| Photo | `.photo` | `<figure>` wrapping `<picture>`; `aspect-ratio` set by modifier (`--4x5`, `--3x2`, `--1x1`); `border-radius: var(--r-lg)`; `overflow: hidden`; image `object-fit: cover`; optional `.photo__caption` in `--fs-caption --ink-3` **outside** the image, `--sp-3` below, never overlaid. Photos sit on the column grid in fixed rows (`.photo-row--4`, `.photo-row--3`): equal widths, equal ratios, one gap. No masonry, no bento, no marquee. |
-| Testimonial | `.testimonial` | Not a card. A list item: `.testimonial__quote` (`--fs-lead` 400 `--ink`, `--measure-body`), then `.testimonial__who` (name `--fs-small` 600 `--ink` · role `--fs-caption --ink-3`) with a 32px initials circle in `--accent` before it; items separated by the hairline, `--sp-8` padding above and below each. Quote marks are typographic (“ ”) in the text, not a giant decorative glyph. |
-| Quote | `.quote` | Centred block, `--fs-h2` at 400, `--measure-h2`, attribution in `--fs-small --ink-3` below with an 8px accent dot. |
+| Grid | `.grid` + `.grid--2/3/4` | 12-col CSS grid, `gap: var(--grid-gap)`. |
+| Section | `.section` + `.section__head` + `.section__grid` | `padding-block: var(--section-y)`; opens with the column hairline (§3.3) — every section except the hero; head = label (with star) → h2 → lead, **left-aligned**; `.section__head--center` exists for the hero and the quote only. `.section__grid` is a 12-col grid with the head in columns 1–5 and the content in 7–12 at ≥1024, stacked below. |
+| Star marker | `.star` | The logo's four-point sparkle (path 1 of `dilogocolor.svg`, see §5.2) as an inline SVG, 16px, `fill: var(--accent)`, before every section label with `--sp-2` after it, vertically centred on the label's x-height. It replaces the dot everywhere; there is no `.dot`. Also the testimonial pager mark at 8px. |
+| Button | `.btn` + `--primary` (`--btn-primary-bg` / `--btn-primary-ink`) / `--secondary` (transparent, hairline) / `--ghost` (text only, nav on mobile) / `--compact` (44px, `--fs-small`, nav only) | height 48, `padding: 0 var(--sp-5)`, `--fs-ui` 600, `--r-md`, gap 8 for an optional trailing 20px icon. States per §3.7. Loading state swaps the label for a 16px stroke spinner (the only spinner on the site). On a pastel surface it inverts through the tokens in §3.1. |
+| Chip | `.chip` | height 32, `padding: 0 var(--sp-3)`, `--fs-small` 600, `background: var(--chip-bg)`, `color: var(--chip-ink)`, `--r-full`. Not interactive. Pastel on the dark ground; dark on a pastel card. |
+| Card | `.card` | `background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-6)` (`--sp-8` ≥1024). `.card--tint` uses `--accent-tint`. |
+| Colour card | `.card--accent` | `data-surface="accent"`, `--r-xl`, no border. Two sizes: in the arch (4:5, a single word bottom-left at `--fs-h3` 600) and in the stack (§6.3). |
+| Photo | `.photo` | `<figure>` wrapping `<picture>`; `aspect-ratio` by modifier (`--4x5`, `--3x2`, `--1x1`); `border-radius: var(--r-lg)`; `overflow: hidden`; image `object-fit: cover`; optional `.photo__caption` in `--fs-caption --ink-3` **outside** the image, never overlaid. |
+| Orbit | `.orbit` + `.orbit__item` + `.orbit__card` | §6.1. Twelve items on a ring; per-item keyframes for position and for visibility; `pointer-events: none` on the ring, `auto` on the cards, so hovering a card pauses the ring through `.orbit:hover`; a 44px pause/play control. |
+| Stack | `.stack` + `.stack__card` | §6.3. Sticky, full-column pastel cards with a number, an h3, body, and either photo tiles or chips bottom-right; the card beneath the current one recedes. |
+| Figures | `.figures` | §5.2. |
+| Pile | `.pile` + `.testimonial` | §6.5. Absolutely placed, individually tilted testimonial cards on desktop; a scroll-snap row on mobile. |
+| Testimonial | `.testimonial` | A `.card` at `--r-lg`, `padding: var(--sp-7)` (28px — add `--sp-7: 28px` to the scale, it is on the grid), `max-width: 340px`: `.testimonial__quote` (`--fs-lead` 400 `--ink`, typographic “ ”), `.testimonial__who` (32px initials circle in `--accent` · name `--fs-small` 600 · role `--fs-caption --ink-3`). No stars, no logos, no giant quotation glyph. |
+| Quote | `.quote` | Centred block, `--fs-h2` at 400, `--measure-h2`, attribution in `--fs-small --ink-3` below with the star. |
 | Field | `.field` + `.input` | Input height 48, `--bg-overlay`, hairline, `--r-md`, `--fs-ui` 400, placeholder `--ink-3`. Label is visible text (`--fs-small` 600) or `aria-label` when the placeholder is the label (newsletter). Error state: hairline → `--c-blush` and a `--fs-caption` message below; never red. Success: the button label becomes "Subscribed" with a 16px check that draws in over `--dur-move`. |
 | Dialog | `.dialog` | See §7. |
 | Nav | `.nav` | See §6.0. |
-| Footer | `.footer` | See §6.12. |
-| Figures | `.figures` | See §5. |
+| Footer | `.footer` | See §6.8. |
 | Reveal | `.reveal` (+ `.reveal--stagger` on a parent) | `opacity:0; transform: translateY(12px)` → `is-in` class from an IntersectionObserver at `threshold: 0.2, rootMargin: "0px 0px -10% 0px"`, once. `--dur-reveal --ease-out`, children delayed by `--stagger × index` (cap 6). The hero uses the same class but is triggered on load with `--dur-enter`. |
 | Visually hidden | `.sr-only` | The standard clip pattern. |
 | Skip link | `.skip` | First focusable element; visible on focus at `--z-skip`. |
 | Event (for later) | `.event` | A card with date (`--fs-h3` 600), title, one-line meta and a secondary button. Built on the style guide with placeholder content; not placed on the home page. |
 
-Rules for the style guide page: it uses the same tokens and components (it is a page on the site, at `/styleguide.html`, `noindex`); it shows every colour with its contrast ratio against `--bg` printed next to it (computed at build, not typed); every type role at its 390 and 1440 sizes; every spacing token as a bar; every component in every state; the motion ladder with a "play" button per rung; and the figure symbol with the figures band. It has a sticky left index. It is not pretty for its own sake — it is complete.
+Rules for the style guide page: it uses the same tokens and components (it is a page on the site, at `/styleguide.html`, `noindex`); it shows every colour with its contrast ratio against `--bg` printed next to it (computed at build, not typed); every type role at its 390 and 1440 sizes; every spacing token as a bar; every component in every state; the motion ladder with a "play" button per rung; the star marker, the figure symbol with the figures band, an orbit of three cards, one stacked card in each of the five colours, and a three-card pile. It has a sticky left index. It is not pretty for its own sake — it is complete.
 
 ## 5. Illustration and iconography — build the brand around the logo `[DECIDE]`
 
@@ -258,17 +283,17 @@ The improv/SEL education space is saturated with the same pictures. Measured on 
 
 **Therefore: no brains, no lightbulbs, no puzzle pieces, no globes, no rainbow hands, no wheels, no speech bubbles, no masks, no bendy people, no plants.**
 
-### 5.2 The system: one drawn thing, taken from the logo
-The logo already contains the brand's illustration language: a round-headed figure with arms reaching out along the ring; the ring; a four-point sparkle; a round geometric letterform. On the home page exactly one drawn element appears outside the logo, and it is the logo's own figure, repeated.
+### 5.2 The system: two drawn things, both taken from the logo
+The logo already contains the brand's illustration language: a round-headed figure with arms reaching out along the ring; the ring; a four-point star; a round geometric letterform. Outside the logo, exactly two drawn elements exist on the site, and both are lifted from the logo file unchanged.
 
-**The figure.** In `dilogocolor.svg` the eight paths are, in order: 0 the monogram (`#58CDFC`), 1 the sparkle (white), 2 the right figure (`#F0895B`), 3 the left figure (`#FB9BC9`), 4 the top figure (`#E744E2`), 5–7 the three arcs. **Path 4 is the upright figure** (head circle + body + two arms reaching out and down, bbox ≈ 189–603 × −1–206 in the 787×842 viewBox). Extract it, translate it to a 0 0 origin, and save it as `assets/illustrations/figure.svg` as a `<symbol id="figure" viewBox="0 0 414 208">` with `fill="currentColor"` — no redrawing, no smoothing, no "cuter" version, no face, no hands, no feet. It is drawn the same way at every size. This is the "kids holding hands" asset: figures placed side by side so that each figure's arm tip touches the next one's.
+**The star.** Path 1 of `dilogocolor.svg` (the white four-point sparkle, bbox ≈ 489–548 × 285–352). Extract it to a `<symbol id="star" viewBox="0 0 60 68">`, `fill="currentColor"`. It is the **section marker**: 16px before every section label in the section's `--accent` (Jayden: "instead of the little dot use the brand star"), and the attribution mark under the quote. Nowhere else — not in headings, not as a bullet, not as a decoration. One star per label; the label is the only place it appears in a section.
 
-**The figures band** (`.figures`, §6.3): a full-width row of figures alternating the five pastels in a fixed order (lavender, sky, mint, butter, blush, repeat), arms touching (the figure is ≈2:1, so each takes ~128px of width at 64px tall), 64px tall on mobile and 88px on desktop, standing on the column hairline. As many as fit the viewport; `overflow: hidden`; centred so the row is symmetric. Each figure bobs `translateY(-2px → 0)` on `--dur-bob --ease-in-out` alternate with delay `index × 120ms`, so a wave travels along the row — under 3px of movement, always. It has a 44px pause/play control at the band's right edge (`aria-pressed`, `--ink-2`, no ground until hover): the bob runs longer than five seconds, so WCAG 2.2.2 requires one, and `prefers-reduced-motion` does not replace it. Reduced motion: a still row. This is the whole "vectors of kids holding hands moving" ask, executed once.
+**The figure.** In `dilogocolor.svg` the eight paths are, in order: 0 the monogram (`#58CDFC`), 1 the star (white), 2 the right figure (`#F0895B`), 3 the left figure (`#FB9BC9`), 4 the top figure (`#E744E2`), 5–7 the three arcs. **Path 4 is the upright figure** (head circle + body + two arms reaching out and down, bbox ≈ 189–603 × −1–206 in the 787×842 viewBox). Extract it, translate it to a 0 0 origin, and save it as `assets/illustrations/figure.svg` as a `<symbol id="figure" viewBox="0 0 414 208">` with `fill="currentColor"` — no redrawing, no smoothing, no "cuter" version, no face, no hands, no feet. This is the "kids holding hands" asset: figures side by side so that each figure's arm tip touches the next one's.
 
-**The sparkle** (the logo's four-point star, `currentColor`, 24px) may appear exactly once on the page, inline after the h2 "What would you do?" (§6.4), in the section's `--accent`. **The dot** (8px, `--accent`) marks labels and the testimonial pager. Nothing else is drawn.
+**The figures band** (`.figures`, §6.2): a full-width row of figures alternating the five pastels in a fixed order (lavender, sky, mint, butter, blush, repeat), arms touching (the figure is ≈2:1, so each takes ~128px of width at 64px tall), 64px tall on mobile and 88px on desktop, standing on the column hairline. As many as fit the viewport; `overflow: hidden`; centred so the row is symmetric. Each figure bobs `translateY(-2px → 0)` on `--dur-bob --ease-in-out` alternate with delay `index × 120ms`, so a wave travels along the row — under 3px of movement, always. It has a 44px pause/play control at the band's right edge (`aria-pressed`, `--ink-2`, no ground until hover): the bob runs longer than five seconds, so WCAG 2.2.2 requires one, and `prefers-reduced-motion` does not replace it. Reduced motion: a still row. This is the whole "vectors of kids holding hands moving" ask, executed once.
 
 ### 5.3 Recorded for later pages, not built in v1
-Two compositions were designed and are worth keeping for the About page, where they would earn their place beside real text. They are **not** on the home page and are **not** built now (Jayden: "don't make assets you don't need"):
+Two compositions were designed and are worth keeping for the About page. They are **not** on the home page and are **not** built now (Jayden: "don't make assets you don't need"):
 - **Yes, and** — a circle and a rounded square in one accent slide together 24px on reveal; the overlap fills solid on contact. Accept the offer, add to it, make a third thing.
 - **Grid to circle** — 20 dots in a 5×4 grid (the classroom) travel, on reveal, to their positions on a ring (the warm-up circle). The desks are pushed back and the class becomes a circle.
 Both are one-shot, `--ease-settle`, static under reduced motion.
@@ -276,73 +301,102 @@ Both are one-shot, `--ease-settle`, static under reduced motion.
 ### 5.4 Icons
 One pack, one weight, one size. Icons are for function only. No icons in headings, no icon grids of "benefits", no icon next to every paragraph.
 
-- **Pack:** §12.3 names it; inline the glyphs you use (eleven, listed there) as an SVG sprite (`assets/icons.svg`, `<use href="#i-close">`). Do not load an icon font or the whole pack.
+- **Pack:** §12.3 names it; inline the glyphs you use (eight, listed there) as an SVG sprite (`assets/icons.svg`, `<use href="#i-close">`). Do not load an icon font or the whole pack.
 - **Size:** 20px inside buttons and inputs, 24px standalone, always in a 44px hit area when interactive. Stroke width as the pack ships it — never restyled.
 - **Colour:** `currentColor`. Icons are `--ink-2` at rest and `--ink` on hover, exactly like the text next to them. A social icon does not turn its brand colour on hover; it turns white.
-- **Social marks:** Facebook, X, Instagram, LinkedIn as simple monochrome glyphs from the same pack. All four the same visual weight.
+- **No social glyphs.** The footer links to the social profiles with words, like Jayden's portfolio footer does.
 
 ## 6. The home page, section by section `[DECIDE]`
 
-Order is fixed. Every section is a `<section>` with an `id` (the nav's Gallery and Contact links anchor to `#gallery` and `#contact` until those pages exist), a `data-accent` in the rotation, the column hairline at its top (§3.3), and a left-aligned `.section__head` unless noted. Vertical rhythm is `--section-y` everywhere. Every usable photograph appears **once** on the page; the allocation is fixed below.
+Order is fixed: nav · hero arch · figures band · the stack · quote · testimonial pile · newsletter · contact · footer. Every section is a `<section>` with an `id` (the nav's Gallery and Contact links anchor to `#gallery` — the hero arch, for now — and `#contact`), a `data-accent` in the rotation, the column hairline at its top (§3.3), and a left-aligned `.section__head` with the star unless noted. Vertical rhythm is `--section-y` everywhere.
 
 ### 6.0 Nav (`.nav`)
 - Fixed, `--nav-h` 64, full width, transparent at the top of the page. After 24px of scroll it gets `--glass` + `backdrop-filter: blur(20px) saturate(140%)` and a bottom hairline, over `--dur-state`. No shrink.
-- Left: a 44px slot for the white monogram (`dilogobasicwhite.svg`, 24px tall, links to `/`). **It is invisible while the hero's logo is on screen** and fades in (`--dur-state`) when the hero logo leaves the viewport (IntersectionObserver on the hero `<img>`), so there is never more than one logo on screen. On inner pages, which have no hero logo, it is simply there.
+- Left: the white monogram (`dilogobasicwhite.svg`) at 24px tall inside a 44px target linking to `/`, **always visible** (v2 hid it and the top-left read as empty). It is a different asset from the hero's colour mark and reads as the nav's mark, not a second logo.
 - Right: Home · Gallery · Contact as `--fs-small` 600 `--ink-2`, current page `--ink`, 44px tall targets, `--sp-6` apart; then **Subscribe** (the old site's button label) as `.btn--secondary.btn--compact` (44px) that opens the popup. On ≤767px the three links collapse into a `.btn--ghost` "Menu" that opens a full-height sheet from the right (`--dur-move --ease-settle`, scrim, Esc closes, focus trapped) listing the three links at `--fs-h3` and the Subscribe button. No hamburger icon; the label reads Menu / Close.
 - Hover on a link: colour to `--ink` over `--dur-state`. No underline in the nav. Current page: 600 and `--ink`, nothing else.
 - The nav never casts a shadow and never has a solid ground at the top of the page.
 
-### 6.1 Hero (`#top`, accent lavender) — the logo, the words, four photographs
-Flat ground. Everything on the column. This is the mock.
+### 6.1 Hero (`#top`, `.orbit`) — the arch
+The reference is Jayden's pin: tilted rounded cards on an arch around centred copy, rotating slowly, stopping when you hover a photo. Six geometries were mocked and hit-tested before these numbers were written; use them.
 
-- **Copy block**, centred, `padding-top: calc(var(--nav-h) + clamp(48px, 6vw, 88px))`: the colour logo (`dilogocolor.svg`) at `clamp(120px, 14vw, 160px)` tall; `--sp-8` below it the `h1` — a visually hidden "Developmental Improvisation" plus the visible tagline **New tools for cognitive development & emotional understanding** in `display` with `max-width: var(--measure-display)` **on the h1 itself** (a `ch` unit resolves against the element's own font size; on a wrapper it is wrong by 4×); `--sp-4` below, **Pre-wiring the brain & educating the heart** in `lead --ink-2`, `max-width: 40ch`; `--sp-8` below, primary **Sign Up for our Newsletter!** (opens the popup) and secondary **Contact** (anchors `#contact`) side by side; at ≤479px both are full width of a 320px column, stacked, primary first.
-- **Photo row**, `clamp(48px, 5vw, 72px)` below the buttons: `.photo-row--4` on the column — photos **2, 7, 3, 6** in that order (colour, B&W, colour, colour), all `.photo--4x5`, `--r-lg`, `--grid-gap` apart. 2×2 at ≤767px. No captions here. Nothing moves; the row is a fixed grid.
-- **Measure numbers for the gate:** the tagline wraps to 3 lines at 1440 (`New tools for cognitive / development & emotional / understanding`) and 5 at 390.
-- **First paint:** logo `scale(.96) → 1` and fade over `--dur-enter --ease-out`; then h1, sub, buttons with `--stagger`; then the four photos with `--stagger` left to right. No draw-on, no sparkle ping, no bounce; under 900ms in total; once per session (`sessionStorage`). This is the only load animation on the page.
-- **Height:** the content's own height plus `--section-y` below the photo row. Not `100vh`. At 390 the photo row starts at ~80% of the first viewport so the top of the grid is the scroll cue; there is no arrow.
-- **Nothing else.** No gradient, no band behind the photos, no second logo, no scroll indicator, no decorative shapes.
+**Geometry (desktop, ≥768px).** All lengths derive from two values:
+```css
+.orbit { --hero-h: clamp(640px, 100svh, 960px);           /* the hero's height; 100vh would break at 1920×1080 where the hero caps at 960 */
+         --r:  min(36vw, calc(var(--hero-h) * .54));       /* ring radius: 486 at 1440×900, 389 at 1280×720, 369 at 1024×768 */
+         --cw: calc(var(--r) * .32);                        /* card width, 4:5 → 156×194 at 1440×900 */
+         --cx: 50%; --cy: 78%;                               /* ring centre: the circle's bottom third is below the fold */
+         --k: .45;                                           /* tilt = k × angle; 1 would be tangential and turn side cards sideways */
+         --n: 12; }
+```
+- Twelve items, 30° apart. Item `i` sits at angle `θ = i × 30° + φ` where `φ` is the rotation, at `(cx + r·sin θ, cy − r·cos θ)`, tilted by `k·θ`. Implementation: `transform: rotate(θ) translateY(calc(-1 * var(--r))) rotate(calc(-1 * θ * (1 − k)))`.
+- **Visibility.** An item is fully visible while `|θ| ≤ 112°`, fades to 0 between 112° and 128°, and is invisible across the bottom of the circle. So the arch shows about nine cards, the circle's bottom never draws under the copy, and a card fades exactly where it leaves the fold. Reduced motion: frame 0, the same visibility.
+- **Rotation.** One revolution per `--dur-orbit` (96s), linear, clockwise. Use per-item keyframes, not a rotating container, because each card needs its own tilt and its own fade: one `@keyframes orbit` (`rotate 0→360deg`, `translateY(-r)`, counter-rotate `0→−198deg` for k = .45) and one `@keyframes orbit-fade` (opacity 1 · 31%: 1 · 35.5%: 0 · 64.5%: 0 · 69%: 1), each item with `animation-delay: calc(-1 * i / 12 * var(--dur-orbit))`. Everything is `transform` and `opacity`; `will-change: transform` on the twelve items only. Pause with `animation-play-state: paused` when `document.hidden`.
+- **Hover / touch.** `.orbit { pointer-events: none } .orbit__card { pointer-events: auto } .orbit:hover .orbit__item { animation-play-state: paused }` — hovering any card pauses the whole ring (the ancestor matches `:hover`). The hovered card scales `1.04` inside its item over `--dur-move --ease-out` and its hairline goes to `--line-strong`. That is the "micro animation of the photos stopping" — nothing else happens. On touch, a tap on a card pauses for 4s. A 44px pause/play control sits at the hero's bottom-right (`aria-pressed`, icons `pause`/`play`, `--ink-2`, no ground until hover): WCAG 2.2.2, the ring moves longer than five seconds.
+- **The twelve items, in order** (`i` = 0 at the top, clockwise): photo **2** · lavender **intellect** · photo **7** · sky **cooperation** · photo **3** · mint **communication** · photo **1** · butter **compassion** · photo **6** · blush **instinct** · photo **5** · photo **12**. Seven photographs and the five colour cards, no photograph repeated, no two B&W frames adjacent, the five words from paragraphs 4–5. The colour cards are `.card--accent` at the same 4:5 size with the word bottom-left at `--fs-h3` 600 in `--ink` (which is `#181818` on a pastel surface); nothing else on them. Photo 12 is last so it is the first to be replaced when Linda sends classroom photos.
+- **The copy block** is centred horizontally and **anchored to the ring's inner edge**, not to the viewport: `top: calc(var(--cy) − var(--r) * .8 + 24px)` (the top card's inner edge is at `cy − r + 0.2r`). Inside: the colour logo (`dilogocolor.svg`) at `min(140px, calc(var(--hero-h) * .155))`; `--sp-6` below, the `h1` (visually hidden "Developmental Improvisation" + the visible tagline in `display` at `clamp(2rem, min(3.6vw, calc(var(--hero-h) * .054)), 3rem)` — 48px at 1440×900, 39 at 1280×720, 37 at 1024×768 — with `max-width: var(--measure-display)` on the h1 itself); `--sp-3` below, the sub-tagline in `lead --ink-2`, `max-width: var(--measure-sub)`; `--sp-7` below, primary **Sign Up for our Newsletter!** and secondary **Contact** side by side.
+- **Mobile (≤767px).** The arch sits above the copy, not around it: `--r: 300px; --cw: 92px; --cy: 460px`; the copy block starts at `top: 330px` (logo 72px, display `2rem`, buttons stacked full-width). About three cards are visible across the top at a time; the rest of the ring is off-screen or faded. Hero height `clamp(640px, 100svh, 960px)` still.
+- **Measured on the mock, and the gate in §14 repeats it:** with these numbers, zero card pixels under any text line, the logo or a button across a full 30° step at 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844; the top card's top edge ≥ 88px from the viewport top at all six; the tagline is three lines at every desktop size and four at 390.
+- **First paint:** the logo `scale(.96) → 1` and fades over `--dur-enter --ease-out`; then h1, sub, buttons with `--stagger`; then the ring fades in over `--dur-enter`, already turning. Under 900ms, once per session. Nothing else animates on load.
+- **Nothing else.** No gradient, no ground behind the ring, no scroll indicator, no decorative shapes.
 
-### 6.2 Welcome (`#welcome`, accent sky)
-`.section__grid`, 7/5 at ≥1024. Left: label **Welcome** (dot) → h2 **Welcome to Developmental Improvisation** → paragraphs 1–3 in `body`, paragraph 1 in `--ink`, `--measure-body`. Right: photo **4** (Linda laughing, B&W) as `.photo--4x5`, caption **Linda Kellogg Fulton**, top-aligned with the label. If the photo runs more than 120px below the last paragraph at 1440, use `.photo--1x1` — look, then decide. Stacked below 1024: text, then photo. Reveal on scroll, staggered.
+### 6.2 Figures band (`.figures`)
+§5.2. Directly under the hero, `--section-y-tight` above and below, standing on the column hairline. No text.
 
-### 6.3 Figures band (`.figures`)
-§5.2. Between Welcome and the next section, `--section-y-tight` above and below, standing on the column hairline. No text.
+### 6.3 The stack (`#welcome`, `.stack`) — four pastel cards that stack as you scroll
+From the Brand Appart video: full-width coloured cards, each a chapter, each sticking under the nav while the next slides up over it and the one beneath recedes. Here the chapters are the old site's six paragraphs, in order, on the brand's pastels.
 
-### 6.4 What would you do? (`#approach`, accent mint)
-Text only, structured. `.section__grid` 5/7 at ≥1024. Left: label **Cooperative play** (dot) → h2 **"What would you do?"** with the sparkle inline after the closing quote (24px, `--accent`). Right: paragraph 4 in `body` `--ink`, then paragraph 5 in `body`, then **All while having as much fun as possible!** in `lead --ink-2`, then a row of chips from the copy: **critical thinking · creative problem-solving · cooperation · communication · compassion · instinct**, all in `--accent`, wrapping. Reveal, staggered. No photo here — the section is the page's one typographic breath between two photo sections.
+- Section head: star + label **Welcome** (left, above the stack, not on a card).
+- Four `.stack__card` elements, each `.card--accent` (`data-surface="accent"`), `--r-xl`, `padding: var(--sp-12)` (`--sp-8` on mobile), `min-height: 520px` desktop, a 7/5 inner grid. Top-left: the h3 (`--fs-h2` size, 600, `--measure-h2`); top-right: the chapter number in `--fs-small` 600 `--ink-3`, written `(01)`; below the h3: the copy in `body`, `--measure-body`; bottom-right of the card: the tiles or chips. All ink is `#181818` through the surface tokens.
 
-### 6.5 Gallery (`#gallery`, accent butter)
-Label **Gallery** (dot), set at `--fs-h2` as the title (there is no gallery sentence in the copy), left; on the same line at the right edge of the column, a secondary button **Gallery** (anchors `#gallery` now, `gallery.html` later). Below, `.photo-row--3`, all three `.photo--4x5` so the row is one shape: photos **1** (linked arms, B&W), **5** (Linda on stage, colour), **12** (the boy, colour, tight 4:5 crop; if it does not hold up at 380px wide, use photo **8** at a tight crop of Linda at the front of the room and say so). Captions beneath each in `--fs-caption --ink-3`, factual. Single column at ≤767px. Hover scale only.
+| # | Accent | h3 (from the copy) | Body | Bottom-right |
+|---|---|---|---|---|
+| (01) | lavender | **Welcome to Developmental Improvisation** | paragraphs 1 and 2 | photo **4** (Linda) as a 150px-wide 4:5 tile with the caption **Linda Kellogg Fulton** beneath it — the one photograph that is not in the arch |
+| (02) | sky | **Safe, educational, and thrilling exercises and games** (a phrase from paragraph 3, sentence case) | paragraph 3 | nothing; the card stays quiet |
+| (03) | mint | **"What would you do?"** | paragraph 4 | chips **critical thinking · creative problem-solving · cooperation · communication** (dark chips on the pastel) |
+| (04) | butter | **The end result** (the opening words of paragraph 5) | paragraphs 5 and 6 | the primary button **Sign Up for our Newsletter!** (inverted: dark on the pastel), which opens the popup |
 
-### 6.6 Testimonials (`#testimonials`, accent blush)
-`.section__grid` 5/7. Left: label **Testimonials** (dot); no h2 (no copy exists); nothing else in the column — it stays empty on purpose. Right: three `.testimonial` list items separated by hairlines, the ~220, ~160 and ~90-character placeholders in that order, each `data-placeholder="true"` per §10.4, initials circle `--accent`. No cards, no stars, no photo, no carousel, no pager. Stacked below 1024 with the label above the list.
+- **Stacking.** Each card is `position: sticky; top: calc(var(--nav-h) + var(--sp-6))`; cards are `--sp-6` apart in flow, and the section's height is the sum of the cards so the last one scrolls away normally. The card beneath the current one recedes: `transform: perspective(1200px) rotateX(6deg) scale(.96); transform-origin: 50% 100%` with `opacity: .9`, over `--dur-move --ease-out`. Drive it with a two-state class from an IntersectionObserver on the *next* card (when the next card's top crosses the sticky line, the current one gets `is-under`); where `animation-timeline: view()` is supported you may use it as an enhancement for a continuous version, but the class version must work everywhere and is the one the gate tests. Reduced motion: no transform, no perspective, cards simply stack.
+- **Mobile.** Same sticky stack, one column inside the card, `min-height: auto`, tiles and chips below the copy.
+- **Contrast.** `#181818` on every pastel is ≥ 13:1; `rgba(24,24,24,.72)` is ≥ 7:1. The `contrast` gate checks it from the DOM.
 
-### 6.7 Quote (`.quote`, accent lavender)
-Centred, the one centred head after the hero: **"Creativity in motion creates knowledge!"** at `--fs-h2` 400, `--measure-h2`; attribution **Linda Kellogg Fulton** in `--fs-small --ink-3` with the dot. Nothing else. Reveal.
+### 6.4 Quote (`.quote`, accent blush)
+Centred, the one centred head after the hero: **"Creativity in motion creates knowledge!"** at `--fs-h2` 400, `--measure-h2`; attribution **Linda Kellogg Fulton** in `--fs-small --ink-3` with the star before it. Nothing else. Reveal.
 
-### 6.8 Newsletter (`#newsletter`, accent sky)
+### 6.5 Testimonials (`#testimonials`, `.pile`, accent lavender)
+From the video's "trusted by" section: cards tossed onto the table, each at its own slight angle, overlapping a little. Fun comes from the tilt and the drop, not from stars or colour.
+
+- Section head: star + label **Testimonials**; no h2 (no copy exists).
+- Desktop: a `.pile` region 560px tall on the column; five `.testimonial` cards (§4) absolutely positioned at fixed offsets and rotations — write them as data, not magic numbers: `--x, --y, --rot` per card, rotations between −6° and +6°, no two adjacent cards with the same sign, overlaps of at most 40px, the layout in the mock (`stack-mock.jpg`) is the target. Ground `--bg-raised`, hairline, no shadow (the tilt does the lifting).
+- Content: the three placeholder lengths from §10.4 plus two more at ~120 and ~70 characters, each `data-placeholder="true"`; initials circles rotate through the five pastels. No ratings, no logos, no "Contact sales" pills.
+- Drop-in: on reveal each card comes from `translateY(-40px) rotate(calc(var(--rot) − 4deg))` and `opacity 0` to its resting pose over `--dur-reveal` with `--ease-settle`, staggered `--stagger × index`. Once.
+- Hover / focus-within: the card straightens to `rotate(0)` and lifts `scale(1.02)` over `--dur-move --ease-out`; reverses on leave.
+- Mobile (≤1023px): the pile becomes a horizontal scroll-snap row (each card 84vw, `--grid-gap`, `scroll-padding-inline: var(--gutter)`, no rotation) with a 5-mark pager beneath in 8px stars (active star `--accent`, others `--ink-3`).
+- Reduced motion: cards appear in place, no drop, no straighten.
+
+### 6.6 Newsletter (`#newsletter`, accent sky)
 One `.card--tint` on the column, `--r-xl`, `padding: var(--sp-8)` (`--sp-12` ≥1024), a 12-col grid inside it: columns 1–5 the monogram (`dilogobasicwhite.svg`, 40px) and the h2 **Sign Up for our Newsletter!**; columns 7–12, vertically centred, the form: `.input` (type email, `aria-label="Email"`, placeholder **Email**, `autocomplete="email"`, `required`) and `.btn--primary` **Subscribe** in one row, stacked at ≤479px. Same form component as the popup; one JS handler; states per §4 Field.
 
-### 6.9 Contact (`#contact`, accent mint)
-`.section__grid` 5/7. Left: h2 **To Find Out MORE!** → lead **Email or Call Here:**. Right, vertically centred with the h2: two secondary buttons side by side (stacked at ≤479px): **developmentalimprov@gmail.com** (`mailto:`, mail icon) and **(857) 352-3221** (`tel:`, phone icon, tabular numerals). The old site is indexed with (877) 352-3221 in one place and (857) in another — ship (857) as captured and list the discrepancy in §15.
+### 6.7 Contact (`#contact`, accent mint)
+`.section__grid` 5/7. Left: star + label **Contact** → h2 **To Find Out MORE!** → lead **Email or Call Here:**. Right, vertically centred with the h2: two secondary buttons side by side (stacked at ≤479px): **developmentalimprov@gmail.com** (`mailto:`, mail icon) and **(857) 352-3221** (`tel:`, phone icon, tabular numerals). The old site is indexed with (877) 352-3221 in one place and (857) in another — ship (857) as captured and list the discrepancy in §15.
 
-### 6.10 Footer (`.footer`)
-Column hairline on top, `--sp-16` padding, `--bg`. ≥1024: a 12-col grid — columns 1–4 the white full mark (`dilogo.svg`) at 40px with **Developmental Improvisation** in `--fs-small` 600 beneath; columns 7–8 the three nav links stacked (`--fs-small`, `--ink-2`, underline grows from the left on hover over `--dur-state`); columns 10–12 the four social glyphs in 44px boxes, right-aligned. Below, a second hairline and one line: **© 2026 Developmental Improvisation** in `--fs-caption --ink-3`. Mobile: stacked, left-aligned. No newsletter form in the footer, no gradient, no illustration, no "made with".
+### 6.8 Footer (`.footer`) — built like Jayden's portfolio footer
+Column hairline on top, `padding: var(--sp-16) 0 var(--sp-12)`, `--bg`. ≥1024: a 12-col grid — columns 1–6: the white monogram at 28px, then `--sp-5` below it **Pre-wiring the brain & educating the heart** at `--fs-lead` 600 `--ink`, then `--sp-2` below **© 2026 Developmental Improvisation** in `--fs-caption --ink-3`. Columns 7–9: heading **Menu** (`--fs-small` 600 `--ink`, `--sp-5` below it) then **Home · Gallery · Contact** stacked as `--fs-small --ink-2` links, `--sp-4` apart, 44px targets. Columns 10–12: heading **Contact**, then **Email** (`mailto:`), **Call** (`tel:`), **LinkedIn**, **Instagram**, **Facebook**, **X** — the last four to `#` until Linda supplies URLs (§15). Link hover: `--ink` over `--dur-state`, no underline (his footer has none). Mobile: stacked, left-aligned, the two link columns side by side. No second hairline, no social glyphs, no newsletter form, no gradient, no illustration, no "made with".
 
-### 6.11 Things that are not on this page
-No stats row, no logo wall, no "as seen in", no FAQ, no pricing, no map, no chat widget, no cookie banner (no cookies are set; `localStorage` for popup state is not a cookie and needs no banner), no back-to-top button, no scroll progress bar, no cursor effects, no particles, no marquee, no bento, no gradient, no second logo.
+### 6.9 Things that are not on this page
+No stats row, no logo wall, no "as seen in", no FAQ, no pricing, no map, no chat widget, no cookie banner (no cookies are set; `localStorage` for popup state is not a cookie and needs no banner), no back-to-top button, no scroll progress bar, no cursor effects, no particles, no marquee, no bento, no gradient, no star ratings, no gallery grid (the arch is the gallery until the Gallery page exists).
 
-### 6.12 Photo allocation, so nothing repeats
+### 6.10 Photo allocation, so nothing repeats
 | Photo | Where |
 |---|---|
-| 2, 7, 3, 6 | Hero row, in that order |
-| 4 | Welcome portrait |
-| 1, 5, 12 | Gallery row (8 is the stand-in if 12 fails) |
+| 2, 7, 3, 1, 6, 5, 12 | The arch, in that order, interleaved with the five colour cards |
+| 4 | Stack card (01), the Linda tile |
+| 8 | Not on the page; the stand-in if photo 12 fails at 156px wide |
 | 9, 10, 11 | Not on the page (letters; permission needed) |
 
 ## 7. The newsletter popup (`.dialog`)
 
-Same content as §6.8, in a dialog. This is the one interruption on the site, so it has to be polite and it has to be perfect.
+Same content as §6.6, in a dialog. This is the one interruption on the site, so it has to be polite and it has to be perfect.
 
 - **Element:** a native `<dialog>` with `aria-labelledby` pointing at its h2. On desktop it opens with `showModal()` so focus trapping, Esc and the inert background come from the platform; backdrop click closes it via a JS listener (`closedby="any"` is not in Safari yet). On ≤767px it is **non-modal** — `dialog.show()` (or `popover="auto"`) as a bottom sheet the page can still scroll under, which is the pattern Google's mobile-interstitial guidance allows. Initial focus goes to the h2 (`tabindex="-1"`), not the input, so a screen reader hears the offer before the field. Polyfill nothing.
 - **Panel:** `--bg-overlay`, hairline, `--r-xl`, `padding: var(--sp-8)`, `max-width: 440px`, centred on desktop. On ≤767px it is a bottom sheet: full width, `--r-xl` on the top corners only, `max-height: 38vh`, non-modal as above. Contents: close button (44px, top-right, icon `close`, `aria-label="Close"`), the monogram at 32px, h2 **Sign Up for our Newsletter!**, the form, and under it one `--fs-caption --ink-3` line — there is no privacy sentence in the copy, so ship none.
@@ -359,8 +413,8 @@ Verified against token files and third-party extractions of Material 3, Spotify,
 
 1. **Depth is a tone ladder plus a hairline; nothing casts a shadow.** Spotify `#121212 → #181818 → #1f1f1f`; Linear `#010102 → #0f1011 → #141516`; Material dark surfaces at tones 6/10/12/17/22. Hairline `rgba(255,255,255,.08)` (Raycast). → `--bg / --bg-raised / --bg-overlay / --line`.
 2. **Body text is white or grey, never a pastel.** Sentry: "don't put lime text at body size"; Notion: "don't use purple for body text"; Duolingo: green is "not body or link text"; Figma: "don't introduce mid-gray text — weight carries hierarchy". → `--ink / --ink-2 / --ink-3` and nothing else for text.
-3. **Pastel at 100% only on small foreground shapes; a large pastel surface is a dark tint.** Material's dark scheme: primary is tone 80 (`#d0bcff`, a lavender pastel) for small foreground, primary-container is tone 30 for large surfaces. → `--c-*` for chips and dots, `--t-*` for cards and bands. The five brand pastels are within a few hex digits of Notion's feature tints and Figma's story blocks — both use them as large surfaces *on white*. On `#181818` the model inverts; do not port "Notion pastels" onto a dark ground.
-4. **One colour block per viewport, hero excepted.** Figma: "don't combine more than one color block visible inside a single viewport"; Framer: gradient cards "one or two per long page; three is a moodboard"; Raycast: the stripe gradient "exactly once per page". → the section accent rotation in §3.1.
+3. **Pastel at 100% only on small foreground shapes; a large pastel surface is a dark tint.** Material's dark scheme: primary is tone 80 (`#d0bcff`, a lavender pastel) for small foreground, primary-container is tone 30 for large surfaces. → `--c-*` for chips and stars, `--t-*` for the newsletter card; the full-strength pastel cards in §6.1 and §6.3 are the deliberate, rationed exception. The five brand pastels are within a few hex digits of Notion's feature tints and Figma's story blocks — both use them as large surfaces *on white*. On `#181818` the model inverts; do not port "Notion pastels" onto a dark ground.
+4. **One colour block per viewport, hero excepted.** Figma: "don't combine more than one color block visible inside a single viewport"; Framer: gradient cards "one or two per long page; three is a moodboard"; Raycast: the stripe gradient "exactly once per page". → the section accent rotation in §3.1, and the stack shows one full pastel card at a time with the previous one receding under it.
 5. **Gradients are rationed to zero or one, and the strictest systems ship none.** Linear rejects gradients entirely; Supabase forbids atmospheric hero gradients; Raycast allows exactly one stripe per page; Framer confines them to cards. This site is at the Linear end: none (§3.4). The photographs are the colour fields.
 6. **Photos carry the colour; chrome near them is grey.** Pinterest: 8px gutters, zero card padding, no card shadows, chrome "gets out of the photograph's way"; Airbnb: 14px radius, "trust photography and generous whitespace over typographic muscle". → no overlays, no tints, no gradients on or near photographs.
 7. **One CTA treatment site-wide, and text on a pastel is dark.** Raycast and Framer: a white pill for every primary CTA on dark; Spotify: black text on green. → `.btn--primary` is white with `--ink-on-accent`; chips are pastel with `--ink-on-accent`.
@@ -368,30 +422,32 @@ Verified against token files and third-party extractions of Material 3, Spotify,
 9. **Radius by size class.** Cards 12–20, big blocks 24–32 (Figma 24, Material 28, Pinterest 32); buttons are one shape site-wide. → `--r-xl 28 / --r-lg 20 / --r-md 14 / --r-full`, Jayden's own ladder, inside the observed range.
 10. **96px between sections at desktop, 1200–1280 max width.** Linear, Figma, Notion, Framer, Raycast, Sentry, Warp, Miro all at 96; photo-dense sites (Airbnb, Pinterest) at 64. → `--section-y` lands on 96 at 1440 and `--section-y-tight` on ~53 for photo bands.
 
-**The kids'-brand trap, stated once:** playfulness is spent in the mark, the photographs and one or two micro-interactions — never in the chrome. Duolingo's entire playful chrome is a 4px ledge under its buttons; Headspace's is one breathing circle; everything else in those systems is as strict as Linear. Here the budget is: the logo, the photographs, the hero's staggered arrival, and the figures band's bob. That is the whole allowance. Spend it nowhere else.
+**The kids'-brand trap, stated once:** playfulness is spent in the mark, the photographs and one or two micro-interactions — never in the chrome. Duolingo's entire playful chrome is a 4px ledge under its buttons; Headspace's is one breathing circle; everything else in those systems is as strict as Linear. Here the budget is: the logo, the photographs, the turning arch, the five colour cards in it, the four stacked cards, the figures band's bob, and the testimonial pile's tilt. That is the whole allowance — and it is already generous, which is why everything else on the page is grey, flat, left-aligned and on the grid.
 
 **Motion values that were actually verifiable:** Material `short 50–200ms`, `medium 250–400ms`, `long 450–600ms`, `emphasized-decelerate cubic-bezier(0.05, 0.7, 0.1, 1)` for things entering; Apple press `scale(0.95)` on `:active`; Headspace tap `scale(0.98)`, canvas cross-fade 600ms, breathing sphere 4s `scale 1 → 1.04` with no spring; Slack spring 250ms at damping 0.8; Duolingo's press 80ms linear. The ladder in §3.6 sits inside these.
 
 ## 9. The micro-interaction inventory — all of them, and no others
 
-Ten. Each has a trigger, a property, a duration and a reason. If you want an eleventh, you have to name what it is *for* and remove one.
+Twelve. Each has a trigger, a property, a duration and a reason. If you want a thirteenth, you have to name what it is *for* and remove one.
 
 | # | Where | Trigger | What moves | Duration / easing | Reason |
 |---|---|---|---|---|---|
-| 1 | Hero | page load, once per session | logo `scale .96→1` + opacity; then tagline, sub, buttons with `--stagger`; then the four photos left to right with `--stagger` | `--dur-enter --ease-out` | Continuity — the page arrives in reading order, it does not pop |
-| 2 | Nav | scroll > 24px; hero logo leaves the viewport | ground → `--glass`, hairline fades in; the monogram fades in when the hero mark is gone | `--dur-state` | Wayfinding — the bar becomes a surface only when there is something under it, and there is one logo on screen at a time |
-| 3 | Nav links, footer links | hover / focus | colour `--ink-2 → --ink`; footer links also grow a 1px underline from the left | `--dur-state` in, `--dur-state-out` out | Feedback |
-| 4 | Buttons | `:active` | `scale(.97)` | `--dur-press` | Feedback on pointer-down (Apple §1) |
-| 5 | Buttons | hover | primary ground `--ink → #F2F1F1`; secondary hairline `.08 → .16` | `--dur-state` | Feedback; lighter on hover because the ground is dark |
-| 6 | Photos | hover / focus-within | image `scale(1.02)` inside the clipped figure | `--dur-move --ease-out` | Affordance for the Gallery; nothing else changes |
-| 7 | All sections below the hero | 20% visible, once | `.reveal`: opacity 0→1, `translateY(12px → 0)`, children staggered ≤6 | `--dur-reveal --ease-out`, `--stagger` | Continuity — content arrives in reading order |
-| 8 | Figures band | always; pause control | each figure bobs 2px, a wave along the row | `--dur-bob --ease-in-out` alternate, delay `i × 120ms` | The brand's one "kids holding hands, moving" |
-| 9 | Popup and mobile menu sheet | open / close | scrim fade; popup panel `scale .96→1` (desktop) / `translateY(24px → 0)` (bottom sheet); menu sheet `translateX(100% → 0)`; reverse on close along the same path | `--dur-enter --ease-out` in, `--dur-state-out` out | Spatial consistency (Apple §7) |
-| 10 | Form | submit → success | button label swaps, 16px check draws on (`stroke-dashoffset`); error hairline → `--c-blush` | `--dur-move` / `--dur-state` | Completion feedback |
+| 1 | Hero | page load, once per session | logo `scale .96→1` + opacity; then tagline, sub, buttons with `--stagger`; then the ring fades in already turning | `--dur-enter --ease-out` | Continuity — the page arrives in reading order, it does not pop |
+| 2 | Hero arch | always; pause on hover, touch, the control | twelve items orbit at `k = .45` tilt and fade across the bottom | `--dur-orbit` linear | The reference: photos and colour turning around the mark |
+| 3 | Hero arch card | hover / focus | the card `scale(1.04)`, hairline `.08 → .16`, and the ring stops | `--dur-move --ease-out` | "The photos stopping if you hover over it" |
+| 4 | Nav | scroll > 24px | ground → `--glass`, hairline fades in | `--dur-state` | Wayfinding — the bar becomes a surface only when there is something under it |
+| 5 | Nav links, footer links | hover / focus | colour `--ink-2 → --ink` | `--dur-state` in, `--dur-state-out` out | Feedback |
+| 6 | Buttons | `:active` | `scale(.97)` | `--dur-press` | Feedback on pointer-down (Apple §1) |
+| 7 | Buttons | hover | primary ground lightens (or darkens on a pastel); secondary hairline `.08 → .16` | `--dur-state` | Feedback |
+| 8 | All sections below the hero | 20% visible, once | `.reveal`: opacity 0→1, `translateY(12px → 0)`, children staggered ≤6 | `--dur-reveal --ease-out`, `--stagger` | Continuity — content arrives in reading order |
+| 9 | Figures band | always; pause control | each figure bobs 2px, a wave along the row | `--dur-bob --ease-in-out` alternate, delay `i × 120ms` | The brand's one "kids holding hands, moving" |
+| 10 | The stack | the next card reaches the sticky line | the card beneath recedes `rotateX(6deg) scale(.96)`, opacity `.9` | `--dur-move --ease-out` | Depth without shadow — the chapters are a deck |
+| 11 | Testimonial pile | reveal; hover / focus | drop-in from `−40px` and `−4°` to the resting tilt, staggered; on hover the card straightens to `0°` and lifts `1.02` | `--dur-reveal --ease-settle`; `--dur-move --ease-out` | The "fun" testimonials: tossed on the table, picked up to read |
+| 12 | Popup, menu sheet, form | open / close; submit | scrim fade; popup `scale .96→1` (desktop) / `translateY(24px → 0)` (sheet); menu sheet `translateX(100% → 0)`; on success the button label swaps and a 16px check draws on; error hairline → `--c-blush` | `--dur-enter --ease-out` in, `--dur-state-out` out; `--dur-move` | Spatial consistency (Apple §7); completion feedback |
 
-Under `prefers-reduced-motion`: 8 stops; 1, 7, 9 become opacity-only at the reduced `--dur-reveal`/`--dur-enter`; 2–6 and 10 keep their colour changes and drop their transforms.
+Under `prefers-reduced-motion`: 2 and 9 hold their first frame; 1, 8, 10, 11, 12 become opacity-only at the reduced `--dur-reveal`/`--dur-enter`; 3–7 keep their colour changes and drop their transforms.
 
-**Not in the inventory, therefore not on the site:** parallax, scroll-linked scrubbing, marquees, carousels, magnetic buttons, cursor followers, text scramble or split-letter reveals, counters, typewriters, hover tilt, hover glow, ripple, skeleton shimmer, confetti, logo spin, sparkle "ping", bouncing arrows, gradient drift, and any animation on the quote.
+**Not in the inventory, therefore not on the site:** parallax, scroll-scrubbed text, marquees, magnetic buttons, cursor followers, text scramble or split-letter reveals, counters, typewriters, hover tilt on anything but the pile, hover glow, ripple, skeleton shimmer, confetti, logo spin, star "ping", bouncing arrows, gradient drift, and any animation on the quote.
 
 ## 10. Copy — the only words allowed on the page
 
@@ -460,27 +516,27 @@ Eleven of the twelve photographs are of adults in workshops; one is of a child. 
 
 | # | File | Size / orientation | What it shows | Use |
 |---|---|---|---|---|
-| 1 | `27096601-DB24-458B-9670-845A4B914EC3.JPG` | 1440×960 landscape, B&W | Three adult participants standing in a row, arms linked, mid-exercise, focused | **Gallery row** (§6.5). Soft focus — never above 720px wide. |
-| 2 | `271AA5F7-78F1-4288-A6D2-25E35598A277.JPEG` | 1280×1707 portrait, colour | Bright workshop room, a participant in yellow trousers mid-step and laughing on a foam-mat floor, the group watching | **Hero row, first.** Best "creativity in motion" frame. |
-| 3 | `3528DF95-C76F-410F-89F0-CD868EA5DB54.JPG` | 960×1440 portrait, colour | A participant in a bucket hat laughing hard, "HELLO my name is" sticker | **Hero row, third.** Joy. Crop 4:5. |
-| 4 | `360AC4E9-9695-4879-8C64-5AD5AC1B419A.JPG` | 960×1440 portrait, B&W | Linda (white hair, glasses) mid-laugh, leading a session, participants behind her | **Welcome portrait** (§6.2). |
-| 5 | `9C752690-2CD5-4F26-BED6-227732891668.JPG` | 960×1440 portrait, colour | Linda on stage with a lapel mic holding a foam baton prop, patterned shirt, teaching | **Gallery row** (§6.5). |
-| 6 | `A0982FD3-7ED2-48E6-81AC-7F83E630ABC4.JPEG` | 1707×1280 landscape, colour | Floor-level group game, a participant in green crawling, hands raised around | **Hero row, fourth.** Pairs with "safe, educational, and thrilling". |
-| 7 | `C053CD9C-8A24-41CE-9EC9-BD92E8BB0071.JPG` | 1440×960 landscape, B&W | Participants reaching their hands toward each other in a circle, one smiling at the centre | **Hero row, second.** This is the brand's picture: the circle, the hands. |
-| 8 | `IMG_0230.JPEG` | 1024×472 landscape, colour | Wide shot of a small conference room, Linda at the front, screen and chairs | Stand-in for the Gallery row only if photo 12 fails (low resolution, poor light); otherwise not on the home page. |
+| 1 | `27096601-DB24-458B-9670-845A4B914EC3.JPG` | 1440×960 landscape, B&W | Three adult participants standing in a row, arms linked, mid-exercise, focused | **Arch, 7th item.** Soft focus — fine at 156px. |
+| 2 | `271AA5F7-78F1-4288-A6D2-25E35598A277.JPEG` | 1280×1707 portrait, colour | Bright workshop room, a participant in yellow trousers mid-step and laughing on a foam-mat floor, the group watching | **Arch, 1st item** (the top at φ = 0). Best "creativity in motion" frame. |
+| 3 | `3528DF95-C76F-410F-89F0-CD868EA5DB54.JPG` | 960×1440 portrait, colour | A participant in a bucket hat laughing hard, "HELLO my name is" sticker | **Arch, 5th item.** Joy. Crop 4:5. |
+| 4 | `360AC4E9-9695-4879-8C64-5AD5AC1B419A.JPG` | 960×1440 portrait, B&W | Linda (white hair, glasses) mid-laugh, leading a session, participants behind her | **Stack card (01)**, the Linda tile (§6.3). |
+| 5 | `9C752690-2CD5-4F26-BED6-227732891668.JPG` | 960×1440 portrait, colour | Linda on stage with a lapel mic holding a foam baton prop, patterned shirt, teaching | **Arch, 11th item.** |
+| 6 | `A0982FD3-7ED2-48E6-81AC-7F83E630ABC4.JPEG` | 1707×1280 landscape, colour | Floor-level group game, a participant in green crawling, hands raised around | **Arch, 9th item.** Pairs with "safe, educational, and thrilling". |
+| 7 | `C053CD9C-8A24-41CE-9EC9-BD92E8BB0071.JPG` | 1440×960 landscape, B&W | Participants reaching their hands toward each other in a circle, one smiling at the centre | **Arch, 3rd item.** This is the brand's picture: the circle, the hands. |
+| 8 | `IMG_0230.JPEG` | 1024×472 landscape, colour | Wide shot of a small conference room, Linda at the front, screen and chairs | Stand-in for the arch only if photo 12 fails at 156px (low resolution, poor light); otherwise not on the home page. |
 | 9 | `IMG_1548.HEIC` | 3213×5712 portrait | A handwritten thank-you letter to Linda on a paper fan, page 1 | Source material only. Not for publication without permission. Convert to JPEG and keep in `images/src/letters/`. |
 | 10 | `IMG_1549.HEIC` | 3213×5712 portrait | The same letter, page 2 | Same. |
 | 11 | `Scan Jun 7, 2026 at 7.10 PM.JPG` | 2090×2946 portrait | A handwritten postcard (China Post) to Linda, signed "Ray 2026" | Same. |
-| 12 | `awards4-light.JPEG` | 2592×3872 portrait, colour | A boy in a blue sweater, fist raised, another child behind him, dark stage (2011, Nikon D40X) | The only child photo. Grainy. **Gallery row, third**, tight 4:5 crop on the boy — if it does not hold at 380px wide, fall back to 8 and say so. |
+| 12 | `awards4-light.JPEG` | 2592×3872 portrait, colour | A boy in a blue sweater, fist raised, another child behind him, dark stage (2011, Nikon D40X) | The only child photo. Grainy. **Arch, 12th item**, tight 4:5 crop on the boy — at 156px it should hold; if it does not, fall back to 8 and say so. |
 
-**Colour and black-and-white.** Four of the usable photos are B&W. Do not convert colour photos to B&W to match, and do not tint B&W photos. On the dark ground the mix reads as editorial; in every row, no two B&W frames touch (the hero order 2, 7, 3, 6 and the gallery order 1, 5, 12 are set that way).
+**Colour and black-and-white.** Four of the usable photos are B&W. Do not convert colour photos to B&W to match, and do not tint B&W photos. On the dark ground the mix reads as editorial; in the arch no two B&W photographs are adjacent (the order in §6.1 is set that way, and the colour cards sit between them).
 
 **Pipeline** (`tools/build-images.mjs`, run with Node + `sharp`):
 - Read `images/src/`, apply EXIF orientation, strip metadata.
-- Emit AVIF and WebP at widths 480, 960, 1440, 1920 (never upscale beyond source), plus a JPEG fallback at 1440. Quality: AVIF 55, WebP 78, JPEG 82.
+- Emit AVIF and WebP at widths 320, 480, 960, 1440 (never upscale beyond source), plus a JPEG fallback at 960. Quality: AVIF 55, WebP 78, JPEG 82.
 - Emit a 24px-wide blurred WebP placeholder for each, inlined as a `data:` URI background on the `<picture>` wrapper, so nothing pops in.
 - Name outputs by content, not by the source's UUID: `hero-01-yellow-trousers`, `hero-02-laugh`, `circle-hands`, `linda-laughing`, `linda-stage`, `floor-game`, `row-linked-arms`, `boy-fist`. Record the mapping in `images/MANIFEST.md`.
-- Every `<img>` has explicit `width`/`height`, `loading="lazy"` except the four hero photos, `decoding="async"`, and `sizes`.
+- Every `<img>` has explicit `width`/`height`, `loading="lazy"` except the seven arch photos, `decoding="async"`, and `sizes`. The arch photos are served at 480 wide at most — they render at 156px.
 - Target: the home page's images total under 900 KB on first paint at 1440 wide and under 500 KB at 390 wide. Measure with the network panel and report the number.
 
 ## 12. Stack, hosting, forms, icons, fonts — the technical decisions `[DECIDE]`
@@ -509,7 +565,7 @@ Jayden asked whether this should be Next.js. Researched against the npm registry
 **Cloudflare Pages** on a custom domain (unlimited static requests and bandwidth on the free plan, no non-commercial clause, 500 builds/month). GitHub Pages is the equal alternative if Jayden prefers one fewer account. If he wants Vercel because his own site is there, it is the Pro plan for a commercial site — his call, note it. Provide `_headers` (Cloudflare) **and** `vercel.json` with the same cache policy so the decision is reversible: HTML `no-cache`; `/fonts/*`, `/images/*`, `/assets/*` `max-age=31536000, immutable`; CSS/JS immutable because their links carry a stamp.
 
 ### 12.3 Icons
-**Phosphor, Regular weight, 24px box**, inlined as an SVG sprite built from `@phosphor-icons/core` (MIT, 1,512 glyphs, round caps and joins that match Plus Jakarta Sans's terminals). Not the webfont. Glyphs needed on the home page: `x` (close), `arrow-right`, `check`, `envelope-simple`, `phone`, `pause`, `play`, `facebook-logo`, `x-logo`, `instagram-logo`, `linkedin-logo`. That is eleven; the sprite contains eleven. Phosphor's `student`, `hands-clapping`, `users-three` exist for later pages — not for decorating this one.
+**Phosphor, Regular weight, 24px box**, inlined as an SVG sprite built from `@phosphor-icons/core` (MIT, 1,512 glyphs, round caps and joins that match Plus Jakarta Sans's terminals). Not the webfont. Glyphs needed on the home page: `x` (close), `arrow-right`, `check`, `envelope-simple`, `phone`, `pause`, `play`, `caret-right` (the mobile pager, if the stars are not enough). That is eight; the sprite contains eight. No social glyphs — the footer uses words. Phosphor's `student`, `hands-clapping`, `users-three` exist for later pages — not for decorating this one.
 
 ### 12.4 Newsletter and contact without a backend
 - **Newsletter:** Buttondown accepts a plain `<form method="post" action="https://buttondown.com/api/emails/embed-subscribe/USERNAME">` with an `email` field and no JavaScript — free to 100 subscribers. Kit (free to 10,000) has a raw-HTML embed if she will outgrow that. Build the form so switching is `action` + input `name` only. Until Linda picks, `action="[NEWSLETTER_ACTION_URL]"` and the JS handler treats a missing URL as a demo success after 600ms so the states can be reviewed.
@@ -531,13 +587,13 @@ Benchmarks across three 2025–26 datasets agree: an immediate popup converts wo
 │  ├─ tokens.css              §3 — nothing else
 │  ├─ base.css                reset, @font-face, body, type roles, .container/.grid/.section, .sr-only, .skip
 │  ├─ components.css          §4
-│  └─ home.css                only what is unique to index.html (hero block, photo rows, figures band)
+│  └─ home.css                only what is unique to index.html (the orbit geometry, the stack, the pile)
 ├─ js/
-│  └─ main.js                 nav state + mark visibility, mobile sheet, reveals, figures pause, dialog, form — vanilla, ES2020, no bundler, <10 KB unminified
+│  └─ main.js                 nav state, mobile sheet, reveals, orbit pause/touch, figures pause, stack observer, pile drop, dialog, form — vanilla, ES2020, no bundler, <12 KB unminified
 ├─ assets/
 │  ├─ logo/                   the six SVGs as supplied, plus favicon.svg (monogram), icon-192.png, icon-512.png, apple-touch-icon.png
 │  ├─ icons.svg               the sprite: only the glyphs used
-│  └─ illustrations/          figure.svg (the symbol) — nothing else in v1
+│  └─ illustrations/          figure.svg and star.svg (the two symbols) — nothing else in v1
 ├─ fonts/                     PlusJakartaSans-400.woff2, PlusJakartaSans-600.woff2 (latin subset)
 ├─ images/
 │  ├─ src/                    originals (add to .gitignore if the repo is public — they contain identifiable people)
@@ -567,11 +623,13 @@ Write each as a script in `tools/gates/` that exits non-zero on failure and has 
 | Gate | Passes when |
 |---|---|
 | `targets` | Every `a, button, input, [role=button]` has a bounding box ≥ 44×44 at 1440, 1024, 390 and 320, except `p a`. Print the smallest. |
-| `contrast` | Every text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 for text ≥ 24px). Computed from the DOM, not from the token table. |
+| `contrast` | Every text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 for text ≥ 24px), **including every text node inside the four pastel stack cards and the five arch colour cards**. Computed from the DOM, not from the token table. |
 | `tokens` | No stylesheet other than `tokens.css` contains a hex colour, an `rgb(`, a `px` font-size, a `ms`/`s` duration or a `border-radius` value that is not a `var()`; **no stylesheet contains `-gradient(`**. |
 | `type` | Only `font-weight: 400` and `600` occur in computed styles; `font-style` is never `italic`; exactly one `font-family` is used for text. |
-| `layout` | At each viewport: no horizontal overflow (`document.documentElement.scrollWidth === innerWidth`); the hero tagline wraps to 3 lines at 1440 and ≤5 at 390; every `.container` inner edge and every section hairline lands on the column (1440: 120 → 1320); every photo in a row has the same rendered width and height as its siblings; exactly one logo `<img>` is visible at scrollY 0 and exactly one at scrollY 1200. |
-| `motion` | With `prefers-reduced-motion: reduce` emulated: no element has a running animation after 300ms (`document.getAnimations().length === 0`); reveals still reach `opacity: 1`. Without it: a figure's transform differs between two frames 800ms apart; the pause control stops it. |
+| `layout` | At each viewport: no horizontal overflow (`document.documentElement.scrollWidth === innerWidth`); the hero tagline wraps to 3 lines at every desktop viewport and ≤4 at 390; every `.container` inner edge and every section hairline lands on the column (1440: 120 → 1320); the four stack cards have identical widths; the stack's sticky top equals `--nav-h + --sp-6`. |
+| `orbit` | At 1440×900, 1512×850, 1280×720, 1024×768, 1920×1080 and 390×844, stepping the rotation 0…29° in 1° steps: for every text line box (`Range.getClientRects()` on the h1 and sub), the logo box and each button box, sample points every 6px and `document.elementsFromPoint` — **zero** points where an `.orbit__card` with opacity > 0 is painted; the topmost visible card's top ≥ 88px; no card intersects the nav's box; hovering a card sets every item's `animation-play-state` to `paused` and leaving resumes it; the pause control does the same. `--self-test`: set `--k` to 1 and expect a failure at 1024×768. |
+| `stack` | Scrolling to each card's sticky position leaves the previous card with `is-under` and a computed transform that is not `none`; the last card scrolls off normally; with reduced motion no card has a transform. |
+| `motion` | With `prefers-reduced-motion: reduce` emulated: no element has a running animation after 300ms (`document.getAnimations().length === 0`); reveals still reach `opacity: 1`; the arch is drawn at frame 0. Without it: an arch item's transform and a figure's transform each differ between two frames 800ms apart; each pause control stops its own region. |
 | `perf` | Lighthouse (mobile preset, throttled) ≥ 95 performance, 100 accessibility, ≥ 95 best practices, 100 SEO. CLS = 0. LCP < 2.0s. Total transfer on first load < 1.2 MB at 1440, < 700 KB at 390. Print all six numbers. |
 | `dialog` | The popup does not open at 100% scroll before 10s, and does not open at 10s with under 40% scroll; it opens once both hold; Esc closes it and returns focus to the opener; after dismiss a reload does not reopen it; the nav button still opens it; at 390 it opens non-modal and the page still scrolls; the email input rejects `not-an-email` without a network call. |
 | `copy` | Every visible text node on `index.html` is a substring of §10 or one of the §10.4 placeholder strings, ignoring case and whitespace. This is the gate that keeps the page honest. |
@@ -602,10 +660,10 @@ The same content re-cut for Notion's Markdown importer: H1 page title, H2 per se
 1. Read this prompt and `docs/apple-design.md`. Inventory the inputs. If anything in §0 is missing, say so in line one of your first reply and continue.
 2. **Tokens and style guide first.** `tokens.css`, `base.css`, `components.css`, `styleguide.html` with every component and state. Screenshot it. Look. Fix. This is half the job and it is the half that gets reused.
 3. Fonts: subset, self-host, preload, `size-adjust` fallback. Measure CLS.
-4. Assets: logo variants in place, favicon set, icon sprite, the figure symbol and the figures band. Render each alone at 2× and look.
-5. Images: run the pipeline, write `MANIFEST.md`, confirm the hero four and the gallery three by looking at them at their rendered sizes (photo 12 especially).
-6. `index.html`: build sections in order, one at a time, screenshotting each at 1440 and 390 before starting the next.
-7. Motion: hero first paint, nav mark hand-off, reveals, the figures band, states. Then reduced motion. Then look again with motion off.
+4. Assets: logo variants in place, favicon set, icon sprite, the star and figure symbols, the figures band. Render each alone at 2× and look.
+5. Images: run the pipeline, write `MANIFEST.md`, confirm the seven arch photos at 156px and the Linda tile at 150px by looking at them (photo 12 especially).
+6. `index.html`: build the arch first and run the `orbit` gate before anything else is on the page — its geometry is the riskiest thing here. Then the remaining sections in order, one at a time, screenshotting each at 1440 and 390 before starting the next.
+7. Motion: hero first paint, the arch's hover pause, the stack's recede, the pile's drop, reveals, the figures band, states. Then reduced motion. Then look again with motion off.
 8. The dialog and the form, both entry points, all storage cases.
 9. Run every gate serially. Fix. Re-run.
 10. Write the two documents and `BUILD-LOG.md`.
@@ -617,7 +675,7 @@ Do not skip to step 6. Do not build the hero first "to see the vibe" — the vib
 Jayden skims. Five lines, then numbers.
 - Line 1: anything **not** done, or "Everything in §13 is built."
 - Line 2: the one thing you changed because you looked at a screenshot.
-- Lines 3–5: the decisions you made where this prompt left a choice (photo 12 or 8 in the gallery row, the Welcome portrait ratio, the display weight if you flagged it, anything else), one per line.
+- Lines 3–5: the decisions you made where this prompt left a choice (photo 12 or 8 in the arch, the pile's exact offsets, the display weight if you flagged it, anything else), one per line.
 - Then the gate table from §14 with the measured numbers.
 - Then §15 as a list.
 - Then the paths of the screenshots.
