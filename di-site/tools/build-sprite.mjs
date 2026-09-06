@@ -2,7 +2,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
-const ICONS = ['x', 'check', 'envelope-simple', 'phone', 'sun', 'moon', 'arrow-left', 'arrow-right', 'list'];
+const ICONS = ['x', 'check', 'envelope-simple', 'phone', 'sun', 'moon', 'arrow-left', 'arrow-right', 'list', 'pause', 'play'];
 let out = '<svg xmlns="http://www.w3.org/2000/svg" style="display:none">';
 for (const name of ICONS) {
   const svg = await readFile(path.join(root, 'tools/node_modules/@phosphor-icons/core/assets/regular', `${name}.svg`), 'utf8');

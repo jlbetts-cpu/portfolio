@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v15 (2026-09-06) — the one moving picture, and three figures
+Jayden asked what would take the site from a 9 to a 10, and to research it rather than assert it. The awards weight **Design 40% · Usability 30% · Creativity 20% · Content 10%**, and 8.0 is the Site of the Day line. Scored honestly on that, DI was Design ~9, Usability ~9, **Creativity ~6.5, Content ~4** — a weighted 8.0, with the two smallest-weighted criteria doing all the damage. The most-repeated finding across the winners: **one signature moment, not twenty effects.**
+
+**The site is about improvisation — a thing that only exists in motion — and `grep -c "<video"` returned 0.** Fifteen hero photographs, four card photographs, eight in the ring, every one a frozen frame of the subject. So: one muted loop, between the cards and the ring, and it is the only element below the hero allowed to be big — the four cards and the three quotes were all one size, which is what made the lower page read flat.
+
+Getting it usable took work. Of Linda's three clips, **two are unusable**: pre-cut on a template with a wax-seal envelope animation, a scrapbook frame with doodles, a bokeh-lights overlay and a maroon photo grid — a visual language from somewhere else entirely. The third is clean footage but only between 10s and 39s; either side is title cards and page curls. And it carried a **baked-in template frame** — a near-white border with the picture inset at 852x380 of a 960x420 raster — which rendered on the dark page as a white slab with a soft picture floating in it. The encode crops past it, takes 12–18s as one continuous shot, and **dissolves its last half-second back into its opening frame** so the loop has no jump. 355KB MP4 / 317KB WebM, `preload="none"` behind a poster: **first load is 435KB desktop / 390KB phone and none of it is video.** An observer starts it on screen and pauses it off, it never autoplays under reduced motion, and it carries its own pause control — an autoplaying loop over five seconds needs one (WCAG 2.2.2). The panel is capped at **1000px**, a 1.17x stretch of the source; past that, 20fps handheld goes to mush. New gate, `film.mjs`, five lines and a self-test that takes `pause()` away.
+
+**And three figures at the head of the testimonials.** The page said what the method is and who made it and nothing about whether it has ever been used; "fifty plus years" was buried in a card summary. One wide panel, numbers at up to 4.5rem — the biggest type below the hero after the film — labels in caps beneath. **The figures are placeholders**: `50+` is real, the zeros are the shape of a number and not a claim, and they must carry Linda's real counts before this is published anywhere.
+
+**Still open, and honest about it:** the footage is an **adult workshop in a Chinese-language venue** while the rest of the site is American classrooms and children, and a bystander in red is filming in the foreground. It is the best of what exists. If the story is "a tool for the classroom", the signature moment should show a classroom.
+
+**Measured after v15.** 49 gate lines pass, seven self-tests re-inject their bug and are caught. Worst contrast 4.82:1 light / 5.28:1 dark.
+
 ## v14 (2026-09-06) — a hamburger, a card that lets go, a carousel you can scrub, and the hover pass
 Four asks in one message, and the last one turned into the round's real find.
 
