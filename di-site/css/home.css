@@ -5,18 +5,21 @@
    The gallery lives here now (Jayden: "we combine the gallery in the hero"). The headline holds the left columns;
    the right is a bento of columns that drift with the flow, in alternating directions and at three speeds, masked at
    the top and the bottom so the photographs fade in and out of the ground instead of stopping at a hard edge. */
-.hero { padding-top: calc(var(--nav-h) + var(--sp-8)); padding-bottom: var(--section-y); }
+/* the hero is the screen: the grid fills the viewport and the bento runs the whole height of it */
+.hero { padding-top: calc(var(--nav-h) + var(--sp-6)); padding-bottom: var(--sp-8); min-height: 100svh; display: grid; align-content: center; }
 .hero__grid { align-items: center; row-gap: var(--sp-10); }
 .hero__head { grid-column: 1 / -1; display: grid; gap: var(--sp-6); }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); text-wrap: balance; }
 .hero__meta { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
 .hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 22em; }
-.hero__bento { grid-column: 1 / -1; height: clamp(400px, 64vh, 640px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start;
+.hero__bento { grid-column: 1 / -1; height: clamp(400px, 78svh, 880px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 11%, #000 89%, transparent 100%);
           mask-image: linear-gradient(to bottom, transparent 0%, #000 11%, #000 89%, transparent 100%); }
 .bento__col { display: grid; gap: var(--grid-gap); grid-auto-rows: max-content; will-change: transform; }
 .bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
+/* on a phone the head and the bento stack, so the bento takes a share of the screen rather than three quarters of it */
+@media (max-width: 767px) { .hero__bento { height: clamp(300px, 44svh, 440px); } .hero { min-height: 0; padding-bottom: var(--section-y); } }
 @media (min-width: 768px) {
   .hero__head { grid-column: 1 / span 6; align-self: center; }
   .hero__bento { grid-column: 7 / span 6; }

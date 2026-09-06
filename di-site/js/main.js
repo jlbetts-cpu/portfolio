@@ -19,10 +19,10 @@
   const applyTheme = (t, animate) => {
     if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
     root.dataset.theme = t;
-    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#131211' : '#F7F5F0';
+    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#131211' : '#F0ECE3';
     $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
   };
-  applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light', false);
+  applyTheme(root.dataset.theme === 'light' ? 'light' : 'dark', false);
   $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
     const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
     store.set('di:theme', t); applyTheme(t, true);

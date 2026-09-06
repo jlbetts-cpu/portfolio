@@ -132,8 +132,8 @@ page=f'''<!DOCTYPE html>
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(P[0])}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#F7F5F0">
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#131211">
+<meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(P[0])}">
 <meta property="og:type" content="website">
@@ -151,7 +151,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,t=null,c=1;try{{t=localStorage.getItem('di:theme');c=!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,t=null,c=1;try{{t=localStorage.getItem('di:theme');c=!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme=t==='light'?'light':'dark';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -241,7 +241,7 @@ page=f'''<!DOCTYPE html>
 <div class="curtain" aria-hidden="true">
   <div class="curtain__half curtain__half--l"></div>
   <div class="curtain__half curtain__half--r"></div>
-  <div class="curtain__load"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><span class="curtain__bar"><i></i></span></div>
+  <div class="curtain__load">{navlogo}<span class="curtain__bar"><i></i></span></div>
 </div>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">

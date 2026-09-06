@@ -137,20 +137,32 @@
 }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
-/* The curtain — the first load of a session only. Two halves of the brand's own sky part to reveal the page.
-   No scrim and no darkening: the site is simply behind it, already laid out, and the halves leave. */
+/* The curtain — the first load of a session only. Two panels of violet part to reveal the page. Violet and not the
+   brand's sky because the mark is drawn in sky: on sky its letterforms vanish and only the ring of arcs survives.
+   No scrim and no darkening: the site is simply behind it, already laid out, and the panels leave.
+   The pleats are two repeating gradients at different pitches — one for the folds, one for the light across them —
+   so the repeat is long enough that the eye does not find the seam. */
 .curtain { display: none; position: fixed; inset: 0; z-index: var(--z-curtain); pointer-events: none; }
 .curtaining .curtain { display: block; }
 .curtaining { overflow: hidden; }
 /* 50.5% so the seam cannot show a hairline of the page between them at fractional widths */
-.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: var(--c-sky); transition: transform 900ms var(--ease-in-out); }
-.curtain__half--l { left: 0; }
-.curtain__half--r { right: 0; }
-.curtain.is-open .curtain__half--l { transform: translateX(-100.5%); }
-.curtain.is-open .curtain__half--r { transform: translateX(100.5%); }
+.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background-color: var(--c-violet);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.20) 0, rgba(0,0,0,.06) 11px, rgba(255,255,255,.10) 26px, rgba(255,255,255,.17) 34px, rgba(255,255,255,.05) 48px, rgba(0,0,0,.13) 62px, rgba(0,0,0,.20) 74px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0, rgba(0,0,0,0) 90px, rgba(255,255,255,.07) 150px, rgba(0,0,0,0) 210px, rgba(0,0,0,.10) 296px);
+  transition: transform 1000ms var(--ease-in-out); }
+.curtain__half--l { left: 0; transform-origin: top left; }
+.curtain__half--r { right: 0; transform-origin: top right; background-position-x: 37px; }
+/* where the two panels meet is a fold, not a join: without this the two patterns collide and draw a bright line */
+.curtain__half::after { content: ""; position: absolute; top: 0; bottom: 0; width: 72px; }
+.curtain__half--l::after { right: 0; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,.26)); }
+.curtain__half--r::after { left: 0; background: linear-gradient(270deg, rgba(0,0,0,0), rgba(0,0,0,.26)); }
+/* the panels bunch as they go, the way cloth does, instead of sliding out flat */
+.curtain.is-open .curtain__half--l { transform: translateX(-100.5%) scaleX(.88); }
+.curtain.is-open .curtain__half--r { transform: translateX(100.5%) scaleX(.88); }
 .curtain__load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-5); transition: opacity var(--dur-state) var(--ease-out); }
 .curtain.is-open .curtain__load { opacity: 0; }
-.curtain__load .mark { width: 32px; height: 34px; color: #1B1916; }
-.curtain__bar { width: 88px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(27,25,22,.22); overflow: hidden; }
-.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #1B1916; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
+.curtain__load .logo { width: 68px; height: auto; overflow: visible; }
+.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(255,255,255,.28); overflow: hidden; }
+.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #FFFFFF; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
 @keyframes curtain-load { from { transform: translateX(-110%); } to { transform: translateX(275%); } }

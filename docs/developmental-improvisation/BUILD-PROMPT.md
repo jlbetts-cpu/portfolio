@@ -79,7 +79,7 @@ column: it runs the full width of the screen and bleeds off both edges.
 ### 3.3 Type
 **Sen** (800 display, 700 titles) over **Plus Jakarta Sans** (400/600). Sen is one variable latin file, 18KB, every weight.
 They share a geometry — circular bowls, flat terminals — so the pair reads as one voice. The display runs big and tight:
-`clamp(2.75rem, 1.1rem + 5.4vw, 6rem)` at `-0.04em`, five lines at every width. Measures are in `em`, never `ch`.
+`clamp(2.375rem, 1rem + 4.2vw, 4.75rem)` at `-0.038em` — 76px at 1440, five lines at every width. Measures are in `em`, never `ch`.
 
 ### 3.4 Colour is full strength or it is not there
 There are no mixes, no tints and no washes. A hue reaches the page as a **surface at 100%** — a bento tile, the panel behind
@@ -108,6 +108,11 @@ gallery nor the ring is on screen the flow holds and scroll deltas are dropped, 
 takes a rung of the duration ladder (100/160/240/280/360/500ms). Only `transform` and `opacity` animate. Under
 `prefers-reduced-motion` the drift and the coupling are zero and the stack does not scale.
 
+### 3.6b Themes
+**Dark is the default**; light is the visitor's choice, applied before first paint from `localStorage` so there is no
+flash. The saturated hues and the photographs sit better on near-black. Light's ground is `#F0ECE3`, deeper than the
+`#F7F5F0` it started at — at three per cent from a white card, nothing on it read as an object.
+
 ### 3.7 The floors
 44px minimum targets, measured. Focus is a 2px ring on `--focus`. Every visible text node clears 4.5:1 (3:1 at ≥24px) against
 its effective background **in both themes**. One `<h1>`. Every section labelled. The skip link is first in the body.
@@ -116,14 +121,18 @@ its effective background **in both themes**. One `<h1>`. Every section labelled.
 
 Six sections. Anything thinner than this got merged.
 
-0. **The curtain.** On the first load of a session, two halves of sky cover the page with the mark and a loading bar while
-   the fonts and the hero's first photographs arrive, then part. No scrim and no darkening — the site is already laid out
-   behind them. A floor of 620ms, a hard 2600ms failsafe, gone from the DOM a second later, never on a reload in the same
-   session, never under reduced motion.
-1. **Hero, with the gallery inside it.** The headline holds the left six columns at display size. The right six are a
-   **bento**: three columns of 4:5 photographs plus two tiles of pure colour, looping vertically with the flow, adjacent
-   columns in opposite directions at three speeds, the whole block masked top and bottom so the photographs fade in and out
-   of the ground instead of stopping at an edge. Under the headline, one row with the tagline and one button.
+0. **The curtain.** On the first load of a session, two panels of **violet** cover the page with the colour mark and a
+   loading bar while the fonts and the hero's first photographs arrive, then part — bunching slightly as they go, the way
+   cloth does. Violet and not the brand's sky because **the mark is drawn in sky**: on a sky ground its letterforms vanish
+   and only the ring of arcs survives. The pleats are two repeating gradients at different pitches, plus a dark fold where
+   the panels meet — without that fold the two patterns collide and draw a bright line. No scrim and no darkening: the site
+   is already laid out behind them. A floor of 620ms, a hard 2600ms failsafe, gone from the DOM a second later, never on a
+   reload in the same session, never under reduced motion.
+1. **Hero, with the gallery inside it, filling the screen.** `min-height: 100svh`. The headline holds the left six columns
+   at display size. The right six are a **bento**: three columns of 4:5 photographs plus two tiles of pure colour, running
+   the full height of the viewport, looping vertically with the flow, adjacent columns in opposite directions at three
+   speeds, the whole block masked top and bottom so the photographs fade in and out of the ground instead of stopping at an
+   edge. Under the headline, one row with the tagline and one button.
 2. **The four cards.** Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
    over it. One hue each (violet, orange, green, pink), one photograph each, sized by height so a 4:5 frame cannot stretch the
    card past the text beside it. Even cards mirror — and both children must be pinned to `grid-row: 1`, or grid's forward-only

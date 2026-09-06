@@ -7,7 +7,7 @@ For anyone building the next page. Every rule has a reason. If you cannot say wh
 2. **Counting is not looking.** Measure, then open the screenshot. Every gate in `tools/gates/` exists because a number once lied.
 3. **The fundamentals carry the design.** The corner geometry, the column, the type scale, the colour order and the single photograph shape *are* the design. No illustrations, no gradients, no shadows, no texture.
 4. **The palette is the logo, read literally, at full strength.** Sky is the monogram, gold is the star, six arcs ring them. Eight colours, each used as itself — never mixed into the ground.
-5. **Two themes, one palette.** Light is the default; dark is the visitor's choice, applied before first paint.
+5. **Two themes, one palette. Dark is the default**; light is the visitor's choice, applied before first paint. The saturated hues and the photographs sit better on near-black, and Jayden asked for the ground that pops.
 6. **Motion is one shared value.** The gallery, the ring and the stack all read the flow. Everything else takes a rung of the ladder.
 7. **Copy is verbatim from the old site**, and only what the page needs.
 8. **44px targets and 4.5:1 contrast, measured, in both themes.**
@@ -51,16 +51,16 @@ No gradients. No coloured text. No hue as a border. No coloured dot before a lab
 
 | Token | Light | Dark |
 |---|---|---|
-| `--bg` / `--bg-raised` / `--bg-sunken` | #F7F5F0 / #FFFFFF / #EFECE5 | #131211 / #1C1A18 / #0E0D0C |
-| `--ink` / `--ink-2` / `--ink-3` | #1B1916 / #514C45 / #736D64 | #F4F1EB / 74% / 58% |
-| `--line` / `--line-strong` | ink 10% / 20% | off-white 12% / 22% |
+| `--bg` / `--bg-raised` / `--bg-sunken` | #F0ECE3 / #FFFFFF / #E5E0D5 | #131211 / #1C1A18 / #0E0D0C |
+| `--ink` / `--ink-2` / `--ink-3` | #1B1916 / #514C45 / #6C665D | #F4F1EB / 74% / 58% |
+| `--line` / `--line-strong` | ink 12% / 22% | off-white 12% / 22% |
 
 ## 4. Type
 **Sen** — 800 for the display, 700 for titles — over **Plus Jakarta Sans** 400/600. Sen is one variable latin file, 18KB, every weight from 400 to 800. They share a geometry, which is why the pair reads as one voice rather than two families.
 
 | Role | Size (390 → 1440) | Leading | Tracking | Face |
 |---|---|---|---|---|
-| display | 44 → 96 | 1.02 | −0.04em | Sen 800 |
+| display | 38 → 76 | 1.04 | −0.038em | Sen 800 |
 | h1 | 36 → 60 | 1.04 | −0.035em | Sen 800 |
 | h2 | 28 → 44 | 1.08 | −0.03em | Sen 700 |
 | h3 | 20 → 26 | 1.16 | −0.02em | Sen 700 |
@@ -89,9 +89,9 @@ Every photograph on the page is a **4:5 rectangle with the same superellipse cor
 Two rules learned by looking: **a photograph inside a circle needs its subject at the centre and no dark ground** — linda-portrait and kids-bw-small read as black discs and were pulled from the ring — and **the hero's photograph is not in the gallery**, which is 300px below it.
 
 ## 8. The page
-**The curtain** comes first, on the first load of a session only: two halves of sky over the page with the mark and a loading bar while the fonts and the hero's first photographs arrive, then they part. No scrim, no darkening — the site is already laid out behind them. A 620ms floor so it reads as deliberate, a 2600ms hard failsafe so nothing can strand the site, removed from the DOM a second after it opens, never on a reload in the same session, never under reduced motion.
+**The curtain** comes first, on the first load of a session only: two panels of **violet** over the page with the colour mark and a loading bar while the fonts and the hero's first photographs arrive, then they part, bunching slightly as they go. Violet and not the brand's sky because the mark is drawn in sky — on a sky ground its letterforms vanish and only the ring of arcs survives. The pleats are two repeating gradients at different pitches so the repeat is long enough that the eye does not find the seam, plus a dark fold where the panels meet: without it the two patterns collide and draw a bright line. No scrim, no darkening — the site is already laid out behind them. A 620ms floor so it reads as deliberate, a 2600ms hard failsafe so nothing can strand the site, removed from the DOM a second after it opens, never on a reload in the same session, never under reduced motion.
 
-1. **Hero, with the gallery inside it.** The headline on the left six columns at display size; the right six are a **bento** — three columns of 4:5 photographs plus two tiles of pure colour, looping vertically with the flow, adjacent columns in opposite directions at three speeds (`--speed` per column), the block masked top and bottom so the photographs fade in and out of the ground rather than stopping at an edge. Each column carries its contents twice and `[data-mid]` marks the loop length; every tile has an intrinsic ratio, so that length is stable before the images load. Under the headline, one row with the tagline and one button.
+1. **Hero, with the gallery inside it, filling the screen** (`min-height: 100svh`). The headline on the left six columns at display size; the right six are a **bento** — three columns of 4:5 photographs plus two tiles of pure colour, looping vertically with the flow, adjacent columns in opposite directions at three speeds (`--speed` per column), the block masked top and bottom so the photographs fade in and out of the ground rather than stopping at an edge. Each column carries its contents twice and `[data-mid]` marks the loop length; every tile has an intrinsic ratio, so that length is stable before the images load. Under the headline, one row with the tagline and one button.
 2. **The four cards** — sticky, each 10px lower than the last, scaled by the flow as the next covers them. The card is the raised ground with a hairline; its hue is the **solid panel holding the photograph**, the same tile-and-photograph pairing the bento uses. The photograph is sized by height so a 4:5 frame cannot stretch the card past the text. Even cards mirror, and **both children are pinned to `grid-row: 1`** — grid's forward-only auto-placement otherwise drops the mirrored figure to a second row and doubles the card.
 3. **The quote ring** — eight circular photographs turning around the quote. The one section Jayden asked to keep.
 4. **Testimonials** — a centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner**. The depth comes from the nesting, not from a shadow.

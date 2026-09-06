@@ -56,7 +56,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 .stack .stack__card + .stack__card {{ margin-top: var(--sp-6); }}
 .flow {{ display:grid; grid-template-columns: 160px 1fr; gap: var(--sp-2) var(--sp-6); font-size: var(--fs-small); color: var(--ink-2); }} .flow b {{ color: var(--ink); font-weight: 600; }}
 </style></head><body>
-<script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js')}})()</script>
+<script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='light'?'light':'dark';h.classList.add('js')}})()</script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark}</symbol></svg>
 {sprite}
 <main class="container sg">

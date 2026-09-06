@@ -7,19 +7,19 @@
 :root {
   color-scheme: light;
   /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97 */
-  --bg:          #F7F5F0;
+  --bg:          #F0ECE3;                 /* deeper than it was: at #F7F5F0 a white card was three per cent off the ground and read as nothing */
   --bg-raised:   #FFFFFF;
-  --bg-sunken:   #EFECE5;
+  --bg-sunken:   #E5E0D5;
   --bg-overlay:  #FFFFFF;
-  --line:        rgba(27,25,22,.10);
-  --line-strong: rgba(27,25,22,.20);
+  --line:        rgba(27,25,22,.12);
+  --line-strong: rgba(27,25,22,.22);
   --scrim:       rgba(27,25,22,.48);
-  --glass:       rgba(247,245,240,.78);
+  --glass:       rgba(240,236,227,.78);
 
   /* Ink — a warm black and two tiers */
   --ink:    #1B1916;
   --ink-2:  #514C45;                      /* 7.8:1 on the ground */
-  --ink-3:  #736D64;                      /* 4.7:1 on the ground */
+  --ink-3:  #6C665D;                      /* 4.9:1 on the deeper ground */
 
   /* The logo. Sky is the monogram; the six that follow are the arcs, in ring order clockwise from the top. */
   --c-sky:     #58CDFC;                   /* the mark. Warm black on it: 9.6:1 */
@@ -55,7 +55,7 @@
      The display runs bigger and tighter than a body face would: at 1440 it is 96px on a 12.5em measure. */
   --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Sen", "Avenir Next", "Century Gothic", ui-sans-serif, system-ui, sans-serif;
-  --fs-display: clamp(2.75rem, 1.1rem + 5.4vw, 6rem);       --lh-display: 1.02; --ls-display: -0.04em;
+  --fs-display: clamp(2.375rem, 1rem + 4.2vw, 4.75rem);     --lh-display: 1.04; --ls-display: -0.038em;
   --fs-h1:      clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);    --lh-h1: 1.04;      --ls-h1: -0.035em;
   --fs-h2:      clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);    --lh-h2: 1.08;      --ls-h2: -0.03em;
   --fs-h3:      clamp(1.25rem, 1.05rem + .8vw, 1.625rem);   --lh-h3: 1.16;      --ls-h3: -0.02em;
