@@ -1609,6 +1609,13 @@
     header comments already record hitting four times. */
 .jbNav .jbBurger{display:none}
 .jbDrawerHead{display:none}
+/* THE TITLE IS MOBILE-ONLY, AND IT NEEDS A BASE RULE TO SAY SO. Its styles live
+   inside @media(max-width:760px), but header.js creates the element on every
+   width, so without this it rendered as a bare inline span in the desktop bar --
+   "Contact  Bearings" at 1440. The earlier body[data-nav="home"] rule had been
+   hiding it on one page by accident, which is exactly why that rule was removed
+   rather than relied on. */
+.jbTitle{display:none}
 
 @media(max-width:760px){
   .jbNav .jbBurger{display:inline-flex;margin-left:auto}
@@ -1624,7 +1631,7 @@
      off-centre against the bar itself. Absolute puts it on the bar's true
      midline regardless of what flanks it, and pointer-events:none keeps it from
      eating taps meant for either. */
-  .jbTitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  .jbTitle{display:block;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     max-width:min(56%,190px);white-space:nowrap;overflow:hidden;
     text-overflow:ellipsis;text-align:center;pointer-events:none;
     font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);
