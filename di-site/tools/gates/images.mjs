@@ -5,13 +5,13 @@ const pg = await open(b, 1440, 900);
 await pg.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { scrollTo(0, y); await new Promise(r => setTimeout(r, 120)); } scrollTo(0, 0); });
 await pg.waitForTimeout(1500);
 const r = await pg.evaluate(() => {
-  const imgs = [...document.querySelectorAll('img')].filter(i => !i.closest('[aria-hidden="true"].strip__card'));
+  const imgs = [...document.querySelectorAll('img')].filter(i => !i.closest('[aria-hidden="true"]'));
   const missing = imgs.filter(i => !i.getAttribute('width') || !i.getAttribute('height') || i.getAttribute('alt') === null || !i.closest('picture')).length;
   const oversized = imgs.filter(i => i.currentSrc && i.naturalWidth > 0 && i.getBoundingClientRect().width > 0 && i.naturalWidth > i.getBoundingClientRect().width * devicePixelRatio * 1.5 + 100).map(i => `${i.currentSrc.split('/').pop()} ${i.naturalWidth}px for ${Math.round(i.getBoundingClientRect().width)}px`);
-  // groups: the hero's photograph, the gallery, the ring, the stacked cards. Each unique within itself; a stacked card's photograph appears nowhere else.
-  const groups = [imgs.filter(i => i.closest('.hero')), imgs.filter(i => i.closest('.gallery')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => i.closest('.stack'))].map(g => g.map(i => i.getAttribute('src')));
+  // groups: the hero's bento, the ring, the stacked cards. Each unique within itself; a stacked card's photograph appears nowhere else.
+  const groups = [imgs.filter(i => i.closest('.hero')), imgs.filter(i => i.closest('.ring')), imgs.filter(i => i.closest('.stack'))].map(g => g.map(i => i.getAttribute('src')));
   const dupes = groups.flatMap(g => g.filter((s, i) => g.indexOf(s) !== i));
-  const tileElsewhere = groups[3].filter(s => groups[0].includes(s) || groups[1].includes(s) || groups[2].includes(s));
+  const tileElsewhere = groups[2].filter(s => groups[0].includes(s) || groups[1].includes(s));
   dupes.push(...tileElsewhere);
   return { count: imgs.length, missing, oversized, dupes };
 });

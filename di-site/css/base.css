@@ -9,7 +9,7 @@
 /* Every corner on this site is a superellipse, not an arc. One declaration, for everything that takes a radius. */
 * { corner-shape: var(--corner); }
 /* A circle is a circle. corner-shape turns a 50% radius into a superellipse too, so anything meant to be round opts back out. */
-.arrow, .photo--circle, .voice__avatar, .label::before, .btn[aria-busy="true"]::after, .lightbox .dialog__close { corner-shape: round; }
+.arrow, .photo--circle, .voice__avatar, .btn[aria-busy="true"]::after, .lightbox .dialog__close { corner-shape: round; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--bg); color: var(--ink-2); font-family: var(--font), "Plus Jakarta Sans Fallback"; font-size: var(--fs-body); line-height: var(--lh-body); letter-spacing: var(--ls-body); font-weight: 400; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: clip; }
@@ -39,9 +39,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* Layout */
 .container { max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto; }
 .section { padding-block: var(--section-y); }
-/* the label: 12px caps with a dot in the section's hue. The dot is the only place a hue appears at full strength above the foot. */
-.label { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink-3); }
-.label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+/* the label: 12px caps, nothing else. It had a coloured dot; Jayden removed it. */
+.label { display: block; font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink-3); }
 /* the twelve-column grid every section lays out on */
 .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--grid-gap); }
 @media (min-width: 768px) { .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } }

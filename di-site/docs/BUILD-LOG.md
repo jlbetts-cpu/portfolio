@@ -1,5 +1,22 @@
 # Build log — Developmental Improvisation, home page
 
+## v9 (2026-09-06) — full-strength colour, the gallery inside the hero, the curtain
+Jayden's eighth review: "the colors are still not accurate on both dark mode and light mode", "I dont like the use of colored dots they shouldnt be there for the section headers", "we combine the gallery in the hero and it should look just like this ... notice the way it fades out and in cleanly", "the cards should look like this: with small spacing from the outer edge", "the testimonials section should look like this but colored cards here is the colors for the logo so build a colorful system around them", and a curtain opening on first load — "no tada or any darkening of the website".
+
+**The colours were inaccurate because they were mixes.** Two rounds of washes and tints: a hue mixed into the raised ground is not the brand colour any more, and it shifts a second time between the themes. Every mix is gone. A hue is now a surface at 100%, with `--on-accent` — the one ink that clears 4.5:1 on it (six take warm black; violet is the only one dark enough to need white, 3.7:1 against 4.6:1). Because a full-strength hue is identical in both themes, the surfaces carrying one rebind their ink tokens instead of following the theme, which is what makes light and dark finally agree.
+
+**The palette also had eight colours, not seven.** Jayden's swatch list included `#FFE469` — the star's gold, which the site had never used. Sky is the monogram, gold is the star, six arcs ring them, and the page now spends all eight exactly once, in the logo's order.
+
+**Colour is spare.** Four full-strength cards were built first and pulled back the same day: they flooded the page and read as a toy catalogue. The card is the raised ground with a hairline, and its hue is the solid panel holding the photograph — the same tile-and-photograph pairing the hero's bento uses.
+
+**The gallery moved into the hero.** The horizontal strip is gone. The hero's right six columns are three vertical columns of photographs plus two colour tiles, looping with the flow in alternating directions at three speeds, masked top and bottom so they fade in and out of the ground instead of stopping at an edge.
+
+**The page sits closer to the edge.** `--page-max` 1400 → 1720 and the gutter to `clamp(16px, 2vw, 36px)`: on a 1440 laptop the page is now the screen minus one 29px inset, which is what "a small spacing from the outer edge" means.
+
+**The curtain.** Two halves of sky over the page on the first load of a session, with the mark and a loading bar while the fonts and the hero's first photographs arrive, then they part. No scrim and no darkening — the site is already laid out behind them. Three things stop it stranding the site: a 620ms floor, a 2600ms hard failsafe, and removal from the DOM a second after it opens. Never on a reload in the same session, never under reduced motion.
+
+**Measured after v9.** 37 gate lines pass, including a new `curtain` gate with a self-test that pins the curtain so it can neither travel nor be removed. Contrast worst 4.70:1 light and 5.28:1 dark over 37 text nodes each. Two bugs the gates caught in this round: the `lightbox` gate printed nothing and exited 0 after its selector went stale (a drifting tile can never satisfy Playwright's stability check — the gate now stops the columns and picks a tile that is wholly on screen), and `elementsFromPoint` cannot see the curtain at all, because the curtain is `pointer-events: none` by design and hit testing skips it; the gate asks the geometry instead.
+
 ## v8 (2026-09-05) — the rebuild on the fundamentals: the superellipse corner, the logo's own order, one shape, one field
 Jayden's seventh review asked for a new prompt and a redesign: "I actually dont like the diffenrt shape pictures I wish they were all the same shape", "The only section I like and want to keep is the circle section", "the margins are too big", "the roundness doesnt have that apple smoothing of the corners", "the colors are also not in the main logo colors combinations", "the design is falling flat ... it looks boring the layouts feel uninspired", "the site needs to be something pintrest worthy like top ui".
 

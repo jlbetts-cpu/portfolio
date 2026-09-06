@@ -28,6 +28,30 @@
     store.set('di:theme', t); applyTheme(t, true);
   }));
 
+  /* ---- The curtain: the first load of a session. It waits for the fonts and the hero's first photographs, then parts.
+     Three things guarantee the site is never stuck behind it: a hard timeout, a floor on how long it can show, and
+     the fact that the page underneath is already laid out and scrollable the moment the halves leave. ---- */
+  const curtain = $('.curtain');
+  if (curtain && root.classList.contains('curtaining')) {
+    let opened = false;
+    const open = () => {
+      if (opened) return; opened = true;
+      store.sset('di:curtain', '1');
+      curtain.classList.add('is-open');
+      setTimeout(() => { root.classList.remove('curtaining'); curtain.remove(); }, 1000);
+    };
+    const shot = $$('.hero__bento img').slice(0, 6);
+    const loaded = new Promise(res => {
+      let n = shot.filter(i => !i.complete).length;
+      if (!n) return res();
+      shot.forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (!--n) res(); }, { once: true }); });
+      setTimeout(res, 1600);
+    });
+    const floor = new Promise(res => setTimeout(res, 620));
+    Promise.all([document.fonts ? document.fonts.ready : Promise.resolve(), loaded, floor]).then(open);
+    setTimeout(open, 2600);
+  }
+
   /* ---- Nav: a surface only once there is something under it ---- */
   const nav = $('#nav');
   const onScroll = () => nav.classList.toggle('is-scrolled', scrollY > 24);
@@ -84,36 +108,32 @@
     }
   }
 
-  /* ---- The strip: one loop of photographs on a track, moved by the flow; the arrows step a card; it can be dragged ---- */
-  $$('[data-strip]').forEach(track => {
-    const viewport = track.parentElement;
-    const cards = [...track.children];
-    const n = cards.length / 2;
-    let pitch = 0, half = 0, pxPerDeg = 6;
-    const measure = () => { const a = cards[0].getBoundingClientRect(), b = cards[1].getBoundingClientRect(); pitch = b.left - a.left; half = pitch * n; pxPerDeg = num(getComputedStyle(root), '--strip-px', 6); };
+  /* ---- The hero's bento: columns of photographs looping vertically with the flow, in alternating directions ----
+     Each column holds its contents twice; [data-mid] is the first child of the second copy, so its offsetTop is the
+     loop length. Every tile has an intrinsic ratio, so that length is stable before the images load. */
+  $$('[data-bento]').forEach(col => {
+    const dir = +col.dataset.bento || 1;
+    const speed = parseFloat(getComputedStyle(col).getPropertyValue('--speed')) || 1;
+    const mid = $('[data-mid]', col);
+    let half = 0, pxPerDeg = 5;
+    const measure = () => { half = mid ? mid.offsetTop : col.scrollHeight / 2; pxPerDeg = num(getComputedStyle(root), '--bento-px', 5); };
     measure(); addEventListener('resize', measure);
-    let offset = 0, target = 0, dragging = false, dragX = 0, dragStart = 0, tweening = false;
-    const place = () => { const pos = flow.angle * pxPerDeg + offset; const x = ((pos % half) + half) % half; track.style.transform = `translate3d(${(-x).toFixed(2)}px,0,0)`; };
-    let tweenT = 0;
-    const tween = (t) => { const dt = tweenT ? Math.min(.05, (t - tweenT) / 1000) : 0; tweenT = t; const d = target - offset; if (Math.abs(d) < .3) { offset = target; tweening = false; tweenT = 0; place(); return; } offset += d * (1 - Math.exp(-dt / .11)); place(); requestAnimationFrame(tween); };   // time-based, so a slow frame rate cannot shorten a step
-    const go = (d) => { target += d; if (!tweening) { tweening = true; tweenT = 0; requestAnimationFrame(tween); } };
-    flow.on(place); flow.watch(viewport);
-    const scope = track.closest('.gallery') || viewport;   // the arrows live in the section's nav row, not inside the viewport
-    const prev = $('[data-strip-prev]', scope), next = $('[data-strip-next]', scope);
-    if (prev) prev.addEventListener('click', () => go(-pitch));
-    if (next) next.addEventListener('click', () => go(pitch));
-    let moved = false;
-    // the pointer is captured only once this is a drag (6px), so a plain click still reaches the photograph's button
-    viewport.addEventListener('pointerdown', (e) => { if (e.button !== 0 && e.pointerType === 'mouse') return; dragging = true; moved = false; dragX = e.clientX; dragStart = offset; flow.hold(track, true); });
-    viewport.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - dragX; if (!moved && Math.abs(dx) > 6) { moved = true; viewport.classList.add('is-dragging'); try { viewport.setPointerCapture(e.pointerId); } catch {} } if (moved) { offset = target = dragStart - dx; place(); } });
-    const release = () => { if (!dragging) return; dragging = false; viewport.classList.remove('is-dragging'); flow.hold(track, false); };
-    viewport.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
-    viewport.addEventListener('pointerup', release); viewport.addEventListener('pointercancel', release);
-    viewport.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') flow.hold(viewport, true); });
-    let stripTouch;
-    viewport.addEventListener('touchstart', () => { flow.hold(viewport, true); clearTimeout(stripTouch); stripTouch = setTimeout(() => flow.hold(viewport, false), 4000); }, { passive: true });
-    viewport.addEventListener('pointerleave', () => flow.hold(viewport, false));
+    const place = () => {
+      if (!half) return;
+      const pos = flow.angle * pxPerDeg * speed;
+      const y = ((pos % half) + half) % half;
+      col.style.transform = `translate3d(0, ${(dir > 0 ? -y : y - half).toFixed(2)}px, 0)`;
+    };
+    flow.on(place);
   });
+  const bento = $('.hero__bento');
+  if (bento) {
+    flow.watch(bento);
+    bento.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') flow.hold(bento, true); });
+    bento.addEventListener('pointerleave', () => flow.hold(bento, false));
+    let bentoTouch;
+    bento.addEventListener('touchstart', () => { flow.hold(bento, true); clearTimeout(bentoTouch); bentoTouch = setTimeout(() => flow.hold(bento, false), 4000); }, { passive: true });
+  }
 
   /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
   $$('.ring__orbit').forEach(orbit => {

@@ -12,19 +12,19 @@ def pic(name, sizes='200px'):
     return f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}"><img src="images/{m["jpeg"]}" width="{m["width"]}" height="{m["height"]}" alt="" loading="lazy" decoding="async"></picture>'
 
 # the logo's own order: the monogram, then the six arcs clockwise from the top
-HUES=[('sky','#58CDFC'),('magenta','#E744E2'),('violet','#7358FC'),('orange','#F0895B'),('green','#51E596'),('pink','#FB9BC9'),('yellow','#FEE79B')]
-hues=''.join(f'<div class="sw" data-accent="{n}"><div class="sw__chip" style="background:var(--c-{n})"></div><div class="sw__chip sw__chip--s" style="background:color-mix(in oklab, var(--accent) var(--wash-mix), var(--bg-raised))"></div><div class="sw__meta"><b>{n}</b> <code>{h}</code><br>wash <code>var(--wash-mix)</code></div></div>' for n,h in HUES)
+HUES=[('sky','#58CDFC'),('gold','#FFE469'),('magenta','#E744E2'),('violet','#7358FC'),('orange','#F0895B'),('green','#51E596'),('pink','#FB9BC9'),('yellow','#FEE79B')]
+hues=''.join(f'<div class="sw" data-accent="{n}"><div class="sw__chip" style="background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:11px;font-weight:600">Aa</div><div class="sw__meta"><b>{n}</b> <code>{h}</code><br>ink <code>--on-accent</code></div></div>' for n,h in HUES)
 def neutral(tok, hexv, note):
     return f'<div class="sw"><div class="sw__chip" style="background:var({tok});border:1px solid var(--line)"></div><div class="sw__meta"><b>{tok[2:]}</b><br><code>{hexv}</code><br><span>{note}</span></div></div>'
 neutrals=''.join([neutral('--bg','#F7F5F0','the ground'),neutral('--bg-raised','#FFFFFF','cards'),neutral('--bg-sunken','#EFECE5','wells, empty photo frames'),neutral('--ink','#1B1916','headings, first paragraphs, the mark'),neutral('--ink-2','#514C45','body · 7.8:1'),neutral('--ink-3','#736D64','captions · 4.7:1'),neutral('--line','10% ink','hairlines')])
-TINTS=['magenta','violet','orange','green','pink','yellow','sky']
-tints=''.join(f'<div class="card card--wash" data-accent="{a}" style="min-height:120px"><p class="t-small" style="font-weight:600">{a}</p></div>' for a in TINTS)
+TINTS=['sky','gold','magenta','violet','orange','green','pink','yellow']
+tints=''.join(f'<div class="card card--solid" data-accent="{a}" style="min-height:110px"><p class="t-small" style="font-weight:600">{a}</p></div>' for a in TINTS)
 RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
 mini=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle">{pic(n,"80px")}</figure></div>' for n in RING)
 STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat']
 strip=''.join(f'<figure class="photo photo--4x5 strip__card">{pic(n,"180px")}</figure>' for n in STRIP)*2
 def stackcard(acc,title):
-    return f'<article class="card card--wash" data-accent="{acc}" style="margin-bottom:var(--sp-4)"><h3 class="t-h3">{title}</h3><p class="t-body" style="margin-top:var(--sp-3)">One hue, flat, mixed into the raised ground at that hue\'s own --wash-mix. One photograph, one shape, in the other column; even cards mirror.</p></article>'
+    return f'<article class="card card--line" data-accent="{acc}" style="margin-bottom:var(--sp-4);display:flex;gap:var(--sp-6);align-items:center"><div><h3 class="t-h3">{title}</h3><p class="t-body" style="margin-top:var(--sp-3)">The card is the raised ground; the hue is the solid panel holding the photograph. Even cards mirror.</p></div><div class="tile" style="width:120px;height:96px;flex:none"></div></article>'
 stack=''.join(stackcard(a,t) for a,t in [('violet','Violet'),('orange','Orange'),('green','Green'),('pink','Pink')])
 bars=''.join(f'<div class="bar"><span>--sp-{n}</span><i style="width:var(--sp-{n})"></i><span>{v}</span></div>' for n,v in [(1,4),(2,8),(3,12),(4,16),(5,20),(6,24),(8,32),(10,40),(12,48),(16,64),(20,80),(24,96),(32,128),(40,160)])
 motion=''.join(f'<div class="mo" data-dur="{k}"><button class="btn btn--secondary btn--compact" type="button" onclick="play(this)">Play</button><i></i><b>--dur-{k}</b> {v}</div>' for k,v in [('press','100ms · :active'),('state','160ms · hover, focus'),('state-out','240ms · leaving hover'),('move','280ms · position, the pile straightening'),('reveal','360ms · entering on scroll'),('enter','500ms · dialog, first paint')])
@@ -63,12 +63,12 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <nav class="sg__index" aria-label="Style guide"><a href="#colour">Colour</a><a href="#type">Type</a><a href="#space">Space</a><a href="#radius">Corners</a><a href="#motion">Motion</a><a href="#buttons">Buttons</a><a href="#shapes">Shapes</a><a href="#cards">Cards</a><a href="#photos">Photos</a><a href="#orbit">Photographs in motion</a><a href="#stack">Stacked cards</a><a href="#pile">Testimonials</a><a href="#fields">Fields</a><a href="#nav">Header &amp; footer</a></nav>
 <div>
 <h2 class="t-h2" id="colour">Colour</h2>
-<p class="t-body">The palette is the logo, read literally. The monogram is <b>sky</b>; six arcs ring it, and their order clockwise from the top is magenta, violet, orange, green, pink, yellow. The page spends the six once each in that order and closes on sky at full strength.</p>
+<p class="t-body">The palette is the logo, read literally, at full strength. The monogram is <b>sky</b>, the star is <b>gold</b>, and six arcs ring them: clockwise from the top, magenta, violet, orange, green, pink, yellow. Eight colours, each spent exactly once down the page, in that order.</p>
 <div class="demo row"><button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><span class="t-caption">the toggle in the header · the choice is kept and applied before first paint</span></div>
-<h3>The hue, and the hue as a wash</h3><div class="swatches">{hues}</div>
+<h3>The eight, with the ink each one takes</h3><div class="swatches">{hues}</div>
 <h3>Neutrals</h3><div class="swatches">{neutrals}</div>
-<h3>Washes · each hue carries its own <code>--wash-mix</code></h3>
-<p class="t-body">The seven are nowhere near equally dark. One mix for all of them makes magenta a colour and yellow a rumour, so each sets its own: magenta 14% … yellow 46%. In dark every mix sits at 20–24% — above about 26% the lighter hues turn into a mid ground and strand the body ink on them.</p>
+<h3>Surfaces · full strength, never a mix</h3>
+<p class="t-body">A hue reaches the page at 100% or not at all. Mixing one into the ground was built twice and rejected: a pastel is no longer the brand colour, and it shifts again between the themes. Every text tier on a solid surface goes to <code>--on-accent</code> — a translucent tier over a saturated hue reads as dirt, not as hierarchy.</p>
 <div class="swatches" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))">{tints}</div>
 <h3>The one field</h3>
 <p class="t-body">The closing block is sky at full strength. Its background does not follow the theme, so its ink tokens are rebound for that subtree and every component inside it stays correct in both.</p>
@@ -80,7 +80,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <div class="trow"><div class="tmeta"><b>h3</b><br><span>card titles · Sen 700</span><br><code>.t-h3</code></div><div class="t-h3">Creativity in motion creates knowledge!</div></div>
 <div class="trow"><div class="tmeta"><b>lead</b><br><span>subtitle, quotes · Jakarta 400</span><br><code>.t-lead</code></div><div class="t-lead">Pre-wiring the brain &amp; educating the heart</div></div>
 <div class="trow"><div class="tmeta"><b>body</b><br><span>paragraphs · Jakarta 400</span><br><code>.t-body</code></div><div class="t-body">Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.</div></div>
-<div class="trow"><div class="tmeta"><b>label</b><br><span>section labels · Jakarta 600, uppercase</span><br><code>.section__label</code></div><div class="section__label" style="margin:0">Gallery</div></div>
+<div class="trow"><div class="tmeta"><b>label</b><br><span>section labels · Jakarta 600, uppercase</span><br><code>.label</code></div><div class="label">Testimonials</div></div>
 <div class="trow"><div class="tmeta"><b>caption</b><br><span>captions, © · 400</span><br><code>.t-caption</code></div><div class="t-caption">© 2026 Developmental Improvisation</div></div>
 <h2 class="t-h2" id="space">Space</h2>
 <p class="t-body">A 4px grid. Sections are <code>--section-y</code> (96px at 1440) top and bottom and open with a hairline on the column.</p>
@@ -101,7 +101,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <p class="t-body">Two, and only two. Every photograph on the page is a <b>4:5 rectangle</b> with the same superellipse corner — hero, gallery, cards. The <b>circle</b> is the single exception and it belongs to the quote ring. Four shapes were tried and rejected.</p>
 <div class="row"><figure class="photo photo--4x5 photo--hover" style="width:180px">{pic('kids-dancing')}</figure><figure class="photo photo--1x1 photo--circle" style="width:180px">{pic('cast-pose')}</figure></div>
 <h2 class="t-h2" id="cards">Cards</h2>
-<div class="row"><div class="card card--line" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Card</p><p class="t-body">The raised ground with an inset hairline, --r-lg.</p></div><div class="card card--wash" data-accent="orange" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Washed card</p><p class="t-body">The stacked cards and one testimonial tile.</p></div></div>
+<div class="row"><div class="card card--line" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Card</p><p class="t-body">The raised ground with an inset hairline, --r-lg.</p></div><div class="card card--solid" data-accent="orange" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Solid card</p><p class="t-body">The testimonials. Every tier of ink is --on-accent.</p></div></div>
 <h2 class="t-h2" id="photos">Photos</h2>
 <p class="t-body">One ratio, one corner, no frames, no outlines. Every photograph on the page is a button that opens it in the lightbox: one at a time on the ink scrim, arrows and keys through the whole set, Esc or the scrim to close, focus back on the photograph. AVIF/WebP/JPEG at 160/320/480/960, 1440 in the lightbox.</p>
 <div class="row"><figure class="photo photo--4x5 photo--hover" style="width:180px">{pic('kids-dancing')}</figure><figure class="photo photo--4x5" style="width:180px">{pic('two-lines')}</figure><figure class="photo photo--1x1 photo--circle" style="width:180px">{pic('circle-hands')}</figure></div>
@@ -112,7 +112,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <h2 class="t-h2" id="stack">Stacked cards</h2>
 <div class="stack">{stack}</div>
 <h2 class="t-h2" id="pile">Testimonials</h2>
-<p class="t-body">Three tiles, the middle one washed, the other two the raised ground with a hairline. One column on a phone.</p>
+<p class="t-body">Three cards, each a full-strength hue: the quote mark, the quote, and the person in a nested white card that overhangs the bottom-left corner. One column on a phone.</p>
 <h2 class="t-h2" id="fields">Fields</h2>
 <div class="demo"><form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate style="max-width:520px"><div class="field"><label class="sr-only" for="sg-email">Email</label><input class="input" id="sg-email" type="email" name="email" placeholder="Email" autocomplete="email" required><button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form></div>
 <h2 class="t-h2" id="nav">Header &amp; footer</h2>

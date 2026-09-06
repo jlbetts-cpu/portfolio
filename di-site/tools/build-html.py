@@ -63,16 +63,26 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
        + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-# the hero: one photograph, large, on the right four columns
-HERO='yellow-trousers'
-hero_photo=photo(HERO,'4x5','(max-width: 767px) 92vw, (max-width: 1279px) 32vw, 400px',lazy=False,hover=True)
-# the gallery strip: twelve photographs, colour and B&W alternating where possible, no two group shots side by side; the track holds them twice for the loop
-# the hero's photograph is not in the gallery: it sits 300px above it
-STRIP=['three-men','circle-hands','boy-fist','blue-shirts','laugh-hat','conga-line','linda-stage','floor-game','row-linked-arms','scene-handshake','three-teens','kids-bw-small']
-SSIZES='(max-width: 767px) 208px, (max-width: 1440px) 18vw, 268px'
-def strip_cards(hidden):
-    return ''.join(f'<figure class="photo photo--4x5 strip__card" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})"{" aria-hidden=true" if hidden else ""}>{picture(n,SSIZES,lazy=hidden or i>4,button=not hidden)}</figure>' for i,n in enumerate(STRIP))
-strip=strip_cards(False)+strip_cards(True)
+# The hero's bento: three columns of photographs that loop with the flow, plus two tiles of pure colour.
+# Each column carries its contents twice; the second copy is aria-hidden and its first child marks the loop length.
+BSIZES='(max-width: 767px) 44vw, (max-width: 1279px) 22vw, 15vw'
+COLS=[
+  [('p','yellow-trousers'),('t','sky'),('p','three-men'),('p','blue-shirts'),('p','linda-stage')],
+  [('p','circle-hands'),('p','boy-fist'),('t','gold'),('p','conga-line'),('p','scene-handshake')],
+  [('p','laugh-hat'),('p','floor-game'),('p','row-linked-arms'),('p','three-teens'),('p','kids-bw-small')],
+]
+def bento_item(kind, name, hidden, first):
+    mid=' data-mid' if first else ''
+    if kind == 't':
+        return f'<div class="tile" data-accent="{name}" aria-hidden="true" style="aspect-ratio:1"{mid}></div>'
+    hid=' aria-hidden="true"' if hidden else ''
+    return (f'<figure class="photo photo--4x5" style="--pos:{POS[name]};background-image:url({man[name]["placeholder"]})"{hid}{mid}>'
+            + picture(name, BSIZES, lazy=hidden, button=not hidden) + '</figure>')
+def bento_col(i, items):
+    body=''.join(bento_item(k,n,False,False) for k,n in items) + ''.join(bento_item(k,n,True,j==0) for j,(k,n) in enumerate(items))
+    return f'<div class="bento__col" data-bento="{1 if i % 2 == 0 else -1}" style="--speed:{[1,.74,1.18][i]}">{body}</div>'
+bento=''.join(bento_col(i,c) for i,c in enumerate(COLS))
+
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
 # its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
 RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
@@ -88,11 +98,11 @@ P=[
  "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
  "All while having as much fun as possible!",
 ]
-TS='(max-width: 767px) 92vw, 40vw'
+TS='(max-width: 767px) 62vw, 22vw'   # the photograph sits inside the colour panel: 304px wide at 1440
 def stack_card(num, accent, title, paras, extra, photo_name):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
     extra_html=('<div>'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card card--wash grid" data-accent="{accent}" aria-labelledby="stack-{num}">'
+    return (f'<article class="stack__card card card--line grid" data-accent="{accent}" aria-labelledby="stack-{num}">'
             f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
             f'{extra_html}</div>'
             f'<div class="stack__figure">{photo(photo_name, "4x5", TS, hover=True)}</div></article>')
@@ -106,8 +116,9 @@ stack=(stack_card('01','violet','Welcome to Developmental Improvisation',P[0:2],
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
-VOICES=[('card card--line','',quotes[0]),('card card--wash',' data-accent="yellow"',quotes[1]),('card card--line','',quotes[2])]
-pile=''.join(f'<li class="voice {cls}"{acc} data-placeholder="true"><p class="voice__quote">“{q}”</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for cls,acc,q in VOICES)
+# three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
+VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
+pile=''.join(f'<li class="voice" data-accent="{a}" data-placeholder="true"><p class="voice__mark" aria-hidden="true">“</p><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -140,7 +151,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js')}})()</script>
+<script>(function(){{var h=document.documentElement,t=null,c=1;try{{t=localStorage.getItem('di:theme');c=!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme=t==='dark'?'dark':'light';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -160,19 +171,11 @@ page=f'''<!DOCTYPE html>
         <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
         <div class="hero__meta">
           <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-          <button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>
         </div>
+        <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
       </div>
-      <div class="hero__figure">{hero_photo}</div>
+      <div class="hero__bento" id="gallery">{bento}</div>
     </div>
-  </section>
-
-  <section class="gallery" id="gallery" data-accent="magenta" aria-labelledby="galleryLabel">
-    <div class="container gallery__nav">
-      <p class="label" id="galleryLabel">Gallery</p>
-      <div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next photographs"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
-    </div>
-    <div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div>
   </section>
 
   <section class="section" id="welcome" aria-label="Welcome">
@@ -191,9 +194,9 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="voices" data-accent="yellow" aria-labelledby="voicesLabel">
+  <section class="section" id="voices" aria-labelledby="voicesLabel">
     <div class="container">
-      <p class="label reveal" id="voicesLabel">Testimonials</p>
+      <div class="voices__head reveal"><p class="label" id="voicesLabel">Testimonials</p></div>
       <ul class="voices reveal">{pile}</ul>
     </div>
   </section>
@@ -234,6 +237,12 @@ page=f'''<!DOCTYPE html>
   <h2 id="dialogTitle" tabindex="-1">Sign Up for our Newsletter!</h2>
   {form('dlg')}
 </dialog>
+
+<div class="curtain" aria-hidden="true">
+  <div class="curtain__half curtain__half--l"></div>
+  <div class="curtain__half curtain__half--r"></div>
+  <div class="curtain__load"><svg class="mark" aria-hidden="true"><use href="#mark"/></svg><span class="curtain__bar"><i></i></span></div>
+</div>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">
   <div class="sheet__head"><svg class="mark" style="width:28px;height:30px;color:var(--ink)" aria-hidden="true"><use href="#mark"/></svg><button class="btn btn--ghost btn--compact" type="button" data-close-menu>Close</button></div>

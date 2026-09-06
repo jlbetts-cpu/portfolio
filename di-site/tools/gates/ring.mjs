@@ -1,6 +1,7 @@
-// Gate: the quote ring and the hero strip. Ring, across a full slot step at three viewports: no photograph pixel under the
+// Gate: the quote ring and the hero's bento. Ring, across a full slot step at three viewports: no photograph pixel under the
 // quote's text, no photograph on photograph, every item inside the stage, hover eases the drift to a stop and leaving resumes it,
-// scrolling turns it faster than the drift. Strip: it drifts, the arrows step exactly one card, dragging moves it.
+// scrolling turns it faster than the drift. Bento: every column moves, adjacent columns move in opposite directions, no column
+// runs past its own loop length, the pointer stops all of them, and the container is masked so they fade at both ends.
 // --self-test: sets --ring-r to 90 and expects the photo-on-photo check to fail at 1440×900.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -49,34 +50,30 @@ for (const [w, h] of VP) {
   const resumes = r1 - r0 > 0.5;
   const s0 = await angle(); await pg.evaluate(() => scrollBy(0, -300)); await pg.waitForTimeout(700); const s1 = await angle();
   const scrollTurns = Math.abs(s1 - s0) > 12;
-  // the strip
-  // the strip is in the Gallery section: bring it on screen (the flow drifts only while the strip or the ring is on screen) and let the scroll coupling settle
-  await pg.evaluate(() => { const s = document.querySelector('.gallery'); scrollTo(0, scrollY + s.getBoundingClientRect().top - 120); }); await pg.mouse.move(w / 2, 5);
-  // settled: the scroll part of the flow stops moving (it settles to the net scroll, not to zero)
+  // the hero's bento: three columns looping vertically. Each must move, adjacent columns must move in OPPOSITE
+  // directions, the loop must wrap (a column never runs past its own length), and the pointer must stop all of them.
+  await pg.evaluate(() => scrollTo(0, 0)); await pg.mouse.move(w / 2, 5);
   for (let k = 0; k < 24; k++) { const a = await pg.evaluate(() => window.__di.flow.scrollAngle); await pg.waitForTimeout(300); const b = await pg.evaluate(() => window.__di.flow.scrollAngle); if (Math.abs(b - a) < 0.04) break; }
-  const trackX = () => pg.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-strip]')).transform).m41);
-  const pitch = await pg.evaluate(() => { const c = document.querySelectorAll('.strip__card'); return c[1].getBoundingClientRect().left - c[0].getBoundingClientRect().left; });
-  const half = await pg.evaluate(() => { const c = document.querySelectorAll('.strip__card'); return (c[1].getBoundingClientRect().left - c[0].getBoundingClientRect().left) * (c.length / 2); });
-  const x0 = await trackX(); await pg.waitForTimeout(500); const x1 = await trackX();
-  const stripDrifts = x0 - x1 > 3;
-  await pg.mouse.move(w / 2, 5);
-  const stepBefore = await pg.evaluate(() => window.__di.flow.angle);
-  const t0 = await trackX();
-  // the arrow: its box sampled over four frames must not move; then a real click at its centre (Playwright's own stability judgement
-  // was found to refuse a still button at desktop widths while a probe showed the box fixed, so the gate judges stability itself)
-  const samples = await pg.evaluate(async () => { const el = document.querySelector('[data-strip-next]'); const o = []; for (let i = 0; i < 4; i++) { const r = el.getBoundingClientRect(); o.push([+r.x.toFixed(2), +r.y.toFixed(2), +r.width.toFixed(2)]); await new Promise(res => requestAnimationFrame(res)); } return o; });
-  const arrowStable = samples.every(b => Math.abs(b[0] - samples[0][0]) < .05 && Math.abs(b[1] - samples[0][1]) < .05);
-  const dbg = await pg.evaluate(([x, y]) => { const el = document.querySelector('[data-strip-next]'); window.__hit = 0; el.addEventListener('click', () => { window.__hit++; }, { once: true }); return { under: document.elementsFromPoint(x, y).slice(0, 3).map(e => e.tagName + '.' + (typeof e.className === 'string' ? e.className : 'svg')), held: window.__di.flow.held, x, y }; }, [samples[0][0] + samples[0][2] / 2, samples[0][1] + 22]);
-  await pg.mouse.click(samples[0][0] + samples[0][2] / 2, samples[0][1] + 22);
-  const hit = await pg.evaluate(() => window.__hit);
-  await pg.waitForTimeout(900); const t1 = await trackX();
-  const stepAfter = await pg.evaluate(() => window.__di.flow.angle);
-  const driftPx = (stepAfter - stepBefore) * 6;
-  const stepRaw = (t0 - t1) - driftPx; const stepMod = ((stepRaw % half) + half) % half;   // the track loops every half its width
-  const stepped = Math.abs(stepMod - pitch) < 3;
-  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && stripDrifts && stepped && arrowStable && hit === 1 && !dbg.under[0].startsWith('DIALOG');
+  const colY = () => pg.evaluate(() => [...document.querySelectorAll('[data-bento]')].map(c => new DOMMatrixReadOnly(getComputedStyle(c).transform).m42));
+  const y0 = await colY(); await pg.waitForTimeout(600); const y1 = await colY();
+  const deltas = y1.map((v, i) => v - y0[i]);
+  const bentoMoves = deltas.every(d => Math.abs(d) > 1);
+  const opposed = deltas.length > 1 && deltas[0] * deltas[1] < 0;
+  // the loop length: no column may be translated further than its own half, in either direction
+  const lengths = await pg.evaluate(() => [...document.querySelectorAll('[data-bento]')].map(c => { const m = c.querySelector('[data-mid]'); return m ? m.offsetTop : 0; }));
+  const wrapped = y1.every((v, i) => Math.abs(v) <= lengths[i] + 1);
+  const bb = await pg.evaluate(() => { const r = document.querySelector('.hero__bento').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  // the hold eases the drift out over ~0.18s and the angle is still 0.32s behind its target, so the columns coast
+  // for about a second after the pointer arrives; sample after that, not during it
+  await pg.mouse.move(bb[0], bb[1]); await pg.waitForTimeout(1500);
+  const b0 = await colY(); await pg.waitForTimeout(500); const b1 = await colY();
+  const bentoStops = b1.every((v, i) => Math.abs(v - b0[i]) < 0.6);
+  await pg.mouse.move(w / 2, 5); await pg.waitForTimeout(700);
+  // the mask is what makes the columns fade in and out instead of stopping at an edge
+  const masked = await pg.evaluate(() => { const cs = getComputedStyle(document.querySelector('.hero__bento')); return (cs.maskImage || cs.webkitMaskImage || '').includes('gradient'); });
+  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && masked;
   allOk = allOk && ok;
-  report(`ring+strip ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), stripDrifts, stepPx: +stepMod.toFixed(1), pitch: +pitch.toFixed(1), arrowStable, arrowHit: hit, under: dbg.under[0] }));
+  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, bentoStops, masked, dy: deltas.map(d => +d.toFixed(1)) }));
   await pg.close();
 }
 await b.close();

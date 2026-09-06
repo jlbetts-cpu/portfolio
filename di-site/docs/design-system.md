@@ -6,7 +6,7 @@ For anyone building the next page. Every rule has a reason. If you cannot say wh
 1. **Premium is subtraction.** Take something away before adding anything. Three thin sections at the foot of the page became one field; four photograph shapes became one.
 2. **Counting is not looking.** Measure, then open the screenshot. Every gate in `tools/gates/` exists because a number once lied.
 3. **The fundamentals carry the design.** The corner geometry, the column, the type scale, the colour order and the single photograph shape *are* the design. No illustrations, no gradients, no shadows, no texture.
-4. **The palette is the logo, read literally.** Sky is the monogram; six arcs ring it. The page spends the six once each in ring order and closes on sky.
+4. **The palette is the logo, read literally, at full strength.** Sky is the monogram, gold is the star, six arcs ring them. Eight colours, each used as itself — never mixed into the ground.
 5. **Two themes, one palette.** Light is the default; dark is the visitor's choice, applied before first paint.
 6. **Motion is one shared value.** The gallery, the ring and the stack all read the flow. Everything else takes a rung of the ladder.
 7. **Copy is verbatim from the old site**, and only what the page needs.
@@ -30,25 +30,24 @@ The second rule is load-bearing: `corner-shape` applies to a 50% radius too, so 
 | `--r-full` | ∞ | avatars, the arrows (with `corner-shape: round`) |
 
 ## 3. Colour
-Open `assets/logo/inline-logo.html` and read the fills — that is the palette and it has a structure. The **monogram** is sky. **Six arcs** ring it, clockwise from the top: magenta, violet, orange, green, pink, yellow.
+Open `assets/logo/inline-logo.html` and read the fills — that is the palette, all eight of it, and it has a structure. The **monogram** is sky, the **star** is gold, and **six arcs** ring the monogram: clockwise from the top, magenta, violet, orange, green, pink, yellow.
 
-| Role | Token | Value |
-|---|---|---|
-| the mark | `--c-sky` | #58CDFC — warm black on it, 9.6:1 |
-| arc 1 | `--c-magenta` | #E744E2 |
-| arc 2 | `--c-violet` | #7358FC |
-| arc 3 | `--c-orange` | #F0895B |
-| arc 4 | `--c-green` | #51E596 |
-| arc 5 | `--c-pink` | #FB9BC9 |
-| arc 6 | `--c-yellow` | #FEE79B |
+| Role | Token | Value | Ink on it |
+|---|---|---|---|
+| the mark | `--c-sky` | #58CDFC | warm black, 9.6:1 |
+| the star | `--c-gold` | #FFE469 | warm black |
+| arc 1 | `--c-magenta` | #E744E2 | warm black, 5.2:1 |
+| arc 2 | `--c-violet` | #7358FC | **white**, 4.6:1 — warm black is 3.7:1 |
+| arc 3 | `--c-orange` | #F0895B | warm black, 6.9:1 |
+| arc 4 | `--c-green` | #51E596 | warm black, 10.7:1 |
+| arc 5 | `--c-pink` | #FB9BC9 | warm black, 8.7:1 |
+| arc 6 | `--c-yellow` | #FEE79B | warm black, 14.1:1 |
 
-**The order is the system.** Gallery label (magenta) → the four stacked cards (violet, orange, green, pink) → the testimonials tile (yellow) → the closing field (sky, full strength). Each arc appears once. Never two adjacent surfaces the same, never a hue out of order.
+**A hue is full strength or it is not there.** No mixes, no tints, no washes — those were built twice and rejected, because a hue mixed into the ground is no longer the brand colour and shifts again between the themes. A hue reaches the page as a surface at 100%, and the ink on it is `--on-accent`. On a solid surface **every** text tier goes to `--on-accent`: a translucent tier over a saturated hue reads as dirt, not as hierarchy. Because a full-strength hue is identical in both themes, the surfaces carrying one rebind their ink tokens for that subtree instead of following the theme — that is what makes the palette read the same in light and dark.
 
-A hue reaches the page **two ways and no others**:
-- **A wash** — the hue mixed into the raised ground, flat, behind a card: `color-mix(in oklab, var(--accent) var(--wash-mix), var(--bg-raised))`, mixed on the element that carries `data-accent` (mixing at `:root` resolves once and every card comes out the same colour — that bug shipped). **Each hue sets its own `--wash-mix`**: magenta 14, violet 14, sky 20, orange 22, green 26, pink 26, yellow 46. The seven are nowhere near equally dark and one mix for all of them makes magenta a colour and yellow a rumour. In dark every mix is 20–24%: above about 26% the lighter hues become a mid ground and strand `--ink-2` on them at 3.5:1.
-- **One field** — the closing block, sky at full strength. Its background does not follow the theme, so **its ink tokens are rebound for that subtree** (`--ink: #1B1916` and two tiers), which keeps every component inside it correct in both themes.
+**The order is the system.** Sky and gold as the two tiles in the hero's bento → violet, orange, green, pink as the panels behind the four cards' photographs → magenta, gold, green on the testimonials → sky as the closing field and the curtain. Colour is spare: four full-strength cards were built and pulled back the same day because they flooded the page.
 
-No gradients. No coloured text. No hue as a border.
+No gradients. No coloured text. No hue as a border. No coloured dot before a label — that was removed.
 
 | Token | Light | Dark |
 |---|---|---|
@@ -73,7 +72,7 @@ No gradients. No coloured text. No hue as a border.
 The headline is five lines at every width by design. Measures are in `em`, never `ch`.
 
 ## 5. Space and the column
-The page used to put a 1280 column inside a 40px gutter and read as a strip floating in dead space. Now: `--page-max` 1400, `--gutter` `clamp(16px, 2vw, 32px)` — content starts 49px from the edge at 1440, not 120px — `--grid-gap` `clamp(12px, 1.1vw, 20px)`, `--section-y` `clamp(56px, 2.2vw + 32px, 88px)`, `--card-pad` `clamp(20px, 2.2vw, 40px)`. Everything lays out on the same twelve columns (`.grid`; six below 768). The gallery is the one thing that leaves the column: it bleeds off both edges. Hairlines are inset rims (`box-shadow: inset 0 0 0 1px`), never borders, so they never change an element's box.
+The page used to put a 1280 column inside a 40px gutter and read as a strip floating in dead space. Now: `--page-max` 1720, `--gutter` `clamp(16px, 2vw, 36px)` — content starts 29px from the edge at 1440, not 120px — `--grid-gap` `clamp(12px, 1.1vw, 20px)`, `--section-y` `clamp(56px, 2.2vw + 32px, 88px)`, `--card-pad` `clamp(20px, 2.2vw, 40px)`. Everything lays out on the same twelve columns (`.grid`; six below 768). The column is wide enough (`--page-max` 1720) that on a laptop the page IS the screen minus one small even inset, which is what puts the big surfaces a short spacing from the outer edge instead of inside a narrow centred strip. Hairlines are inset rims (`box-shadow: inset 0 0 0 1px`), never borders, so they never change an element's box.
 
 ## 6. Motion
 **Things that happen** take a rung: `--dur-press` 100 · `--dur-state` 160 · `--dur-state-out` 240 · `--dur-move` 280 · `--dur-reveal` 360 · `--dur-enter` 500. **Things that turn, slide or stack** read one shared value and have no duration.
@@ -90,15 +89,16 @@ Every photograph on the page is a **4:5 rectangle with the same superellipse cor
 Two rules learned by looking: **a photograph inside a circle needs its subject at the centre and no dark ground** — linda-portrait and kids-bw-small read as black discs and were pulled from the ring — and **the hero's photograph is not in the gallery**, which is 300px below it.
 
 ## 8. The page
-1. **Hero** — the headline on the left seven columns at display size, one 4:5 photograph on the right four, and one row under the type with the tagline and one button.
-2. **Gallery** — edge to edge under the hero: twelve photographs on a looping track, the label and two arrows on the column above.
-3. **The four cards** — sticky, each 10px lower than the last, scaled by the flow as the next covers them. One hue and one photograph each, the photograph sized by height so a 4:5 frame cannot stretch the card past the text. Even cards mirror, and **both children are pinned to `grid-row: 1`** — grid's forward-only auto-placement otherwise drops the mirrored figure to a second row and doubles the card.
-4. **The quote ring** — eight circular photographs turning around the quote. The one section Jayden asked to keep.
-5. **Testimonials** — three tiles, the middle washed yellow, the others the raised ground with a hairline.
-6. **The closing field** — the sign-up, the two contact links and the copyright in one sky field, inset by the gutter.
+**The curtain** comes first, on the first load of a session only: two halves of sky over the page with the mark and a loading bar while the fonts and the hero's first photographs arrive, then they part. No scrim, no darkening — the site is already laid out behind them. A 620ms floor so it reads as deliberate, a 2600ms hard failsafe so nothing can strand the site, removed from the DOM a second after it opens, never on a reload in the same session, never under reduced motion.
+
+1. **Hero, with the gallery inside it.** The headline on the left six columns at display size; the right six are a **bento** — three columns of 4:5 photographs plus two tiles of pure colour, looping vertically with the flow, adjacent columns in opposite directions at three speeds (`--speed` per column), the block masked top and bottom so the photographs fade in and out of the ground rather than stopping at an edge. Each column carries its contents twice and `[data-mid]` marks the loop length; every tile has an intrinsic ratio, so that length is stable before the images load. Under the headline, one row with the tagline and one button.
+2. **The four cards** — sticky, each 10px lower than the last, scaled by the flow as the next covers them. The card is the raised ground with a hairline; its hue is the **solid panel holding the photograph**, the same tile-and-photograph pairing the bento uses. The photograph is sized by height so a 4:5 frame cannot stretch the card past the text. Even cards mirror, and **both children are pinned to `grid-row: 1`** — grid's forward-only auto-placement otherwise drops the mirrored figure to a second row and doubles the card.
+3. **The quote ring** — eight circular photographs turning around the quote. The one section Jayden asked to keep.
+4. **Testimonials** — a centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner**. The depth comes from the nesting, not from a shadow.
+5. **The closing field** — the sign-up, the two contact links and the copyright in one sky field, inset by the gutter.
 
 ## 9. Components
-`.btn` (primary/secondary/ghost/compact, 46px, `--r-sm`) · `.arrow` (44px circle) · `.theme` (the toggle; the choice is applied before first paint by an inline script, so there is no flash) · `.card` / `.card--wash` / `.card--line` · `.photo` (+ `--4x5`, `--1x1`, `--circle`) · `.label` (12px caps with a dot in the section's hue) · `.field` / `.input` · `.nav` (transparent, glass once scrolled; no Home link — the logo is the way home) · `.sheet` · `.dialog` · `.lightbox`. Each is on `styleguide.html` in both themes.
+`.btn` (primary/secondary/ghost/compact, 46px, `--r-sm`) · `.arrow` (44px circle) · `.theme` (the toggle; the choice is applied before first paint by an inline script, so there is no flash) · `.card` / `.card--solid` / `.card--line` / `.tile` · `.photo` (+ `--4x5`, `--1x1`, `--circle`) · `.label` (12px caps, no dot) · `.field` / `.input` · `.nav` (transparent, glass once scrolled; no Home link — the logo is the way home) · `.sheet` · `.dialog` · `.lightbox`. Each is on `styleguide.html` in both themes.
 
 ## 10. Gates
-`tools/gates/run-all.sh`, serially, 35 lines: layout (overflow, headline lines, the column, equal card widths) · targets · contrast (every visible text node, both themes) · copy · images · motion · ring (the ring and the gallery) · lightbox · dialog · a11y. `ring.mjs --self-test` shrinks the ring and must fail; `contrast.mjs --self-test` paints the ink onto the ground and must fail. Every gate but `dialog` starts with the newsletter popup already marked shown. Serve from `di-site/` on `127.0.0.1:4611`, never `localhost`.
+`tools/gates/run-all.sh`, serially, 37 lines: layout (overflow, headline lines, the column, equal card widths) · targets · contrast (every visible text node, both themes) · copy · images · motion · ring (the ring and the bento) · lightbox · dialog · curtain · a11y. Three self-tests, each of which must fail: `ring.mjs` shrinks the ring, `contrast.mjs` paints the ink onto the ground, `curtain.mjs` pins the curtain so it can neither travel nor be removed. Every gate but `dialog` starts with the newsletter popup already shown, and every gate but `curtain` starts past the curtain. Serve from `di-site/` on `127.0.0.1:4611`, never `localhost`.

@@ -34,10 +34,13 @@
 /* Icons */
 .icon { width: 22px; height: 22px; fill: currentColor; flex: none; }
 
-/* Cards. A card is the raised ground; a washed card is the section's hue mixed into it, flat, mixed HERE so data-accent takes. */
+/* Cards. A card is the raised ground; a solid card is the hue itself, at full strength, with the ink that hue takes.
+   On a solid card every text tier goes to --on-accent: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
 .card { position: relative; background: var(--bg-raised); border-radius: var(--r-lg); padding: var(--card-pad); }
-.card--wash { background: color-mix(in oklab, var(--accent) var(--wash-mix), var(--bg-raised)); }
+.card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
 .card--line { box-shadow: inset 0 0 0 1px var(--line); }
+/* a tile of pure colour, no photograph: the only other place a hue appears */
+.tile { background: var(--accent); border-radius: var(--r-lg); }
 
 /* Photo. ONE shape: a rectangle with the same superellipse corner as everything else, at one ratio per section.
    The circle is the single exception, and it belongs to the quote ring. Every photograph is a button that opens the lightbox. */
@@ -133,3 +136,21 @@
   .lightbox__figure picture, .lightbox__figure img { max-height: calc(100dvh - var(--nav-h) - var(--sp-2) - var(--hit) - var(--sp-8)); }
 }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
+
+/* The curtain — the first load of a session only. Two halves of the brand's own sky part to reveal the page.
+   No scrim and no darkening: the site is simply behind it, already laid out, and the halves leave. */
+.curtain { display: none; position: fixed; inset: 0; z-index: var(--z-curtain); pointer-events: none; }
+.curtaining .curtain { display: block; }
+.curtaining { overflow: hidden; }
+/* 50.5% so the seam cannot show a hairline of the page between them at fractional widths */
+.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: var(--c-sky); transition: transform 900ms var(--ease-in-out); }
+.curtain__half--l { left: 0; }
+.curtain__half--r { right: 0; }
+.curtain.is-open .curtain__half--l { transform: translateX(-100.5%); }
+.curtain.is-open .curtain__half--r { transform: translateX(100.5%); }
+.curtain__load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-5); transition: opacity var(--dur-state) var(--ease-out); }
+.curtain.is-open .curtain__load { opacity: 0; }
+.curtain__load .mark { width: 32px; height: 34px; color: #1B1916; }
+.curtain__bar { width: 88px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(27,25,22,.22); overflow: hidden; }
+.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #1B1916; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
+@keyframes curtain-load { from { transform: translateX(-110%); } to { transform: translateX(275%); } }

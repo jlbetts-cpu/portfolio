@@ -1,4 +1,4 @@
-# Developmental Improvisation — build prompt v13
+# Developmental Improvisation — build prompt v14
 
 > **This file replaces every earlier version of this prompt.** v1–v12 were a base spec plus twelve layered review notes, and an
 > agent reading them inherited eight superseded designs before reaching the current one. Everything below describes the site as
@@ -38,13 +38,15 @@ designer who works to Apple-grade standards — will edit and ship it.
 Open `assets/logo/inline-logo.html` and read the fills. This is the whole palette and it has a structure:
 
 - The **monogram** — the "di" letterforms — is **sky `#58CDFC`**. That is the brand's colour.
+- The **star** in the counter of the "d" is **gold `#FFE469`**.
 - **Six arcs** ring the monogram. Clockwise from the top: **magenta `#E744E2` · violet `#7358FC` · orange `#F0895B` ·
   green `#51E596` · pink `#FB9BC9` · yellow `#FEE79B`**.
-- A four-point star sits in the counter of the "d". It is not used on the site.
 
-**The page spends the six arcs once each, in that order, top to bottom, and closes on sky at full strength.** Gallery label
-(magenta) → the four stacked cards (violet, orange, green, pink) → the testimonials tile (yellow) → the closing field (sky).
-This is the rule that makes the colour read as *the brand* rather than as seven cheerful colours.
+Eight colours, and **every one of them appears at full strength, exactly as it is in the file.** The page spends them in
+the logo's own order: sky and gold as the two tiles in the hero's bento → violet, orange, green and pink as the panels
+behind the four cards' photographs → magenta, gold and green on the testimonials → sky as the closing field and the
+curtain. Mixing a hue into the ground was tried for two rounds and rejected: a pastel is no longer the brand colour, and
+it shifts again between the themes.
 
 ## 3. Fundamentals
 
@@ -79,15 +81,18 @@ column: it runs the full width of the screen and bleeds off both edges.
 They share a geometry — circular bowls, flat terminals — so the pair reads as one voice. The display runs big and tight:
 `clamp(2.75rem, 1.1rem + 5.4vw, 6rem)` at `-0.04em`, five lines at every width. Measures are in `em`, never `ch`.
 
-### 3.4 Colour reaches the page two ways, and no others
-- **A wash**: the hue mixed into the raised ground, flat, behind a whole card. **Each hue carries its own `--wash-mix`**
-  (magenta 14% … yellow 46%) because the seven are nowhere near equally dark and one mix for all of them makes magenta a
-  colour and yellow a rumour. In dark every mix sits at 20–24%: above about 26% the lighter hues turn into a mid ground and
-  strand the body ink on them.
-- **One field**: the closing block, sky at full strength. Its background does not follow the theme, so **its ink tokens are
-  rebound for that subtree** and every component inside it stays correct in both themes.
+### 3.4 Colour is full strength or it is not there
+There are no mixes, no tints and no washes. A hue reaches the page as a **surface at 100%** — a bento tile, the panel behind
+a card's photograph, a testimonial card, the closing field, the curtain — and the ink on it is **`--on-accent`**, the one
+value that clears 4.5:1 on that hue. Six of the eight take warm black; violet is the only one dark enough to need white
+(3.7:1 against 4.6:1). On a solid surface every text tier goes to `--on-accent`: a translucent tier over a saturated hue
+reads as dirt, not as hierarchy.
 
-No gradients anywhere. No coloured text. No hue as a border.
+Because a full-strength hue is the same colour in both themes, the surfaces that carry one **rebind their ink tokens for
+that subtree** rather than following the theme. That is what makes the palette read identically in light and dark.
+
+No gradients anywhere. No coloured text. No hue as a border. Four full-strength cards were built and pulled back the same
+day: they flooded the page. Colour is spare — a panel, a tile, a card, a field.
 
 ### 3.5 One shape for photographs
 Every photograph on the page is a **rectangle with the same superellipse corner**, at **4:5**, and nothing else — hero,
@@ -111,20 +116,24 @@ its effective background **in both themes**. One `<h1>`. Every section labelled.
 
 Six sections. Anything thinner than this got merged.
 
-1. **Hero.** Editorial, not centred. The headline holds the left seven columns at display size; one 4:5 photograph holds the
-   right four; a single row under the type carries the tagline and one button. Nothing else — no chips, no second button, no
-   photo row.
-2. **Gallery.** Immediately under the hero, edge to edge: twelve photographs on a looping track moved by the flow, the label
-   and two arrows on the column above it. Arrows step exactly one card; it can be dragged; a drag never opens the lightbox.
-3. **The four cards.** Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
+0. **The curtain.** On the first load of a session, two halves of sky cover the page with the mark and a loading bar while
+   the fonts and the hero's first photographs arrive, then part. No scrim and no darkening — the site is already laid out
+   behind them. A floor of 620ms, a hard 2600ms failsafe, gone from the DOM a second later, never on a reload in the same
+   session, never under reduced motion.
+1. **Hero, with the gallery inside it.** The headline holds the left six columns at display size. The right six are a
+   **bento**: three columns of 4:5 photographs plus two tiles of pure colour, looping vertically with the flow, adjacent
+   columns in opposite directions at three speeds, the whole block masked top and bottom so the photographs fade in and out
+   of the ground instead of stopping at an edge. Under the headline, one row with the tagline and one button.
+2. **The four cards.** Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
    over it. One hue each (violet, orange, green, pink), one photograph each, sized by height so a 4:5 frame cannot stretch the
    card past the text beside it. Even cards mirror — and both children must be pinned to `grid-row: 1`, or grid's forward-only
    auto-placement drops the mirrored figure to a second row and doubles the card.
-4. **The quote ring.** Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
+3. **The quote ring.** Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
    section Jayden has asked to keep.** Do not redesign it.
-5. **Testimonials.** Three tiles, the middle one washed yellow, the other two the raised ground with a hairline. Placeholder
-   copy until Linda supplies real ones.
-6. **The closing field.** Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
+4. **Testimonials.** A centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's
+   ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner** — the depth comes from
+   that nesting, not from a shadow. Placeholder copy until Linda supplies real ones.
+5. **The closing field.** Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
    gutter, `--r-xl` corners: the mark, the sign-up, the two contact links, and the copyright under a rule.
 
 ## 5. Components
@@ -146,16 +155,19 @@ Only sentences from the old site, and only the ones the page needs. Labels may b
 lorem with `data-placeholder="true"`. The `copy` gate fails on any other string — including a plausible one-word link label.
 
 ## 8. Gates
-`di-site/tools/gates/run-all.sh`, serially, 35 lines: layout (overflow, headline lines, the column, equal card widths) ·
-targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the gallery) · lightbox ·
-dialog · a11y. `ring.mjs --self-test` shrinks the ring and must fail; `contrast.mjs --self-test` paints the ink onto the ground
-and must fail. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
+`di-site/tools/gates/run-all.sh`, serially, 37 lines: layout (overflow, headline lines, the column, equal card widths) ·
+targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the bento) · lightbox ·
+dialog · curtain · a11y. Three self-tests: `ring.mjs` shrinks the ring, `contrast.mjs` paints the ink onto the ground, and
+`curtain.mjs` pins the curtain in place — each must fail. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
 being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 
 ## 9. Tried and rejected — do not propose these again
 - **Gradients.** A hue-band across the top of the page and eased radial "blooms" at the foot of cards. Both removed:
   "I dont think the gradient experiment works the clean colored cards looked a lot better."
 - **A mixed shape vocabulary** for photographs (capsule/circle/rounded-rectangle/45° square).
+- **Washes and tints.** Two rounds of them. A hue mixed into the ground is not the brand colour any more.
+- **A coloured dot** before every section label.
+- **A horizontal gallery as its own section.** It belongs in the hero.
 - **Photographs set inline into the headline.** Clever, and it made the hero cluttered.
 - **A pause control** for the drift, **outlines** on photographs, **decorative vectors**, the **star** in section labels, a
   **figures band**, and a **disc-and-halo** behind the logo.

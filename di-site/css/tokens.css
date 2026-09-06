@@ -23,6 +23,7 @@
 
   /* The logo. Sky is the monogram; the six that follow are the arcs, in ring order clockwise from the top. */
   --c-sky:     #58CDFC;                   /* the mark. Warm black on it: 9.6:1 */
+  --c-gold:    #FFE469;                   /* the star */
   --c-magenta: #E744E2;
   --c-violet:  #7358FC;
   --c-orange:  #F0895B;
@@ -30,10 +31,11 @@
   --c-pink:    #FB9BC9;
   --c-yellow:  #FEE79B;
 
-  /* A hue reaches the page two ways and no others: as a WASH behind a whole section or card, and as the one FIELD at the
-     foot of the page. Never as a gradient, never as text. */
-  --accent:   var(--c-sky);
-  --wash-mix: 16%;                        /* the hue mixed into the raised ground */
+  /* A hue reaches the page ONE way: at full strength, on a surface, with the ink that hue takes. Mixing a hue into the
+     ground made a pastel that was no longer the brand colour and shifted again between the themes; there are no mixes now.
+     --on-accent is the only ink that clears 4.5:1 on that hue. */
+  --accent:    var(--c-sky);
+  --on-accent: #1B1916;
   --focus:    var(--ink);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
@@ -71,15 +73,17 @@
   /* Space — 4px grid. The page runs wider and closer to the edge than it did: a 1400 column inside a 16–32px gutter. */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
   --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px;
-  --page-max: 1400px;
-  --gutter: clamp(16px, 2vw, 32px);
+  /* the column is wide enough that on a laptop the page IS the screen minus a small, even inset, which is what
+     puts the big surfaces "a small spacing from the outer edge" instead of inside a narrow centred strip */
+  --page-max: 1720px;
+  --gutter: clamp(16px, 2vw, 36px);
   --grid-gap: clamp(12px, 1.1vw, 20px);
   --section-y: clamp(56px, 2.2vw + 32px, 88px);
   --card-pad: clamp(20px, 2.2vw, 40px);
 
   --nav-h: 60px;
   --hit: 44px;
-  --z-nav: 50; --z-dialog: 100; --z-skip: 200;
+  --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
 
   /* Motion ladder */
   --dur-press: 100ms;
@@ -97,7 +101,7 @@
   --flow-drift: 3.75;
   --flow-scroll: 0.06;
   --flow-settle: 0.32;
-  --strip-px: 6;
+  --bento-px: 5;          /* the hero's columns move this many pixels per degree of flow */
   --ring-r: 300;
   --ring-n: 8;
 }
@@ -105,7 +109,6 @@
 /* Dark — the visitor's choice. The hues do not change; the ground and the ink swap and the wash deepens. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  /* the dark ground swallows a tint, so every mix goes up by half again */
   --bg:          #131211;
   --bg-raised:   #1C1A18;
   --bg-sunken:   #0E0D0C;
@@ -122,25 +125,16 @@
   --btn-primary-ink: #131211;
 }
 
-/* Accents — set once, on a section or a card. The page spends them in the logo's own order.
-   Each carries its own --wash-mix: the seven hues are nowhere near equally dark, and one mix for all of them
-   makes magenta a colour and yellow a rumour. These are the mixes that land every wash at about the same lightness. */
-[data-accent="sky"]     { --accent: var(--c-sky);     --wash-mix: 20%; }
-[data-accent="magenta"] { --accent: var(--c-magenta); --wash-mix: 14%; }
-[data-accent="violet"]  { --accent: var(--c-violet);  --wash-mix: 14%; }
-[data-accent="orange"]  { --accent: var(--c-orange);  --wash-mix: 22%; }
-[data-accent="green"]   { --accent: var(--c-green);   --wash-mix: 26%; }
-[data-accent="pink"]    { --accent: var(--c-pink);    --wash-mix: 26%; }
-[data-accent="yellow"]  { --accent: var(--c-yellow);  --wash-mix: 46%; }
-
-/* dark: a wash must stay DARK. Above about 26% the lighter hues turn into a mid ground and strand --ink-2 on it. */
-:root[data-theme="dark"] [data-accent="sky"]     { --wash-mix: 22%; }
-:root[data-theme="dark"] [data-accent="magenta"] { --wash-mix: 20%; }
-:root[data-theme="dark"] [data-accent="violet"]  { --wash-mix: 22%; }
-:root[data-theme="dark"] [data-accent="orange"]  { --wash-mix: 22%; }
-:root[data-theme="dark"] [data-accent="green"]   { --wash-mix: 22%; }
-:root[data-theme="dark"] [data-accent="pink"]    { --wash-mix: 22%; }
-:root[data-theme="dark"] [data-accent="yellow"]  { --wash-mix: 24%; }
+/* Accents — set once, on the surface that takes the hue. The page spends the six arcs in the logo's own order.
+   Six of the seven carry warm black; violet is the only one dark enough to need white (3.7:1 against 4.6:1). */
+[data-accent="sky"]     { --accent: var(--c-sky);     --on-accent: #1B1916; }
+[data-accent="magenta"] { --accent: var(--c-magenta); --on-accent: #1B1916; }
+[data-accent="violet"]  { --accent: var(--c-violet);  --on-accent: #FFFFFF; }
+[data-accent="orange"]  { --accent: var(--c-orange);  --on-accent: #1B1916; }
+[data-accent="green"]   { --accent: var(--c-green);   --on-accent: #1B1916; }
+[data-accent="pink"]    { --accent: var(--c-pink);    --on-accent: #1B1916; }
+[data-accent="yellow"]  { --accent: var(--c-yellow);  --on-accent: #1B1916; }
+[data-accent="gold"]    { --accent: var(--c-gold);    --on-accent: #1B1916; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
