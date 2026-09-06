@@ -149,7 +149,11 @@
 .voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
 .voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in srgb, var(--ink) 16%, transparent); margin-bottom: var(--sp-4); }
-.voice__quote { font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
+/* the quote sits on the BOTTOM of the card, against the person chip; the mark stays pinned to the top. Three quotes
+   are never the same length, and top-aligning both left the shortest card with the slack between the text and the
+   chip — a hole. Pinned at both ends the row gets two straight lines instead of one, and the slack collects under
+   the mark, where it reads as air. */
+.voice__quote { margin-top: auto; font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
 /* the nested card: it overhangs the foot of the coloured card, which is what gives the group its depth without a shadow */
 .voice__who { position: absolute; left: var(--card-pad); bottom: 0; transform: translateY(50%); display: flex; align-items: center; gap: var(--sp-3); background: var(--accent); color: var(--on-accent); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
   --ink: var(--on-accent); --ink-3: var(--on-accent); }
@@ -172,7 +176,7 @@
 .close { padding-bottom: var(--gutter); }
 .close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
 /* The one surface down here whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
    for the subtree, which keeps every component inside it (title, field, button) correct in both themes. */
 .close__sign { grid-column: 1 / -1; background: var(--c-sky); border-radius: var(--r-lg); padding: var(--card-pad);
