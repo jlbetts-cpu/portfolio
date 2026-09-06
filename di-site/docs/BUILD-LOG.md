@@ -22,6 +22,8 @@ Jayden's twelfth pass, in five messages: card 02 "doesnt act like the rest of th
 
 **Then, on looking at it:** *"the bottom cards are a bit distracting so maybe making the color only come out on hover… and make the hero bigger those arent on the screen on start"*, and *"I dont want the color to be to distracting it still has to be a premium site first."* So the rule became: **colour rests on a panel; on a card it is a state.** The hero's panel takes `100svh − --field-top` so the card row starts just off screen; the cards' heads are quiet until the pointer or the keyboard reaches them (and coloured at rest under `@media (hover: none)`, where no pointer exists); the testimonials' hue moved off the card and onto the person's chip. Two surfaces carry a hue at rest now, and both are structure. Worst contrast improved 4.64 → 5.28:1 in dark and 4.82 → 5.44:1 in light.
 
+**And the header lost its container.** *"I would rather it be a clean header though not in a container or anything just minimal and clean."* So: no tiles, no bar, no glass — the wordmark and the controls sit directly on the page at the field's gutter, and the header **scrolls away with the page**. Bare type over a photograph is unreadable, and the honest answer to that was not to put a surface back under it but to stop needing one: Subscribe and Contact are both at the foot of the page. The "Read more" pill now arrives with the hue as well, so a resting card is chips, a title, a summary and a picture.
+
 **Measured after v12.** 41 gate lines pass, including a new `reader.mjs` and its self-test.
 
 ## v11 (2026-09-06) — the four things between 8.5 and 9

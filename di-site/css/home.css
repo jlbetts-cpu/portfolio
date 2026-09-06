@@ -7,7 +7,7 @@
 /* The page is one bento field: the header tiles, the hero's two panels, the four cards, then — after the ring —
    the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
    between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
-.hero { padding-top: var(--field-top); padding-bottom: 0; }
+.hero { padding-top: var(--grid-gap); padding-bottom: 0; }
 /* the panel's height IS the hero's height, so the fold lands exactly on the field's next gap: no centring air below
    the panels (that would put a gap bigger than --grid-gap between the hero and the cards and break the field) */
 .hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
@@ -61,15 +61,21 @@
    its edge. --slip is the whole idea, and it is small on purpose: 20px reads as deliberate, 60px reads as broken. */
 .brief__figure { position: relative; margin: calc(-1 * var(--slip)) var(--sp-3) var(--sp-3); display: grid; place-items: center; }
 .brief__figure .photo { width: 100%; }
-/* the control sits on the photograph, in the corner the reference puts it; the card itself carries the click */
-.brief__more { position: absolute; left: var(--sp-6); bottom: var(--sp-6); display: none; align-items: center; gap: var(--sp-2); height: var(--hit); padding: 0 var(--sp-2) 0 var(--sp-5); border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
+/* The control sits on the photograph, in the corner the reference puts it, and it arrives with the hue: at rest the
+   card is chips, a title, a summary and a picture. Focus reveals it too — an invisible control that the keyboard can
+   reach but never see is worse than no control at all. */
+.brief__more { position: absolute; left: var(--sp-6); bottom: var(--sp-6); display: none; align-items: center; gap: var(--sp-2); height: var(--hit); padding: 0 var(--sp-2) 0 var(--sp-5); border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line);
+  opacity: 0; transform: translateY(6px); transition: opacity var(--dur-state-out) var(--ease-out), transform var(--dur-state-out) var(--ease-out); }
 .js .brief__more { display: inline-flex; }
+.brief:hover .brief__more, .brief:focus-within .brief__more { opacity: 1; transform: none; }
 .brief__arrow { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg-overlay); transition: transform var(--dur-move) var(--ease-out); }
 .brief__arrow .icon { width: 16px; height: 16px; }
 .brief:hover .brief__arrow { transform: translateX(3px); }
 @media (min-width: 1280px) { .brief { grid-column: span 3; } }
-/* no pointer, no hover: on a touch screen the hue is simply the resting state, or the section never has a colour at all */
+/* no pointer, no hover: on a touch screen the hue and the control are simply the resting state, or the section never
+   has either */
 @media (hover: none) {
+  .brief__more { opacity: 1; transform: none; }
   .brief__head { background: var(--accent); color: var(--on-accent);
     --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
 }
@@ -77,7 +83,7 @@
   .brief__head { padding-bottom: calc(var(--sp-6) + var(--slip)); }
   .brief__more { left: var(--sp-5); bottom: var(--sp-5); }
 }
-@media (prefers-reduced-motion: reduce) { .brief:hover { transform: none; } .brief:hover .brief__arrow { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .brief:hover { transform: none; } .brief:hover .brief__arrow { transform: none; } .brief__more { transform: none; } }
 
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.

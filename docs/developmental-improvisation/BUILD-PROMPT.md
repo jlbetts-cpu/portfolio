@@ -140,10 +140,11 @@ strips, and no section padding between rows — `--section-y` survives in exactl
 is the field's only break. `--field-top` (`--grid-gap` × 2 + `--nav-h`) is where the field starts under the header.
 Jayden: *"what if there isnt [a gap] — what if its all a beautiful bento."*
 
-**0. The header — two tiles.** The wordmark is a panel; the links, the theme toggle and Subscribe are gathered into a
-second. Same gutter, same `--r-md` corner as everything under them, `--grid-gap` from the top. No Home link (the logo is
-the way home) and **no Gallery link** — the gallery *is* the hero, so that item pointed at the top of the page from the
-top of the page. **About · Contact.**
+**0. The header — no container.** The wordmark on the left, the links, the theme toggle and Subscribe on the right,
+directly on the page at the field's gutter. No bar, no glass, no tiles, and **it scrolls away with the page**: bare type
+over a photograph is unreadable, and the answer to that is not to put a surface back under it but to stop needing one —
+Subscribe and Contact are both at the foot of the page. No Home link (the logo is the way home) and **no Gallery link**:
+the gallery *is* the hero. **About · Contact.**
 
 **1. The hero — two panels, filling the screen.** The panel's height IS the hero's height (`100svh − --field-top`), so
 the fold lands on the field's next gap and the card row starts just off screen. Copy on a cream panel, left five columns; the right seven a colour panel holding fifteen
@@ -157,8 +158,8 @@ fold or the field reads as two pages.
 carries a head with two chips, the title and a two-line summary; the photograph below; one control, and the head fills
 with the card's hue under the pointer and on focus. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
 photograph **slips `--slip` 20px up out of its box and over the colour** — the one place a panel's contents cross an
-edge, and small on purpose. The whole card is the trigger; the "Read more" pill is the keyboard route; both open **the
-reader**, a dialog whose head takes that card's hue. The full copy lives in the card and is hidden only when there is
+edge, and small on purpose. The pill arrives with the hue, so a resting card is chips, a title, a summary and a picture. The whole card is
+the trigger; the pill is the keyboard route; both open **the reader**, a dialog whose head takes that card's hue. The full copy lives in the card and is hidden only when there is
 script to open a reader.
 
 **3. The quote ring — the break.** Eight circular photographs turning around the quote, on the open ground. Geometry is

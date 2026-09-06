@@ -52,11 +52,6 @@
     setTimeout(open, 2600);
   }
 
-  /* ---- Nav: a surface only once there is something under it ---- */
-  const nav = $('#nav');
-  const onScroll = () => nav.classList.toggle('is-scrolled', scrollY > 24);
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
-
   /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
      angle follows target with a time constant of --flow-settle, so a scroll accelerates the arch and it settles back to the drift. */
   const flow = (() => {
