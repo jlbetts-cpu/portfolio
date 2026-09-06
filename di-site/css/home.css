@@ -171,13 +171,20 @@
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
    whatever the breakpoint does to either number. Below 768 there IS no usable clear space — 2r − item is 150px on a
    phone and a quote plus a person chip is 200 — so the voice stops being a centre and sits under the necklace. */
-.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 96px); text-align: center; z-index: 2; }
+.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - var(--ring-inset)); text-align: center; z-index: 2; }
 /* all eight are in the DOM at once, stacked in ONE grid cell: the box is the height of the tallest so it never jumps
    between voices, and a screen reader reads all eight in order. Grid stacking, not absolute positioning — absolute
    children have no height and the centre would collapse. */
 .ring__quotes { display: grid; list-style: none; margin: 0; padding: 0; }
-.ring__quote { grid-area: 1 / 1; opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out); }
-.ring__quote.is-on { opacity: 1; transition-duration: var(--dur-enter); }
+/* SEQUENCED, not a cross-fade. Two opposite opacity fades running at once put two lines of type over each other at
+   40-60% each for a third of a second, which is the "not smooth" — it reads as a smear, not as a change. The one
+   leaving goes first and takes 160ms; the one arriving waits 150ms, so they barely overlap, and each moves 8px in the
+   direction the necklace is turning so the change has a direction instead of just happening. */
+.ring__quote { grid-area: 1 / 1; opacity: 0; transform: translateY(8px); transition: opacity var(--dur-state) var(--ease-out), transform var(--dur-state) var(--ease-out); }
+.ring__quote.is-on { opacity: 1; transform: none; transition: opacity var(--dur-move) var(--ease-out) 150ms, transform var(--dur-move) var(--ease-out) 150ms; }
+@media (prefers-reduced-motion: reduce) {
+  .ring__quote, .ring__quote.is-on { transform: none; transition: opacity var(--dur-state) linear; }
+}
 /* 1.75rem, not the 3.5 the single line took, and the column is 2r − item − 96 rather than − 32. Both come from the
    same sum: the block has to fit a rectangle INSCRIBED in the clear circle, and a wide rectangle in a circle is very
    short. At 2.3rem in a 480px column the 90-character placeholder ran to six lines, 243px tall, and its corners were
@@ -186,8 +193,13 @@
 .ring__text { font-family: var(--font-display); font-size: clamp(1.1rem, 2vw, 1.75rem); line-height: 1.15; letter-spacing: -0.02em; font-weight: 800; color: var(--ink); text-wrap: balance; }
 .ring__who { margin-top: var(--sp-5); display: flex; justify-content: center; }
 @media (max-width: 767px) {
-  .ring__centre { position: static; transform: none; width: auto; margin-top: var(--sp-6); }
-  .ring__text { font-size: clamp(1.35rem, 6vw, 1.75rem); }
+  .ring__text { font-size: clamp(1rem, 4.4vw, 1.25rem); line-height: 1.2; }
+  .ring__who { margin-top: var(--sp-4); }
+  /* the chip shrinks with the circle it sits in; at full size it was wider than the clear space at that height */
+  .who { gap: var(--sp-2); padding: var(--sp-1) var(--sp-4) var(--sp-1) var(--sp-1); }
+  .who__avatar { width: 26px; height: 26px; font-size: 10px; }
+  .who__name { font-size: var(--fs-caption); }
+  .who__role { font-size: 10px; }
 }
 /* the person chip: the one place a hue rests here, and it rests on a SURFACE, which is the rule. The name cannot
    carry the hue — no coloured text — and the active photograph cannot take a coloured border for the same reason,

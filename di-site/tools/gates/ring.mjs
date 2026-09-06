@@ -121,17 +121,22 @@ for (const [w, h] of VP) {
     const cy = st.top + st.height / 2;
     let top = -1, best = Infinity;
     for (const it of document.querySelectorAll('.ring__item')) { const r = it.getBoundingClientRect(); const y = r.top + r.height / 2 - cy; if (y < best) { best = y; top = +it.dataset.i; } }
-    // and the centre must stay inside the clear circle the necklace leaves
+    // The INK of EVERY voice must stay inside the clear circle the necklace leaves — not just the one showing, and
+    // not the <li> box. All eight are stacked in one grid cell so each <li> is as tall as the tallest and its corners
+    // are empty space; measuring those made the check fail on air. And measuring only the one showing made it pass or
+    // fail on which quote the drift happened to land on: Linda's is 40 characters and a placeholder is 79.
     const cs = getComputedStyle(document.documentElement);
     const safe = parseFloat(cs.getPropertyValue('--ring-r')) - parseFloat(cs.getPropertyValue('--ring-item')) / 2;
     const cx = st.left + st.width / 2;
     let worst = 0;
-    for (const e of document.querySelectorAll('.ring__quote.is-on *')) { const r = e.getBoundingClientRect(); if (!r.width) continue;
-      for (const [x, y] of [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]]) worst = Math.max(worst, Math.hypot(x - cx, y - cy)); }
-    // below 768 the voice sits UNDER the necklace, so there is no circle for it to stay inside — the check applies
-    // exactly where the centre is actually a centre
-    const centred = getComputedStyle(document.querySelector('.ring__centre')).position === 'absolute';
-    return { on, act, top, inside: !centred || worst <= safe, centred, worst: Math.round(worst), safe: Math.round(safe) };
+    for (const q of document.querySelectorAll('.ring__quote')) for (const e of q.querySelectorAll('.ring__text, .who')) {
+      let rects;
+      if (e.classList.contains('ring__text')) { const rg = document.createRange(); rg.selectNodeContents(e); rects = [...rg.getClientRects()]; }
+      else rects = [e.getBoundingClientRect()];
+      for (const r of rects) { if (!r.width) continue;
+        for (const [x, y] of [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]]) worst = Math.max(worst, Math.hypot(x - cx, y - cy)); }
+    }
+    return { on, act, top, inside: worst <= safe, worst: Math.round(worst), safe: Math.round(safe) };
   });
   const v0 = await voice();
   const onePlace = v0.on.length === 1 && v0.act.length === 1 && v0.on[0] === v0.act[0] && v0.act[0] === v0.top;

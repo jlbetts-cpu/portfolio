@@ -120,6 +120,8 @@
   --bento-px: 5;          /* the hero's columns move this many pixels per degree of flow */
   --ring-r: 330;          /* eight circles this far out sit 0.765r apart, so an item near that wide reads as a necklace, not as dots */
   --ring-item: 220px;
+  --ring-inset: 96px;     /* how far the voice's column stays inside the clear circle: the block must fit a rectangle
+                             INSCRIBED in 2r − item, and a wide rectangle in a circle is short */
   --ring-n: 8;
 }
 
@@ -168,4 +170,10 @@
 }
 @media (max-width: 1279px) { :root { --ring-r: 290; --ring-item: 190px; } }
 @media (max-width: 1023px) { :root { --ring-r: 250; --ring-item: 150px; } }
-@media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: 96px;  } }
+/* the phone necklace is sized so the voice still fits INSIDE it: clear space is 2r − item, so the item comes down and
+   the radius goes up. 2×178 + 84 = 440 outer against a 422px stage at 390, which clips 9px off the outermost circles —
+   the necklace has always run off both edges here and reads as one that continues. Clear space 272px, and the inset
+   drops to 24 — WIDER, not narrower, which is the counter-intuitive part: a narrow column makes more lines, a taller
+   block, and the person chip ends up further down the circle where there is least room for it. 56 put the chip 10px
+   outside; 24 takes the quote to three lines and brings the chip back up to where the circle is still wide. */
+@media (max-width: 767px)  { :root { --ring-r: 178; --ring-item: 84px; --ring-inset: 24px; } }

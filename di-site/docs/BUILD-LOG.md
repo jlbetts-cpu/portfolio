@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v19 (2026-09-06) — the swap, and the voice back inside the circle
+Two notes on v18, both right.
+
+**"the transitions between testimonials does not feel smooth."** They were a cross-fade: the leaving quote at `--dur-state-out` and the arriving one at `--dur-enter`, both running at once, which puts two lines of type over each other at 40–60% for a third of a second. That is not a transition, it is a smear. It is **sequenced** now — the one leaving goes first and takes 160ms, the one arriving waits 150ms and takes 280ms, and each moves 8px so the change has a direction. Measured frame by frame across the swap: **zero frames where both are above 0.12 opacity**, and the whole thing lands in about 430ms.
+
+**"the text isnt in the circle where it should be on mobile."** Also right, and the fix is the opposite of what it looks like. The phone ring is r 178 / item 84 now, which is 272px of clear space — but the lever that mattered was the column, and it had to get **wider**, not narrower: `--ring-inset` 56 → 24. A narrow column makes more lines, a taller block, and the person chip ends up further down the circle where there is least room for it. At inset 56 the chip's corners sat **10px outside** the clear circle at 390 and 5px outside at 320. At 24 the quote is three lines, the chip comes back up to where the circle is still wide, and the worst corner clears at both widths.
+
+**And the gate that let it through was measuring the wrong thing twice.** It took the corners of the `<li>` box — all eight are stacked in one grid cell so each is as tall as the tallest, and its corners are empty space, so the check was failing on air. And it measured only the voice that happened to be showing: Linda's quote is 40 characters and a placeholder is 79, so whether it passed depended on where the drift had got to. It measures the **ink of every voice** now — the text's own client rects and the chip — against the clear radius.
+
+**Measured after v19.** 44 gate lines pass, seven self-tests caught. No overflow at 320/390. Worst contrast 4.82:1 light / 4.64:1 dark.
+
 ## v18 (2026-09-06) — the ring is the testimonials
 *"do the ring merge."* The most distinctive object on the page was carrying one static quote in **880px of ground that was 71% empty**, and the testimonials were three more equal tiles in a page that already had four cards. Now the necklace **is** the voices: eight photographs, eight quotes, and **the one standing at the top of the circle is the one speaking** — its photograph scales to 1.12 with a neutral ring, its quote and its person chip sit at the centre. Hovering or focusing any other photograph hands it the centre; leaving hands it back. That is the section's whole reason to exist, and it deleted a section rather than adding one.
 
