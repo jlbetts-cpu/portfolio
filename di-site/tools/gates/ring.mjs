@@ -45,14 +45,25 @@ for (const [w, h] of VP) {
   const held = await pg.evaluate(() => window.__di.flow.held);
   const h0 = await angle(); await pg.waitForTimeout(400); const h1 = await angle();
   const hoverStops = held && Math.abs(h1 - h0) < 0.05;
-  await pg.mouse.move(w / 2, 5); await pg.waitForTimeout(900);
+  // "away" has to be computed, not guessed: at 1024×768 the stage is 770px tall, so the top centre of the viewport —
+  // where this used to move the pointer — is another ring photograph, and the flow stays held, correctly. Anything
+  // further from the stage's centre than r + item/2 is clear of every item; the stage's corners always are.
+  const away = await pg.evaluate(() => {
+    const s = document.querySelector('.ring__stage').getBoundingClientRect();
+    const cs = getComputedStyle(document.documentElement);
+    const reach = parseFloat(cs.getPropertyValue('--ring-r')) + parseFloat(cs.getPropertyValue('--ring-item')) / 2;
+    const cx = s.left + s.width / 2, cy = s.top + s.height / 2;
+    const corners = [[s.left + 4, s.top + 4], [s.right - 4, s.top + 4], [s.left + 4, s.bottom - 4], [s.right - 4, s.bottom - 4]];
+    return corners.find(([x, y]) => Math.hypot(x - cx, y - cy) > reach + 8 && x > 0 && y > 0 && x < innerWidth && y < innerHeight) || [4, 4];
+  });
+  await pg.mouse.move(away[0], away[1]); await pg.waitForTimeout(900);
   const r0 = await angle(); await pg.waitForTimeout(400); const r1 = await angle();
   const resumes = r1 - r0 > 0.5;
   const s0 = await angle(); await pg.evaluate(() => scrollBy(0, -300)); await pg.waitForTimeout(700); const s1 = await angle();
   const scrollTurns = Math.abs(s1 - s0) > 12;
   // the hero's bento: three columns looping vertically. Each must move, adjacent columns must move in OPPOSITE
   // directions, the loop must wrap (a column never runs past its own length), and the pointer must stop all of them.
-  await pg.evaluate(() => scrollTo(0, 0)); await pg.mouse.move(w / 2, 5);
+  await pg.evaluate(() => scrollTo(0, 0)); await pg.mouse.move(4, 4);
   for (let k = 0; k < 24; k++) { const a = await pg.evaluate(() => window.__di.flow.scrollAngle); await pg.waitForTimeout(300); const b = await pg.evaluate(() => window.__di.flow.scrollAngle); if (Math.abs(b - a) < 0.04) break; }
   const colY = () => pg.evaluate(() => [...document.querySelectorAll('[data-bento]')].map(c => new DOMMatrixReadOnly(getComputedStyle(c).transform).m42));
   const y0 = await colY(); await pg.waitForTimeout(600); const y1 = await colY();
@@ -68,7 +79,7 @@ for (const [w, h] of VP) {
   await pg.mouse.move(bb[0], bb[1]); await pg.waitForTimeout(1500);
   const b0 = await colY(); await pg.waitForTimeout(500); const b1 = await colY();
   const bentoStops = b1.every((v, i) => Math.abs(v - b0[i]) < 0.6);
-  await pg.mouse.move(w / 2, 5); await pg.waitForTimeout(700);
+  await pg.mouse.move(4, 4); await pg.waitForTimeout(700);
   // the panel's own edge is the crop now (the soft mask was removed): the panel must clip, and a column must actually
   // overrun it — a column that fits inside the panel would never be cropped and the loop would visibly jump
   const clipped = await pg.evaluate(() => {

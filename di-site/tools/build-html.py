@@ -47,8 +47,8 @@ def picture(name, sizes, lazy=True, cls='', ratio=None, button=True, big=False):
     img=(f'<img src="images/{m["jpeg"]}" width="{m["width"]}" height="{m["height"]}" alt="{html.escape(ALT[name])}" '
          f'{load}decoding="async">')
     pic=f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}">{img}</picture>'
-    if name not in USED: USED.append(name)
     if not button: return pic
+    if name not in USED: USED.append(name)
     return f'<button class="photo__open" type="button" data-photo="{name}" aria-label="Open photograph: {html.escape(ALT[name])}">{pic}</button>'
 def lb_data():
     out={}
@@ -57,10 +57,10 @@ def lb_data():
         out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n]}
     return json.dumps(out,separators=(',',':'))
 
-def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False):
+def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, button=True):
     m=man[name]
     h=(f'<figure class="photo photo--{ratio}{" photo--hover" if hover else ""}" style="--pos:{POS[name]};background-image:url({m["placeholder"]})">'
-       + picture(name,sizes,lazy,big=big) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
+       + picture(name,sizes,lazy,big=big,button=button) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
 # The hero's bento: three columns of photographs that loop with the flow, plus two tiles of pure colour.
@@ -70,7 +70,7 @@ BSIZES='(max-width: 767px) 44vw, (max-width: 1279px) 22vw, 15vw'
 COLS=[
   ['yellow-trousers','blue-shirts','scene-handshake','linda-stage','circle-hands'],
   ['boy-fist','kids-bw-small','conga-line','three-teens','laugh-hat'],
-  ['three-men','row-linked-arms','linda-portrait','floor-game','cast-pose'],
+  ['three-men','row-linked-arms','kids-running','floor-game','cast-pose'],
 ]
 def bento_item(name, hidden, first, i):
     mid=' data-mid' if first else ''
@@ -91,7 +91,6 @@ RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
-band=photo('kids-running','3x2','100vw',big=True)   # the only full-bleed photograph on the page: it may pull the 1440 file
 P=[
  "Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.",
  "Created by educator Linda Kellogg Fulton, based on her fifty plus years working in improvisation, it offers students a unique, beneficial, and fascinating experience-based exploration into the realm of Social Emotional Learning through imaginative excursions and cooperative play.",
@@ -100,25 +99,38 @@ P=[
  "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
  "All while having as much fun as possible!",
 ]
-TS='(max-width: 767px) 62vw, 22vw'   # the photograph sits inside the colour panel: 304px wide at 1440
-def stack_card(num, accent, title, paras, extra, photo_name, kind='split'):
-    body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
-    extra_html=('<div>'+extra+'</div>') if extra else ''
-    cls={'split':'card card--line grid','mirror':'card card--line grid stack__card--mirror',
-         'overlay':'card card--line stack__card--overlay','solid':'card card--solid grid stack__card--solid'}[kind]
-    ratio='3x2' if kind=='overlay' else '4x5'
-    sizes='(max-width: 767px) 96vw, 96vw' if kind=='overlay' else TS
-    return (f'<article class="stack__card {cls} reveal--parts" data-accent="{accent}" aria-labelledby="stack-{num}">'
-            + (f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>' if kind=='overlay' else '')
-            + f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>{extra_html}</div>'
-            + ('' if kind=='overlay' else f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>')
-            + '</article>')
-btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
-# the four cards take the logo's arcs in ring order, second through fifth
-stack=(stack_card('01','violet','Welcome to Developmental Improvisation',P[0:2],'','linda-circle','split')
-      +stack_card('02','orange','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing','overlay')
-      +stack_card('03','green','“What would you do?”',P[3:4],'','two-lines','mirror')
-      +stack_card('04','pink','The end result',P[4:6],btn4,'zoom-group','solid'))
+# ---- The four cards ----
+# One row of the bento: four cards of the same shape, each one clickable, each carrying one of the logo's arcs.
+# Two of them say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is.
+# The card shows a chip, a title, a summary and a photograph; the whole card opens a reader with the full copy,
+# so the page keeps four short blocks instead of six long ones.
+BS='(max-width: 767px) 68vw, (max-width: 1279px) 40vw, 21vw'
+BRIEFS=[
+ ('01','The method','violet','What Developmental Improvisation is',
+  'A new tool for teaching cognitive development and social/emotional understanding through the art of improvisation.',
+  [P[0]],'linda-circle'),
+ ('02','In the room','orange','Inside a session',
+  'Safe, educational, and thrilling exercises and games, built to let students meet the whole range of human behavior.',
+  [P[2],P[5]],'kids-dancing'),
+ ('03','The idea','green','\u201cWhat would you do?\u201d',
+  'Spontaneously imaginative situations that put critical thinking and creative problem-solving to the test.',
+  [P[3],P[4]],'two-lines'),
+ ('04','The founder','pink','Who Linda is',
+  'Educator Linda Kellogg Fulton created Developmental Improvisation out of fifty plus years working in improvisation.',
+  [P[1]],'linda-portrait'),
+]
+def brief(num, chip, accent, title, summary, paras, photo_name):
+    full=''.join(f'<p class="t-body">{p}</p>' for p in paras)
+    return (f'<article class="brief reveal" data-accent="{accent}" aria-labelledby="brief-{num}">'
+            f'<div class="brief__head">'
+            f'<p class="brief__chips"><span class="chip">{num}</span><span class="chip">{chip}</span></p>'
+            f'<h2 class="brief__title" id="brief-{num}">{title}</h2>'
+            f'<p class="brief__sum">{summary}</p></div>'
+            f'<div class="brief__figure">{photo(photo_name, "4x5", BS, hover=True, button=False)}'
+            f'<button class="brief__more" type="button" data-reader>Read more'
+            f'<span class="brief__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span></button></div>'
+            f'<div class="brief__full">{full}</div></article>')
+briefs=''.join(brief(*b) for b in BRIEFS)
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
@@ -167,7 +179,7 @@ page=f'''<!DOCTYPE html>
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
     <div class="nav__panel">
-      <nav class="nav__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
+      <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
       <button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
 </header>
@@ -186,12 +198,8 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="welcome" aria-label="Welcome">
-    <div class="container"><div class="stack">{stack}</div></div>
-  </section>
-
-  <section class="band reveal--parts" aria-label="Photograph">
-    {band}
+  <section class="briefs" id="about" aria-label="About Developmental Improvisation">
+    <div class="container grid briefs__row">{briefs}</div>
   </section>
 
   <section class="section ring" id="quote" aria-label="Quote">
@@ -206,16 +214,15 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section" id="voices" aria-labelledby="voicesLabel">
+  <section class="voices-sec" id="voices" aria-label="Testimonials">
     <div class="container">
-      <div class="voices__head reveal"><p class="label" id="voicesLabel">Testimonials</p></div>
-      <ul class="voices reveal reveal--stagger">{pile}</ul>
+      <ul class="voices grid reveal--stagger">{pile}</ul>
     </div>
   </section>
 </main>
 
 <footer class="close" id="contact">
-  <div class="close__field reveal">
+  <div class="container"><div class="close__field reveal">
     <div class="grid close__grid">
       <p class="close__lead">Pre-wiring the brain &amp; educating the heart</p>
       <div class="close__sign">
@@ -232,7 +239,7 @@ page=f'''<!DOCTYPE html>
         <p class="close__copy">© 2026 Developmental Improvisation</p>
       </div>
     </div>
-  </div>
+  </div></div>
 </footer>
 
 <dialog class="lightbox" id="lightbox" aria-label="Photograph">
@@ -251,6 +258,12 @@ page=f'''<!DOCTYPE html>
   {form('dlg')}
 </dialog>
 
+<dialog class="dialog reader" id="reader" aria-labelledby="readerTitle">
+  <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <div class="reader__head"><p class="reader__chips"></p><h2 class="reader__title" id="readerTitle" tabindex="-1"></h2></div>
+  <div class="reader__prose"></div>
+</dialog>
+
 <div class="curtain" aria-hidden="true">
   <div class="curtain__half curtain__half--l"></div>
   <div class="curtain__half curtain__half--r"></div>
@@ -259,7 +272,7 @@ page=f'''<!DOCTYPE html>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">
   <div class="sheet__head"><svg class="mark" style="width:28px;height:30px;color:var(--ink)" aria-hidden="true"><use href="#mark"/></svg><button class="btn btn--ghost btn--compact" type="button" data-close-menu>Close</button></div>
-  <nav class="sheet__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
+  <nav class="sheet__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
   <button class="btn btn--primary" type="button" data-open-dialog data-close-menu>Subscribe</button>
 </dialog>
 </body>

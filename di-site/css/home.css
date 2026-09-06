@@ -4,7 +4,10 @@
 /* ---------- Hero ----------
    Two panels side by side on the page, the way the reference layers them: the copy on a cream panel, the photographs
    inside a colour panel that CLIPS them. The panel's own rounded edge is the crop now — the soft mask is gone. */
-.hero { padding-top: calc(var(--nav-h) + var(--sp-4)); padding-bottom: var(--sp-6); min-height: 100svh; display: grid; align-content: center; }
+/* The page is one bento field: the header tiles, the hero's two panels, the four cards, then — after the ring —
+   the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
+   between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
+.hero { padding-top: var(--field-top); padding-bottom: 0; }
 .hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
 .hero__head { grid-column: 1 / -1; display: grid; align-content: center; gap: var(--sp-6); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(28px, 3.6vw, 64px); }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); text-wrap: balance; }
@@ -15,7 +18,7 @@
 .bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
 /* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
-@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } .hero { min-height: 0; padding-bottom: var(--section-y); } }
+@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } }
 @media (min-width: 768px) {
   .hero__head { grid-column: 1 / span 5; }
   /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
@@ -31,62 +34,39 @@
   .bento__col .photo:hover { transform: none; }
 }
 
-/* ---------- The stack ----------
-   Four cards, and four different beats — the same text-and-panel arrangement four times read as one long note.
-   01 splits, 02 gives the whole card to the photograph and nests the text in a colour panel over its corner,
-   03 mirrors 01, 04 is the colour itself with the call to action on it. Sticky, each 10px lower than the last;
-   js/main.js scales a covered card down from its top edge as the next climbs over it. */
-.stack { display: grid; gap: var(--sp-4); }
-.stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-4) + var(--i, 0) * 10px); border-radius: var(--r-xl); overflow: hidden; transform-origin: 50% 0; will-change: transform; padding: var(--card-pad); align-items: center; row-gap: var(--sp-8); }
-.stack__head { grid-column: 1 / -1; display: grid; gap: var(--sp-5); align-content: start; }
-.stack__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 14em; text-wrap: balance; }
-.stack__body .t-body { color: var(--ink-2); }
-.stack__body .t-body:first-child { color: var(--ink); }
-/* the split beat: the card is the raised ground, its hue is the solid panel holding the photograph */
-.stack__figure { grid-column: 1 / -1; display: grid; place-items: center; background: var(--accent); border-radius: var(--r-lg); padding: clamp(16px, 2vw, 32px); }
-.stack__figure .photo { height: clamp(260px, 28vw, 380px); width: auto; max-width: 100%; }
-@media (min-width: 768px) {
-  .stack__head { grid-column: 1 / span 6; grid-row: 1; }
-  .stack__figure { grid-column: 8 / span 5; grid-row: 1; }
-  .stack__card { min-height: 420px; }
-  .stack__card--mirror .stack__head { grid-column: 7 / span 6; }
-  .stack__card--mirror .stack__figure { grid-column: 1 / span 5; }
+/* ---------- The four cards ----------
+   The row under the hero, at the bento's own gap so the two read as one field. Every card is the same object:
+   a head, a photograph on its hue, and one control. The head fills with the card's colour under the pointer —
+   the reference's one coloured card among plain ones, made a state instead of an arbitrary choice.
+   The whole card is the control; the full copy lives in a reader so four short blocks replace six long ones. */
+.briefs { padding-top: var(--grid-gap); }
+.brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; transition: transform var(--dur-move) var(--ease-out); }
+.brief:hover { transform: translateY(-4px); }
+/* the head IS the hue, the way all three references build this card. The ink tokens are rebound for the subtree,
+   exactly as on a solid card: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
+.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); background: var(--accent); color: var(--on-accent);
+  --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
+.brief__chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.brief__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); text-wrap: balance; }
+.brief__sum { font-size: var(--fs-small); line-height: 1.5; color: var(--ink-2); }
+.brief__full { padding: 0 var(--sp-6) var(--sp-6); }
+.js .brief__full { display: none; }          /* the reader carries it once there is script to open one */
+/* the photograph slips up out of its box and over the colour — the one place on the page a panel's contents cross
+   its edge. --slip is the whole idea, and it is small on purpose: 20px reads as deliberate, 60px reads as broken. */
+.brief__figure { position: relative; margin: calc(-1 * var(--slip)) var(--sp-3) var(--sp-3); display: grid; place-items: center; }
+.brief__figure .photo { width: 100%; }
+/* the control sits on the photograph, in the corner the reference puts it; the card itself carries the click */
+.brief__more { position: absolute; left: var(--sp-6); bottom: var(--sp-6); display: none; align-items: center; gap: var(--sp-2); height: var(--hit); padding: 0 var(--sp-2) 0 var(--sp-5); border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
+.js .brief__more { display: inline-flex; }
+.brief__arrow { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg-overlay); transition: transform var(--dur-move) var(--ease-out); }
+.brief__arrow .icon { width: 16px; height: 16px; }
+.brief:hover .brief__arrow { transform: translateX(3px); }
+@media (min-width: 1280px) { .brief { grid-column: span 3; } }
+@media (max-width: 767px) {
+  .brief__head { padding-bottom: calc(var(--sp-6) + var(--slip)); }
+  .brief__more { left: var(--sp-5); bottom: var(--sp-5); }
 }
-/* the overlay beat: the photograph is the card and the text floats on a colour panel over its lower-left.
-   The panel is POSITIONED, not pulled up with a negative margin — a percentage margin resolves against the card's
-   width, so at 1382px it pulled the panel 193px up and the card's own bottom edge sliced the last line off it. */
-.stack__card--overlay { padding: 0; display: block; position: relative; }
-.stack__card--overlay .stack__figure { padding: 0; border-radius: 0; background: none; display: block; }
-.stack__card--overlay .stack__figure .photo { height: clamp(360px, 46vw, 620px); width: 100%; border-radius: 0; }
-.stack__card--overlay .stack__head { background: var(--accent); color: var(--on-accent); border-radius: var(--r-lg); padding: var(--card-pad); }
-.stack__card--overlay .stack__title, .stack__card--overlay .stack__body .t-body, .stack__card--overlay .stack__body .t-body:first-child { color: var(--on-accent); }
-/* the panel sits at the TOP of the photograph, not the foot: in a sticky stack the next card climbs over the bottom
-   of this one, and content parked down there is the first thing to disappear */
-@media (min-width: 768px) { .stack__card--overlay .stack__head { position: absolute; left: var(--card-pad); top: var(--card-pad); width: min(30em, 46%); } }
-@media (max-width: 767px) { .stack__card--overlay .stack__head { margin: -40px var(--card-pad) var(--card-pad); } }
-
-/* the solid beat: the last card is the hue itself, and it carries the call to action */
-.stack__card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
-.stack__card--solid .stack__figure { background: none; padding: 0; }
-
-/* the cards arrive in two parts, the text a beat after the picture */
-.js .stack__card .stack__head, .js .stack__card .stack__figure { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-settle); }
-.js .stack__card.is-in .stack__head { opacity: 1; transform: none; transition-delay: 90ms; }
-.js .stack__card.is-in .stack__figure { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .js .stack__card .stack__head, .js .stack__card .stack__figure { transform: none; } }
-
-/* ---------- The band ----------
-   One photograph, edge to edge, at a scale nothing else on the page reaches. The middle of the page had no such moment:
-   every section was a card of about the same size, and the eye had nothing to rest on between the stack and the ring. */
-.band { padding-block: var(--section-y) 0; }
-/* aspect-ratio must go: with an explicit height a 3:2 frame derives its WIDTH from that height and the band came out
-   930px wide in a 1440px page */
-.band .photo { border-radius: 0; aspect-ratio: auto; width: 100%; height: clamp(300px, 52vh, 620px); }
-.band .photo img { object-position: 50% 34%; }
-/* the band settles rather than fades: it is the page's one full-bleed picture and it should arrive like one */
-.js .band .photo img { transform: scale(1.06); transition: transform 900ms var(--ease-out); }
-.js .band.is-in .photo img { transform: none; }
-@media (prefers-reduced-motion: reduce) { .js .band .photo img, .js .band.is-in .photo img { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .brief:hover { transform: none; } .brief:hover .brief__arrow { transform: none; } }
 
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
@@ -111,9 +91,7 @@
 /* ---------- Voices ----------
    Three cards, each one of the logo's colours at full strength: the quote mark, the quote, and the person in a nested
    white sub-card that sits in the card's bottom-left corner (the reference Jayden sent). */
-.voices__head { text-align: center; display: grid; justify-items: center; gap: var(--sp-3); margin-bottom: var(--sp-10); }
-.voices { display: grid; grid-template-columns: minmax(0,1fr); gap: var(--grid-gap); }
-.voices > .voice { transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--accent); color: var(--on-accent); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
 .voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in oklab, var(--on-accent) 26%, transparent); margin-bottom: var(--sp-4); }
 .voice__quote { font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--on-accent); text-wrap: pretty; }
@@ -122,15 +100,18 @@
 .voice__avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.3; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
-@media (min-width: 768px) { .voices { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+@media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
+
+/* the sub-card hangs 30px below its card; the field below has to start clear of it, not on it */
+.voices-sec { padding-bottom: calc(30px + var(--grid-gap)); }
 
 /* ---------- The closing field ----------
    Newsletter, contact and footer were three thin bands with nothing in them. They are one field now, in sky —
    the monogram's own colour, at full strength, the only place on the page a hue is not a wash. */
-.close { margin: 0 var(--gutter) var(--gutter); }
+.close { padding-bottom: var(--gutter); }
 /* The one surface whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
    for the subtree, which keeps every component inside it (label, links, field, button) correct in both themes. */
-.close__field { max-width: var(--page-max); margin-inline: auto; background: var(--c-sky); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px);
+.close__field { background: var(--c-sky); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px);
   --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
 .close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); }

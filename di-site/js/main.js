@@ -94,6 +94,7 @@
       get scrollAngle() { return sAngle; },
       get held() { return holds.size > 0; },
       set(a) { angle = target = a; emit(); },   // test hook
+      get holdKeys() { return [...holds].map(h => typeof h === 'string' ? h : (h.className || h.tagName)); },   // test hook
     };
   })();
 
@@ -149,7 +150,7 @@
     };
     flow.on(render);
     orbit.addEventListener('pointerover', (e) => { if (e.target.closest('.photo')) flow.hold(orbit, true); });
-    orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo'))) flow.hold(orbit, false); });
+    orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo') && orbit.contains(e.relatedTarget))) flow.hold(orbit, false); });
     let touchTimer;
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
     flow.watch(orbit.closest('.ring') || orbit);
@@ -195,31 +196,28 @@
   // the ring assembles: each photograph a beat after the last, going round
   $$('.ring__orbit .ring__item').forEach((el, i) => { const ph = $('.photo', el); if (ph) ph.style.setProperty('--d', i); });
 
-  /* ---- The stack: a covered card shrinks from its top edge as the next one climbs over it; deeper cards are smaller ---- */
-  const stackUpdate = (() => {
-    const cards = $$('.stack__card');
-    if (!cards.length) return () => {};
-    cards.forEach((c, i) => c.style.setProperty('--i', i));
-    const update = () => {
-      if (reduced.matches) { cards.forEach(c => { c.style.transform = ''; }); return; }
-      const cover = cards.map((c, i) => {
-        const next = cards[i + 1]; if (!next) return 0;
-        const r = c.getBoundingClientRect(), nr = next.getBoundingClientRect();
-        return clamp((r.bottom - nr.top) / r.height, 0, 1);
-      });
-      let depth = 0;
-      for (let i = cards.length - 1; i >= 0; i--) {
-        depth += cover[i];
-        const s = 1 - .045 * Math.min(depth, 3);
-        cards[i].style.transform = depth > 0.001 ? `scale(${s.toFixed(4)})` : '';
-      }
-    };
-    let ticking = false;
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; update(); }); } };
-    addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll);
-    update();
-    return update;
-  })();
+  /* ---- The reader: the full copy behind a card. One dialog, filled from whichever card opened it, and the whole
+     card is the trigger — the button inside it is the keyboard route and its click bubbles up to the same handler. ---- */
+  const reader = $('#reader');
+  if (reader) {
+    const chips = $('.reader__chips', reader), title = $('.reader__title', reader), prose = $('.reader__prose', reader);
+    let from = null;
+    $$('.brief').forEach(card => card.addEventListener('click', () => {
+      if (reader.open) return;
+      from = $('.brief__more', card) || card;
+      reader.dataset.accent = card.dataset.accent || '';
+      chips.innerHTML = $('.brief__chips', card).innerHTML;
+      title.textContent = $('.brief__title', card).textContent;
+      prose.innerHTML = $('.brief__full', card).innerHTML;
+      prose.scrollTop = 0;
+      reader.showModal();
+      title.focus({ preventScroll: true });
+      flow.hold('reader', true);
+    }));
+    $('.dialog__close', reader).addEventListener('click', () => reader.close());
+    reader.addEventListener('click', (e) => { if (e.target === reader) reader.close(); });
+    reader.addEventListener('close', () => { flow.hold('reader', false); if (from && from.isConnected) from.focus({ preventScroll: true }); });
+  }
 
   /* ---- Menu sheet (mobile) ---- */
   const sheet = $('#menuSheet');
@@ -303,5 +301,5 @@
     });
   });
 
-  window.__di = { flow, stackUpdate, lightbox: lb };   // hooks for tools/gates
+  window.__di = { flow, lightbox: lb, reader };   // hooks for tools/gates
 })();

@@ -1,5 +1,5 @@
 // Gate: under reduced motion nothing drifts (ring, bento), nothing animates after 300ms and reveals still reach opacity 1;
-// without it the ring drifts, the bento drifts, and the stack scales the covered card.
+// without it the ring drifts and the bento drifts. The cards lift on hover, which is a transform the gate reads directly.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 let pg = await open(b, 1440, 900, { reduced: true });
@@ -11,22 +11,17 @@ const r1 = await pg.evaluate(async () => {
   const still = Math.abs(window.__di.flow.angle - a0) < 0.01 && document.querySelector('[data-bento]').style.transform === t0;
   document.querySelector('#contact').scrollIntoView(); await new Promise(r => setTimeout(r, 500));
   const revealed = [...document.querySelectorAll('#contact .reveal')].every(e => getComputedStyle(e).opacity === '1');
-  const stackStill = [...document.querySelectorAll('.stack__card')].every(c => !c.style.transform);
-  return { running, still, revealed, stackStill };
+  const cardStill = getComputedStyle(document.querySelector('.brief')).transform;
+  return { running, still, revealed, cardStill };
 });
-report('motion (reduced)', r1.running === 0 && r1.still && r1.revealed && r1.stackStill, JSON.stringify(r1));
+report('motion (reduced)', r1.running === 0 && r1.still && r1.revealed && (r1.cardStill === 'none' || r1.cardStill === 'matrix(1, 0, 0, 1, 0, 0)'), JSON.stringify(r1));
 await pg.close();
 pg = await open(b, 1440, 900);
 const r2 = await pg.evaluate(async () => {
   // the flow drifts while the bento or the ring is on screen; the bento is in the hero, so start at the top
   scrollTo(0, 0); await new Promise(r => setTimeout(r, 1800));
   const a0 = window.__di.flow.angle; await new Promise(r => setTimeout(r, 800)); const drifts = window.__di.flow.angle - a0 > 1;
-  // the stack: from the top, so the first card is stuck under the header when the second arrives
-  scrollTo(0, 0); await new Promise(r => setTimeout(r, 200));
-  const cards = [...document.querySelectorAll('.stack__card')];
-  scrollTo(0, scrollY + cards[1].getBoundingClientRect().top - 200); await new Promise(r => setTimeout(r, 300));
-  const stackScales = /scale\(0\.9/.test(cards[0].style.transform);
-  return { drifts, stackScales };
+  return { drifts };
 });
-report('motion (full)', r2.drifts && r2.stackScales, JSON.stringify(r2));
+report('motion (full)', r2.drifts, JSON.stringify(r2));
 await pg.close(); await b.close();

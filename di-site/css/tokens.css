@@ -23,15 +23,20 @@
   --ink-2:  #514C45;                      /* 7.8:1 on the ground */
   --ink-3:  #6C665D;                      /* 4.9:1 on the deeper ground */
 
-  /* The logo. Sky is the monogram; the six that follow are the arcs, in ring order clockwise from the top. */
-  --c-sky:     #58CDFC;                   /* the mark. Warm black on it: 9.6:1 */
-  --c-gold:    #FFE469;                   /* the star */
-  --c-magenta: #E744E2;
-  --c-violet:  #7358FC;
-  --c-orange:  #F0895B;
-  --c-green:   #51E596;
-  --c-pink:    #FB9BC9;
-  --c-yellow:  #FEE79B;
+  /* The logo, held at one lightness. The hues are the mark's own — the same eight angles, in the same order — but on
+     the cream page each is taken to OKLCH L .885 with the chroma the hue can carry there (C ≤ .105). That is what makes
+     a colour read as a tint of the brand against an off-white ground instead of a signal flare on it; the dark theme
+     puts them back at full strength, where a saturated hue has a near-black ground to sit on. Every one of these
+     carries the warm black at better than 11.9:1, violet included. */
+  --c-sky:     #A8E3FE;                   /* the mark, 227.9° */
+  --c-gold:    #ECDA87;                   /* the star, 97.0° */
+  --c-magenta: #FEC2F9;                   /* 329.3° */
+  --c-violet:  #D4D5FE;                   /* 284.1° */
+  --c-orange:  #FECDB8;                   /* 44.1° */
+  --c-green:   #9EEEBC;                   /* 156.0° */
+  --c-pink:    #FFC7E0;                   /* 350.2° */
+  --c-yellow:  #F1D886;                   /* 93.2° */
+  --on-violet: #1B1916;                   /* the one hue whose ink changes with the theme */
 
   /* A hue reaches the page ONE way: at full strength, on a surface, with the ink that hue takes. Mixing a hue into the
      ground made a pastel that was no longer the brand colour and shifted again between the themes; there are no mixes now.
@@ -82,8 +87,11 @@
   --grid-gap: clamp(12px, 1.1vw, 20px);
   --section-y: clamp(56px, 2.2vw + 32px, 88px);
   --card-pad: clamp(20px, 2.2vw, 40px);
+  --slip: 20px;           /* how far a photograph rises out of the panel it sits in */
 
-  --nav-h: 60px;
+  /* the header is two tiles in the field, so its height is a tile's height: 5px of panel padding either side of a 44px target */
+  --nav-h: 54px;
+  --field-top: calc(var(--grid-gap) * 2 + var(--nav-h));
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
 
@@ -123,16 +131,26 @@
   --ink:    #F4F1EB;
   --ink-2:  rgba(244,241,235,.74);
   --ink-3:  rgba(244,241,235,.58);
+  /* full strength: the logo read literally, which is what a saturated hue needs a near-black ground for */
+  --c-sky:     #58CDFC;
+  --c-gold:    #FFE469;
+  --c-magenta: #E744E2;
+  --c-violet:  #7358FC;
+  --c-orange:  #F0895B;
+  --c-green:   #51E596;
+  --c-pink:    #FB9BC9;
+  --c-yellow:  #FEE79B;
+  --on-violet: #FFFFFF;                   /* 4.6:1 — the only hue in the set dark enough to need it */
   --focus:  var(--c-sky);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: #131211;
 }
 
 /* Accents — set once, on the surface that takes the hue. The page spends the six arcs in the logo's own order.
-   Six of the seven carry warm black; violet is the only one dark enough to need white (3.7:1 against 4.6:1). */
+   Every hue carries the warm black; violet at full strength is the one exception and takes white in the dark theme. */
 [data-accent="sky"]     { --accent: var(--c-sky);     --on-accent: #1B1916; }
 [data-accent="magenta"] { --accent: var(--c-magenta); --on-accent: #1B1916; }
-[data-accent="violet"]  { --accent: var(--c-violet);  --on-accent: #FFFFFF; }
+[data-accent="violet"]  { --accent: var(--c-violet);  --on-accent: var(--on-violet); }
 [data-accent="orange"]  { --accent: var(--c-orange);  --on-accent: #1B1916; }
 [data-accent="green"]   { --accent: var(--c-green);   --on-accent: #1B1916; }
 [data-accent="pink"]    { --accent: var(--c-pink);    --on-accent: #1B1916; }

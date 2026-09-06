@@ -21,11 +21,15 @@ TINTS=['sky','gold','magenta','violet','orange','green','pink','yellow']
 tints=''.join(f'<div class="card card--solid" data-accent="{a}" style="min-height:110px"><p class="t-small" style="font-weight:600">{a}</p></div>' for a in TINTS)
 RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
 mini=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle">{pic(n,"80px")}</figure></div>' for n in RING)
-STRIP=['yellow-trousers','three-men','circle-hands','boy-fist','blue-shirts','laugh-hat']
-strip=''.join(f'<figure class="photo photo--4x5 strip__card">{pic(n,"180px")}</figure>' for n in STRIP)*2
-def stackcard(acc,title):
-    return f'<article class="card card--line" data-accent="{acc}" style="margin-bottom:var(--sp-4);display:flex;gap:var(--sp-6);align-items:center"><div><h3 class="t-h3">{title}</h3><p class="t-body" style="margin-top:var(--sp-3)">The card is the raised ground; the hue is the solid panel holding the photograph. Even cards mirror.</p></div><div class="tile" style="width:120px;height:96px;flex:none"></div></article>'
-stack=''.join(stackcard(a,t) for a,t in [('violet','Violet'),('orange','Orange'),('green','Green'),('pink','Pink')])
+BRIEF=[('01','The method','violet','kids-dancing'),('02','In the room','orange','two-lines'),('03','The idea','green','circle-hands'),('04','The founder','pink','linda-portrait')]
+def briefcard(num,chip,acc,ph):
+    return (f'<article class="brief" data-accent="{acc}"><div class="brief__head">'
+            f'<p class="brief__chips"><span class="chip">{num}</span><span class="chip">{chip}</span></p>'
+            f'<h3 class="brief__title">A title of two lines</h3>'
+            f'<p class="brief__sum">Two lines of summary; the reader carries the rest.</p></div>'
+            f'<div class="brief__figure"><figure class="photo photo--4x5">{pic(ph,"260px")}</figure>'
+            f'<button class="brief__more" type="button">Read more<span class="brief__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span></button></div></article>')
+briefs=''.join(briefcard(*b) for b in BRIEF)
 bars=''.join(f'<div class="bar"><span>--sp-{n}</span><i style="width:var(--sp-{n})"></i><span>{v}</span></div>' for n,v in [(1,4),(2,8),(3,12),(4,16),(5,20),(6,24),(8,32),(10,40),(12,48),(16,64),(20,80),(24,96),(32,128),(40,160)])
 motion=''.join(f'<div class="mo" data-dur="{k}"><button class="btn btn--secondary btn--compact" type="button" onclick="play(this)">Play</button><i></i><b>--dur-{k}</b> {v}</div>' for k,v in [('press','100ms · :active'),('state','160ms · hover, focus'),('state-out','240ms · leaving hover'),('move','280ms · position, the pile straightening'),('reveal','360ms · entering on scroll'),('enter','500ms · dialog, first paint')])
 
@@ -53,14 +57,14 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 .mini-ring {{ --ring-r: 150; }} .mini-ring .ring__stage {{ height: 420px; margin: 0; }} .mini-ring .ring__item {{ width: 80px; margin-left: -40px; margin-top: -48px; }} .mini-ring .ring__item .photo--tilt {{ width: 66px; margin: 7px; }}
 .mini-strip .strip__nav {{ justify-content: flex-end; }} .mini-strip .strip__card {{ width: 180px; }}
 .shape-row {{ display: flex; gap: var(--sp-8); align-items: center; }}
-.stack .stack__card + .stack__card {{ margin-top: var(--sp-6); }}
+.briefs__row .brief {{ grid-column: span 3; }} @media (max-width: 900px) {{ .briefs__row .brief {{ grid-column: span 6; }} }}
 .flow {{ display:grid; grid-template-columns: 160px 1fr; gap: var(--sp-2) var(--sp-6); font-size: var(--fs-small); color: var(--ink-2); }} .flow b {{ color: var(--ink); font-weight: 600; }}
 </style></head><body>
 <script>(function(){{var t=null;try{{t=localStorage.getItem('di:theme')}}catch(e){{}}var h=document.documentElement;h.dataset.theme=t==='light'?'light':'dark';h.classList.add('js')}})()</script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark}</symbol></svg>
 {sprite}
 <main class="container sg">
-<nav class="sg__index" aria-label="Style guide"><a href="#colour">Colour</a><a href="#type">Type</a><a href="#space">Space</a><a href="#radius">Corners</a><a href="#motion">Motion</a><a href="#buttons">Buttons</a><a href="#shapes">Shapes</a><a href="#cards">Cards</a><a href="#photos">Photos</a><a href="#orbit">Photographs in motion</a><a href="#stack">Stacked cards</a><a href="#pile">Testimonials</a><a href="#fields">Fields</a><a href="#nav">Header &amp; footer</a></nav>
+<nav class="sg__index" aria-label="Style guide"><a href="#colour">Colour</a><a href="#type">Type</a><a href="#space">Space</a><a href="#radius">Corners</a><a href="#motion">Motion</a><a href="#buttons">Buttons</a><a href="#shapes">Shapes</a><a href="#cards">Cards</a><a href="#photos">Photos</a><a href="#orbit">Photographs in motion</a><a href="#briefs">The four cards</a><a href="#pile">Testimonials</a><a href="#fields">Fields</a><a href="#nav">Header &amp; footer</a></nav>
 <div>
 <h2 class="t-h2" id="colour">Colour</h2>
 <p class="t-body">The palette is the logo, read literally, at full strength. The monogram is <b>sky</b>, the star is <b>gold</b>, and six arcs ring them: clockwise from the top, magenta, violet, orange, green, pink, yellow. Eight colours, each spent exactly once down the page, in that order.</p>
@@ -87,18 +91,18 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 {bars}
 <h2 class="t-h2" id="radius">Corners</h2>
 <p class="t-body">Every corner is a <b>superellipse</b>, not a circular arc: <code>corner-shape: squircle</code> beside the radius, one declaration on <code>*</code>. An arc meets the straight edge with a curvature break you can see at large radii; a superellipse does not. Anything meant to be a circle opts back out with <code>corner-shape: round</code>, because the property applies to a 50% radius too.</p>
-<div class="rads"><div class="rd" style="border-radius:var(--r-xl)"><b>--r-xl</b><br>36 · stacked cards, popup, the closing field</div><div class="rd" style="border-radius:var(--r-lg)"><b>--r-lg</b><br>28 · cards, photographs</div><div class="rd" style="border-radius:var(--r-md)"><b>--r-md</b><br>20 · small tiles</div><div class="rd" style="border-radius:var(--r-sm)"><b>--r-sm</b><br>14 · buttons, inputs</div></div>
+<div class="rads"><div class="rd" style="border-radius:var(--r-xl)"><b>--r-xl</b><br>36 · the cards, the dialogs, the closing field</div><div class="rd" style="border-radius:var(--r-lg)"><b>--r-lg</b><br>28 · cards, photographs</div><div class="rd" style="border-radius:var(--r-md)"><b>--r-md</b><br>20 · small tiles</div><div class="rd" style="border-radius:var(--r-sm)"><b>--r-sm</b><br>14 · buttons, inputs</div></div>
 <div class="row" style="margin-top:var(--sp-4)"><div class="rd" style="width:120px;height:120px;border-radius:36px;background:var(--ink);min-height:0"></div><div class="rd" style="width:120px;height:120px;border-radius:36px;corner-shape:round;background:var(--bg-sunken);min-height:0"></div><span class="t-caption">left: squircle · right: the same 36px radius as a plain arc</span></div>
 <h2 class="t-h2" id="motion">Motion</h2>
-<p class="t-body">Two kinds. Things that <em>happen</em> take a rung of the ladder below. Things that <em>slide, turn or stack</em> are driven by the scroll through one shared value, the flow, and have no duration: the strip, the ring, the stacked cards. Under reduced motion the flow's drift and scroll coupling are zero and reveals become short fades.</p>
+<p class="t-body">Two kinds. Things that <em>happen</em> take a rung of the ladder below. Things that <em>slide, turn or stack</em> are driven by the scroll through one shared value, the flow, and have no duration: the hero's bento and the ring. Under reduced motion the flow's drift and scroll coupling are zero and reveals become short fades.</p>
 {motion}
 <h3>The flow</h3>
-<div class="flow"><b>--flow-drift</b><span>3.75°/s at rest · one revolution of the ring in 96s</span><b>--flow-scroll</b><span>0.06° per pixel scrolled, in the scroll's direction</span><b>--flow-settle</b><span>0.32s · the time constant of the easing that follows the scroll</span><b>--strip-px</b><span>6 · the gallery moves 6px per degree: 22px/s at rest, one card every 15s</span><b>hover</b><span>a photograph under the pointer eases the drift to a stop in about 0.5s; leaving eases it back</span><b>the stack</b><span>a covered card scales from its top edge by 4.5% per card above it, in step with the scroll</span></div>
+<div class="flow"><b>--flow-drift</b><span>3.75°/s at rest · one revolution of the ring in 96s</span><b>--flow-scroll</b><span>0.06° per pixel scrolled, in the scroll's direction</span><b>--flow-settle</b><span>0.32s · the time constant of the easing that follows the scroll</span><b>--bento-px</b><span>5 · the hero's columns move 5px per degree, adjacent columns opposed, at three speeds</span><b>hover</b><span>a photograph under the pointer eases the drift to a stop in about 0.5s; leaving the orbit eases it back</span></div>
 <h2 class="t-h2" id="buttons">Buttons</h2>
 <div class="demo row"><button class="btn btn--primary">Primary</button><button class="btn btn--secondary">Secondary</button><button class="btn btn--ghost">Ghost</button><button class="btn btn--secondary btn--compact">Compact</button><button class="btn btn--primary" aria-busy="true">Loading</button><button class="btn btn--primary is-done" disabled><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Subscribed</button></div>
-<div class="demo row" style="margin-top:var(--sp-4)"><div class="arrows"><button class="arrow" type="button" aria-label="Previous"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" aria-label="Next"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div><span class="t-caption">the strip's arrows</span></div>
+<div class="demo row" style="margin-top:var(--sp-4)"><div class="arrows"><button class="arrow" type="button" aria-label="Previous"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" aria-label="Next"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div><span class="t-caption">the lightbox's arrows</span></div>
 <h2 class="t-h2" id="shapes">Shapes</h2>
-<p class="t-body">Two, and only two. Every photograph on the page is a <b>4:5 rectangle</b> with the same superellipse corner — hero, gallery, cards. The <b>circle</b> is the single exception and it belongs to the quote ring. Four shapes were tried and rejected.</p>
+<p class="t-body">Two, and only two. Every photograph on the page is a <b>4:5 rectangle</b> with the same superellipse corner — hero, cards, the reader. The <b>circle</b> is the single exception and it belongs to the quote ring. Four shapes were tried and rejected.</p>
 <div class="row"><figure class="photo photo--4x5 photo--hover" style="width:180px">{pic('kids-dancing')}</figure><figure class="photo photo--1x1 photo--circle" style="width:180px">{pic('cast-pose')}</figure></div>
 <h2 class="t-h2" id="cards">Cards</h2>
 <div class="row"><div class="card card--line" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Card</p><p class="t-body">The raised ground with an inset hairline, --r-lg.</p></div><div class="card card--solid" data-accent="orange" style="flex:1 1 240px;min-height:180px"><p class="t-h3">Solid card</p><p class="t-body">The testimonials. Every tier of ink is --on-accent.</p></div></div>
@@ -106,17 +110,17 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <p class="t-body">One ratio, one corner, no frames, no outlines. Every photograph on the page is a button that opens it in the lightbox: one at a time on the ink scrim, arrows and keys through the whole set, Esc or the scrim to close, focus back on the photograph. AVIF/WebP/JPEG at 160/320/480/960, 1440 in the lightbox.</p>
 <div class="row"><figure class="photo photo--4x5 photo--hover" style="width:180px">{pic('kids-dancing')}</figure><figure class="photo photo--4x5" style="width:180px">{pic('two-lines')}</figure><figure class="photo photo--1x1 photo--circle" style="width:180px">{pic('circle-hands')}</figure></div>
 <h2 class="t-h2" id="orbit">Photographs in motion</h2>
-<p class="t-body">Two things carry the photographs. <b>The gallery</b>: one loop of 4:5 photographs on a track that runs edge to edge, moved by the flow at 6px per degree; the arrows step one card and it can be dragged. <b>The ring</b> (the quote): eight shaped photographs on a circle, upright, turning with the flow; hover one to stop it.</p>
-<div class="demo mini-strip"><div class="strip"><div class="strip__nav" style="justify-content:flex-end;margin-bottom:var(--sp-4)"><div class="arrows"><button class="arrow" type="button" data-strip-prev aria-label="Previous"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="arrow" type="button" data-strip-next aria-label="Next"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></div><div class="strip__viewport"><div class="strip__track" data-strip>{strip}</div></div></div></div>
+<p class="t-body">Two things carry the photographs, on one shared angle. <b>The hero's bento</b>: three columns of 4:5 photographs looping vertically inside a colour panel that clips them, adjacent columns opposed, at three speeds. <b>The ring</b> (the quote): eight circles on a circle, upright, turning with the flow; hover one to stop it.</p>
 <div class="demo ring mini-ring" style="margin-top:var(--sp-4);padding:0"><div class="ring__stage"><div class="ring__orbit">{mini}</div><div class="ring__centre"><p class="ring__text" style="font-size:var(--fs-h3)">“Creativity in motion creates knowledge!”</p></div></div></div>
-<h2 class="t-h2" id="stack">Stacked cards</h2>
-<div class="stack">{stack}</div>
+<h2 class="t-h2" id="briefs">The four cards</h2>
+<p class="t-body">One row of the field: four identical objects, three columns each. The head is the card's hue and carries two chips, the title and a two-line summary; the photograph sits under it and <b>slips --slip 20px up over the colour</b>. The whole card opens the reader.</p>
+<div class="grid briefs__row" style="margin-top:var(--sp-4)">{briefs}</div>
 <h2 class="t-h2" id="pile">Testimonials</h2>
 <p class="t-body">Three cards, each a full-strength hue: the quote mark, the quote, and the person in a nested white card that overhangs the bottom-left corner. One column on a phone.</p>
 <h2 class="t-h2" id="fields">Fields</h2>
 <div class="demo"><form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate style="max-width:520px"><div class="field"><label class="sr-only" for="sg-email">Email</label><input class="input" id="sg-email" type="email" name="email" placeholder="Email" autocomplete="email" required><button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form></div>
 <h2 class="t-h2" id="nav">Header &amp; footer</h2>
-<p class="t-body">See <a href="index.html" style="text-decoration:underline">index.html</a>: the header is transparent on the ground and becomes glass with a hairline once scrolled — the colour logo and the wordmark on the left, the links, the theme toggle and Subscribe on the right. There is no Home link; the logo is the way home. The foot of the page is one sky field holding the sign-up, the two contact links and the copyright.</p>
+<p class="t-body">See <a href="index.html" style="text-decoration:underline">index.html</a>: the header is two tiles on the field's own gutter — the wordmark on the left, the links, the theme toggle and Subscribe gathered on the right. There is no Home link (the logo is the way home) and no Gallery link (the gallery is the hero). The foot of the page is one sky field holding the sign-up, the two contact links and the copyright.</p>
 <div class="demo" style="padding:0"><div class="nav__brand" style="padding:var(--sp-6);height:auto">{logo}<span class="word">Developmental Improvisation</span></div></div>
 </div></main>
 <script>function play(b){{const m=b.parentElement;m.style.setProperty('--d',getComputedStyle(document.documentElement).getPropertyValue('--dur-'+m.dataset.dur));m.classList.toggle('is-on');}}</script>

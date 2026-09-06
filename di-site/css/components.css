@@ -47,6 +47,9 @@
 /* a tile of pure colour, no photograph: the only other place a hue appears */
 .tile { background: var(--accent); border-radius: var(--r-lg); }
 
+/* Chip: the smallest tile in the system. A label in a pill, on the hairline, nothing else. */
+.chip { display: inline-flex; align-items: center; height: 26px; padding: 0 var(--sp-3); border-radius: var(--r-full); corner-shape: round; font-size: var(--fs-label); line-height: 1; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: 600; color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line-strong); }
+
 /* Photo. ONE shape: a rectangle with the same superellipse corner as everything else, at one ratio per section.
    The circle is the single exception, and it belongs to the quote ring. Every photograph is a button that opens the lightbox. */
 .photo { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-sunken) center / cover no-repeat; }
@@ -71,12 +74,11 @@
 .field__message[data-state="error"] { color: var(--ink); }
 @media (max-width: 479px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
 
-/* Nav — the wordmark on the page, and everything else gathered into one panel. The bar itself carries nothing:
-   on a site where every surface is a panel with a superellipse corner, a full-width glass strip was the one
-   component that had never had a pass. */
-.nav { position: fixed; inset: 0 0 auto 0; height: var(--nav-h); z-index: var(--z-nav); }
+/* Nav — the top row of the bento. Two tiles on the same gutter and the same corner as every panel below them:
+   the wordmark on the left, the controls gathered on the right. Not a bar and not a glass strip; the field starts here. */
+.nav { position: fixed; inset: var(--grid-gap) 0 auto 0; height: var(--nav-h); z-index: var(--z-nav); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
-.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--nav-h); min-width: var(--nav-h); margin-right: auto; padding: 0 var(--sp-4); border-radius: var(--r-md); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
 .nav__brand .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-1); padding: 5px; border-radius: var(--r-md); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); transition: background-color var(--dur-state) var(--ease-out); }
 .nav__links { display: flex; align-items: center; }
@@ -88,6 +90,7 @@
 .nav__menu { display: none; }
 @media (max-width: 767px) {
   .nav__bar { gap: var(--sp-3); }
+  .nav__brand { padding: 0; justify-content: center; width: var(--nav-h); }
   .nav__brand .word { display: none; }
   .nav__links, .nav__subscribe { display: none; }
   .nav__menu { display: inline-flex; }
@@ -120,6 +123,22 @@
 }
 @media (prefers-reduced-motion: reduce) { .dialog, .sheet { transition: opacity var(--dur-state-out) ease; transform: none !important; } }
 
+/* The reader: the full copy behind a card. The head takes that card's hue, so the panel the visitor clicked and the
+   panel that opens are plainly the same object. Wider than the newsletter dialog and it scrolls; everything else is inherited. */
+.reader { width: min(100% - 2 * var(--sp-4), 660px); padding: 0; }
+.reader__head { background: var(--accent); color: var(--on-accent); padding: var(--card-pad); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
+.reader__chips { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.reader__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 14em; margin: 0; }
+.reader__title:focus-visible { outline: none; }
+.reader__prose { padding: var(--card-pad); max-height: 50dvh; overflow-y: auto; overscroll-behavior: contain; }
+.reader__prose .t-body { max-width: none; }
+.reader .dialog__close { color: var(--on-accent); }
+.reader .dialog__close:hover { background: color-mix(in srgb, var(--on-accent) 16%, transparent); color: var(--on-accent); }
+@media (max-width: 767px) {
+  .reader { inset: auto 0 0 0; width: 100%; max-height: 88dvh; }
+  .reader__prose { max-height: 46dvh; }
+}
+
 /* Lightbox: one photograph at a time on the ink scrim. Native <dialog>. */
 .lightbox { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--bg); z-index: var(--z-dialog); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out), display var(--dur-state-out) allow-discrete, overlay var(--dur-state-out) allow-discrete; }
 .lightbox[open] { opacity: 1; transition-duration: var(--dur-enter); }
@@ -145,32 +164,22 @@
 }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
-/* The curtain — the first load of a session only. Two panels of violet part to reveal the page. Violet and not the
-   brand's sky because the mark is drawn in sky: on sky its letterforms vanish and only the ring of arcs survives.
-   No scrim and no darkening: the site is simply behind it, already laid out, and the panels leave.
-   The pleats are two repeating gradients at different pitches — one for the folds, one for the light across them —
-   so the repeat is long enough that the eye does not find the seam. */
+/* The curtain — the first load of a session only. Two flat panels of the dark ground part to reveal the page.
+   Flat, not pleated: the fabric version read as a theatre curtain rather than as this site. In light it is a
+   near-black reveal; in dark the panels are the ground itself, so what parts open on is the content appearing.
+   No scrim and no darkening: the site is already laid out behind them. */
 .curtain { display: none; position: fixed; inset: 0; z-index: var(--z-curtain); pointer-events: none; }
 .curtaining .curtain { display: block; }
 .curtaining { overflow: hidden; }
 /* 50.5% so the seam cannot show a hairline of the page between them at fractional widths */
-.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background-color: var(--c-violet);
-  background-image:
-    repeating-linear-gradient(90deg, rgba(0,0,0,.20) 0, rgba(0,0,0,.06) 11px, rgba(255,255,255,.10) 26px, rgba(255,255,255,.17) 34px, rgba(255,255,255,.05) 48px, rgba(0,0,0,.13) 62px, rgba(0,0,0,.20) 74px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0, rgba(0,0,0,0) 90px, rgba(255,255,255,.07) 150px, rgba(0,0,0,0) 210px, rgba(0,0,0,.10) 296px);
-  transition: transform 1000ms var(--ease-in-out); }
-.curtain__half--l { left: 0; transform-origin: top left; }
-.curtain__half--r { right: 0; transform-origin: top right; background-position-x: 37px; }
-/* where the two panels meet is a fold, not a join: without this the two patterns collide and draw a bright line */
-.curtain__half::after { content: ""; position: absolute; top: 0; bottom: 0; width: 72px; }
-.curtain__half--l::after { right: 0; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,.26)); }
-.curtain__half--r::after { left: 0; background: linear-gradient(270deg, rgba(0,0,0,0), rgba(0,0,0,.26)); }
-/* the panels bunch as they go, the way cloth does, instead of sliding out flat */
-.curtain.is-open .curtain__half--l { transform: translateX(-100.5%) scaleX(.88); }
-.curtain.is-open .curtain__half--r { transform: translateX(100.5%) scaleX(.88); }
+.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: #131211; transition: transform 900ms var(--ease-in-out); }
+.curtain__half--l { left: 0; }
+.curtain__half--r { right: 0; }
+.curtain.is-open .curtain__half--l { transform: translateX(-100.5%); }
+.curtain.is-open .curtain__half--r { transform: translateX(100.5%); }
 .curtain__load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-5); transition: opacity var(--dur-state) var(--ease-out); }
 .curtain.is-open .curtain__load { opacity: 0; }
 .curtain__load .logo { width: 68px; height: auto; overflow: visible; }
-.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(255,255,255,.28); overflow: hidden; }
-.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #FFFFFF; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
+.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(244,241,235,.24); overflow: hidden; }
+.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #F4F1EB; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
 @keyframes curtain-load { from { transform: translateX(-110%); } to { transform: translateX(275%); } }

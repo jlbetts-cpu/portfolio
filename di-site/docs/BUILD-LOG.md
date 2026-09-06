@@ -1,5 +1,27 @@
 # Build log — Developmental Improvisation, home page
 
+## v12 (2026-09-06) — one bento field, four clickable cards, and a pastel light theme
+Jayden's twelfth pass, in five messages: card 02 "doesnt act like the rest of the cards and it makes the scroll weird"; the band photograph "isnt high resolution and it doesnt really make sense"; the curtain "looked a lot cleaner when it wasnt like actually a curtain"; then the direction change — "4 clickable cards talking about what developmental improv is and who Linda is", "why is gallery even in there", "we are going with a bento box theme… what if its all a beautiful bento", "even the header can be a part of the bento", and finally "make it more pastelly for the light version" with "some of the pictures come out of the bento boxes ever so slightly".
+
+**The page is one field now.** Header tiles, hero panels, four cards, testimonials, closing field — same twelve columns, same gutter, and the same `--grid-gap` between every row. `--section-y` survives in exactly one place: either side of the ring, which is the field's only break. The hero gave up `min-height: 100svh` to do it; the card row has to break the fold or the field reads as two pages instead of one.
+
+**The header is two tiles.** The wordmark is a panel, the controls are a panel, both on the page's own gutter with the same corner as everything under them. And **Gallery is gone from the nav** — the gallery *is* the hero, so the link pointed at the top of the page from the top of the page. About and Contact.
+
+**The sticky stack is four cards in a row.** One shape, four times, three columns each: a head in the card's hue carrying two chips, a title and a two-line summary; the photograph under it; one control. Two of them say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The whole card opens **the reader** — a dialog whose head takes that card's hue — so the page carries four short blocks instead of six long ones. The band is deleted: it was the same room and the same session as card 02's photograph, stretched full-bleed out of a 1440px file.
+
+**The photographs slip out of their boxes.** `--slip` 20px, one relationship, applied identically to all four cards: the picture rises up over the coloured head. It is small on purpose — 20px reads as deliberate, 60px reads as broken — and the card's own `overflow: hidden` keeps it inside the field.
+
+**The light theme is pastel.** Same eight hue angles, same order, taken to OKLCH **L .885** with the chroma the hue can carry there (C ≤ .105): #A8E3FE sky, #D4D5FE violet, #FECDB8 orange, #9EEEBC green, #FFC7E0 pink, #ECDA87 gold. Dark keeps the fills straight out of the SVG. Every pastel carries the warm black at better than 11.9:1, so violet's white ink is now a dark-theme-only exception through `--on-violet`.
+
+**The curtain is flat.** Two panels of the dark ground, no pleats, no fold, no bunching — the fabric version read as a theatre curtain rather than as this site.
+
+**Three real bugs the gates caught, two of them mine and one older.**
+- The ring released its hold only when the pointer left for something that was *not* a photograph. Putting four photographs directly above the ring meant leaving the ring for a card left the flow **held for good** — the drift never came back. It releases on leaving the orbit now, not on leaving "a photograph".
+- Under `prefers-reduced-motion` every revealing element still slid 12px: `.js .reveal` (0,2,0) outranks `.reveal` (0,1,0) even inside the media query, so the reset never applied. It has carried the class since v5.
+- The closing field sized itself instead of sitting in the page container, so above 1793px its edges were 36px outside the column every other panel sits on. The layout gate only looked at `.section .container`; it looks at every container now.
+
+**Measured after v12.** 41 gate lines pass, including a new `reader.mjs` and its self-test.
+
 ## v11 (2026-09-06) — the four things between 8.5 and 9
 Jayden asked what would take the site to a 9 without real testimonials, then said build all four.
 

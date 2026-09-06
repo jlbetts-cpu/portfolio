@@ -51,4 +51,5 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* Reveal on scroll */
 .js .reveal { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .js .reveal.is-in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .reveal { transform: none; } }
+/* .js .reveal outranks a bare .reveal, so the reset has to carry the same class to win inside the query */
+@media (prefers-reduced-motion: reduce) { .js .reveal, .js .reveal.is-in, .reveal { transform: none; } }

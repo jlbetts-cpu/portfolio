@@ -42,11 +42,16 @@ Open `assets/logo/inline-logo.html` and read the fills. This is the whole palett
 - **Six arcs** ring the monogram. Clockwise from the top: **magenta `#E744E2` · violet `#7358FC` · orange `#F0895B` ·
   green `#51E596` · pink `#FB9BC9` · yellow `#FEE79B`**.
 
-Eight colours, and **every one of them appears at full strength, exactly as it is in the file.** The page spends them in
-the logo's own order: sky and gold as the two tiles in the hero's bento → violet, orange, green and pink as the panels
-behind the four cards' photographs → magenta, gold and green on the testimonials → sky as the closing field and the
-curtain. Mixing a hue into the ground was tried for two rounds and rejected: a pastel is no longer the brand colour, and
-it shifts again between the themes.
+Eight hue angles, spent in the logo's own order: gold as the hero's photograph panel → violet, orange, green and pink
+across the four cards, left to right → magenta, gold and green on the testimonials → sky as the closing field.
+
+**One palette, two strengths, decided by the theme.** On the **dark** ground each hue is the fill straight out of the file.
+On the **light** ground each is the same hue angle taken to **OKLCH L .885** at the chroma it can carry there (C ≤ .105):
+`#A8E3FE` sky · `#ECDA87` gold · `#FEC2F9` magenta · `#D4D5FE` violet · `#FECDB8` orange · `#9EEEBC` green · `#FFC7E0`
+pink · `#F1D886` yellow. Jayden asked for this after seeing the full-strength set on cream — a saturated hue needs a
+near-black ground to sit on, and on an off-white page the same hue reads better as a tint of the brand. This is the one
+sanctioned exception to "no mixes", it lives entirely inside the light theme's token block, and it is not a licence to
+mix a hue into a *surface* anywhere.
 
 ## 3. Fundamentals
 
@@ -81,18 +86,16 @@ column: it runs the full width of the screen and bleeds off both edges.
 They share a geometry — circular bowls, flat terminals — so the pair reads as one voice. The display runs big and tight:
 `clamp(2.375rem, 1rem + 4.2vw, 4.75rem)` at `-0.038em` — 76px at 1440, five lines at every width. Measures are in `em`, never `ch`.
 
-### 3.4 Colour is full strength or it is not there
-There are no mixes, no tints and no washes. A hue reaches the page as a **surface at 100%** — a bento tile, the panel behind
-a card's photograph, a testimonial card, the closing field, the curtain — and the ink on it is **`--on-accent`**, the one
-value that clears 4.5:1 on that hue. Six of the eight take warm black; violet is the only one dark enough to need white
-(3.7:1 against 4.6:1). On a solid surface every text tier goes to `--on-accent`: a translucent tier over a saturated hue
-reads as dirt, not as hierarchy.
+### 3.4 A hue is the theme's value for that hue, or it is not there
+Within a theme there are no mixes, no tints and no washes. A hue reaches the page as a **whole surface** — the hero's
+photograph panel, a card's head, a testimonial card, the closing field — and the ink on it is **`--on-accent`**. Every
+light-theme pastel carries the warm black at better than 11.9:1; at full strength violet is the only hue dark enough to
+need white, so it goes through `--on-violet`, which is warm black in light and white in dark. On such a surface every
+text tier goes to `--on-accent`: a translucent tier over a saturated hue reads as dirt, not as hierarchy. Surfaces that
+carry a hue **rebind their ink tokens for that subtree** rather than following the theme.
 
-Because a full-strength hue is the same colour in both themes, the surfaces that carry one **rebind their ink tokens for
-that subtree** rather than following the theme. That is what makes the palette read identically in light and dark.
-
-No gradients anywhere. No coloured text. No hue as a border. Four full-strength cards were built and pulled back the same
-day: they flooded the page. Colour is spare — a panel, a tile, a card, a field.
+No gradients anywhere. No coloured text. No hue as a border. A hue is never a 12px frame drawn round a photograph —
+that was built once and read as a neon outline, not as a panel. Colour is spare: a panel, a card head, a field.
 
 ### 3.5 One shape for photographs
 Every photograph on the page is a **rectangle with the same superellipse corner**, at **4:5**, and nothing else — hero,
@@ -124,36 +127,47 @@ its effective background **in both themes**. One `<h1>`. Every section labelled.
 
 ## 4. The page, section by section `[DECIDE]`
 
-Six sections. Anything thinner than this got merged.
+**The page is one bento field.** Header tiles, hero panels, the four cards, the testimonials and the closing field all sit
+on the same twelve columns, at the same gutter, separated by the same `--grid-gap`. There are no bands, no floating
+strips, and no section padding between rows — `--section-y` survives in exactly one place, either side of the ring, which
+is the field's only break. `--field-top` (`--grid-gap` × 2 + `--nav-h`) is where the field starts under the header.
+Jayden: *"what if there isnt [a gap] — what if its all a beautiful bento."*
 
-0. **The curtain.** On the first load of a session, two panels of **violet** cover the page with the colour mark and a
-   loading bar while the fonts and the hero's first photographs arrive, then part — bunching slightly as they go, the way
-   cloth does. Violet and not the brand's sky because **the mark is drawn in sky**: on a sky ground its letterforms vanish
-   and only the ring of arcs survives. The pleats are two repeating gradients at different pitches, plus a dark fold where
-   the panels meet — without that fold the two patterns collide and draw a bright line. No scrim and no darkening: the site
-   is already laid out behind them. A floor of 620ms, a hard 2600ms failsafe, gone from the DOM a second later, never on a
-   reload in the same session, never under reduced motion.
-1. **Hero: two panels, filling the screen.** `min-height: 100svh`. The copy sits on a **cream panel** on the left five
-   columns; the right seven are a **colour panel** holding a bento of **fifteen photographs** — no colour blocks among them —
-   in three columns, looping vertically with the flow, adjacent columns in opposite directions at three speeds. **The panel's
-   own rounded edge is the crop**; the soft mask is gone. The panel needs an explicit height: `overflow: hidden` does not
-   constrain a box sizing to its own content.
-2. **The four cards — four different beats.** 01 splits (text one side, the hue as a panel holding the photograph, the
-   other); 02 gives the whole card to the photograph and nests the text in a colour panel over its corner; 03 mirrors 01;
-   04 is the colour itself with the call to action on it. Then: Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
-   over it. One hue each (violet, orange, green, pink), one photograph each, sized by height so a 4:5 frame cannot stretch the
-   card past the text beside it. Even cards mirror — and both children must be pinned to `grid-row: 1`, or grid's forward-only
-   auto-placement drops the mirrored figure to a second row and doubles the card.
-3. **The band.** One photograph, edge to edge, no copy — the page's only moment of scale between the stack and the ring.
-4. **The quote ring.** Geometry, not taste: eight items on a circle of radius r sit 0.765r apart, so size the item near
-   that and it reads as a necklace. The quote's column is `2r − item − 32px` — the clear space inside the ring, derived, so
-   the two can never meet at any breakpoint. Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
-   section Jayden has asked to keep.** Do not redesign it.
-5. **Testimonials.** A centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's
-   ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner** — the depth comes from
-   that nesting, not from a shadow. Placeholder copy until Linda supplies real ones.
-6. **The closing field.** Opens with the brand's line at display scale. Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
-   gutter, `--r-xl` corners: the mark, the sign-up, the two contact links, and the copyright under a rule.
+**0. The header — two tiles.** The wordmark is a panel; the links, the theme toggle and Subscribe are gathered into a
+second. Same gutter, same `--r-md` corner as everything under them, `--grid-gap` from the top. No Home link (the logo is
+the way home) and **no Gallery link** — the gallery *is* the hero, so that item pointed at the top of the page from the
+top of the page. **About · Contact.**
+
+**1. The hero — two panels.** Copy on a cream panel, left five columns; the right seven a colour panel holding fifteen
+photographs in three columns, looping vertically with the flow, adjacent columns opposed, three speeds. The panel's own
+rounded edge is the crop — no soft mask. Each column carries its contents twice, `[data-mid]` marks the loop length, and
+the panel needs an **explicit height**: `overflow: hidden` does not constrain a box sizing to its own content, and a
+column of ten tiles once made the row 3197px tall. The hero does **not** claim `100svh` — the card row has to break the
+fold or the field reads as two pages.
+
+**2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows). Each
+carries a **head that is the card's hue** with two chips, the title and a two-line summary; the photograph below; one
+control. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
+photograph **slips `--slip` 20px up out of its box and over the colour** — the one place a panel's contents cross an
+edge, and small on purpose. The whole card is the trigger; the "Read more" pill is the keyboard route; both open **the
+reader**, a dialog whose head takes that card's hue. The full copy lives in the card and is hidden only when there is
+script to open a reader.
+
+**3. The quote ring — the break.** Eight circular photographs turning around the quote, on the open ground. Geometry is
+one relationship: eight items on radius r sit `2r·sin(22.5°) = 0.765r` apart, so the item is sized near that; the quote's
+column is `2r − item − 32px`. The necklace assembles on arrival, one circle at a time.
+
+**4. Testimonials.** Three cards, four columns each, each a hue, with the person in a nested card overhanging the
+bottom-left corner. The row carries 30px of bottom padding so that overhang lands somewhere instead of on the closing
+field's edge. No section label — three quotes with names under them do not need to be told what they are.
+
+**5. The closing field.** In the same container as every row above it. The brand's line at display scale, the sign-up,
+two contact links, the copyright, in sky.
+
+**The curtain**, on the first load of a session only: two **flat** panels of the dark ground with the colour mark and a
+loading bar, parting after a 620ms floor, with a 2600ms failsafe, removed from the DOM, never on a reload, never under
+reduced motion. Flat and not pleated — Jayden: *"i did like it when it wasnt like actually a curtain, it looked a lot
+cleaner."*
 
 ## 5. Components
 `.btn` (primary/secondary/ghost/compact) · `.arrow` · `.theme` (the dark-mode toggle, applied before first paint from
@@ -188,6 +202,11 @@ being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 - **A coloured dot** before every section label.
 - **A horizontal gallery as its own section.** It belongs in the hero.
 - **Blocks of flat colour among the photographs.** There are enough pictures.
+- **A sticky stack of four cards, each with a different beat.** The one that behaved differently made the scroll read as
+  a stumble. Four cards of one shape, in a row.
+- **A hue as a 12px frame drawn round a photograph.** It reads as a neon outline, not as a panel.
+- **A full-bleed band photograph** between the sections. The one built was the same room and session as a card's
+  photograph, stretched out of a 1440px file.
 - **A soft mask on the hero's photographs.** The panel's edge is the crop.
 - **Photographs set inline into the headline.** Clever, and it made the hero cluttered.
 - **A pause control** for the drift, **outlines** on photographs, **decorative vectors**, the **star** in section labels, a
@@ -200,6 +219,8 @@ being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 2. Social profile URLs, or a decision to have none (there are none on the page now).
 3. Releases for the children in the photographs — the old site published them; confirm rather than assume.
 4. Three real testimonials with name and role.
+4b. Sixty to eighty words about Linda for the fourth card and its reader — everything on the page about her today comes
+   from one sentence of the old site's copy.
 5. The newsletter provider and its form endpoint (`[NEWSLETTER_ACTION_URL]` in two forms).
 6. Copy for a Gallery page and a Contact page, if they are ever built.
 
