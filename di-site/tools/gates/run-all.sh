@@ -5,7 +5,7 @@ fail=0
 # A gate that throws prints its stack to stderr and no report line, and the run then LOOKS green because nothing said
 # FAIL. That has happened three times here, always from a selector going stale. Every gate is now checked twice: its
 # exit status, and whether it actually reported anything.
-for g in layout targets contrast copy images motion ring reader lightbox dialog curtain a11y; do
+for g in layout targets contrast copy images motion ring reader nav lightbox dialog curtain a11y; do
   echo "── $g"
   out=$(node "$g.mjs"; echo "EXIT:$?")
   code=${out##*EXIT:}

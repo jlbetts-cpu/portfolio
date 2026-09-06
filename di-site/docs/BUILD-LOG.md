@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v13 (2026-09-06) — Jost, a header that comes back, and the sky off the footer
+Three asks. **"the font needs a change it doesnt really match the font of the logo with its flow and look."** So: open the mark and read it. The "di" is a **perfectly circular bowl on a straight stem, one stroke weight, flat terminals** — that is a Futura. **Jost** is a Futura, it is variable (100–900 in one 25KB latin file), and it carries the single-storey 'a' the logo's geometry implies. Sen was a near-miss beside the mark: humanist geometric, oval bowls, terminals cut on an angle. Poppins matches the construction too and was set beside it at the real headline size; Jost is narrower and quieter and holds the line count. Jost's x-height is 0.460em against Sen's 0.488, so the wordmark went 15 → 16px. **The body face does not change** — a small-x-height geometric is a display face, not a reading one.
+
+**"when scrolling up the header should appear again."** It does now, at every width: fixed, bare at the top of the page, gone on a downward scroll, back on any upward one with the ground under it. A 6px threshold keeps it off a trackpad's noise; keyboard focus reveals it wherever it is, so a tab stop can never sit off screen; under reduced motion it hides without sliding. New gate, `nav.mjs`, with a self-test that freezes the class list.
+
+**"the footer is a bit too crazy strong in dark mode."** True — a full-strength sky across a page-wide panel is a floodlight on a near-black ground. The field is the raised panel now and **the sky is on the sign-up card inside it**, which is the thing you are meant to act on. The same move the testimonials made two rounds ago, and it makes the rule uniform: colour rests on a panel, and the panel is the size of the thing it is naming.
+
+**Measured after v13.** 44 gate lines pass. Worst contrast 5.44:1 light / 5.28:1 dark.
+
 ## v12 (2026-09-06) — one bento field, four clickable cards, and a pastel light theme
 Jayden's twelfth pass, in five messages: card 02 "doesnt act like the rest of the cards and it makes the scroll weird"; the band photograph "isnt high resolution and it doesnt really make sense"; the curtain "looked a lot cleaner when it wasnt like actually a curtain"; then the direction change — "4 clickable cards talking about what developmental improv is and who Linda is", "why is gallery even in there", "we are going with a bento box theme… what if its all a beautiful bento", "even the header can be a part of the bento", and finally "make it more pastelly for the light version" with "some of the pictures come out of the bento boxes ever so slightly".
 

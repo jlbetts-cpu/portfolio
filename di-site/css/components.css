@@ -74,13 +74,16 @@
 .field__message[data-state="error"] { color: var(--ink); }
 @media (max-width: 479px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
 
-/* Nav — no panel, no bar, no glass. The wordmark on the left and the controls on the right, sitting directly on the
-   page at the field's gutter. It is the first row of the page and it SCROLLS AWAY with it: bare type over a photograph
-   is unreadable, and the alternative to a surface under it is not needing one. Every action it carries is reachable
-   again at the foot of the page. */
-.nav { position: relative; z-index: var(--z-nav); padding-top: var(--grid-gap); }
+/* Nav — no container at all: the wordmark on the left, the controls on the right, directly on the page at the field's
+   gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top
+   of the page it has no ground at all; anywhere else, once it is showing, it takes the least surface that can carry type
+   over a photograph — the ground at 78%, blurred, with a hairline. Keyboard focus always brings it back. */
+.nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: var(--grid-gap) 0 var(--sp-2);
+  transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state) var(--ease-out), box-shadow var(--dur-state) var(--ease-out); }
+.nav.is-scrolled { background: var(--glass); box-shadow: 0 1px 0 var(--line); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+.nav.is-hidden { transform: translateY(-100%); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
-.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
 .nav__brand .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-1); }
 .nav__links { display: flex; align-items: center; }
@@ -89,17 +92,13 @@
 .nav__panel .theme { width: var(--hit); height: var(--hit); }
 .nav__panel .theme:hover { background: none; color: var(--ink); }
 .nav__menu { display: none; }
-/* On a phone the header STAYS: Menu is the only route to the links and Subscribe once the page has moved, and the
-   footer is a long way down. Fixed, and bare until there is something under it — then the least surface that can carry
-   type over a photograph: the ground at 78%, blurred, with a hairline. It is the one place a container is earned. */
 @media (max-width: 767px) {
-  .nav { position: fixed; inset: 0 0 auto 0; padding: var(--grid-gap) 0 var(--sp-2); transition: background-color var(--dur-state) var(--ease-out), box-shadow var(--dur-state) var(--ease-out); }
-  .nav.is-scrolled { background: var(--glass); box-shadow: 0 1px 0 var(--line); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
   .nav__bar { gap: var(--sp-3); }
   .nav__brand .word { display: none; }
   .nav__links, .nav__subscribe { display: none; }
   .nav__menu { display: inline-flex; }
 }
+@media (prefers-reduced-motion: reduce) { .nav { transition: background-color var(--dur-state) linear; } .nav.is-hidden { transform: none; } }
 
 /* Menu sheet (mobile) */
 .sheet { position: fixed; inset: 0 0 0 auto; width: min(100vw, 340px); height: 100dvh; max-height: none; margin: 0; padding: var(--sp-5); background: var(--bg-overlay); color: var(--ink); border: 0; box-shadow: inset 1px 0 0 var(--line); z-index: var(--z-dialog); transform: translateX(100%); transition: transform var(--dur-move) var(--ease-settle), display var(--dur-move) allow-discrete, overlay var(--dur-move) allow-discrete; }

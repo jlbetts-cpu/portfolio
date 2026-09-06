@@ -7,7 +7,7 @@
 /* The page is one bento field: the header tiles, the hero's two panels, the four cards, then — after the ring —
    the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
    between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
-.hero { padding-top: var(--grid-gap); padding-bottom: 0; }
+.hero { padding-top: var(--field-top); padding-bottom: 0; }
 /* the panel's height IS the hero's height, so the fold lands exactly on the field's next gap: no centring air below
    the panels (that would put a gap bigger than --grid-gap between the hero and the cards and break the field) */
 .hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
@@ -20,8 +20,7 @@
 .bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
 /* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
-/* the header is fixed on a phone, so the hero has to leave room for it again */
-@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } .hero { padding-top: calc(var(--field-top) + var(--sp-2)); } }
+@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } }
 @media (min-width: 768px) {
   .hero__head { grid-column: 1 / span 5; }
   /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
@@ -132,30 +131,30 @@
 .voices-sec { padding-bottom: calc(30px + var(--grid-gap)); }
 
 /* ---------- The closing field ----------
-   Newsletter, contact and footer were three thin bands with nothing in them. They are one field now, in sky —
-   the monogram's own colour, at full strength, the only place on the page a hue is not a wash. */
+   Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and
+   onto the sign-up inside it. A full-strength hue across a page-wide field is a floodlight on a near-black ground;
+   Jayden: "the footer is a bit too crazy strong in dark mode". The hue is on the thing you are meant to act on, which
+   is where it earns its place, and it is the same move the testimonials made. */
 .close { padding-bottom: var(--gutter); }
-/* The one surface whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
-   for the subtree, which keeps every component inside it (label, links, field, button) correct in both themes. */
-.close__field { background: var(--c-sky); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px);
-  --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
+.close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
 .close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); }
-.close__sign { grid-column: 1 / -1; }
+/* The one surface down here whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
+   for the subtree, which keeps every component inside it (title, field, button) correct in both themes. */
+.close__sign { grid-column: 1 / -1; background: var(--c-sky); border-radius: var(--r-lg); padding: var(--card-pad);
+  --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
 .close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
-.close .label { color: var(--ink); }
-.close .label::before { background: var(--ink); }   /* the dot cannot be the accent here: the field IS the accent */
 .close__reach .label { margin-bottom: var(--sp-2); }
 .close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
 .close__reach a:hover { text-decoration: underline; text-underline-offset: 5px; }
 .close__foot { grid-column: 1 / -1; margin-top: var(--sp-6); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
-.close__copy { font-size: var(--fs-caption); color: var(--ink-2); }
-.close .input { background: rgba(255,255,255,.94); box-shadow: none; }
-.close .btn--primary { background: var(--ink); color: #F7F5F0; }
+.close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
+.close__sign .input { background: rgba(255,255,255,.94); box-shadow: none; }
+.close__sign .btn--primary { background: var(--ink); color: #F7F5F0; }
 @media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } }   /* the address is 29 characters: at h3 it breaks mid-word on a phone */
 @media (min-width: 768px) {
   .close__sign { grid-column: 1 / span 6; }
-  .close__reach { grid-column: 8 / span 5; }
+  .close__reach { grid-column: 8 / span 5; padding-top: var(--sp-2); }
 }

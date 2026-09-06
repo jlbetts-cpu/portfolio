@@ -162,7 +162,7 @@ page=f'''<!DOCTYPE html>
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" href="fonts/PlusJakartaSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/PlusJakartaSans-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/Sen-400-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Jost-100-900.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={STAMP}">
 <link rel="stylesheet" href="css/base.css?v={STAMP}">
 <link rel="stylesheet" href="css/components.css?v={STAMP}">

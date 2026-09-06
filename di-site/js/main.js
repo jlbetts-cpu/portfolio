@@ -52,9 +52,25 @@
     setTimeout(open, 2600);
   }
 
-  /* ---- Nav: on a phone it is fixed, and it takes a ground only once there is something under it ---- */
+  /* ---- Nav: it leaves going down and comes back going up, and takes a ground only once there is something under it.
+     The 6px threshold is what stops it flickering on a trackpad's noise; above the fold it always shows, and keyboard
+     focus brings it back so it can never be reached while it is off screen. ---- */
   const nav = $('#nav');
-  if (nav) { const onNav = () => nav.classList.toggle('is-scrolled', scrollY > 24); addEventListener('scroll', onNav, { passive: true }); onNav(); }
+  if (nav) {
+    let last = scrollY, queued = false;
+    const upd = () => {
+      queued = false;
+      const y = Math.max(0, scrollY), d = y - last;
+      nav.classList.toggle('is-scrolled', y > 24);
+      if (y < 120) { nav.classList.remove('is-hidden'); last = y; return; }
+      if (Math.abs(d) < 6) return;              // under the threshold, keep `last` so a slow scroll still accumulates
+      nav.classList.toggle('is-hidden', d > 0);
+      last = y;
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(upd); } }, { passive: true });
+    nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
+    upd();
+  }
 
   /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
      angle follows target with a time constant of --flow-settle, so a scroll accelerates the arch and it settles back to the drift. */

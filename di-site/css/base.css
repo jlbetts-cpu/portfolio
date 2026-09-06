@@ -2,8 +2,9 @@
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/PlusJakartaSans-400.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/PlusJakartaSans-600.woff2") format("woff2"); }
 @font-face { font-family: "Plus Jakarta Sans Fallback"; src: local("Arial"); size-adjust: 106%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
-/* Sen ships as one variable latin file: every weight from 400 to 800 out of 18KB */
-@font-face { font-family: "Sen"; font-style: normal; font-weight: 400 800; font-display: swap; src: url("../fonts/Sen-400-800.woff2") format("woff2"); }
+/* Jost — a Futura, which is what the logo's letterforms are: a perfectly circular bowl on a straight stem, one stroke
+   weight, flat terminals, a single-storey 'a'. One variable latin file, every weight from 100 to 900, 25KB. */
+@font-face { font-family: "Jost"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("../fonts/Jost-100-900.woff2") format("woff2"); }
 
 *, *::before, *::after { box-sizing: border-box; }
 /* Every corner on this site is a superellipse, not an arc. One declaration, for everything that takes a radius. */

@@ -20,6 +20,9 @@ await pg.reload(); await pg.waitForTimeout(600);
 await pg.evaluate(async () => { scrollTo(0, document.documentElement.scrollHeight * 0.6); }); await pg.waitForTimeout(11000);
 const reopened = await pg.evaluate(() => document.querySelector('#newsletterDialog').open);
 report('dialog: does not reopen after dismiss', reopened === false);
+// the header leaves going down and comes back going up, so reach its button the way a visitor does — scroll up first.
+// Without this the click times out on "element is outside of the viewport", which is the header behaving correctly.
+await pg.evaluate(() => scrollBy(0, -400)); await pg.waitForTimeout(600);
 await pg.click('.nav__panel [data-open-dialog]'); await pg.waitForTimeout(300);
 const manual = await pg.evaluate(() => document.querySelector('#newsletterDialog').open);
 report('dialog: the nav button still opens it', manual === true);

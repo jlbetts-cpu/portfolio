@@ -58,10 +58,12 @@
   --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  /* Type — Sen 800/700 for the display and the titles, Plus Jakarta Sans 400/600 for everything else.
-     The display runs bigger and tighter than a body face would: at 1440 it is 96px on a 12.5em measure. */
+  /* Type — Jost 800/700 for the display and the titles, Plus Jakarta Sans 400/600 for everything else.
+     Jost is a Futura, and a Futura is what the logo is drawn as: circular bowls, one stroke weight, flat terminals.
+     Its x-height is 0.460em against Sen's 0.488, so the display scale carries a little more size to hold the same
+     optical weight. The body face does NOT change: a small-x-height geometric is a display face, not a reading one. */
   --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Sen", "Avenir Next", "Century Gothic", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Jost", "Futura", "Century Gothic", "Avenir Next", ui-sans-serif, system-ui, sans-serif;
   --fs-display: clamp(2.375rem, 1rem + 4.2vw, 4.75rem);     --lh-display: 1.04; --ls-display: -0.038em;
   --fs-h1:      clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);    --lh-h1: 1.04;      --ls-h1: -0.035em;
   --fs-h2:      clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);    --lh-h2: 1.08;      --ls-h2: -0.03em;
@@ -91,7 +93,7 @@
 
   /* the header is two tiles in the field, so its height is a tile's height: 5px of panel padding either side of a 44px target */
   --nav-h: 54px;
-  --field-top: calc(var(--grid-gap) * 2 + var(--nav-h));
+  --field-top: calc(var(--grid-gap) * 2 + var(--nav-h) + var(--sp-2));   /* the header row, and the gap under it */
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
 

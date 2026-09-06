@@ -82,9 +82,17 @@ Every section lays out on the same **twelve columns** (`.grid`, six below 768). 
 column: it runs the full width of the screen and bleeds off both edges.
 
 ### 3.3 Type
-**Sen** (800 display, 700 titles) over **Plus Jakarta Sans** (400/600). Sen is one variable latin file, 18KB, every weight.
-They share a geometry — circular bowls, flat terminals — so the pair reads as one voice. The display runs big and tight:
-`clamp(2.375rem, 1rem + 4.2vw, 4.75rem)` at `-0.038em` — 76px at 1440, five lines at every width. Measures are in `em`, never `ch`.
+**Jost 800/700 for display and titles, Plus Jakarta Sans 400/600 for everything else.** Jost is one variable latin file,
+25KB, 100–900.
+
+**The display face is chosen off the mark, not off taste.** Open `assets/logo/dibasicblack.svg`: the "di" is a perfectly
+circular bowl on a straight stem, one stroke weight, no contrast, flat terminals — that is a Futura, and Jost is a
+Futura, down to the single-storey 'a'. If you ever revisit this, set the candidate's `d i a o g` at 150px beside the
+mark at the same size and look; that test is what ruled out Sen (oval bowls, angled terminals) and picked Jost over
+Poppins (same construction, wider and more common). **Do not change the body face**: Jost's x-height is 0.460em and a
+small-x-height geometric is a display face, not a reading one.
+
+Tracking tightens as size grows; leading loosens as it shrinks. Measures are in `em`, never `ch`.
 
 ### 3.4 A hue is the theme's value for that hue, or it is not there
 Within a theme there are no mixes, no tints and no washes. A hue reaches the page as a **whole surface** — the hero's
@@ -141,11 +149,10 @@ is the field's only break. `--field-top` (`--grid-gap` × 2 + `--nav-h`) is wher
 Jayden: *"what if there isnt [a gap] — what if its all a beautiful bento."*
 
 **0. The header — no container.** The wordmark on the left, the links, the theme toggle and Subscribe on the right,
-directly on the page at the field's gutter. No bar, no glass, no tiles. On a laptop **it scrolls away with the page**: bare
-type over a photograph is unreadable, and the answer to that is not to put a surface back under it but to stop needing
-one — Subscribe and Contact are both at the foot of the page. **On a phone it stays** (Menu is the only route to the
-links once the page has moved) and takes the ground at 78%, blurred, with a hairline, once there is something under it.
-That is the one place a container is earned. No Home link (the logo is the way home) and **no Gallery link**:
+directly on the page at the field's gutter. No bar, no glass, no tiles. **It leaves going down and comes back going up**, at
+every width: fixed, bare at the top of the page, gone on a downward scroll, back on any upward one with the ground at
+78% under it, blurred, with a hairline. A 6px threshold keeps it off a trackpad's noise; keyboard focus reveals it
+wherever it is; under reduced motion it hides without sliding. No Home link (the logo is the way home) and **no Gallery link**:
 the gallery *is* the hero. **About · Contact.**
 
 **1. The hero — two panels, filling the screen.** The panel's height IS the hero's height (`100svh − --field-top`), so
@@ -174,7 +181,8 @@ bottom-left corner. The row carries 30px of bottom padding so that overhang land
 field's edge. No section label — three quotes with names under them do not need to be told what they are.
 
 **5. The closing field.** In the same container as every row above it. The brand's line at display scale, the sign-up,
-two contact links, the copyright, in sky.
+two contact links, the copyright. **The sky is on the sign-up card, not on the field** — a full-strength hue across a
+page-wide panel is a floodlight on a near-black ground, and the hue belongs on the thing you are meant to act on.
 
 **The curtain**, on the first load of a session only: two **flat** panels of the dark ground with the colour mark and a
 loading bar, parting after a 620ms floor, with a 2600ms failsafe, removed from the DOM, never on a reload, never under
