@@ -1,5 +1,22 @@
 # Build log — Developmental Improvisation, home page
 
+## v11 (2026-09-06) — the four things between 8.5 and 9
+Jayden asked what would take the site to a 9 without real testimonials, then said build all four.
+
+**The ring, rebuilt on its geometry.** It was 148px circles on a 300px radius with a 44px quote — sparse dots around small text in 780px of mostly empty ground. Eight items on a circle of radius r sit 2r·sin(22.5°) = 0.765r apart, so the item is now sized near that: 220px on a 330px radius, a necklace with 32px gaps. The quote is the second-biggest type on the page, and its column is `2r − item − 32px` — the ring's actual clear space rather than a multiplier. The gate caught the first attempt: a `1.34r` centre put 164 photograph pixels under the text at 1024 and 32 at 390.
+
+**The nav had never had a design pass.** The links, the toggle and the action are one panel now, with the same superellipse corner as every other surface on the page; the wordmark sits on the page beside it. The full-width glass strip is gone.
+
+**Everything below the hero arrives with intent.** The cards bring the photograph first and the text 90ms later, the band's picture settles from a 1.06 scale, the ring assembles one circle at a time going round, the testimonials stagger, the closing field rises. One trap: the ring's orbit is a 0×0 positioning origin, and **an element with no area can never satisfy an intersection threshold** — observed like that, the ring would simply never have appeared for a visitor. The stage is what is observed.
+
+**The closing field opens with the brand's line at display scale.** It was a form and two links, and it is the last thing anyone sees.
+
+**Card 02 was broken and Jayden caught it by eye.** Its text panel was pulled over the photograph with `margin-top: -14%` — a percentage margin resolves against the card's *width*, so at 1382px it pulled the panel 193px up and the card's own bottom edge sliced the last line off. It is positioned now, and at the **top** of the photograph: at the bottom of a sticky stack the next card climbs over it, so content parked down there is the first thing to disappear.
+
+**And a structural fix to the gates.** The dialog gate lost three lines to a stale `.nav__actions` selector and the run still looked green, because a gate that throws prints its stack to stderr and no report line. That is the third time in this project. `run-all.sh` now checks both the exit status and whether each gate reported anything, and fails loudly when it did not — verified by pointing it at a gate that does not exist.
+
+**Measured after v11.** 37 gate lines pass.
+
 ## v10 (2026-09-06) — the two-panel hero, four beats, the band, and the light inversion
 Jayden's ninth review: the hero should layer like the reference he sent (a copy panel beside a colour panel), "the light mode should have a lighter background with the elements on top being the cream color we have now", "the logo should be in black when its light mode", "removing the fade", and — pointing at two of the three weaknesses in the rating — "how can we improve them". Then: "I dont like the random blocks of color in the carosel dont we have enough pictures" and "make sure everything in the site is optimized".
 

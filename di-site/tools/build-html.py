@@ -108,7 +108,7 @@ def stack_card(num, accent, title, paras, extra, photo_name, kind='split'):
          'overlay':'card card--line stack__card--overlay','solid':'card card--solid grid stack__card--solid'}[kind]
     ratio='3x2' if kind=='overlay' else '4x5'
     sizes='(max-width: 767px) 96vw, 96vw' if kind=='overlay' else TS
-    return (f'<article class="stack__card {cls}" data-accent="{accent}" aria-labelledby="stack-{num}">'
+    return (f'<article class="stack__card {cls} reveal--parts" data-accent="{accent}" aria-labelledby="stack-{num}">'
             + (f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>' if kind=='overlay' else '')
             + f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>{extra_html}</div>'
             + ('' if kind=='overlay' else f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>')
@@ -125,7 +125,7 @@ quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit 
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
 # three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
 VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
-pile=''.join(f'<li class="voice" data-accent="{a}" data-placeholder="true"><p class="voice__mark" aria-hidden="true">“</p><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
+pile=''.join(f'<li class="voice reveal" data-accent="{a}" data-placeholder="true"><p class="voice__mark" aria-hidden="true">“</p><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -166,8 +166,9 @@ page=f'''<!DOCTYPE html>
 <header class="nav" id="nav">
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
-    <nav class="nav__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
-    <div class="nav__actions"><button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
+    <div class="nav__panel">
+      <nav class="nav__links" aria-label="Primary"><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
+      <button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
   </div>
 </header>
 
@@ -189,13 +190,13 @@ page=f'''<!DOCTYPE html>
     <div class="container"><div class="stack">{stack}</div></div>
   </section>
 
-  <section class="band" aria-label="Photograph">
+  <section class="band reveal--parts" aria-label="Photograph">
     {band}
   </section>
 
   <section class="section ring" id="quote" aria-label="Quote">
     <div class="container">
-      <div class="ring__stage">
+      <div class="ring__stage reveal--parts">
         <div class="ring__orbit">{ring}</div>
         <div class="ring__centre"><div class="reveal">
           <blockquote class="ring__text">“Creativity in motion creates knowledge!”</blockquote>
@@ -208,14 +209,15 @@ page=f'''<!DOCTYPE html>
   <section class="section" id="voices" aria-labelledby="voicesLabel">
     <div class="container">
       <div class="voices__head reveal"><p class="label" id="voicesLabel">Testimonials</p></div>
-      <ul class="voices reveal">{pile}</ul>
+      <ul class="voices reveal reveal--stagger">{pile}</ul>
     </div>
   </section>
 </main>
 
 <footer class="close" id="contact">
-  <div class="close__field">
+  <div class="close__field reveal">
     <div class="grid close__grid">
+      <p class="close__lead">Pre-wiring the brain &amp; educating the heart</p>
       <div class="close__sign">
         <svg class="close__mark" aria-hidden="true"><use href="#mark"/></svg>
         <h2 class="close__title" id="newsletterTitle">Sign Up for our Newsletter!</h2>

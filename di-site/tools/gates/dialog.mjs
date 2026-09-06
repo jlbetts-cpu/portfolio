@@ -20,7 +20,7 @@ await pg.reload(); await pg.waitForTimeout(600);
 await pg.evaluate(async () => { scrollTo(0, document.documentElement.scrollHeight * 0.6); }); await pg.waitForTimeout(11000);
 const reopened = await pg.evaluate(() => document.querySelector('#newsletterDialog').open);
 report('dialog: does not reopen after dismiss', reopened === false);
-await pg.click('.nav__actions [data-open-dialog]'); await pg.waitForTimeout(300);
+await pg.click('.nav__panel [data-open-dialog]'); await pg.waitForTimeout(300);
 const manual = await pg.evaluate(() => document.querySelector('#newsletterDialog').open);
 report('dialog: the nav button still opens it', manual === true);
 await pg.fill('#dlg-email', 'not-an-email');

@@ -104,7 +104,8 @@
   --flow-scroll: 0.06;
   --flow-settle: 0.32;
   --bento-px: 5;          /* the hero's columns move this many pixels per degree of flow */
-  --ring-r: 300;
+  --ring-r: 330;          /* eight circles this far out sit 0.765r apart, so an item near that wide reads as a necklace, not as dots */
+  --ring-item: 220px;
   --ring-n: 8;
 }
 
@@ -141,5 +142,6 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
 }
-@media (max-width: 1023px) { :root { --ring-r: 240; } }
-@media (max-width: 767px)  { :root { --ring-r: 158; } }
+@media (max-width: 1279px) { :root { --ring-r: 290; --ring-item: 190px; } }
+@media (max-width: 1023px) { :root { --ring-r: 250; --ring-item: 150px; } }
+@media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: 96px;  } }

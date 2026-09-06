@@ -52,16 +52,28 @@
   .stack__card--mirror .stack__head { grid-column: 7 / span 6; }
   .stack__card--mirror .stack__figure { grid-column: 1 / span 5; }
 }
-/* the overlay beat: the photograph is the card, and the text sits on a colour panel over its corner */
+/* the overlay beat: the photograph is the card and the text floats on a colour panel over its lower-left.
+   The panel is POSITIONED, not pulled up with a negative margin — a percentage margin resolves against the card's
+   width, so at 1382px it pulled the panel 193px up and the card's own bottom edge sliced the last line off it. */
 .stack__card--overlay { padding: 0; display: block; position: relative; }
 .stack__card--overlay .stack__figure { padding: 0; border-radius: 0; background: none; display: block; }
 .stack__card--overlay .stack__figure .photo { height: clamp(360px, 46vw, 620px); width: 100%; border-radius: 0; }
-.stack__card--overlay .stack__head { position: relative; margin: -20% var(--card-pad) var(--card-pad); background: var(--accent); color: var(--on-accent); border-radius: var(--r-lg); padding: var(--card-pad); max-width: 34em; }
+.stack__card--overlay .stack__head { background: var(--accent); color: var(--on-accent); border-radius: var(--r-lg); padding: var(--card-pad); }
 .stack__card--overlay .stack__title, .stack__card--overlay .stack__body .t-body, .stack__card--overlay .stack__body .t-body:first-child { color: var(--on-accent); }
-@media (min-width: 768px) { .stack__card--overlay .stack__head { margin: -14% var(--card-pad) var(--card-pad); } }
+/* the panel sits at the TOP of the photograph, not the foot: in a sticky stack the next card climbs over the bottom
+   of this one, and content parked down there is the first thing to disappear */
+@media (min-width: 768px) { .stack__card--overlay .stack__head { position: absolute; left: var(--card-pad); top: var(--card-pad); width: min(30em, 46%); } }
+@media (max-width: 767px) { .stack__card--overlay .stack__head { margin: -40px var(--card-pad) var(--card-pad); } }
+
 /* the solid beat: the last card is the hue itself, and it carries the call to action */
 .stack__card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
 .stack__card--solid .stack__figure { background: none; padding: 0; }
+
+/* the cards arrive in two parts, the text a beat after the picture */
+.js .stack__card .stack__head, .js .stack__card .stack__figure { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-settle); }
+.js .stack__card.is-in .stack__head { opacity: 1; transform: none; transition-delay: 90ms; }
+.js .stack__card.is-in .stack__figure { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .stack__card .stack__head, .js .stack__card .stack__figure { transform: none; } }
 
 /* ---------- The band ----------
    One photograph, edge to edge, at a scale nothing else on the page reaches. The middle of the page had no such moment:
@@ -71,26 +83,37 @@
    930px wide in a 1440px page */
 .band .photo { border-radius: 0; aspect-ratio: auto; width: 100%; height: clamp(300px, 52vh, 620px); }
 .band .photo img { object-position: 50% 34%; }
+/* the band settles rather than fades: it is the page's one full-bleed picture and it should arrive like one */
+.js .band .photo img { transform: scale(1.06); transition: transform 900ms var(--ease-out); }
+.js .band.is-in .photo img { transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .band .photo img, .js .band.is-in .photo img { transform: none; } }
 
 /* ---------- The quote ring ----------
-   The one section Jayden kept: eight circular photographs turning around the quote, upright, driven by the flow. */
-.ring__stage { position: relative; height: calc((var(--ring-r) + 92) * 2px); margin-inline: calc(-1 * var(--gutter)); overflow: hidden; }
+   The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
+   The geometry is one relationship: eight items on a circle of radius r sit 2r·sin(22.5°) = 0.765r apart, so an item
+   sized near that reads as a necklace rather than as eight dots with a lot of ground between them. */
+.ring__stage { position: relative; height: calc((var(--ring-r) * 2px) + var(--ring-item)); margin-inline: calc(-1 * var(--gutter)); overflow: hidden; }
 .ring__orbit { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
-.ring__item { position: absolute; left: 0; top: 0; width: 148px; margin-left: -74px; margin-top: -74px; will-change: transform; }
-.ring__item .photo { transition: transform var(--dur-move) var(--ease-out); }
+.ring__item { position: absolute; left: 0; top: 0; width: var(--ring-item); margin-left: calc(var(--ring-item) / -2); margin-top: calc(var(--ring-item) / -2); will-change: transform; }
+.ring__item .photo { transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-enter) var(--ease-out); }
 .ring__item .photo:hover { transform: scale(1.05); }
-.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--ring-r) * 1.22px); text-align: center; z-index: 2; }
-.ring__text { font-family: var(--font-display); font-size: min(var(--fs-h2), 2.75rem); line-height: 1.06; letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); text-wrap: balance; }
-.ring__who { margin-top: var(--sp-4); font-size: var(--fs-small); color: var(--ink-3); }
-@media (max-width: 1023px) { .ring__item { width: 116px; margin-left: -58px; margin-top: -58px; } .ring__stage { height: calc((var(--ring-r) + 74) * 2px); } }
-@media (max-width: 767px)  { .ring__item { width: 76px; margin-left: -38px; margin-top: -38px; } .ring__stage { height: calc((var(--ring-r) + 50) * 2px); } .ring__centre { width: calc(var(--ring-r) * 1.32px); } .ring__text { font-size: 1.375rem; } }
-@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } }
+/* arrival: the necklace assembles. The item itself carries the flow's transform every frame, so the entrance lives on the photograph inside it. */
+.js .ring__stage .photo { opacity: 0; transform: scale(.84); }
+.js .ring__stage.is-in .photo { opacity: 1; transform: none; transition-delay: calc(var(--stagger) * var(--d, 0)); }
+/* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
+   whatever the breakpoint does to either number */
+.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 32px); text-align: center; z-index: 2; }
+.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; color: var(--ink); text-wrap: balance; }
+.ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); color: var(--ink-3); }
+
+@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
 
 /* ---------- Voices ----------
    Three cards, each one of the logo's colours at full strength: the quote mark, the quote, and the person in a nested
    white sub-card that sits in the card's bottom-left corner (the reference Jayden sent). */
 .voices__head { text-align: center; display: grid; justify-items: center; gap: var(--sp-3); margin-bottom: var(--sp-10); }
 .voices { display: grid; grid-template-columns: minmax(0,1fr); gap: var(--grid-gap); }
+.voices > .voice { transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--accent); color: var(--on-accent); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
 .voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in oklab, var(--on-accent) 26%, transparent); margin-bottom: var(--sp-4); }
 .voice__quote { font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--on-accent); text-wrap: pretty; }
@@ -110,6 +133,7 @@
 .close__field { max-width: var(--page-max); margin-inline: auto; background: var(--c-sky); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px);
   --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); }
 .close__sign { grid-column: 1 / -1; }
 .close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }

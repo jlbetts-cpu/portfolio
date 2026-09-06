@@ -113,6 +113,11 @@ takes a rung of the duration ladder (100/160/240/280/360/500ms). Only `transform
 flash. The saturated hues and the photographs sit better on near-black. Light's ground is `#F0ECE3`, deeper than the
 `#F7F5F0` it started at — at three per cent from a white card, nothing on it read as an object.
 
+### 3.6c Arrival
+Every section enters with intent, not one flat fade: photograph then text on the cards, a settle on the band, the ring
+assembling one circle at a time, a stagger on the testimonials. One `IntersectionObserver` drives it. **Never observe a
+zero-area element** — the ring's orbit is 0×0 and can never satisfy a threshold, so the ring never appeared.
+
 ### 3.7 The floors
 44px minimum targets, measured. Focus is a 2px ring on `--focus`. Every visible text node clears 4.5:1 (3:1 at ≥24px) against
 its effective background **in both themes**. One `<h1>`. Every section labelled. The skip link is first in the body.
@@ -140,12 +145,14 @@ Six sections. Anything thinner than this got merged.
    card past the text beside it. Even cards mirror — and both children must be pinned to `grid-row: 1`, or grid's forward-only
    auto-placement drops the mirrored figure to a second row and doubles the card.
 3. **The band.** One photograph, edge to edge, no copy — the page's only moment of scale between the stack and the ring.
-4. **The quote ring.** Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
+4. **The quote ring.** Geometry, not taste: eight items on a circle of radius r sit 0.765r apart, so size the item near
+   that and it reads as a necklace. The quote's column is `2r − item − 32px` — the clear space inside the ring, derived, so
+   the two can never meet at any breakpoint. Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
    section Jayden has asked to keep.** Do not redesign it.
 5. **Testimonials.** A centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's
    ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner** — the depth comes from
    that nesting, not from a shadow. Placeholder copy until Linda supplies real ones.
-6. **The closing field.** Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
+6. **The closing field.** Opens with the brand's line at display scale. Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
    gutter, `--r-xl` corners: the mark, the sign-up, the two contact links, and the copyright under a rule.
 
 ## 5. Components

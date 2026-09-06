@@ -190,8 +190,10 @@
   const io = new IntersectionObserver((entries) => {
     for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
   }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' });
-  $$('.reveal').forEach(el => io.observe(el));
+  $$('.reveal, .reveal--parts').forEach(el => io.observe(el));
   $$('.reveal--stagger').forEach(p => $$(':scope > .reveal', p).forEach((c, i) => c.style.setProperty('--d', Math.min(i, 6))));
+  // the ring assembles: each photograph a beat after the last, going round
+  $$('.ring__orbit .ring__item').forEach((el, i) => { const ph = $('.photo', el); if (ph) ph.style.setProperty('--d', i); });
 
   /* ---- The stack: a covered card shrinks from its top edge as the next one climbs over it; deeper cards are smaller ---- */
   const stackUpdate = (() => {
