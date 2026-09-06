@@ -484,3 +484,130 @@ if(timeWrap && timeBtn && timeMenu && window.SiteTheme){
    buzz(kind === "done" ? DONE : kind === "press" ? PRESS : TAP);
  };
 })();
+
+/* ── 9 · THE MOBILE DRAWER ──────────────────────────────────────────────────
+   2026-09-05. The bar carried six items at 358px; below 760 it now carries the
+   mark and one button, and everything else moves into a panel where it can use
+   the labels the markup already had.
+
+   THE NODES ARE MOVED, NOT CLONED. .jbGrpC and .jbGrpR are the elements
+   hero-engine.js and the rest of this file bound their listeners to -- the time
+   menu, the nav-state mirroring, the Back item. Relocating them keeps every one
+   of those working; a duplicate set would have drifted the first time one of
+   them changed. They go back into the nav above 760 so the desktop bar is the
+   same DOM it always was. */
+(function(){
+  /* this block sits OUTSIDE the file's main IIFE, so it cannot borrow that
+     scope's `nav`; it looks the element up for itself. */
+  var nav = document.querySelector(".jbNav");
+  if(!nav) return;
+  var mq = window.matchMedia("(max-width:760px)");
+  var mid = document.getElementById("jbNavMid") || nav.querySelector(".jbGrpC");
+  var end = document.getElementById("jbNavEnd") || nav.querySelector(".jbGrpR");
+  if(!mid && !end) return;
+
+  var burger = document.createElement("button");
+  burger.type = "button";
+  burger.className = "jbBurger ctl ctl--nav";
+  burger.id = "jbBurger";
+  burger.setAttribute("aria-label","Menu");
+  burger.setAttribute("aria-expanded","false");
+  burger.setAttribute("aria-controls","jbDrawer");
+  burger.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+
+  var drawer = document.createElement("div");
+  drawer.className = "jbDrawer";
+  drawer.id = "jbDrawer";
+  drawer.setAttribute("role","dialog");
+  drawer.setAttribute("aria-modal","true");
+  drawer.setAttribute("aria-label","Menu");
+
+  var scrim = document.createElement("div");
+  scrim.className = "jbScrim";
+  scrim.hidden = false;
+
+  /* the panel's own head: a label and an explicit way out. The burger is behind
+     the panel once it is open, so the close control has to live inside it. */
+  var head = document.createElement("div");
+  head.className = "jbDrawerHead";
+  head.innerHTML = '<span class="jbDrawerTitle">MENU</span>';
+  var close = document.createElement("button");
+  close.type = "button";
+  close.className = "jbClose ctl ctl--nav";
+  close.setAttribute("aria-label","Close menu");
+  close.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  head.appendChild(close);
+  drawer.appendChild(head);
+
+  nav.appendChild(burger);
+  document.body.appendChild(scrim);
+  document.body.appendChild(drawer);
+
+  var open = false, lastFocus = null;
+
+  function focusables(){
+    return [].slice.call(drawer.querySelectorAll(
+      'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    )).filter(function(el){ return el.offsetParent !== null; });
+  }
+
+  function setOpen(next){
+    if(next === open) return;
+    open = next;
+    document.body.classList.toggle("jbDrawerOpen", open);
+    burger.setAttribute("aria-expanded", open ? "true" : "false");
+    /* the page behind must not scroll under the panel; he has objected to
+       stray scrolling four times */
+    document.body.style.overflow = open ? "hidden" : "";
+    if(open){
+      lastFocus = document.activeElement;
+      var f = focusables();
+      if(f.length) f[0].focus();
+    } else {
+      if(lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+  }
+
+  burger.addEventListener("click", function(){ setOpen(!open); });
+  scrim.addEventListener("click", function(){ setOpen(false); });
+  close.addEventListener("click", function(){ setOpen(false); });
+  document.addEventListener("keydown", function(e){
+    if(!open) return;
+    if(e.key === "Escape"){ e.preventDefault(); setOpen(false); return; }
+    if(e.key === "Tab"){                       /* keep tabbing inside the panel */
+      var f = focusables(); if(!f.length) return;
+      var first = f[0], last = f[f.length-1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  /* following a link closes it, so a back-navigation never lands on an open panel */
+  drawer.addEventListener("click", function(e){
+    if(e.target.closest && e.target.closest("a[href]")) setOpen(false);
+  });
+
+  /* the time control is icon-only in the bar; in a panel of words it needs one */
+  function labelTimeBtn(){
+    var tb = drawer.querySelector(".heroTimeBtn");
+    if(!tb || tb.querySelector(".jbLbl")) return;
+    var sp = document.createElement("span");
+    sp.className = "jbLbl";
+    sp.textContent = tb.getAttribute("aria-label") || "Theme";
+    tb.appendChild(sp);
+  }
+
+  function place(){
+    if(mq.matches){
+      if(mid && mid.parentNode !== drawer) drawer.appendChild(mid);
+      if(end && end.parentNode !== drawer) drawer.appendChild(end);
+      labelTimeBtn();
+    } else {
+      setOpen(false);
+      if(mid && mid.parentNode !== nav) nav.insertBefore(mid, burger);
+      if(end && end.parentNode !== nav) nav.insertBefore(end, burger);
+    }
+  }
+  place();
+  if(mq.addEventListener) mq.addEventListener("change", place);
+  else if(mq.addListener) mq.addListener(place);
+})();

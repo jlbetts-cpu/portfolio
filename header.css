@@ -1584,3 +1584,113 @@
 .jbStick.isFixed::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(100% + var(--sp-16));
   background:linear-gradient(to bottom,var(--theme-page,var(--c50)) 55%,transparent);
   pointer-events:none;z-index:-1}
+
+/* ═══ MOBILE DRAWER ══════════════════════════════════════════════════════════
+   2026-09-05. Jayden: "the header doesnt look good with all the icons i think we
+   should have a clean side menu on mobile", then on the first build: "make sure
+   the side bar is optimized i saw that screenshot that dont look that good."
+
+   MEASURED before: six items across a 358px bar -- the mark, then home, person,
+   gamepad, sun and a boxed envelope. Five unlabelled glyphs, of which a person
+   meant About and a gamepad meant Play. The words already existed in the markup
+   as .jbLbl at display:none, so this does not invent copy, it stops hiding it.
+
+   THE GROUPS ARE MOVED, NOT DUPLICATED. header.js relocates the real
+   .jbGrpC/.jbGrpR nodes at <=760px and returns them above it. Every listener in
+   hero-engine.js and this file is bound to those elements -- the time menu, the
+   nav state, the Back item -- so moving them keeps all of it working, and there
+   is no second copy to drift.
+
+   NO ELEVATION, per the shadow rule: a hairline and the scrim do the separating
+   and translucency is the only depth cue. */
+ /* (0,2,0) DELIBERATELY. `.ctl{display:inline-flex}` in controls.css is (0,1,0)
+    and that file links LATER, so a bare `.jbBurger{display:none}` loses to it and
+    the button showed on desktop. This is the same equal-specificity trap the
+    header comments already record hitting four times. */
+.jbNav .jbBurger{display:none}
+.jbDrawerHead{display:none}
+
+@media(max-width:760px){
+  .jbNav .jbBurger{display:inline-flex;margin-left:auto}
+
+  /* ABOVE .jbStick, WHICH IS z-index:100. At 78/80 the scrim and the panel sat
+     UNDER the bar: the panel's own head and close button were invisible behind it,
+     measured at y=14 inside the bar's own 72px. */
+  .jbScrim{position:fixed;inset:0;z-index:120;background:rgba(9,11,36,.42);
+    opacity:0;pointer-events:none;
+    transition:opacity var(--dur-state-out) var(--ease-exit)}
+  body.jbDrawerOpen .jbScrim{opacity:1;pointer-events:auto;
+    transition-duration:var(--dur-move)}
+
+  /* THE PANEL OWNS THE WHOLE EDGE, over the bar rather than under it. The first
+     build tucked it beneath the fixed header and padded the top to compensate,
+     which put a dead 72px stripe above Home and hid it on the first attempt. */
+  .jbDrawer{position:fixed;top:0;right:0;bottom:0;z-index:121;
+    width:min(84vw,308px);display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top,0px)) 0
+            calc(env(safe-area-inset-bottom,0px) + var(--sp-12));
+    background:var(--c50);border-left:var(--hair-w) solid var(--rule);
+    overflow-y:auto;overscroll-behavior:contain;
+    transform:translateX(100%);visibility:hidden;
+    transition:transform var(--dur-state-out) var(--ease-exit),visibility 0s linear var(--dur-state-out)}
+  body.jbDrawerOpen .jbDrawer{transform:none;visibility:visible;
+    transition:transform var(--dur-move) var(--ease-out),visibility 0s}
+
+  /* the panel's own top edge: a title and the way out */
+  .jbDrawerHead{display:flex;align-items:center;justify-content:space-between;
+    gap:var(--sp-8);min-height:var(--bar-h,64px);
+    padding:0 var(--sp-8) 0 var(--sp-16);
+    border-bottom:var(--hair-w) solid var(--rule);flex:0 0 auto}
+  .jbDrawerTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+    letter-spacing:var(--tr-flat);color:var(--c600)}
+
+  /* GROUPS. .jbGrpR ships flex:1 1 0 and justify-content:flex-end for the desktop
+     bar; left alone in a column it stretched one group over the whole panel and
+     stranded the theme control in the middle of a void. */
+  .jbDrawer .jbGrp{display:flex;flex-direction:column;align-items:stretch;
+    justify-content:flex-start;gap:2px;width:100%;min-width:0;
+    padding:var(--sp-8) var(--sp-8)}
+  .jbDrawer .jbGrpC{flex:0 0 auto;border-bottom:var(--hair-w) solid var(--rule)}
+  .jbDrawer .jbGrpR{flex:1 1 auto}          /* so Contact can be pushed down */
+
+  .jbDrawer .jbLbl{display:inline}
+  /* :not(.jbClose) MATTERS. Without it the close button inherits width:100% and
+     justify-content:flex-start from this rule, which is what pinned the X beside
+     the MENU label instead of at the panel's right edge. */
+  /* STRUCTURAL, NOT BY CLASS. The header markup is duplicated on every page and
+     is not the same everywhere: index's nav links are `ctl ctl--nav`, while
+     gradientlab, play and headmaker ship bare <a> with no classes. Selecting on
+     .ctl--nav left those three at 33-37px, under the 44 floor. */
+  .jbDrawer .jbGrp a,
+  .jbDrawer .jbGrp > button,
+  .jbDrawer .heroTimeBtn{
+    display:flex;align-items:center;justify-content:flex-start;
+    gap:var(--sp-12);width:100%;min-height:var(--tap-min);
+    padding:0 var(--sp-12);font-size:var(--fs-prose);
+    border-radius:var(--r-md);text-decoration:none;color:var(--c950)}
+
+  /* the way out: a square target on the right, its own size, not a row */
+  .jbDrawer .jbClose{flex:0 0 auto;margin-left:auto;
+    width:var(--tap-min);height:var(--tap-min);min-height:var(--tap-min);
+    padding:0;justify-content:center;border-radius:var(--r-md)}
+
+  /* where you are, said rather than implied */
+  .jbDrawer .ctl--nav[aria-current="page"]{background:var(--c100);color:var(--c950)}
+
+  /* CONTACT SITS ON THE FLOOR. It is the one action worth taking from here, and
+     the bottom edge is where a thumb already is. */
+  .jbDrawer .jbContactBtn{margin-top:auto;width:100%;justify-content:flex-start;
+    gap:var(--sp-12);min-height:var(--tap-min);padding:0 var(--sp-12);
+    font-size:var(--fs-prose)}
+
+  /* the time menu is a popover on desktop; here it is simply the next rows */
+  .jbDrawer .heroTime{width:100%}
+  .jbDrawer .heroTimeMenu{position:static;transform:none;width:100%;
+    margin:2px 0 0;box-shadow:none;border:0;padding:0;background:none}
+  .jbDrawer .heroTimeMenu button{min-height:var(--tap-min);
+    padding-left:calc(var(--sp-12) + 16px + var(--sp-12))}
+
+  @media(prefers-reduced-motion:reduce){
+    .jbScrim,.jbDrawer{transition:none}
+  }
+}
