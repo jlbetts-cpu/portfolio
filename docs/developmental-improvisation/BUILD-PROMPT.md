@@ -163,7 +163,10 @@ the panel needs an **explicit height**: `overflow: hidden` does not constrain a 
 column of ten tiles once made the row 3197px tall. The hero does **not** claim `100svh` — the card row has to break the
 fold or the field reads as two pages.
 
-**2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows). Each
+**2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows).
+**A wide card is a horizontal card**: under a 4:5 photograph a card's height tracks its width, so a wide card is a tall
+one. Between 1024–1279 and between 561–767 the copy sits beside the picture on a fixed 40% share. Breakpoints here are
+decided by the CARD's width, not the viewport's — which is why that is two bands and not one. Each
 carries a head with the title and a two-line summary; the photograph below; one control, and the WHOLE card fills
 with its hue under the pointer and on focus — head and ground together; filling only the head leaves a seam at the
 photograph's top edge. The ink rebind stays on the head, or the control inherits it and renders as a blob. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The

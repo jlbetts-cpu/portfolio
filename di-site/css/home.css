@@ -76,6 +76,22 @@
 .brief__arrow .icon { width: 16px; height: 16px; }
 .brief:hover .brief__arrow { transform: translateX(3px); }
 @media (min-width: 1280px) { .brief { grid-column: span 3; } }
+/* A wide card is a HORIZONTAL card. Under a 4:5 photograph, a card's height tracks its WIDTH — so the wider the card
+   the taller it gets, which is backwards for a row that should get shorter as the screen narrows: at 1200 a 569px card
+   made a 683px photograph and an 850px card. Beside the copy instead, the photograph is sized by the card's height, it
+   keeps 4:5, and the row keeps a sensible one. This is the range a card grid always gets wrong. */
+/* Two bands, because it is the CARD's width that decides, not the viewport's: two-up between 1024 and 1279 gives a
+   486–569px card, and one-up between 561 and 767 gives a 529–735px one. Everywhere else the card is 288–486 and the
+   vertical arrangement is right. */
+@media (min-width: 561px) and (max-width: 767px), (min-width: 1024px) and (max-width: 1279px) {
+  /* the figure takes a FIXED share of the card, or the photograph's height and the head's width chase each other:
+     sized by the card's height, the picture grew until the title was breaking one word to a line */
+  .brief { flex-direction: row; align-items: stretch; }
+  .brief__head { flex: 1 1 auto; align-self: center; padding: var(--sp-6); }
+  .brief__figure { flex: 0 0 40%; margin: var(--sp-3) var(--sp-3) var(--sp-3) 0; align-self: center; }
+  .brief__figure .photo { width: 100%; height: auto; }
+  .brief__more { left: var(--sp-6); bottom: var(--sp-6); }
+}
 /* no pointer, no hover: on a touch screen the hue and the control are simply the resting state, or the section never
    has either */
 @media (hover: none) {
@@ -126,8 +142,11 @@
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
 @media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
 
-/* the sub-card hangs 30px below its card; the field below has to start clear of it, not on it */
+/* the sub-card hangs 30px below its card, and whatever comes next has to start clear of it, not on it: the closing
+   field below the row, and — where the cards stack — the next card. On a phone the plain grid gap left the chip
+   sitting 18px INSIDE the following quote. */
 .voices-sec { padding-bottom: calc(30px + var(--grid-gap)); }
+@media (max-width: 767px) { .voices { row-gap: calc(var(--grid-gap) + 30px); } }
 
 /* ---------- The closing field ----------
    Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and
@@ -153,7 +172,7 @@
 .close__sign .input { background: rgba(255,255,255,.94); box-shadow: none; }
 .close__sign .btn--primary { background: var(--ink); color: #F7F5F0; }
 @media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } }   /* the address is 29 characters: at h3 it breaks mid-word on a phone */
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .close__sign { grid-column: 1 / span 6; }
   .close__reach { grid-column: 8 / span 5; padding-top: var(--sp-2); }
 }

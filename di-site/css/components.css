@@ -69,7 +69,7 @@
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
 .field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); min-height: 1.4em; }
 .field__message[data-state="error"] { color: var(--ink); }
-@media (max-width: 479px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
+@media (max-width: 599px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
 
 /* Nav — no container at all: the wordmark on the left, the controls on the right, directly on the page at the field's
    gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top

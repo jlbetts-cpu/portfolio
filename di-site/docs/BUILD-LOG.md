@@ -9,6 +9,8 @@ Three asks. **"the font needs a change it doesnt really match the font of the lo
 
 **And the cards lost their chips.** *"i dont like these little pills on the top… make the headers make sense and everything will make sense."* Right: a number and a topic in two pills above a title that already said the same thing. Gone, and `.chip` with them — nothing else used it. A card is a title, a summary, a picture and one control.
 
+**Then a resize pass**, after *"resizing the screen needs work not every part works nicely or shrinks nicely."* A 22-width sweep found no overflow anywhere — and three real faults the gates were not looking for. **The card row's middle range was broken**: under a 4:5 photograph a card's height tracks its width, so at 1200 a 569px card made a 683px photograph and an 850px card, and two of them filled a screen. A wide card is a horizontal card now — copy beside the picture, the figure on a fixed 40% share — in the two bands where a card comes out too wide (1024–1279 two-up, 561–767 one-up). **The closing field split at 768** and left its email input 170px wide; it splits at 1024 now, and the input/button pair stacks below 600 instead of 480. **And on a phone the testimonial's person chip sat 18px inside the next quote card** — the overhang was cleared against the footer but never against the next card when they stack. The layout gate holds that geometry now, at every width it tests.
+
 **Measured after v13.** 44 gate lines pass. Worst contrast 5.44:1 light / 5.28:1 dark.
 
 ## v12 (2026-09-06) — one bento field, four clickable cards, and a pastel light theme
