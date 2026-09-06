@@ -24,6 +24,8 @@ Jayden's twelfth pass, in five messages: card 02 "doesnt act like the rest of th
 
 **And the header lost its container.** *"I would rather it be a clean header though not in a container or anything just minimal and clean."* So: no tiles, no bar, no glass — the wordmark and the controls sit directly on the page at the field's gutter, and the header **scrolls away with the page**. Bare type over a photograph is unreadable, and the honest answer to that was not to put a surface back under it but to stop needing one: Subscribe and Contact are both at the foot of the page. The "Read more" pill now arrives with the hue as well, so a resting card is chips, a title, a summary and a picture.
 
+**Four more, on looking at it again.** The menu **stays on a phone** — fixed, with the lightest surface that can carry type over a photograph once there is something under it, because Menu is the only route to the links and Subscribe once the page has moved. The **whole card** takes the hue now, not just its head: filling the head alone left a seam at the photograph's top edge. Two words of the headline sit in a `<mark>` in sky, which Jayden found by accidentally selecting one. And the ink rebind had to move back onto the head — on the card, the "Read more" pill inherited `--on-accent` over `--bg-overlay` and rendered as a black blob.
+
 **Measured after v12.** 41 gate lines pass, including a new `reader.mjs` and its self-test.
 
 ## v11 (2026-09-06) — the four things between 8.5 and 9

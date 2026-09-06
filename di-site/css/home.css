@@ -20,7 +20,8 @@
 .bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
 /* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
-@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } }
+/* the header is fixed on a phone, so the hero has to leave room for it again */
+@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } .hero { padding-top: calc(var(--field-top) + var(--sp-2)); } }
 @media (min-width: 768px) {
   .hero__head { grid-column: 1 / span 5; }
   /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
@@ -42,16 +43,21 @@
    the reference's one coloured card among plain ones, made a state instead of an arbitrary choice.
    The whole card is the control; the full copy lives in a reader so four short blocks replace six long ones. */
 .briefs { padding-top: var(--grid-gap); }
-.brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; transition: transform var(--dur-move) var(--ease-out); }
+.brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; color: var(--ink);
+  transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out), box-shadow var(--dur-state-out) var(--ease-out); }
 .brief:hover { transform: translateY(-4px); }
+/* the whole card becomes the hue — head and ground together. Filling only the head left a seam across the card at the
+   photograph's top edge, which read as two objects stacked rather than one card lighting up. The ink rebind stays on
+   the HEAD: put it on the card and the pill inherits it, and a control whose ground is --bg-overlay and whose ink is
+   --on-accent renders as a black blob on an orange card. */
+.brief:hover, .brief:focus-within { background: var(--accent); box-shadow: none; }
+.brief:hover .brief__head, .brief:focus-within .brief__head { color: var(--on-accent);
+  --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
 /* The hue is a STATE, not a resting decoration: four coloured blocks under the hero competed with it. At rest the row
    is four quiet panels and a photograph each; the card's colour arrives under the pointer and on keyboard focus, and
-   it is the same colour the reader opens on. The ink tokens are rebound for the subtree while it is there, exactly as
-   on a solid card: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
-.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); background: transparent; color: var(--ink);
-  transition: background-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out); }
-.brief:hover .brief__head, .brief:focus-within .brief__head { background: var(--accent); color: var(--on-accent);
-  --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
+   it is the same colour the reader opens on. The ink tokens are rebound while it is there, exactly as on a solid card:
+   a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
+.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); transition: color var(--dur-state-out) var(--ease-out); }
 .brief__chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .brief__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); text-wrap: balance; }
 .brief__sum { font-size: var(--fs-small); line-height: 1.5; color: var(--ink-2); }
@@ -76,7 +82,8 @@
    has either */
 @media (hover: none) {
   .brief__more { opacity: 1; transform: none; }
-  .brief__head { background: var(--accent); color: var(--on-accent);
+  .brief { background: var(--accent); box-shadow: none; }
+  .brief__head { color: var(--on-accent);
     --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
 }
 @media (max-width: 767px) {

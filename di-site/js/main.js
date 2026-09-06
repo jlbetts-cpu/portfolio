@@ -52,6 +52,10 @@
     setTimeout(open, 2600);
   }
 
+  /* ---- Nav: on a phone it is fixed, and it takes a ground only once there is something under it ---- */
+  const nav = $('#nav');
+  if (nav) { const onNav = () => nav.classList.toggle('is-scrolled', scrollY > 24); addEventListener('scroll', onNav, { passive: true }); onNav(); }
+
   /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
      angle follows target with a time constant of --flow-settle, so a scroll accelerates the arch and it settles back to the drift. */
   const flow = (() => {

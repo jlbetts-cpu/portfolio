@@ -141,9 +141,11 @@ is the field's only break. `--field-top` (`--grid-gap` × 2 + `--nav-h`) is wher
 Jayden: *"what if there isnt [a gap] — what if its all a beautiful bento."*
 
 **0. The header — no container.** The wordmark on the left, the links, the theme toggle and Subscribe on the right,
-directly on the page at the field's gutter. No bar, no glass, no tiles, and **it scrolls away with the page**: bare type
-over a photograph is unreadable, and the answer to that is not to put a surface back under it but to stop needing one —
-Subscribe and Contact are both at the foot of the page. No Home link (the logo is the way home) and **no Gallery link**:
+directly on the page at the field's gutter. No bar, no glass, no tiles. On a laptop **it scrolls away with the page**: bare
+type over a photograph is unreadable, and the answer to that is not to put a surface back under it but to stop needing
+one — Subscribe and Contact are both at the foot of the page. **On a phone it stays** (Menu is the only route to the
+links once the page has moved) and takes the ground at 78%, blurred, with a hairline, once there is something under it.
+That is the one place a container is earned. No Home link (the logo is the way home) and **no Gallery link**:
 the gallery *is* the hero. **About · Contact.**
 
 **1. The hero — two panels, filling the screen.** The panel's height IS the hero's height (`100svh − --field-top`), so
@@ -155,8 +157,9 @@ column of ten tiles once made the row 3197px tall. The hero does **not** claim `
 fold or the field reads as two pages.
 
 **2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows). Each
-carries a head with two chips, the title and a two-line summary; the photograph below; one control, and the head fills
-with the card's hue under the pointer and on focus. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
+carries a head with two chips, the title and a two-line summary; the photograph below; one control, and the WHOLE card fills
+with its hue under the pointer and on focus — head and ground together; filling only the head leaves a seam at the
+photograph's top edge. The ink rebind stays on the head, or the control inherits it and renders as a blob. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
 photograph **slips `--slip` 20px up out of its box and over the colour** — the one place a panel's contents cross an
 edge, and small on purpose. The pill arrives with the hue, so a resting card is chips, a title, a summary and a picture. The whole card is
 the trigger; the pill is the keyboard route; both open **the reader**, a dialog whose head takes that card's hue. The full copy lives in the card and is hidden only when there is
