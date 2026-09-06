@@ -539,6 +539,26 @@ if(timeWrap && timeBtn && timeMenu && window.SiteTheme){
   head.appendChild(close);
   drawer.appendChild(head);
 
+  /* THE PAGE'S NAME, TAKEN FROM ITS OWN <title>. document.title decodes the
+     entity that about.html writes as &middot;, so one split works everywhere:
+     "Bearings · Case Study · Jayden Betts" -> "Bearings". Home is skipped in CSS
+     off body[data-nav], not here, so the rule stays visible next to the styles. */
+  /* ONLY WHERE THERE IS A BACK BUTTON. Jayden: "any page that has the logo
+     shouldnt have the title only the pages with the back button." The mark and a
+     name are two answers to the same question -- where am I -- and a page that
+     shows the mark is already home-ish. A page you arrived at from somewhere is
+     the one that has to say what it is.
+     The split is exact: index, about and play carry .jbHome; the five case
+     studies, headmaker, gradientlab, yowmings and strata-play carry .jbBack. */
+  var hasBack = !!nav.querySelector(".jbBack");
+  if(hasBack){
+    var title = document.createElement("span");
+    title.className = "jbTitle";
+    title.setAttribute("aria-hidden","true");      /* the <title> already says this to AT */
+    title.textContent = (document.title || "").split("\u00b7")[0].trim();
+    if(title.textContent) nav.appendChild(title);
+  }
+
   nav.appendChild(burger);
   document.body.appendChild(scrim);
   document.body.appendChild(drawer);

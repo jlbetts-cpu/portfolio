@@ -1487,7 +1487,7 @@
      measured an icons-only sub-page bar at 327.8px against a 366px budget at
      390, and this spends 16 of the 38px of slack. Re-measured after the change
      on all nine pages at 390 and 320 -- no page overflows. */
-  .jbNav{--ico-md:16px;gap:var(--sp-8)}
+  .jbNav{--ico-md:16px;gap:var(--sp-8);position:relative}
   .jbGrp{gap:var(--sp-8)}
   .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8);
     min-width:var(--tap-min);justify-content:center}
@@ -1612,6 +1612,25 @@
 
 @media(max-width:760px){
   .jbNav .jbBurger{display:inline-flex;margin-left:auto}
+
+  /* ═══ THE PAGE'S NAME, IN THE MIDDLE ═════════════════════════════════════
+     2026-09-06. Jayden: "if you are on the about page it should say it in the
+     middle or when you are in the case studies. not when you are on the home."
+     The iOS pattern: the bar tells you where you are, and the home screen does
+     not need telling.
+
+     ABSOLUTELY CENTRED, not a flex child. Between a mark on the left and a
+     button on the right, a flex item centres in the REMAINING space, which is
+     off-centre against the bar itself. Absolute puts it on the bar's true
+     midline regardless of what flanks it, and pointer-events:none keeps it from
+     eating taps meant for either. */
+  .jbTitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    max-width:min(56%,190px);white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;text-align:center;pointer-events:none;
+    font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);
+    line-height:1.2;color:var(--c950)}
+  /* no body[data-nav] rule here on purpose: header.js only CREATES the title
+     on pages that carry a .jbBack, so there is nothing to hide on the others. */
 
   /* ABOVE .jbStick, WHICH IS z-index:100. At 78/80 the scrim and the panel sat
      UNDER the bar: the panel's own head and close button were invisible behind it,
