@@ -94,6 +94,13 @@ need white, so it goes through `--on-violet`, which is warm black in light and w
 text tier goes to `--on-accent`: a translucent tier over a saturated hue reads as dirt, not as hierarchy. Surfaces that
 carry a hue **rebind their ink tokens for that subtree** rather than following the theme.
 
+**Colour rests on a panel; on a card it is a state.** Exactly two surfaces carry a hue at rest, and both are structure:
+the hero's photograph panel and the closing field. Everywhere else the hue arrives on interaction — a card's head fills
+under the pointer and on focus, and the reader opens on that same hue — or it is a chip rather than a field, as on the
+testimonials. Under `@media (hover: none)` a card's hue is its resting colour: where there is no pointer there is no
+state, and a touch screen would otherwise never see it. Jayden, twice: the colour must not be distracting, and the site
+is premium first.
+
 No gradients anywhere. No coloured text. No hue as a border. A hue is never a 12px frame drawn round a photograph —
 that was built once and read as a neon outline, not as a panel. Colour is spare: a panel, a card head, a field.
 
@@ -138,7 +145,8 @@ second. Same gutter, same `--r-md` corner as everything under them, `--grid-gap`
 the way home) and **no Gallery link** — the gallery *is* the hero, so that item pointed at the top of the page from the
 top of the page. **About · Contact.**
 
-**1. The hero — two panels.** Copy on a cream panel, left five columns; the right seven a colour panel holding fifteen
+**1. The hero — two panels, filling the screen.** The panel's height IS the hero's height (`100svh − --field-top`), so
+the fold lands on the field's next gap and the card row starts just off screen. Copy on a cream panel, left five columns; the right seven a colour panel holding fifteen
 photographs in three columns, looping vertically with the flow, adjacent columns opposed, three speeds. The panel's own
 rounded edge is the crop — no soft mask. Each column carries its contents twice, `[data-mid]` marks the loop length, and
 the panel needs an **explicit height**: `overflow: hidden` does not constrain a box sizing to its own content, and a
@@ -146,8 +154,8 @@ column of ten tiles once made the row 3197px tall. The hero does **not** claim `
 fold or the field reads as two pages.
 
 **2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows). Each
-carries a **head that is the card's hue** with two chips, the title and a two-line summary; the photograph below; one
-control. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
+carries a head with two chips, the title and a two-line summary; the photograph below; one control, and the head fills
+with the card's hue under the pointer and on focus. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
 photograph **slips `--slip` 20px up out of its box and over the colour** — the one place a panel's contents cross an
 edge, and small on purpose. The whole card is the trigger; the "Read more" pill is the keyboard route; both open **the
 reader**, a dialog whose head takes that card's hue. The full copy lives in the card and is hidden only when there is

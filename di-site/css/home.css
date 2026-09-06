@@ -8,6 +8,8 @@
    the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
    between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
 .hero { padding-top: var(--field-top); padding-bottom: 0; }
+/* the panel's height IS the hero's height, so the fold lands exactly on the field's next gap: no centring air below
+   the panels (that would put a gap bigger than --grid-gap between the hero and the cards and break the field) */
 .hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
 .hero__head { grid-column: 1 / -1; display: grid; align-content: center; gap: var(--sp-6); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(28px, 3.6vw, 64px); }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); text-wrap: balance; }
@@ -23,7 +25,7 @@
   .hero__head { grid-column: 1 / span 5; }
   /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
      and the column of ten tiles made the row 3197px tall, which pushed the copy panel off the screen */
-  .hero__bento { grid-column: 6 / span 7; height: clamp(460px, 76svh, 860px); }
+  .hero__bento { grid-column: 6 / span 7; height: max(460px, calc(100svh - var(--field-top))); }
 }
 @media (min-width: 1280px) { .hero__bento { grid-template-columns: repeat(3, minmax(0,1fr)); } }
 /* first paint: once per session */
@@ -42,9 +44,13 @@
 .briefs { padding-top: var(--grid-gap); }
 .brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; transition: transform var(--dur-move) var(--ease-out); }
 .brief:hover { transform: translateY(-4px); }
-/* the head IS the hue, the way all three references build this card. The ink tokens are rebound for the subtree,
-   exactly as on a solid card: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
-.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); background: var(--accent); color: var(--on-accent);
+/* The hue is a STATE, not a resting decoration: four coloured blocks under the hero competed with it. At rest the row
+   is four quiet panels and a photograph each; the card's colour arrives under the pointer and on keyboard focus, and
+   it is the same colour the reader opens on. The ink tokens are rebound for the subtree while it is there, exactly as
+   on a solid card: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
+.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); background: transparent; color: var(--ink);
+  transition: background-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out); }
+.brief:hover .brief__head, .brief:focus-within .brief__head { background: var(--accent); color: var(--on-accent);
   --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
 .brief__chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .brief__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); text-wrap: balance; }
@@ -62,6 +68,11 @@
 .brief__arrow .icon { width: 16px; height: 16px; }
 .brief:hover .brief__arrow { transform: translateX(3px); }
 @media (min-width: 1280px) { .brief { grid-column: span 3; } }
+/* no pointer, no hover: on a touch screen the hue is simply the resting state, or the section never has a colour at all */
+@media (hover: none) {
+  .brief__head { background: var(--accent); color: var(--on-accent);
+    --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
+}
 @media (max-width: 767px) {
   .brief__head { padding-bottom: calc(var(--sp-6) + var(--slip)); }
   .brief__more { left: var(--sp-5); bottom: var(--sp-5); }
@@ -89,15 +100,17 @@
 @media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
 
 /* ---------- Voices ----------
-   Three cards, each one of the logo's colours at full strength: the quote mark, the quote, and the person in a nested
-   white sub-card that sits in the card's bottom-left corner (the reference Jayden sent). */
+   Three quiet cards; the hue is on the PERSON, in the nested sub-card that overhangs the bottom-left corner. Three
+   full-strength cards side by side were the loudest thing left on the page once the four cards went quiet, and the
+   brief is premium first. The colour is still the logo's, still in its order — it is a chip now, not a field. */
 .voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--accent); color: var(--on-accent); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
-.voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in oklab, var(--on-accent) 26%, transparent); margin-bottom: var(--sp-4); }
-.voice__quote { font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--on-accent); text-wrap: pretty; }
+.voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
+.voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in srgb, var(--ink) 16%, transparent); margin-bottom: var(--sp-4); }
+.voice__quote { font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
 /* the nested card: it overhangs the foot of the coloured card, which is what gives the group its depth without a shadow */
-.voice__who { position: absolute; left: var(--card-pad); bottom: 0; transform: translateY(50%); display: flex; align-items: center; gap: var(--sp-3); background: var(--bg-raised); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3); }
-.voice__avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
+.voice__who { position: absolute; left: var(--card-pad); bottom: 0; transform: translateY(50%); display: flex; align-items: center; gap: var(--sp-3); background: var(--accent); color: var(--on-accent); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
+  --ink: var(--on-accent); --ink-3: var(--on-accent); }
+.voice__avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--on-accent); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.3; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
 @media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }

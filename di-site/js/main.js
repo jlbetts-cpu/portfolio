@@ -203,7 +203,9 @@
     const chips = $('.reader__chips', reader), title = $('.reader__title', reader), prose = $('.reader__prose', reader);
     let from = null;
     $$('.brief').forEach(card => card.addEventListener('click', () => {
-      if (reader.open) return;
+      // a card is a big click target wrapped around selectable text: a drag-select ends in a click on the card,
+      // and opening a dialog on top of the words someone just highlighted is the wrong answer
+      if (reader.open || String(getSelection() || '').length) return;
       from = $('.brief__more', card) || card;
       reader.dataset.accent = card.dataset.accent || '';
       chips.innerHTML = $('.brief__chips', card).innerHTML;
