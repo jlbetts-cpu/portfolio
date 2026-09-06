@@ -1,12 +1,13 @@
-/* Home page: the hero, the gallery, the stack, the quote ring, the voices, the closing field.
-   Six sections. Each is built on the same twelve columns and the same superellipse corner; the photographs are one shape. */
+/* Home page: the hero, the four cards, one photograph at the size of the field, the ring — which IS the voices now —
+   and the closing field. Five sections, built on the same twelve columns and the same superellipse corner; the
+   photographs are one shape. */
 
 /* ---------- Hero ----------
    Two panels side by side on the page, the way the reference layers them: the copy on a cream panel, the photographs
    inside a colour panel that CLIPS them. The panel's own rounded edge is the crop now — the soft mask is gone. */
-/* The page is one bento field: the header tiles, the hero's two panels, the four cards, then — after the ring —
-   the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
-   between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
+/* The page is one bento field: the header tiles, the hero's two panels, the four cards, one photograph across all
+   twelve, then — after the ring — the closing field. Every row sits on the same twelve columns, at the same gutter,
+   and every gap between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
 .hero { padding-top: var(--field-top); padding-bottom: 0; }
 /* the panel's height IS the hero's height, so the fold lands exactly on the field's next gap: no centring air below
    the panels (that would put a gap bigger than --grid-gap between the hero and the cards and break the field) */
@@ -152,48 +153,56 @@
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
    The geometry is one relationship: eight items on a circle of radius r sit 2r·sin(22.5°) = 0.765r apart, so an item
    sized near that reads as a necklace rather than as eight dots with a lot of ground between them. */
+.ring__wrap { position: relative; }
 .ring__stage { position: relative; height: calc((var(--ring-r) * 2px) + var(--ring-item)); margin-inline: calc(-1 * var(--gutter)); overflow: hidden; }
 .ring__orbit { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--ring-item); margin-left: calc(var(--ring-item) / -2); margin-top: calc(var(--ring-item) / -2); will-change: transform; }
 .ring__item .photo { transition: transform var(--t) var(--ease-out), opacity var(--dur-enter) var(--ease-out); }
 .ring__item .photo:hover { transform: scale(1.05); }
 .ring__item .photo:has(.photo__open:active) { transform: scale(1.01); transition-duration: var(--dur-press); }
+/* the one that is speaking. Scale and a neutral ring, never a coloured border — the hue belongs to the chip at the
+   centre, which is a surface. Bigger than the 1.05 hover, so hovering a face and it becoming the speaker reads as one
+   movement rather than two competing ones. */
+.ring__item.is-active .photo { transform: scale(1.12); box-shadow: 0 0 0 2px var(--line-strong); }
+.ring__item.is-active .photo:hover { transform: scale(1.12); }
 /* arrival: the necklace assembles. The item itself carries the flow's transform every frame, so the entrance lives on the photograph inside it. */
 .js .ring__stage .photo { opacity: 0; transform: scale(.84); }
 .js .ring__stage.is-in .photo { opacity: 1; transform: none; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
-   whatever the breakpoint does to either number */
-.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 32px); text-align: center; z-index: 2; }
-.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; color: var(--ink); text-wrap: balance; }
-.ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); color: var(--ink-3); }
+   whatever the breakpoint does to either number. Below 768 there IS no usable clear space — 2r − item is 150px on a
+   phone and a quote plus a person chip is 200 — so the voice stops being a centre and sits under the necklace. */
+.ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 96px); text-align: center; z-index: 2; }
+/* all eight are in the DOM at once, stacked in ONE grid cell: the box is the height of the tallest so it never jumps
+   between voices, and a screen reader reads all eight in order. Grid stacking, not absolute positioning — absolute
+   children have no height and the centre would collapse. */
+.ring__quotes { display: grid; list-style: none; margin: 0; padding: 0; }
+.ring__quote { grid-area: 1 / 1; opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out); }
+.ring__quote.is-on { opacity: 1; transition-duration: var(--dur-enter); }
+/* 1.75rem, not the 3.5 the single line took, and the column is 2r − item − 96 rather than − 32. Both come from the
+   same sum: the block has to fit a rectangle INSCRIBED in the clear circle, and a wide rectangle in a circle is very
+   short. At 2.3rem in a 480px column the 90-character placeholder ran to six lines, 243px tall, and its corners were
+   268px from the centre against the 256px the necklace leaves. At 1.75 in a 416px column it is four lines and its
+   corners are 254. The necklace is what gives this section its presence, not the type size. */
+.ring__text { font-family: var(--font-display); font-size: clamp(1.1rem, 2vw, 1.75rem); line-height: 1.15; letter-spacing: -0.02em; font-weight: 800; color: var(--ink); text-wrap: balance; }
+.ring__who { margin-top: var(--sp-5); display: flex; justify-content: center; }
+@media (max-width: 767px) {
+  .ring__centre { position: static; transform: none; width: auto; margin-top: var(--sp-6); }
+  .ring__text { font-size: clamp(1.35rem, 6vw, 1.75rem); }
+}
+/* the person chip: the one place a hue rests here, and it rests on a SURFACE, which is the rule. The name cannot
+   carry the hue — no coloured text — and the active photograph cannot take a coloured border for the same reason,
+   so what marks it is scale and a neutral ring. */
+.who { display: inline-flex; align-items: center; gap: var(--sp-3); text-align: left; background: var(--accent); color: var(--on-accent); --ink: var(--on-accent); --ink-3: var(--on-accent); border-radius: var(--r-md); padding: var(--sp-2) var(--sp-5) var(--sp-2) var(--sp-2); }
+.who__avatar { width: 32px; height: 32px; border-radius: 50%; corner-shape: round; background: var(--on-accent); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
+.who__name, .who__role { display: block; }
+.who__name { font-size: var(--fs-small); font-weight: 600; line-height: 1.3; }
+.who__role { font-size: var(--fs-caption); line-height: 1.3; }
 
-@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover, .ring__item .photo:has(.photo__open:active) { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
-
-/* ---------- Voices ----------
-   Three quiet cards; the hue is on the PERSON, in the nested sub-card that overhangs the bottom-left corner. Three
-   full-strength cards side by side were the loudest thing left on the page once the four cards went quiet, and the
-   brief is premium first. The colour is still the logo's, still in its order — it is a chip now, not a field. */
-.voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
-.voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in srgb, var(--ink) 16%, transparent); margin-bottom: var(--sp-4); }
-/* the quote sits on the BOTTOM of the card, against the person chip; the mark stays pinned to the top. Three quotes
-   are never the same length, and top-aligning both left the shortest card with the slack between the text and the
-   chip — a hole. Pinned at both ends the row gets two straight lines instead of one, and the slack collects under
-   the mark, where it reads as air. */
-.voice__quote { margin-top: auto; font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
-/* the nested card: it overhangs the foot of the coloured card, which is what gives the group its depth without a shadow */
-.voice__who { position: absolute; left: var(--card-pad); bottom: 0; transform: translateY(50%); display: flex; align-items: center; gap: var(--sp-3); background: var(--accent); color: var(--on-accent); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
-  --ink: var(--on-accent); --ink-3: var(--on-accent); }
-.voice__avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--on-accent); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
-.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.3; }
-.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
-@media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
-
-/* the sub-card hangs 30px below its card, and whatever comes next has to start clear of it, not on it: the closing
-   field below the row, and — where the cards stack — the next card. On a phone the plain grid gap left the chip
-   sitting 18px INSIDE the following quote. */
-.voices-sec { padding-bottom: calc(30px + var(--grid-gap)); }
-@media (max-width: 767px) { .voices { row-gap: calc(var(--grid-gap) + 30px); } }
+@media (prefers-reduced-motion: reduce) {
+  .ring__item .photo:hover, .ring__item .photo:has(.photo__open:active) { transform: none; }
+  .ring__item.is-active .photo, .ring__item.is-active .photo:hover { transform: none; }   /* the ring still marks it */
+  .js .ring__stage .photo { opacity: 1; transform: none; }
+}
 
 /* ---------- The closing field ----------
    Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and

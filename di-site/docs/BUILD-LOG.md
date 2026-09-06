@@ -1,5 +1,19 @@
 # Build log — Developmental Improvisation, home page
 
+## v18 (2026-09-06) — the ring is the testimonials
+*"do the ring merge."* The most distinctive object on the page was carrying one static quote in **880px of ground that was 71% empty**, and the testimonials were three more equal tiles in a page that already had four cards. Now the necklace **is** the voices: eight photographs, eight quotes, and **the one standing at the top of the circle is the one speaking** — its photograph scales to 1.12 with a neutral ring, its quote and its person chip sit at the centre. Hovering or focusing any other photograph hands it the centre; leaving hands it back. That is the section's whole reason to exist, and it deleted a section rather than adding one.
+
+**Three things had to be got right and two of them were got wrong first.**
+**The phase.** Without one, the flow has already turned 200-odd degrees by the time the ring is on screen — drift plus 0.06° a pixel scrolled — so which voice you meet is an accident of scroll speed. Phasing on first intersection left another 40° to run and landed on item 7. Phasing on the current angle at centring landed on 7 as well: the angle is still easing toward its target with a 0.32s time constant when a scroll stops. **The phase is the flow's `target`, taken when the necklace is centred**, and Linda's own line is now the one you arrive on at 1440, 1024 and 390.
+**The geometry has to be phased too**, not just the index — phase only the index and item 0 speaks while some other photograph is standing at the top, which is the one thing this section must not do.
+**And a wide rectangle inscribed in a circle is very short.** At 2.3rem in a 480px column a 90-character quote ran to six lines, 243px tall, with its corners **268px from the centre against the 256px the necklace leaves**. It is 1.75rem in a `2r − item − 96` column now: four lines, corners at 254. Hence the rule — **a ring quote is at most 90 characters** — which is a good constraint, because it makes each testimonial give up its best line instead of all of them.
+
+**On a phone there is no clear space at all**: 2r − item is 150px and a quote plus a person chip is 200. Below 768 the voice stops being a centre and sits under the necklace, which is why it is a sibling of the stage in the markup rather than a child of it.
+
+**The colour rule held.** The name cannot carry the hue and the active photograph cannot take a coloured border — no coloured text, no hue as a border — so the hue is on the **person chip**, which is a surface, and what marks the speaker is scale and a neutral ring. `.voice__*` is gone; `.who` is the chip, and it is the same object the testimonial cards used to carry.
+
+**Measured after v18.** 44 gate lines pass and **seven self-tests** are caught — `ring.mjs` gained a second one that takes the active mark off every photograph. `layout.mjs`'s chip check was repointed: it used to assert the testimonial chip cleared the next card, and now asserts the person chip never lands under a ring photograph, which is the real risk in the new geometry. Worst contrast 4.82:1 light / 4.64:1 dark.
+
 ## v17 (2026-09-06) — a peak below the hero, proof above the fold, and a second way in
 *"the rating went down on pure design… what can we do to make it 10 across the board?"* Design had not moved — it held at ~9 through the film arriving and leaving; what moved was Creativity, the 20% slice the film was carrying. Content is capped without Linda (three lorem quotes, three placeholder figures, a Subscribe button pointing at nothing). The other **90% is ours**, so it was measured rather than described.
 

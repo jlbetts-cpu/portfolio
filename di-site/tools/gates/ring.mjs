@@ -3,11 +3,16 @@
 // scrolling turns it faster than the drift. Bento: every column moves, adjacent columns move in opposite directions, no column
 // runs past its own loop length, the pointer stops THE COLUMN IT IS OVER while the others carry on (and the wheel
 // scrubs that one by hand), and the panel clips columns that overrun it.
+// The ring is also the testimonials: exactly one voice is on, the photograph it belongs to is the one marked active
+// AND the one standing at the top of the circle, hovering another photograph hands it the centre, turning the ring
+// advances it on its own, and the centre block never leaves the clear circle inside the necklace.
 // --self-test: sets --ring-r to 90 and expects the photo-on-photo check to fail at 1440×900.
+// --self-test-voices: takes the active mark off every photograph, which the speaker checks must catch.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
+const selfTestVoices = process.argv.includes('--self-test-voices');
 const b = await browser();
-const VP = selfTest ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844]];
+const VP = (selfTest || selfTestVoices) ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844]];
 let allOk = true;
 for (const [w, h] of VP) {
   const pg = await open(b, w, h);
@@ -104,10 +109,54 @@ for (const [w, h] of VP) {
     const br = b.getBoundingClientRect();
     return [...document.querySelectorAll('[data-bento]')].every(c => c.getBoundingClientRect().height > br.height + 40);
   });
-  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped;
+  // ---- the ring IS the testimonials ----
+  await pg.evaluate(() => { const s = document.querySelector('.ring__stage'); scrollTo(0, scrollY + s.getBoundingClientRect().top + s.offsetHeight / 2 - innerHeight / 2); });
+  await pg.mouse.move(4, 4); await pg.waitForTimeout(1000);
+  if (selfTestVoices) await pg.evaluate(() => document.querySelectorAll('.ring__item').forEach(e => e.classList.remove('is-active')));
+  const voice = () => pg.evaluate(() => {
+    const on = [...document.querySelectorAll('.ring__quote.is-on')].map(e => +e.dataset.i);
+    const act = [...document.querySelectorAll('.ring__item.is-active')].map(e => +e.dataset.i);
+    // which photograph is actually highest on the circle right now
+    const st = document.querySelector('.ring__stage').getBoundingClientRect();
+    const cy = st.top + st.height / 2;
+    let top = -1, best = Infinity;
+    for (const it of document.querySelectorAll('.ring__item')) { const r = it.getBoundingClientRect(); const y = r.top + r.height / 2 - cy; if (y < best) { best = y; top = +it.dataset.i; } }
+    // and the centre must stay inside the clear circle the necklace leaves
+    const cs = getComputedStyle(document.documentElement);
+    const safe = parseFloat(cs.getPropertyValue('--ring-r')) - parseFloat(cs.getPropertyValue('--ring-item')) / 2;
+    const cx = st.left + st.width / 2;
+    let worst = 0;
+    for (const e of document.querySelectorAll('.ring__quote.is-on *')) { const r = e.getBoundingClientRect(); if (!r.width) continue;
+      for (const [x, y] of [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]]) worst = Math.max(worst, Math.hypot(x - cx, y - cy)); }
+    // below 768 the voice sits UNDER the necklace, so there is no circle for it to stay inside — the check applies
+    // exactly where the centre is actually a centre
+    const centred = getComputedStyle(document.querySelector('.ring__centre')).position === 'absolute';
+    return { on, act, top, inside: !centred || worst <= safe, centred, worst: Math.round(worst), safe: Math.round(safe) };
+  });
+  const v0 = await voice();
+  const onePlace = v0.on.length === 1 && v0.act.length === 1 && v0.on[0] === v0.act[0] && v0.act[0] === v0.top;
+  // hovering another photograph hands it the centre
+  const other = (v0.top + 3) % 8;
+  const pt = await pg.evaluate((i) => { const r = document.querySelector(`.ring__item[data-i="${i}"]`).getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, other);
+  await pg.mouse.move(pt[0], pt[1]); await pg.waitForTimeout(500);
+  const vh = await voice();
+  const hoverSpeaks = vh.on[0] === other && vh.act[0] === other;
+  await pg.mouse.move(4, 4); await pg.waitForTimeout(400);
+  // and it advances on its own as the ring turns
+  const before = (await voice()).on[0];
+  await pg.evaluate(() => window.__di.flow.set(window.__di.flow.angle + 135));
+  await pg.waitForTimeout(600);
+  const after = await voice();
+  const turnsSpeaker = after.on[0] !== before && after.on[0] === after.act[0] && after.act[0] === after.top;
+  const voicesOk = onePlace && hoverSpeaks && turnsSpeaker && v0.inside;
+  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped && voicesOk;
   allOk = allOk && ok;
-  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, hoveredStops, othersCarryOn, scrubs, clipped, dy: deltas.map(d => +d.toFixed(1)) }));
+  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, hoveredStops, othersCarryOn, scrubs, clipped, onePlace, hoverSpeaks, turnsSpeaker, centreInside: v0.inside, dy: deltas.map(d => +d.toFixed(1)) }));
   await pg.close();
 }
 await b.close();
-if (selfTest) { const caught = !allOk; console.log(caught ? 'SELF-TEST OK: the injected overlap was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }
+if (selfTest || selfTestVoices) {
+  const caught = !allOk;
+  console.log(caught ? `SELF-TEST OK: the ${selfTestVoices ? 'unmarked speaker' : 'injected overlap'} was caught` : 'SELF-TEST FAILED: gate cannot fail');
+  process.exitCode = caught ? 0 : 1;
+}
