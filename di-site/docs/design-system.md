@@ -54,9 +54,7 @@ Violet is the one hue whose ink changes with the theme, so it goes through `--on
 
 **Colour rests on a panel; on a card it is a state.** Two surfaces carry a hue at rest and they are both structure: the hero's photograph panel and the closing field. Everywhere else the hue arrives on interaction — a card's head fills under the pointer and on focus, and the reader opens on that same hue — or it is a chip rather than a field, as on the testimonials, where the hue is on the person and not on the quote. Four coloured card heads under the hero and three coloured testimonial cards were each, in turn, the loudest thing on the page; the brief is premium first. **Where there is no hover there is no state**: under `@media (hover: none)` the card's hue is simply its resting colour, because a touch screen would otherwise never see the section's colour at all.
 
-**Two highlights, in the headline, and nowhere else.** The h1's two payload words sit in `<mark>`: **cognitive** in sky — the monogram's own colour, which is what `--accent` already resolves to at the root, and the same one `::selection` uses — and **emotional** in pink, which names its hue with `data-accent` and so picks up the right `--on-accent` automatically. Two halves of the promise, two colours. Jayden found this by accidentally selecting a word; `box-decoration-break: clone` so a highlight that wraps gets its corner on both lines. It is the only coloured type on the site.
-
-No hue as a border. No coloured dot before a label — that was removed.
+No coloured text — a `<mark>` highlight on two words of the headline was built in sky and pink and taken out again; `::selection` keeps that colour for an actual selection, which is the only place it belongs. No hue as a border. No coloured dot before a label — that was removed.
 
 | Token | Light | Dark |
 |---|---|---|

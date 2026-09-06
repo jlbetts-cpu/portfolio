@@ -25,14 +25,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* the theme swap: one short cross-fade of the whole page, not a per-property transition */
 .is-theming, .is-theming * { transition: background-color 240ms linear, border-color 240ms linear, color 240ms linear !important; }
 
-/* The highlight. Jayden selected a word in the headline by accident and asked for it as a design element, so it is the
-   colour the selection already uses — sky, the monogram's own, which is what `--accent` already resolves to at the root
-   — and it takes the ink that hue takes. A second highlight names its own hue with `data-accent`, so the two words are
-   the two halves of the promise in two colours: **cognitive** in the mark's sky, **emotional** in pink. `clone` so a
-   highlight that wraps gets its corner on both lines instead of one long slab. It belongs to the headline and nowhere
-   else: two words, and the rest of the page has no coloured type at all. */
-mark { background: var(--accent); color: var(--on-accent); padding: 0 0.1em; border-radius: var(--r-2xs); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-
 /* Type roles */
 .t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); }
 .t-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 800; color: var(--ink); }

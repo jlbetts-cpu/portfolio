@@ -101,8 +101,7 @@ testimonials. Under `@media (hover: none)` a card's hue is its resting colour: w
 state, and a touch screen would otherwise never see it. Jayden, twice: the colour must not be distracting, and the site
 is premium first.
 
-No gradients anywhere. No hue as a border. The only coloured type on the site is the headline's two `<mark>`s —
-**cognitive** in sky, **emotional** in pink — and `mark` reads `--accent`, so a second colour is one `data-accent`. A hue is never a 12px frame drawn round a photograph —
+No gradients anywhere. No hue as a border. **No coloured type at all**: there is none on the page. A hue is never a 12px frame drawn round a photograph —
 that was built once and read as a neon outline, not as a panel. Colour is spare: a panel, a card head, a field.
 
 ### 3.5 One shape for photographs
@@ -218,6 +217,9 @@ being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 - **A sticky stack of four cards, each with a different beat.** The one that behaved differently made the scroll read as
   a stumble. Four cards of one shape, in a row.
 - **A hue as a 12px frame drawn round a photograph.** It reads as a neon outline, not as a panel.
+- **Highlighted words in the headline.** A `<mark>` on "cognitive" and "emotional", in sky and pink, built because
+  Jayden liked the look of an accidental text selection — and cut the same day. `::selection` is where that colour
+  belongs, and the headline is plain type.
 - **A full-bleed band photograph** between the sections. The one built was the same room and session as a card's
   photograph, stretched out of a 1440px file.
 - **A soft mask on the hero's photographs.** The panel's edge is the crop.
