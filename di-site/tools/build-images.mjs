@@ -7,7 +7,9 @@ import path from 'node:path';
 
 const SRC = path.resolve(import.meta.dirname, '../images/src');
 const OUT = path.resolve(import.meta.dirname, '../images');
-const WIDTHS = [160, 320, 480, 960, 1440];   // 160 is for the hero shapes and the ring: a 74px circle should not pull a 320px file
+const WIDTHS = [160, 320, 480, 960, 1440, 1920]; // 160 is for the hero shapes and the ring: a 74px circle should not
+// pull a 320px file. 1920 exists for the one full-field photograph — a 1648px panel on a 2x screen wants more than 1440
+// — and is written only where the source can carry it, which is seven of the twenty-five.
 const SKIP = /^(letters|\.)/;
 // Per-photograph grading, applied on the way out so images/src keeps the untouched original. Measured, not eyeballed:
 // linda-portrait is a studio portrait on a black backdrop and 87% of its pixels sat in the bottom sixteenth of the

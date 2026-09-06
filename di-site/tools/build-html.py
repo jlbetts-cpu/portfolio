@@ -11,6 +11,7 @@ whitemark_paths=''.join(re.findall(r'<path[^>]*/>',whitemark)).replace('fill="wh
 STAMP=datetime.date.today().strftime('%Y%m%d')
 
 ALT={
+ 'bow-ties-wall':'Three performers in white shirts and bow ties strike a pose against a brick wall',
  'yellow-trousers':'A workshop participant in yellow trousers laughs mid-step on a foam-mat floor while the group watches',
  'bow-tie-chairs':'Two children in white shirts and bow ties sit on folding chairs in a scene while a third crouches towards them',
  'circle-hands':'Workshop participants reach their hands toward each other in a circle',
@@ -36,7 +37,7 @@ ALT={
  'zoom-group':'A workshop group poses on a green floor under a screen showing Linda on a video call',
  'duo-brick':'Two adults in white shirts play a scene in front of a brick wall',
 }
-POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'0% 50%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
+POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 50%','blue-shirts':'40% 50%','laugh-hat':'50% 30%','conga-line':'68% 45%','linda-laughing':'50% 30%','bow-ties-wall':'40% 45%','floor-game':'40% 60%','three-teens':'50% 45%','row-linked-arms':'50% 50%','scene-handshake':'22% 45%','linda-stage':'50% 30%','three-men':'50% 40%',
      'linda-portrait':'22% 40%','boy-fist':'50% 40%','kids-bw-small':'50% 50%','cast-stage-small':'50% 50%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
 USED=[]
@@ -66,10 +67,12 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, b
 # The hero's bento: three columns of photographs that loop with the flow, plus two tiles of pure colour.
 # Each column carries its contents twice; the second copy is aria-hidden and its first child marks the loop length.
 BSIZES='(max-width: 767px) 44vw, (max-width: 1279px) 22vw, 15vw'
+# the one full-field photograph: the container's width, which caps at --page-max minus two gutters
+SCENE_SIZES='(min-width: 1793px) 1648px, 96vw'
 # fifteen photographs and no colour blocks: there are enough pictures. No two black-and-white ones adjacent in a column.
 COLS=[
   ['yellow-trousers','blue-shirts','scene-handshake','linda-stage','circle-hands'],
-  ['boy-fist','kids-bw-small','conga-line','three-teens','laugh-hat'],
+  ['boy-fist','kids-bw-small','bow-ties-wall','three-teens','laugh-hat'],
   ['three-men','row-linked-arms','kids-running','floor-game','cast-pose'],
 ]
 def bento_item(name, hidden, first, i):
@@ -194,6 +197,14 @@ page=f'''<!DOCTYPE html>
           <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
         </div>
         <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
+        <!-- PLACEHOLDER FIGURES. 50+ is real (fifty plus years, from Linda's own copy); the zeros are the shape of a
+             number, not a claim, and must carry her real counts before this is ever published. They live in the hero
+             because the copy panel was carrying 288px of empty ground and credibility belongs above the fold. -->
+        <dl class="proof">
+          <div class="proof__item"><dt class="proof__label">Years in improvisation</dt><dd class="proof__figure">50+</dd></div>
+          <div class="proof__item"><dt class="proof__label">Schools and programs</dt><dd class="proof__figure">000</dd></div>
+          <div class="proof__item"><dt class="proof__label">Students</dt><dd class="proof__figure">0,000</dd></div>
+        </dl>
       </div>
       <div class="hero__bento" id="gallery" data-accent="gold">{bento}</div>
     </div>
@@ -201,6 +212,17 @@ page=f'''<!DOCTYPE html>
 
   <section class="briefs" id="about" aria-label="About Developmental Improvisation">
     <div class="container grid briefs__row">{briefs}</div>
+  </section>
+
+  <!-- One photograph at the size of the field. Nothing below the hero was bigger than a quarter of the page — four
+       cards and three quotes, all one size — and a row of equal tiles has no peak. It is a tile IN the field, not a
+       band across the page: the container, the field's radius, the field's gap. `conga-line` is built horizontally
+       and its source is 2048px, so a 1648px panel is sharp; it left the bento in the same move so it is not in two
+       places at once. -->
+  <section class="scene" aria-label="A session">
+    <div class="container">
+      <figure class="scene__panel photo photo--hover reveal" style="--pos:50% 30%;background-image:url({man['conga-line']['placeholder']})">{picture('conga-line', SCENE_SIZES, lazy=True, big=True)}</figure>
+    </div>
   </section>
 
   <section class="section ring" id="quote" aria-label="Quote">
@@ -217,13 +239,6 @@ page=f'''<!DOCTYPE html>
 
   <section class="voices-sec" id="voices" aria-label="Testimonials">
     <div class="container">
-      <!-- PLACEHOLDER FIGURES. 50+ is real (fifty plus years, from Linda's own copy); the zeros are the shape of the
-           number, not a claim, and must be replaced with Linda's real counts before this is ever published. -->
-      <dl class="proof reveal">
-        <div class="proof__item"><dt class="proof__label">Years in improvisation</dt><dd class="proof__figure">50+</dd></div>
-        <div class="proof__item"><dt class="proof__label">Schools and programs</dt><dd class="proof__figure">000</dd></div>
-        <div class="proof__item"><dt class="proof__label">Students</dt><dd class="proof__figure">0,000</dd></div>
-      </dl>
       <ul class="voices grid reveal--stagger">{pile}</ul>
     </div>
   </section>
@@ -242,6 +257,10 @@ page=f'''<!DOCTYPE html>
         <p class="label">Contact</p>
         <a href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov@gmail.com</a>
         <a href="tel:+18573523221"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(857) 352-3221</a>
+        <!-- the page's second way in. Everything else here points at a newsletter; a teacher who wants this in their
+             classroom had nowhere to go. No new address and no form to build — the one already on the page, with the
+             subject written for them. -->
+        <a class="btn btn--secondary close__ask" href="mailto:developmentalimprov@gmail.com?subject=Bringing%20Developmental%20Improvisation%20to%20our%20school">Bring this to your school</a>
       </div>
       <div class="close__foot">
         <p class="close__copy">© 2026 Developmental Improvisation</p>

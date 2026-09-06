@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v17 (2026-09-06) — a peak below the hero, proof above the fold, and a second way in
+*"the rating went down on pure design… what can we do to make it 10 across the board?"* Design had not moved — it held at ~9 through the film arriving and leaving; what moved was Creativity, the 20% slice the film was carrying. Content is capped without Linda (three lorem quotes, three placeholder figures, a Subscribe button pointing at nothing). The other **90% is ours**, so it was measured rather than described.
+
+**Nothing below the hero was big.** Four cards and three quotes, every one a quarter of the page. The band that was rejected two rounds ago was rejected for resolution — and that objection is dead: **17 of 25 photographs have a 1440 source and seven have 2048–2592 originals.** The pipeline writes a **1920** tier where the source can carry it, and one photograph now runs the full twelve columns between the cards and the ring. It is a **tile in the field, not a band across the page** — same container, same radius, same gap — which is the difference that matters. `conga-line` is built horizontally and **left the bento in the same move** so it is not in two places; `bow-ties-wall`, unused until now, took its tile. The crop was set by looking: at `50% 44%` it took the top off the fourth performer's head, and `50% 30%` keeps all six.
+
+**The hero's copy panel was carrying 288px of nothing** — 144px above and below a centred block, 36% of its height. The three figures moved into it under a hairline. Credibility above the fold, and the air is 84px now, which is generous rather than dead. On a phone a third of that panel is 91px and IMPROVISATION is 105px, so three columns ran a label over the next figure; below 600 it is one per line with the figure beside its label — 122px tall against the 200px that stacking them as blocks would have cost.
+
+**And the site routed nobody.** The nav is two same-page anchors and every action on the page was the newsletter. “Bring this to your school” sits under the contact links: a `mailto` on the address already there, with the subject written for them. No new address, no form, and it fills a column that was three lines in a 500px space.
+
+**Measured after v17.** 44 gate lines pass, six self-tests are caught. No overflow at 320/360/390. Worst contrast 4.82:1 light / 5.28:1 dark.
+
 ## v16 (2026-09-06) — the film comes out
 *"i dont think i like the video section at all i think we should take it out."* Out — the section, the CSS, the script, the two encodes, the poster, the pause/play icons and `film.mjs`. Nothing that was only there to serve it survives; it is all in v15's commit if it is ever wanted back.
 

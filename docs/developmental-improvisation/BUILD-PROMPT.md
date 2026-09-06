@@ -211,7 +211,7 @@ phone menu) · `.dialog` (the newsletter popup) · `.lightbox`. Every one of the
 ## 6. Photography
 25 photographs. Factual `alt` on each, explicit dimensions, `loading="lazy"` except the hero and the first five gallery cards,
 `object-position` per photograph via `--pos`, a blurred 24px placeholder as the background. AVIF/WebP/JPEG at
-**160/320/480/960** on the page and 1440 in the lightbox — the 160 exists because a 76px circle should not pull a 320px file.
+**160/320/480/960** on the page, 1440 in the lightbox and **1920** for the one full-field photograph — the 160 exists because a 76px circle should not pull a 320px file, and the 1920 because a 1648px panel on a 2x screen wants more than 1440. It is written only where the source can carry it, which is seven of the twenty-five.
 Every photograph opens in the lightbox. Two rules learned the hard way: **a photograph inside a circle must have its subject at
 the centre and no dark ground** (linda-portrait and kids-bw-small read as black discs and were pulled), and **the hero's
 photograph is not in the gallery** — it sits 300px above it.
