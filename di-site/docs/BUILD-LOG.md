@@ -7,6 +7,8 @@ Three asks. **"the font needs a change it doesnt really match the font of the lo
 
 **"the footer is a bit too crazy strong in dark mode."** True — a full-strength sky across a page-wide panel is a floodlight on a near-black ground. The field is the raised panel now and **the sky is on the sign-up card inside it**, which is the thing you are meant to act on. The same move the testimonials made two rounds ago, and it makes the rule uniform: colour rests on a panel, and the panel is the size of the thing it is naming.
 
+**And the cards lost their chips.** *"i dont like these little pills on the top… make the headers make sense and everything will make sense."* Right: a number and a topic in two pills above a title that already said the same thing. Gone, and `.chip` with them — nothing else used it. A card is a title, a summary, a picture and one control.
+
 **Measured after v13.** 44 gate lines pass. Worst contrast 5.44:1 light / 5.28:1 dark.
 
 ## v12 (2026-09-06) — one bento field, four clickable cards, and a pastel light theme

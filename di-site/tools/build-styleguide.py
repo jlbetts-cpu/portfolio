@@ -16,7 +16,7 @@ HUES=[('sky','#58CDFC'),('gold','#FFE469'),('magenta','#E744E2'),('violet','#735
 hues=''.join(f'<div class="sw" data-accent="{n}"><div class="sw__chip" style="background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:11px;font-weight:600">Aa</div><div class="sw__meta"><b>{n}</b> <code>{h}</code><br>ink <code>--on-accent</code></div></div>' for n,h in HUES)
 def neutral(tok, hexv, note):
     return f'<div class="sw"><div class="sw__chip" style="background:var({tok});border:1px solid var(--line)"></div><div class="sw__meta"><b>{tok[2:]}</b><br><code>{hexv}</code><br><span>{note}</span></div></div>'
-neutrals=''.join([neutral('--bg','#F7F5F0','the ground'),neutral('--bg-raised','#FFFFFF','cards'),neutral('--bg-sunken','#EFECE5','wells, empty photo frames'),neutral('--ink','#1B1916','headings, first paragraphs, the mark'),neutral('--ink-2','#514C45','body · 7.8:1'),neutral('--ink-3','#736D64','captions · 4.7:1'),neutral('--line','10% ink','hairlines')])
+neutrals=''.join([neutral('--bg','#FBFAF7','the ground'),neutral('--bg-raised','#F0ECE3','cards and panels'),neutral('--bg-sunken','#E5E0D5','wells, empty photo frames'),neutral('--ink','#1B1916','headings, first paragraphs, the mark'),neutral('--ink-2','#514C45','body · 7.8:1'),neutral('--ink-3','#6C665D','captions · 4.9:1'),neutral('--line','12% ink','hairlines')])
 TINTS=['sky','gold','magenta','violet','orange','green','pink','yellow']
 tints=''.join(f'<div class="card card--solid" data-accent="{a}" style="min-height:110px"><p class="t-small" style="font-weight:600">{a}</p></div>' for a in TINTS)
 RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
@@ -24,7 +24,6 @@ mini=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--ci
 BRIEF=[('01','The method','violet','kids-dancing'),('02','In the room','orange','two-lines'),('03','The idea','green','circle-hands'),('04','The founder','pink','linda-portrait')]
 def briefcard(num,chip,acc,ph):
     return (f'<article class="brief" data-accent="{acc}"><div class="brief__head">'
-            f'<p class="brief__chips"><span class="chip">{num}</span><span class="chip">{chip}</span></p>'
             f'<h3 class="brief__title">A title of two lines</h3>'
             f'<p class="brief__sum">Two lines of summary; the reader carries the rest.</p></div>'
             f'<div class="brief__figure"><figure class="photo photo--4x5">{pic(ph,"260px")}</figure>'
@@ -113,7 +112,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <p class="t-body">Two things carry the photographs, on one shared angle. <b>The hero's bento</b>: three columns of 4:5 photographs looping vertically inside a colour panel that clips them, adjacent columns opposed, at three speeds. <b>The ring</b> (the quote): eight circles on a circle, upright, turning with the flow; hover one to stop it.</p>
 <div class="demo ring mini-ring" style="margin-top:var(--sp-4);padding:0"><div class="ring__stage"><div class="ring__orbit">{mini}</div><div class="ring__centre"><p class="ring__text" style="font-size:var(--fs-h3)">“Creativity in motion creates knowledge!”</p></div></div></div>
 <h2 class="t-h2" id="briefs">The four cards</h2>
-<p class="t-body">One row of the field: four identical objects, three columns each. The head carries two chips, the title and a two-line summary; the photograph sits under it and <b>slips --slip 20px up over it</b>. The card is quiet at rest and <b>the whole card fills with its hue under the pointer and on keyboard focus</b> — hover one — the control arrives with it, and the reader opens on that same hue. Where there is no hover (a touch screen) the hue is the resting state.</p>
+<p class="t-body">One row of the field: four identical objects, three columns each. The head carries the title and a two-line summary; the photograph sits under it and <b>slips --slip 20px up over it</b>. The card is quiet at rest and <b>the whole card fills with its hue under the pointer and on keyboard focus</b> — hover one — the control arrives with it, and the reader opens on that same hue. Where there is no hover (a touch screen) the hue is the resting state.</p>
 <div class="grid briefs__row" style="margin-top:var(--sp-4)">{briefs}</div>
 <h2 class="t-h2" id="pile">Testimonials</h2>
 <p class="t-body">Three cards, each a full-strength hue: the quote mark, the quote, and the person in a nested white card that overhangs the bottom-left corner. One column on a phone.</p>

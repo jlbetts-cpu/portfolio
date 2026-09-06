@@ -119,11 +119,10 @@ BRIEFS=[
   'Educator Linda Kellogg Fulton created Developmental Improvisation out of fifty plus years working in improvisation.',
   [P[1]],'linda-portrait'),
 ]
-def brief(num, chip, accent, title, summary, paras, photo_name):
+def brief(num, chip, accent, title, summary, paras, photo_name):   # chip: kept in the data, not drawn — the title says it
     full=''.join(f'<p class="t-body">{p}</p>' for p in paras)
     return (f'<article class="brief reveal" data-accent="{accent}" aria-labelledby="brief-{num}">'
             f'<div class="brief__head">'
-            f'<p class="brief__chips"><span class="chip">{num}</span><span class="chip">{chip}</span></p>'
             f'<h2 class="brief__title" id="brief-{num}">{title}</h2>'
             f'<p class="brief__sum">{summary}</p></div>'
             f'<div class="brief__figure">{photo(photo_name, "4x5", BS, hover=True, button=False)}'
@@ -260,7 +259,7 @@ page=f'''<!DOCTYPE html>
 
 <dialog class="dialog reader" id="reader" aria-labelledby="readerTitle">
   <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
-  <div class="reader__head"><p class="reader__chips"></p><h2 class="reader__title" id="readerTitle" tabindex="-1"></h2></div>
+  <div class="reader__head"><h2 class="reader__title" id="readerTitle" tabindex="-1"></h2></div>
   <div class="reader__prose"></div>
 </dialog>
 

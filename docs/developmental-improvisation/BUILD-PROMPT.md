@@ -164,7 +164,7 @@ column of ten tiles once made the row 3197px tall. The hero does **not** claim `
 fold or the field reads as two pages.
 
 **2. The four cards.** One row, four identical objects, three columns each (two up, then one, as the grid narrows). Each
-carries a head with two chips, the title and a two-line summary; the photograph below; one control, and the WHOLE card fills
+carries a head with the title and a two-line summary; the photograph below; one control, and the WHOLE card fills
 with its hue under the pointer and on focus — head and ground together; filling only the head leaves a seam at the
 photograph's top edge. The ink rebind stays on the head, or the control inherits it and renders as a blob. Two say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is. The
 photograph **slips `--slip` 20px up out of its box and over the colour** — the one place a panel's contents cross an
@@ -228,6 +228,7 @@ being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 - **Highlighted words in the headline.** A `<mark>` on "cognitive" and "emotional", in sky and pink, built because
   Jayden liked the look of an accidental text selection — and cut the same day. `::selection` is where that colour
   belongs, and the headline is plain type.
+- **Chips above a card's title.** A number and a topic in two pills, saying what the title already said.
 - **A full-bleed band photograph** between the sections. The one built was the same room and session as a card's
   photograph, stretched out of a 1440px file.
 - **A soft mask on the hero's photographs.** The panel's edge is the crop.

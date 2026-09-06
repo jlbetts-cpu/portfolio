@@ -215,7 +215,7 @@
      card is the trigger — the button inside it is the keyboard route and its click bubbles up to the same handler. ---- */
   const reader = $('#reader');
   if (reader) {
-    const chips = $('.reader__chips', reader), title = $('.reader__title', reader), prose = $('.reader__prose', reader);
+    const title = $('.reader__title', reader), prose = $('.reader__prose', reader);
     let from = null;
     $$('.brief').forEach(card => card.addEventListener('click', () => {
       // a card is a big click target wrapped around selectable text: a drag-select ends in a click on the card,
@@ -223,7 +223,6 @@
       if (reader.open || String(getSelection() || '').length) return;
       from = $('.brief__more', card) || card;
       reader.dataset.accent = card.dataset.accent || '';
-      chips.innerHTML = $('.brief__chips', card).innerHTML;
       title.textContent = $('.brief__title', card).textContent;
       prose.innerHTML = $('.brief__full', card).innerHTML;
       prose.scrollTop = 0;
