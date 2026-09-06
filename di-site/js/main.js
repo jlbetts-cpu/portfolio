@@ -224,27 +224,6 @@
     lb.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 48) show(index + (dx < 0 ? 1 : -1)); }, { passive: true });
   }
 
-  /* ---- The film: one loop, and it only runs while you can see it ----
-     preload="none" plus a poster means the 325KB never leaves the server unless the panel comes into view; the
-     observer starts it there and pauses it the moment it leaves, so a page left open in a tab is not decoding video
-     forever. Under reduced motion it never starts by itself — the poster stands, and the control is how you play it. */
-  const film = $('.film__panel');
-  if (film) {
-    const vid = $('.film__video', film), btn = $('[data-film-toggle]', film);
-    const calm = matchMedia('(prefers-reduced-motion: reduce)');
-    let wanted = !calm.matches;                 // what the VIEWER wants; visibility decides the rest
-    const paint = () => { film.classList.toggle('is-paused', !wanted); btn.setAttribute('aria-label', wanted ? 'Pause the film' : 'Play the film'); };
-    const run = (visible) => {
-      if (visible && wanted) { if (vid.preload === 'none') vid.preload = 'auto'; vid.play().catch(() => {}); }
-      else vid.pause();
-    };
-    let seen = false;
-    new IntersectionObserver((es) => { for (const e of es) { seen = e.isIntersecting; run(seen); } }, { threshold: 0.25 }).observe(film);
-    btn.addEventListener('click', () => { wanted = !wanted; paint(); run(seen); });
-    calm.addEventListener?.('change', (e) => { wanted = !e.matches; paint(); run(seen); });
-    paint();
-  }
-
   /* ---- Reveal on scroll, once ----
      ONCE means the class comes off. `.js .reveal` declares `transition: opacity/transform var(--dur-reveal)` plus the
      stagger's transition-delay, and it outranks a component's own rule — so every card kept the arrival's timing for

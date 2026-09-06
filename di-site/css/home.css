@@ -121,34 +121,10 @@
   .brief:hover .brief__more, .brief:hover .brief__arrow { transition-delay: 0s; }
 }
 
-/* ---------- The one moving picture ----------
-   Improvisation only exists in motion, and every other image on the page is a frozen frame of it. This is the same
-   content unfrozen, and it is the only element below the hero that is allowed to be big — the row of cards and the row
-   of quotes are all one size, which is what made the lower page read flat. It stays INSIDE the field: twelve columns,
-   the field's radius, the field's gap. A band across the page was tried and rejected, and it would break the one
-   structural rule the page has.
-   The source carried a baked-in template frame — a near-white border with the picture inset — which rendered as a
-   white slab on the dark page; the encode is cropped past it to the 852x380 picture. That number is also the panel's
-   ceiling: 1000px is a 1.17x stretch, and anything wider turns 20fps handheld footage to mush. */
-.film { padding-top: var(--grid-gap); }
-.film__panel { position: relative; margin: 0 auto; max-width: 1000px; border-radius: var(--r-xl); overflow: hidden; background: var(--bg-sunken); aspect-ratio: 852 / 380; }
-.film__video { display: block; width: 100%; height: 100%; object-fit: cover; }
-/* an autoplaying loop longer than five seconds needs a way to stop it — that is WCAG 2.2.2, not a nicety */
-.film__toggle { position: absolute; right: var(--sp-5); bottom: var(--sp-5); width: var(--hit); height: var(--hit); display: inline-grid; place-items: center; border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line);
-  transition: transform var(--dur-press) var(--ease-out), background-color var(--t) var(--ease-out); }
-.film__toggle:hover { background: var(--bg-raised); }
-.film__toggle:active { transform: scale(.92); }
-.film__toggle .icon { width: 18px; height: 18px; }
-.film__toggle .icon--play { display: none; }
-.film__panel.is-paused .film__toggle .icon--play { display: block; }
-.film__panel.is-paused .film__toggle .icon--pause { display: none; }
-/* on a phone 2.29:1 is a 170px strip. The picture takes a share of the screen instead and crops its own sides. */
-@media (max-width: 767px) { .film__panel { aspect-ratio: 3 / 2; } .film__toggle { right: var(--sp-4); bottom: var(--sp-4); } }
-
 /* ---------- Proof ----------
    Three figures at the head of the testimonials: the page said what the method is and who made it, and nothing at all
-   about whether it has ever been used. The figures are the biggest type below the hero after the film, which is the
-   point — a number is only proof if you can read it from across the room. */
+   about whether it has ever been used. The figures are the biggest type below the hero, which is the point — a number
+   is only proof if you can read it from across the room. */
 .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--grid-gap); margin: 0 0 var(--grid-gap); padding: var(--card-pad); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); }
 .proof__item { display: grid; gap: var(--sp-2); }
 .proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(2.25rem, 4.6vw, 4.5rem); line-height: .96; letter-spacing: -0.04em; font-weight: 800; color: var(--ink); }

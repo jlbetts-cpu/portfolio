@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v16 (2026-09-06) — the film comes out
+*"i dont think i like the video section at all i think we should take it out."* Out — the section, the CSS, the script, the two encodes, the poster, the pause/play icons and `film.mjs`. Nothing that was only there to serve it survives; it is all in v15's commit if it is ever wanted back.
+
+He is right, and the reason is the one I flagged when I shipped it: **the footage is an adult workshop in a Chinese-language venue** and the site is about American classrooms and children. A signature moment has to be the truest thing on the page, and that clip was the least true one — a picture of a different programme, sitting in the middle of a page that had just spent four cards saying what this one is. Two of the three clips were unusable anyway (pre-cut on a template with a wax-seal envelope and a scrapbook frame), and the third only had thirty clean seconds in it.
+
+What the removal costs, honestly: the page has **no signature moment** again, and nothing below the hero is big. Those are still the two things between this and a 10, and neither is fixable with the assets that exist. What it does NOT cost is the round's other work — **the proof row stays**, and it is now the biggest type below the hero on its own.
+
+**Measured after v16.** Back to 44 gate lines and six self-tests. First load 424KB desktop / 367KB phone. Worst contrast 4.82:1 light / 5.28:1 dark.
+
 ## v15 (2026-09-06) — the one moving picture, and three figures
 Jayden asked what would take the site from a 9 to a 10, and to research it rather than assert it. The awards weight **Design 40% · Usability 30% · Creativity 20% · Content 10%**, and 8.0 is the Site of the Day line. Scored honestly on that, DI was Design ~9, Usability ~9, **Creativity ~6.5, Content ~4** — a weighted 8.0, with the two smallest-weighted criteria doing all the damage. The most-repeated finding across the winners: **one signature moment, not twenty effects.**
 

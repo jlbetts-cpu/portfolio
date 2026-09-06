@@ -201,22 +201,6 @@ page=f'''<!DOCTYPE html>
     <div class="container grid briefs__row">{briefs}</div>
   </section>
 
-  <!-- The one moving picture. Improvisation only exists in motion and every other image on this page is a frozen
-       frame of it; this is the same content unfrozen. It stays inside the bento field — twelve columns, the field's
-       radius, the field's gap — so it reads as the biggest tile, not as a band across the page. -->
-  <section class="film" id="film" aria-label="A session">
-    <div class="container">
-      <figure class="film__panel reveal">
-        <video class="film__video" muted loop playsinline preload="none" poster="images/session-loop-poster.jpg"
-               aria-label="A workshop in progress: two participants play a scene in the middle of the room while the group watches from the wall">
-          <source src="images/session-loop.webm" type="video/webm">
-          <source src="images/session-loop.mp4" type="video/mp4">
-        </video>
-        <button class="film__toggle" type="button" data-film-toggle aria-label="Pause the film"><svg class="icon icon--pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="icon icon--play" aria-hidden="true"><use href="#i-play"/></svg></button>
-      </figure>
-    </div>
-  </section>
-
   <section class="section ring" id="quote" aria-label="Quote">
     <div class="container">
       <div class="ring__stage reveal--parts">
