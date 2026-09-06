@@ -126,27 +126,49 @@
 
   /* ---- The hero's bento: columns of photographs looping vertically with the flow, in alternating directions ----
      Each column holds its contents twice; [data-mid] is the first child of the second copy, so its offsetTop is the
-     loop length. Every tile has an intrinsic ratio, so that length is stable before the images load. */
+     loop length. Every tile has an intrinsic ratio, so that length is stable before the images load.
+
+     The column under the pointer HOLDS STILL and takes the wheel — you can scrub one column up and down by hand while
+     the other two carry on with the flow. It freezes at the angle it was on and keeps its own offset, so letting go
+     never jumps. The wheel is only taken back from the page while the scrub is small: a determined scroll past the
+     hero (480px in one direction) gives the page back rather than trapping it, and a coarse pointer never has any of
+     this — there is no hover to start it and a scroll trap on a phone is just a broken page. */
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
   $$('[data-bento]').forEach(col => {
     const dir = +col.dataset.bento || 1;
     const speed = parseFloat(getComputedStyle(col).getPropertyValue('--speed')) || 1;
     const mid = $('[data-mid]', col);
-    let half = 0, pxPerDeg = 5;
+    let half = 0, pxPerDeg = 5, held = false, frozen = 0, offset = 0;
+    const k = () => pxPerDeg * speed;
     const measure = () => { half = mid ? mid.offsetTop : col.scrollHeight / 2; pxPerDeg = num(getComputedStyle(root), '--bento-px', 5); };
     measure(); addEventListener('resize', measure);
     const place = () => {
       if (!half) return;
-      const pos = flow.angle * pxPerDeg * speed;
+      const pos = (held ? frozen : flow.angle) * k() + offset;
       const y = ((pos % half) + half) % half;
       col.style.transform = `translate3d(0, ${(dir > 0 ? -y : y - half).toFixed(2)}px, 0)`;
     };
     flow.on(place);
+    if (!fine.matches) return;
+    col.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse') return; frozen = flow.angle; held = true; });
+    col.addEventListener('pointerleave', () => { if (!held) return; offset -= (flow.angle - frozen) * k(); held = false; place(); });
+    let run = 0, lastWheel = 0;
+    col.addEventListener('wheel', (e) => {
+      if (!held) return;
+      const now = performance.now();
+      if (now - lastWheel > 500 || (run && Math.sign(e.deltaY) !== Math.sign(run))) run = 0;
+      lastWheel = now; run += e.deltaY;
+      if (Math.abs(run) > 480) return;          // the escape hatch: the page gets the rest of this gesture
+      e.preventDefault();
+      offset += e.deltaY * (dir > 0 ? 1 : -1);
+      place();
+    }, { passive: false });
   });
   const bento = $('.hero__bento');
   if (bento) {
     flow.watch(bento);
-    bento.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') flow.hold(bento, true); });
-    bento.addEventListener('pointerleave', () => flow.hold(bento, false));
+    // touch has no hover, so the whole panel still holds for a few seconds after a tap — that is what makes a
+    // photograph tappable at all while the strip is moving
     let bentoTouch;
     bento.addEventListener('touchstart', () => { flow.hold(bento, true); clearTimeout(bentoTouch); bentoTouch = setTimeout(() => flow.hold(bento, false), 4000); }, { passive: true });
   }
@@ -202,9 +224,19 @@
     lb.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 48) show(index + (dx < 0 ? 1 : -1)); }, { passive: true });
   }
 
-  /* ---- Reveal on scroll, once ---- */
+  /* ---- Reveal on scroll, once ----
+     ONCE means the class comes off. `.js .reveal` declares `transition: opacity/transform var(--dur-reveal)` plus the
+     stagger's transition-delay, and it outranks a component's own rule — so every card kept the arrival's timing for
+     the rest of the session: the fourth card's hover lifted over 360ms after a 180ms delay, and its hue, which the
+     reveal's shorthand does not list, never faded at all. The arrival is over the moment it lands; the element gets
+     its own motion back. */
+  const settle = (el) => {
+    const cs = getComputedStyle(el);
+    const ms = (v) => (parseFloat(v) || 0) * (/ms/.test(v) ? 1 : 1000);
+    setTimeout(() => { el.classList.remove('reveal'); el.style.removeProperty('--d'); }, ms(cs.transitionDuration) + ms(cs.transitionDelay) + 60);
+  };
   const io = new IntersectionObserver((entries) => {
-    for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+    for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); if (en.target.classList.contains('reveal')) settle(en.target); }
   }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' });
   $$('.reveal, .reveal--parts').forEach(el => io.observe(el));
   $$('.reveal--stagger').forEach(p => $$(':scope > .reveal', p).forEach((c, i) => c.style.setProperty('--d', Math.min(i, 6))));
@@ -239,11 +271,11 @@
   const sheet = $('#menuSheet');
   const menuBtn = $('[data-open-menu]');
   if (sheet && menuBtn) {
-    const open = () => { sheet.showModal(); menuBtn.textContent = 'Close'; menuBtn.setAttribute('aria-expanded', 'true'); };
+    const open = () => { sheet.showModal(); menuBtn.setAttribute('aria-expanded', 'true'); menuBtn.setAttribute('aria-label', 'Close menu'); };
     const close = () => { sheet.close(); };
     menuBtn.addEventListener('click', () => sheet.open ? close() : open());
     $('[data-close-menu]', sheet).addEventListener('click', close);
-    sheet.addEventListener('close', () => { menuBtn.textContent = 'Menu'; menuBtn.setAttribute('aria-expanded', 'false'); });
+    sheet.addEventListener('close', () => { menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.setAttribute('aria-label', 'Menu'); });
     sheet.addEventListener('click', (e) => { if (e.target === sheet) close(); });
     $$('a', sheet).forEach(a => a.addEventListener('click', close));
   }

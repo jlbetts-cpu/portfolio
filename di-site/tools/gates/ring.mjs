@@ -1,7 +1,8 @@
 // Gate: the quote ring and the hero's bento. Ring, across a full slot step at three viewports: no photograph pixel under the
 // quote's text, no photograph on photograph, every item inside the stage, hover eases the drift to a stop and leaving resumes it,
 // scrolling turns it faster than the drift. Bento: every column moves, adjacent columns move in opposite directions, no column
-// runs past its own loop length, the pointer stops all of them, and the panel clips columns that overrun it.
+// runs past its own loop length, the pointer stops THE COLUMN IT IS OVER while the others carry on (and the wheel
+// scrubs that one by hand), and the panel clips columns that overrun it.
 // --self-test: sets --ring-r to 90 and expects the photo-on-photo check to fail at 1440×900.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -73,12 +74,27 @@ for (const [w, h] of VP) {
   // the loop length: no column may be translated further than its own half, in either direction
   const lengths = await pg.evaluate(() => [...document.querySelectorAll('[data-bento]')].map(c => { const m = c.querySelector('[data-mid]'); return m ? m.offsetTop : 0; }));
   const wrapped = y1.every((v, i) => Math.abs(v) <= lengths[i] + 1);
-  const bb = await pg.evaluate(() => { const r = document.querySelector('.hero__bento').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
-  // the hold eases the drift out over ~0.18s and the angle is still 0.32s behind its target, so the columns coast
-  // for about a second after the pointer arrives; sample after that, not during it
-  await pg.mouse.move(bb[0], bb[1]); await pg.waitForTimeout(1500);
-  const b0 = await colY(); await pg.waitForTimeout(500); const b1 = await colY();
-  const bentoStops = b1.every((v, i) => Math.abs(v - b0[i]) < 0.6);
+  // park the pointer in the middle of the FIRST column: that one must stop dead and the others must keep going.
+  // The hold is instant now (the column freezes at the angle it was on), so there is no coast to wait out.
+  // the column's own rect is NOT the place to aim: a column is four times the panel's height and is translated
+  // upward, so its top edge sits above the viewport and `top + 60` lands on the fixed header. Take x from the
+  // column and y from the PANEL — the only band where the two actually overlap.
+  const c0 = await pg.evaluate(() => {
+    const r = document.querySelectorAll('[data-bento]')[0].getBoundingClientRect();
+    const p = document.querySelector('.hero__bento').getBoundingClientRect();
+    return [r.x + r.width / 2, p.y + p.height / 2];
+  });
+  await pg.mouse.move(c0[0], c0[1]); await pg.waitForTimeout(400);
+  const onCol = await pg.evaluate(([x, y]) => !!(document.elementFromPoint(x, y) || {}).closest?.('[data-bento]'), c0);
+  const b0 = await colY(); await pg.waitForTimeout(600); const b1 = await colY();
+  const hoveredStops = onCol && Math.abs(b1[0] - b0[0]) < 0.6;
+  const othersCarryOn = b1.slice(1).some((v, i) => Math.abs(v - b0[i + 1]) > 1);
+  // and the wheel scrubs the held column by hand. 120px of wheel must move it far past what the drift could have
+  // done in the same 250ms (~5px) — otherwise this passes on a column that never held at all.
+  const w0 = (await colY())[0];
+  await pg.mouse.wheel(0, 120); await pg.waitForTimeout(250);
+  const scrubs = Math.abs((await colY())[0] - w0) > 60;
+  const bentoStops = hoveredStops && othersCarryOn && scrubs;
   await pg.mouse.move(4, 4); await pg.waitForTimeout(700);
   // the panel's own edge is the crop now (the soft mask was removed): the panel must clip, and a column must actually
   // overrun it — a column that fits inside the panel would never be cropped and the loop would visibly jump
@@ -90,7 +106,7 @@ for (const [w, h] of VP) {
   });
   const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped;
   allOk = allOk && ok;
-  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, bentoStops, clipped, dy: deltas.map(d => +d.toFixed(1)) }));
+  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, hoveredStops, othersCarryOn, scrubs, clipped, dy: deltas.map(d => +d.toFixed(1)) }));
   await pg.close();
 }
 await b.close();

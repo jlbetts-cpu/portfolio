@@ -122,9 +122,19 @@ used consistently. (Four shapes were tried — capsule, circle, rounded rectangl
 `js/main.js` keeps one angle, **the flow**: a drift of `--flow-drift` 3.75°/s plus `--flow-scroll` 0.06° per pixel scrolled,
 eased toward its target with a time constant of `--flow-settle` 0.32s. The gallery moves 6px per degree; the ring places eight
 photographs at the angle plus 45° each, upright. A photograph under the pointer eases the drift to a stop; when neither the
-gallery nor the ring is on screen the flow holds and scroll deltas are dropped, so nothing whooshes on arrival. Everything else
-takes a rung of the duration ladder (100/160/240/280/360/500ms). Only `transform` and `opacity` animate. Under
+gallery nor the ring is on screen the flow holds and scroll deltas are dropped, so nothing whooshes on arrival. **A bento
+column under the pointer freezes on its own and the wheel scrubs it by hand** while the others carry on; the offset it gains
+survives the pointer leaving, 480px of wheel hands the gesture back to the page, and a coarse pointer has none of it.
+Everything else takes a rung of the duration ladder (100/160/240/280/360/500ms). Only `transform` and `opacity` animate. Under
 `prefers-reduced-motion` the drift and the coupling are zero and the stack does not scale.
+
+**How every interactive surface answers.** A state arrives in `--dur-state` and leaves in `--dur-state-out` — fast in, slow
+out. The asymmetry rides on `--t`, declared at `:root` and flipped by one `:where(...):hover` list, so a component writes
+`var(--t)` and never a number. A press is always `--dur-press` and is never slowed by it: `transition-duration` on `:hover`
+also catches the transform, and a press only ever happens while hovered, so that idiom silently kills the press rung. Every
+control has a press. **And the reveal class must come off once an element has landed** — `.js .reveal` carries the arrival's
+360ms and its stagger delay and outranks a component's own rule, so leaving it on gives every card a delayed, slow hover and
+a hue that never fades at all.
 
 ### 3.6b Themes
 **Dark is the default**; light is the visitor's choice, applied before first paint from `localStorage` so there is no
@@ -211,10 +221,11 @@ Only sentences from the old site, and only the ones the page needs. Labels may b
 lorem with `data-placeholder="true"`. The `copy` gate fails on any other string — including a plausible one-word link label.
 
 ## 8. Gates
-`di-site/tools/gates/run-all.sh`, serially, 37 lines: layout (overflow, headline lines, the column, equal card widths) ·
-targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the bento) · lightbox ·
-dialog · curtain · a11y. Three self-tests: `ring.mjs` shrinks the ring, `contrast.mjs` paints the ink onto the ground, and
-`curtain.mjs` pins the curtain in place — each must fail. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
+`di-site/tools/gates/run-all.sh`, serially, 44 lines: layout (overflow, headline lines, the column, equal card widths) ·
+targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the bento) · reader · nav ·
+lightbox · dialog · curtain · a11y. Six self-tests, each of which must fail: `ring.mjs` shrinks the ring, `contrast.mjs`
+paints the ink onto the ground, `curtain.mjs` pins the curtain in place, `reader.mjs` breaks the reader's copy, `nav.mjs`
+freezes the header, and `motion.mjs` puts a settled element's `reveal` class back. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
 being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 
 ## 9. Tried and rejected — do not propose these again

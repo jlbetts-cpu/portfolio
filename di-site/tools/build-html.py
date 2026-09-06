@@ -179,7 +179,7 @@ page=f'''<!DOCTYPE html>
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
     <div class="nav__panel">
       <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
-      <button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="btn btn--ghost btn--compact nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet">Menu</button></div>
+      <button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   </div>
 </header>
 
@@ -270,7 +270,7 @@ page=f'''<!DOCTYPE html>
 </div>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">
-  <div class="sheet__head"><svg class="mark" style="width:28px;height:30px;color:var(--ink)" aria-hidden="true"><use href="#mark"/></svg><button class="btn btn--ghost btn--compact" type="button" data-close-menu>Close</button></div>
+  <div class="sheet__head"><button class="sheet__close" type="button" data-close-menu aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <nav class="sheet__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
   <button class="btn btn--primary" type="button" data-open-dialog data-close-menu>Subscribe</button>
 </dialog>

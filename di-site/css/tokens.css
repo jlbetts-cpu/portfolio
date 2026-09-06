@@ -98,6 +98,10 @@
   --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
 
   /* Motion ladder */
+  /* --t is the hover asymmetry: every interactive surface transitions on it, and :hover flips it to --dur-state.
+     Declared at the root so the var can never fail to resolve — an unresolvable var() in a shorthand kills the whole
+     `transition`, and a control that silently stops animating is invisible until someone looks. */
+  --t: var(--dur-state-out);
   --dur-press: 100ms;
   --dur-state: 160ms;
   --dur-state-out: 240ms;

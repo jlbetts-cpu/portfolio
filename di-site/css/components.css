@@ -1,8 +1,17 @@
 /* Components. One class per component; every colour comes from a token; every corner is a superellipse. */
 
+/* ---- How every interactive surface answers ----
+   One shape for all of them, so a pointer crossing the page never meets two different tempos. A state ARRIVES in
+   --dur-state and LEAVES in --dur-state-out: fast in, slow out, because a hover that snaps back reads as a glitch
+   while a hover that arrives late reads as lag. --t carries that asymmetry; a press keeps its own rung (--dur-press)
+   and is never slowed by it. That last part was a real bug: `.btn:hover { transition-duration: var(--dur-state) }`
+   also caught the transform, and since a press only ever happens while hovered, the press rung was dead on every
+   button on the page. */
+:where(.btn, .arrow, .theme, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
+  .input, .brief, .brief__more, .bento__col .photo, .ring__item .photo, .close__reach a):hover { --t: var(--dur-state); }
+
 /* Buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-sm); font-size: var(--fs-ui); font-weight: 600; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--dur-state-out) var(--ease-out), border-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out), transform var(--dur-press) ease-out; }
-.btn:hover { transition-duration: var(--dur-state); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-sm); font-size: var(--fs-ui); font-weight: 600; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .btn:active { transform: scale(.97); }
 .btn--primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
 .btn--primary:hover { background: color-mix(in srgb, var(--btn-primary-bg) 90%, var(--btn-primary-ink)); }
@@ -17,15 +26,16 @@
 .btn--secondary[aria-busy="true"]::after { border-color: var(--ink); border-right-color: transparent; }
 
 /* Round arrow buttons (the gallery) */
-.arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) ease-out, background-color var(--dur-state) var(--ease-out); }
+.arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) var(--ease-out), background-color var(--t) var(--ease-out); }
 .arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); }
 .arrow:active { transform: scale(.94); }
 .arrow .icon { width: 18px; height: 18px; }
 .arrows { display: flex; gap: var(--sp-2); }
 
 /* The theme toggle: moon on the light ground, sun on the dark */
-.theme { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
+.theme { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .theme:hover { color: var(--ink); background: var(--bg-raised); }
+.theme:active { transform: scale(.94); }
 .theme .icon { width: 20px; height: 20px; }
 .theme .icon--sun { display: none; }
 :root[data-theme="dark"] .theme .icon--sun { display: block; }
@@ -63,7 +73,7 @@
 
 /* Field */
 .field { display: flex; gap: var(--sp-2); align-items: stretch; }
-.input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-4); border-radius: var(--r-sm); background: var(--bg-overlay); box-shadow: inset 0 0 0 1px var(--line); border: 0; color: var(--ink); font-size: var(--fs-ui); transition: box-shadow var(--dur-state) var(--ease-out); }
+.input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-4); border-radius: var(--r-sm); background: var(--bg-overlay); box-shadow: inset 0 0 0 1px var(--line); border: 0; color: var(--ink); font-size: var(--fs-ui); transition: box-shadow var(--t) var(--ease-out); }
 .input::placeholder { color: var(--ink-3); }
 .input:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
@@ -80,15 +90,22 @@
 .nav.is-scrolled { background: var(--glass); box-shadow: 0 1px 0 var(--line); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
 .nav.is-hidden { transform: translateY(-100%); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
-.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__brand:hover { opacity: .72; }
+.nav__brand:active { transform: scale(.97); }
 .nav__brand .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-1); }
 .nav__links { display: flex; align-items: center; }
-.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out); }
+.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .nav__links a:hover { color: var(--ink); }
+.nav__links a:active { transform: scale(.94); }
 .nav__panel .theme { width: var(--hit); height: var(--hit); }
 .nav__panel .theme:hover { background: none; color: var(--ink); }
-.nav__menu { display: none; }
+/* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
+.nav__menu { display: none; width: var(--hit); height: var(--hit); align-items: center; justify-content: center; color: var(--ink); border-radius: var(--r-xs); transition: transform var(--dur-press) var(--ease-out); }
+.nav__menu:active { transform: scale(.92); }
+.nav__menu .icon--close, .nav__menu[aria-expanded="true"] .icon--open { display: none; }
+.nav__menu[aria-expanded="true"] .icon--close { display: block; }
 @media (max-width: 767px) {
   .nav__bar { gap: var(--sp-3); }
   .nav__brand .word { display: none; }
@@ -102,8 +119,13 @@
 .sheet[open] { transform: none; }
 @starting-style { .sheet[open] { transform: translateX(100%); } }
 .sheet::backdrop { background: var(--scrim); }
-.sheet__head { display: flex; justify-content: space-between; align-items: center; height: var(--hit); margin-bottom: var(--sp-8); }
-.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); box-shadow: inset 0 -1px 0 var(--line); }
+.sheet__head { display: flex; justify-content: flex-end; align-items: center; height: var(--hit); margin-bottom: var(--sp-8); }
+.sheet__close { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-xs); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.sheet__close:hover { color: var(--ink); }
+.sheet__close:active { transform: scale(.92); }
+.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); box-shadow: inset 0 -1px 0 var(--line); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
+.sheet__links a:hover { opacity: .68; }
+.sheet__links a:active { transform: scale(.98); }
 .sheet .btn--primary { width: 100%; margin-top: var(--sp-8); }
 
 /* Dialog (newsletter) */
@@ -113,8 +135,9 @@
 .dialog::backdrop { background: var(--scrim); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out); }
 .dialog[open]::backdrop { opacity: 1; }
 @starting-style { .dialog[open]::backdrop { opacity: 0; } }
-.dialog__close { position: absolute; top: var(--sp-3); right: var(--sp-3); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out); }
+.dialog__close { position: absolute; top: var(--sp-3); right: var(--sp-3); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .dialog__close:hover { color: var(--ink); background: var(--bg-raised); }
+.dialog__close:active { transform: scale(.92); }
 .dialog .mark { width: 30px; height: 32px; color: var(--ink); margin-bottom: var(--sp-4); }
 .dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
 @media (max-width: 767px) {

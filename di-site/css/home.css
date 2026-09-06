@@ -17,8 +17,9 @@
 .hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 24em; }
 .hero__bento { grid-column: 1 / -1; height: clamp(400px, 78svh, 880px); background: var(--accent); border-radius: var(--r-xl); padding: clamp(16px, 1.6vw, 28px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start; }
 .bento__col { display: grid; gap: var(--grid-gap); grid-auto-rows: max-content; will-change: transform; }
-.bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
+.bento__col .photo { transition: transform var(--t) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
+.bento__col .photo:has(.photo__open:active) { transform: translateY(-1px); transition-duration: var(--dur-press); }
 /* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
 @media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } }
 @media (min-width: 768px) {
@@ -33,7 +34,7 @@
 .hero.is-ready .hero__head, .hero.is-ready .hero__bento { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 @media (prefers-reduced-motion: reduce) {
   .hero.is-arriving .hero__head, .hero.is-arriving .hero__bento { transform: none; }
-  .bento__col .photo:hover { transform: none; }
+  .bento__col .photo:hover, .bento__col .photo:has(.photo__open:active) { transform: none; }
 }
 
 /* ---------- The four cards ----------
@@ -43,20 +44,26 @@
    The whole card is the control; the full copy lives in a reader so four short blocks replace six long ones. */
 .briefs { padding-top: var(--grid-gap); }
 .brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; color: var(--ink);
-  transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state-out) var(--ease-out), color var(--dur-state-out) var(--ease-out), box-shadow var(--dur-state-out) var(--ease-out); }
+  transition: transform var(--t) var(--ease-out), background-color var(--t) var(--ease-out), color var(--t) var(--ease-out), box-shadow var(--t) var(--ease-out); }
 .brief:hover { transform: translateY(-4px); }
+/* the press: the card goes back down under the finger. --t is inherited, so setting it here also puts the card's
+   descendants on the press rung for the length of the press — which is what makes the whole card read as one object
+   being pushed rather than a lid moving over a fixed picture. */
+.brief:active { transform: translateY(-1px); --t: var(--dur-press); }
 /* the whole card becomes the hue — head and ground together. Filling only the head left a seam across the card at the
    photograph's top edge, which read as two objects stacked rather than one card lighting up. The ink rebind stays on
    the HEAD: put it on the card and the pill inherits it, and a control whose ground is --bg-overlay and whose ink is
    --on-accent renders as a black blob on an orange card. */
-.brief:hover, .brief:focus-within { background: var(--accent); box-shadow: none; }
-.brief:hover .brief__head, .brief:focus-within .brief__head { color: var(--on-accent);
+/* :focus-visible, not :focus-within — closing the reader puts focus back on the card's own button, and with
+   :focus-within that left the card painted long after the pointer had gone. A keyboard focus still reveals it. */
+.brief:hover, .brief:has(.brief__more:focus-visible) { background: var(--accent); box-shadow: none; }
+.brief:hover .brief__head, .brief:has(.brief__more:focus-visible) .brief__head { color: var(--on-accent);
   --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
 /* The hue is a STATE, not a resting decoration: four coloured blocks under the hero competed with it. At rest the row
    is four quiet panels and a photograph each; the card's colour arrives under the pointer and on keyboard focus, and
    it is the same colour the reader opens on. The ink tokens are rebound while it is there, exactly as on a solid card:
    a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
-.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); transition: color var(--dur-state-out) var(--ease-out); }
+.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); transition: color var(--t) var(--ease-out); }
 .brief__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); text-wrap: balance; }
 .brief__sum { font-size: var(--fs-small); line-height: 1.5; color: var(--ink-2); }
 .brief__full { padding: 0 var(--sp-6) var(--sp-6); }
@@ -69,12 +76,17 @@
    card is a title, a summary and a picture. Focus reveals it too — an invisible control that the keyboard can reach
    but never see is worse than no control at all. */
 .brief__more { position: absolute; left: var(--sp-6); bottom: var(--sp-6); display: none; align-items: center; gap: var(--sp-2); height: var(--hit); padding: 0 var(--sp-2) 0 var(--sp-5); border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line);
-  opacity: 0; transform: translateY(6px); transition: opacity var(--dur-state-out) var(--ease-out), transform var(--dur-state-out) var(--ease-out); }
+  opacity: 0; transform: translateY(6px); transition: opacity var(--t) var(--ease-out), transform var(--t) var(--ease-out); }
 .js .brief__more { display: inline-flex; }
-.brief:hover .brief__more, .brief:focus-within .brief__more { opacity: 1; transform: none; }
-.brief__arrow { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg-overlay); transition: transform var(--dur-move) var(--ease-out); }
+/* one gesture, not four events: the ground fills and the card lifts together, then the control and its arrow follow
+   60ms behind. Leaving has no delay at all — everything goes at once, so the card never sheds its parts in sequence. */
+.brief:hover .brief__more, .brief__more:focus-visible { opacity: 1; transform: none; transition-delay: 60ms; }
+.brief__arrow { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg-overlay); transition: transform var(--t) var(--ease-out); }
 .brief__arrow .icon { width: 16px; height: 16px; }
-.brief:hover .brief__arrow { transform: translateX(3px); }
+.brief:hover .brief__arrow { transform: translateX(3px); transition-delay: 60ms; }
+/* the picture answers the CARD, not itself: hovering the head lifted the card while hovering the photograph lifted
+   the card AND scaled the picture, so one card had two different responses depending on where the pointer landed */
+.brief:hover .brief__figure img { transform: scale(1.03); }
 @media (min-width: 1280px) { .brief { grid-column: span 3; } }
 /* A wide card is a HORIZONTAL card. Under a 4:5 photograph, a card's height tracks its WIDTH — so the wider the card
    the taller it gets, which is backwards for a row that should get shorter as the screen narrows: at 1200 a 569px card
@@ -104,7 +116,10 @@
   .brief__head { padding-bottom: calc(var(--sp-6) + var(--slip)); }
   .brief__more { left: var(--sp-5); bottom: var(--sp-5); }
 }
-@media (prefers-reduced-motion: reduce) { .brief:hover { transform: none; } .brief:hover .brief__arrow { transform: none; } .brief__more { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .brief:hover, .brief:active, .brief:hover .brief__arrow, .brief__more, .brief:hover .brief__figure img { transform: none; }
+  .brief:hover .brief__more, .brief:hover .brief__arrow { transition-delay: 0s; }
+}
 
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
@@ -113,8 +128,9 @@
 .ring__stage { position: relative; height: calc((var(--ring-r) * 2px) + var(--ring-item)); margin-inline: calc(-1 * var(--gutter)); overflow: hidden; }
 .ring__orbit { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
 .ring__item { position: absolute; left: 0; top: 0; width: var(--ring-item); margin-left: calc(var(--ring-item) / -2); margin-top: calc(var(--ring-item) / -2); will-change: transform; }
-.ring__item .photo { transition: transform var(--dur-move) var(--ease-out), opacity var(--dur-enter) var(--ease-out); }
+.ring__item .photo { transition: transform var(--t) var(--ease-out), opacity var(--dur-enter) var(--ease-out); }
 .ring__item .photo:hover { transform: scale(1.05); }
+.ring__item .photo:has(.photo__open:active) { transform: scale(1.01); transition-duration: var(--dur-press); }
 /* arrival: the necklace assembles. The item itself carries the flow's transform every frame, so the entrance lives on the photograph inside it. */
 .js .ring__stage .photo { opacity: 0; transform: scale(.84); }
 .js .ring__stage.is-in .photo { opacity: 1; transform: none; transition-delay: calc(var(--stagger) * var(--d, 0)); }
@@ -124,7 +140,7 @@
 .ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; color: var(--ink); text-wrap: balance; }
 .ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); color: var(--ink-3); }
 
-@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ring__item .photo:hover, .ring__item .photo:has(.photo__open:active) { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
 
 /* ---------- Voices ----------
    Three quiet cards; the hue is on the PERSON, in the nested sub-card that overhangs the bottom-left corner. Three
@@ -166,7 +182,8 @@
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
 .close__reach .label { margin-bottom: var(--sp-2); }
 .close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
-.close__reach a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
+.close__reach a:hover { text-decoration-color: currentColor; }
 .close__foot { grid-column: 1 / -1; margin-top: var(--sp-6); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
 .close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
 .close__sign .input { background: rgba(255,255,255,.94); box-shadow: none; }
