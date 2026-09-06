@@ -1,5 +1,20 @@
 # Build log — Developmental Improvisation, home page
 
+## v10 (2026-09-06) — the two-panel hero, four beats, the band, and the light inversion
+Jayden's ninth review: the hero should layer like the reference he sent (a copy panel beside a colour panel), "the light mode should have a lighter background with the elements on top being the cream color we have now", "the logo should be in black when its light mode", "removing the fade", and — pointing at two of the three weaknesses in the rating — "how can we improve them". Then: "I dont like the random blocks of color in the carosel dont we have enough pictures" and "make sure everything in the site is optimized".
+
+**The hero is two panels.** The copy on a cream panel, the photographs inside a colour panel that clips them. The soft top-and-bottom mask is gone: the panel's own rounded edge is the crop. One trap on the way — with `height: auto` the panel sized to its own content and the row came out 3197px tall, which pushed the copy off the screen. `overflow: hidden` does not constrain a box that is sizing to its content.
+
+**Light inverts.** The page is #FBFAF7 and the panels on it are the cream #F0ECE3. A white card on a cream ground read as nothing; a cream panel on a near-white page reads as an object. The mark is black on the light page, scoped to the nav so the curtain's mark stays in colour.
+
+**Four beats instead of one.** The rating called the four cards structurally identical; they now split, overlay, mirror and go solid. **And a band**: one photograph, edge to edge, 52vh, no copy, between the stack and the ring — the middle of the page had no moment of scale. `aspect-ratio` had to be cleared on it: with an explicit height a 3:2 frame derives its width from that height, and the band came out 930px wide in a 1440px page.
+
+**No colour blocks in the carousel.** Fifteen photographs, no two black-and-white ones adjacent in a column.
+
+**Optimised, and measured rather than asserted.** A first load at 1440 is **398 KB** uncompressed: 96 document, 71 fonts (three woff2), 41 stylesheet, 18 script, 170 images across 33 decoded files. On a phone it is 349 KB. Everything but the HTML is served `immutable` for a year and every stylesheet link carries its `?v=` stamp. Only the first two tiles of each bento column load eagerly — the panel crops the rest — and the duplicate copy of each column carries no blurred placeholder, since it sits behind the first. The band is the only image allowed to pull the 1440 file.
+
+**Measured after v10.** 37 gate lines pass. One gate bug found: the layout gate compared card widths from `getBoundingClientRect`, which reports the stack's scale transform, so a partially covered card measured 1377 against 1382 — it reads `offsetWidth` now, because the assertion is about the layout, not the scroll position.
+
 ## v9 (2026-09-06) — full-strength colour, the gallery inside the hero, the curtain
 Jayden's eighth review: "the colors are still not accurate on both dark mode and light mode", "I dont like the use of colored dots they shouldnt be there for the section headers", "we combine the gallery in the hero and it should look just like this ... notice the way it fades out and in cleanly", "the cards should look like this: with small spacing from the outer edge", "the testimonials section should look like this but colored cards here is the colors for the logo so build a colorful system around them", and a curtain opening on first load — "no tada or any darkening of the website".
 

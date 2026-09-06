@@ -1,7 +1,7 @@
 // Gate: the quote ring and the hero's bento. Ring, across a full slot step at three viewports: no photograph pixel under the
 // quote's text, no photograph on photograph, every item inside the stage, hover eases the drift to a stop and leaving resumes it,
 // scrolling turns it faster than the drift. Bento: every column moves, adjacent columns move in opposite directions, no column
-// runs past its own loop length, the pointer stops all of them, and the container is masked so they fade at both ends.
+// runs past its own loop length, the pointer stops all of them, and the panel clips columns that overrun it.
 // --self-test: sets --ring-r to 90 and expects the photo-on-photo check to fail at 1440×900.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -69,11 +69,17 @@ for (const [w, h] of VP) {
   const b0 = await colY(); await pg.waitForTimeout(500); const b1 = await colY();
   const bentoStops = b1.every((v, i) => Math.abs(v - b0[i]) < 0.6);
   await pg.mouse.move(w / 2, 5); await pg.waitForTimeout(700);
-  // the mask is what makes the columns fade in and out instead of stopping at an edge
-  const masked = await pg.evaluate(() => { const cs = getComputedStyle(document.querySelector('.hero__bento')); return (cs.maskImage || cs.webkitMaskImage || '').includes('gradient'); });
-  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && masked;
+  // the panel's own edge is the crop now (the soft mask was removed): the panel must clip, and a column must actually
+  // overrun it — a column that fits inside the panel would never be cropped and the loop would visibly jump
+  const clipped = await pg.evaluate(() => {
+    const b = document.querySelector('.hero__bento'); const cs = getComputedStyle(b);
+    if (cs.overflow !== 'hidden') return false;
+    const br = b.getBoundingClientRect();
+    return [...document.querySelectorAll('[data-bento]')].every(c => c.getBoundingClientRect().height > br.height + 40);
+  });
+  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped;
   allOk = allOk && ok;
-  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, bentoStops, masked, dy: deltas.map(d => +d.toFixed(1)) }));
+  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, bentoStops, clipped, dy: deltas.map(d => +d.toFixed(1)) }));
   await pg.close();
 }
 await b.close();

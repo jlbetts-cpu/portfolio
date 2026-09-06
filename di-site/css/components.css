@@ -31,6 +31,11 @@
 :root[data-theme="dark"] .theme .icon--sun { display: block; }
 :root[data-theme="dark"] .theme .icon--moon { display: none; }
 
+/* The mark. On the light page it is black — the colour logo needs a dark ground to hold together. The star in the
+   counter of the "d" takes the page's colour, not the ink, or it closes up. */
+:root[data-theme="light"] .nav__brand .logo path { fill: var(--ink); }
+:root[data-theme="light"] .nav__brand .logo path[fill="white"] { fill: var(--bg); }
+
 /* Icons */
 .icon { width: 22px; height: 22px; fill: currentColor; flex: none; }
 

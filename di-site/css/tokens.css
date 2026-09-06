@@ -7,14 +7,16 @@
 :root {
   color-scheme: light;
   /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97 */
-  --bg:          #F0ECE3;                 /* deeper than it was: at #F7F5F0 a white card was three per cent off the ground and read as nothing */
-  --bg-raised:   #FFFFFF;
+  /* the page is the lighter of the two and the panels on it are the cream — the layering of the reference, inverted
+     from where this started: a white card on a cream ground read as nothing, a cream panel on a white page reads as an object */
+  --bg:          #FBFAF7;
+  --bg-raised:   #F0ECE3;
   --bg-sunken:   #E5E0D5;
   --bg-overlay:  #FFFFFF;
   --line:        rgba(27,25,22,.12);
   --line-strong: rgba(27,25,22,.22);
   --scrim:       rgba(27,25,22,.48);
-  --glass:       rgba(240,236,227,.78);
+  --glass:       rgba(251,250,247,.78);
 
   /* Ink — a warm black and two tiers */
   --ink:    #1B1916;

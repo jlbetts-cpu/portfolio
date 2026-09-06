@@ -128,21 +128,24 @@ Six sections. Anything thinner than this got merged.
    the panels meet — without that fold the two patterns collide and draw a bright line. No scrim and no darkening: the site
    is already laid out behind them. A floor of 620ms, a hard 2600ms failsafe, gone from the DOM a second later, never on a
    reload in the same session, never under reduced motion.
-1. **Hero, with the gallery inside it, filling the screen.** `min-height: 100svh`. The headline holds the left six columns
-   at display size. The right six are a **bento**: three columns of 4:5 photographs plus two tiles of pure colour, running
-   the full height of the viewport, looping vertically with the flow, adjacent columns in opposite directions at three
-   speeds, the whole block masked top and bottom so the photographs fade in and out of the ground instead of stopping at an
-   edge. Under the headline, one row with the tagline and one button.
-2. **The four cards.** Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
+1. **Hero: two panels, filling the screen.** `min-height: 100svh`. The copy sits on a **cream panel** on the left five
+   columns; the right seven are a **colour panel** holding a bento of **fifteen photographs** — no colour blocks among them —
+   in three columns, looping vertically with the flow, adjacent columns in opposite directions at three speeds. **The panel's
+   own rounded edge is the crop**; the soft mask is gone. The panel needs an explicit height: `overflow: hidden` does not
+   constrain a box sizing to its own content.
+2. **The four cards — four different beats.** 01 splits (text one side, the hue as a panel holding the photograph, the
+   other); 02 gives the whole card to the photograph and nests the text in a colour panel over its corner; 03 mirrors 01;
+   04 is the colour itself with the call to action on it. Then: Sticky, each 10px lower than the last, a covered card scaling down from its top edge as the next climbs
    over it. One hue each (violet, orange, green, pink), one photograph each, sized by height so a 4:5 frame cannot stretch the
    card past the text beside it. Even cards mirror — and both children must be pinned to `grid-row: 1`, or grid's forward-only
    auto-placement drops the mirrored figure to a second row and doubles the card.
-3. **The quote ring.** Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
+3. **The band.** One photograph, edge to edge, no copy — the page's only moment of scale between the stack and the ring.
+4. **The quote ring.** Eight circular photographs turning around "Creativity in motion creates knowledge!". **This is the one
    section Jayden has asked to keep.** Do not redesign it.
-4. **Testimonials.** A centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's
+5. **Testimonials.** A centred label, then three cards, each a full-strength hue: a large quote mark at 26% of the card's
    ink, the quote, and the person in a **nested white card that overhangs the bottom-left corner** — the depth comes from
    that nesting, not from a shadow. Placeholder copy until Linda supplies real ones.
-5. **The closing field.** Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
+6. **The closing field.** Newsletter, contact and footer were three thin bands; they are one sky field now, inset by the
    gutter, `--r-xl` corners: the mark, the sign-up, the two contact links, and the copyright under a rule.
 
 ## 5. Components
@@ -177,6 +180,8 @@ being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 - **Washes and tints.** Two rounds of them. A hue mixed into the ground is not the brand colour any more.
 - **A coloured dot** before every section label.
 - **A horizontal gallery as its own section.** It belongs in the hero.
+- **Blocks of flat colour among the photographs.** There are enough pictures.
+- **A soft mask on the hero's photographs.** The panel's edge is the crop.
 - **Photographs set inline into the headline.** Clever, and it made the hero cluttered.
 - **A pause control** for the drift, **outlines** on photographs, **decorative vectors**, the **star** in section labels, a
   **figures band**, and a **disc-and-halo** behind the logo.

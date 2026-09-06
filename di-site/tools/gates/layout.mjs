@@ -11,7 +11,9 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const lines = Math.round(h1.getBoundingClientRect().height / parseFloat(cs.lineHeight));
     const cont = [...document.querySelectorAll('.section .container')].map(c => { const cs = getComputedStyle(c); const b = c.getBoundingClientRect(); return [Math.round(b.left + parseFloat(cs.paddingLeft)), Math.round(b.right - parseFloat(cs.paddingRight))]; });
     const edges = new Set(cont.map(c => c.join('-')));
-    const cards = [...document.querySelectorAll('.stack__card')].map(c => Math.round(c.getBoundingClientRect().width));
+    // offsetWidth, not the bounding rect: a covered card carries a scale transform, and the rect would report that
+    // instead of the card's laid-out width — the assertion here is about the layout, not about the scroll position
+    const cards = [...document.querySelectorAll('.stack__card')].map(c => c.offsetWidth);
     return { overflow, lines, edges: [...edges], cards };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped

@@ -2,61 +2,75 @@
    Six sections. Each is built on the same twelve columns and the same superellipse corner; the photographs are one shape. */
 
 /* ---------- Hero ----------
-   The gallery lives here now (Jayden: "we combine the gallery in the hero"). The headline holds the left columns;
-   the right is a bento of columns that drift with the flow, in alternating directions and at three speeds, masked at
-   the top and the bottom so the photographs fade in and out of the ground instead of stopping at a hard edge. */
-/* the hero is the screen: the grid fills the viewport and the bento runs the whole height of it */
-.hero { padding-top: calc(var(--nav-h) + var(--sp-6)); padding-bottom: var(--sp-8); min-height: 100svh; display: grid; align-content: center; }
-.hero__grid { align-items: center; row-gap: var(--sp-10); }
-.hero__head { grid-column: 1 / -1; display: grid; gap: var(--sp-6); }
+   Two panels side by side on the page, the way the reference layers them: the copy on a cream panel, the photographs
+   inside a colour panel that CLIPS them. The panel's own rounded edge is the crop now — the soft mask is gone. */
+.hero { padding-top: calc(var(--nav-h) + var(--sp-4)); padding-bottom: var(--sp-6); min-height: 100svh; display: grid; align-content: center; }
+.hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
+.hero__head { grid-column: 1 / -1; display: grid; align-content: center; gap: var(--sp-6); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(28px, 3.6vw, 64px); }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); text-wrap: balance; }
 .hero__meta { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 22em; }
-.hero__bento { grid-column: 1 / -1; height: clamp(400px, 78svh, 880px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 11%, #000 89%, transparent 100%);
-          mask-image: linear-gradient(to bottom, transparent 0%, #000 11%, #000 89%, transparent 100%); }
+.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 24em; }
+.hero__bento { grid-column: 1 / -1; height: clamp(400px, 78svh, 880px); background: var(--accent); border-radius: var(--r-xl); padding: clamp(16px, 1.6vw, 28px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start; }
 .bento__col { display: grid; gap: var(--grid-gap); grid-auto-rows: max-content; will-change: transform; }
 .bento__col .photo { transition: transform var(--dur-move) var(--ease-out); }
 .bento__col .photo:hover { transform: translateY(-4px); }
-/* on a phone the head and the bento stack, so the bento takes a share of the screen rather than three quarters of it */
-@media (max-width: 767px) { .hero__bento { height: clamp(300px, 44svh, 440px); } .hero { min-height: 0; padding-bottom: var(--section-y); } }
+/* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
+@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } .hero { min-height: 0; padding-bottom: var(--section-y); } }
 @media (min-width: 768px) {
-  .hero__head { grid-column: 1 / span 6; align-self: center; }
-  .hero__bento { grid-column: 7 / span 6; }
+  .hero__head { grid-column: 1 / span 5; }
+  /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
+     and the column of ten tiles made the row 3197px tall, which pushed the copy panel off the screen */
+  .hero__bento { grid-column: 6 / span 7; height: clamp(460px, 76svh, 860px); }
 }
 @media (min-width: 1280px) { .hero__bento { grid-template-columns: repeat(3, minmax(0,1fr)); } }
 /* first paint: once per session */
-.hero.is-arriving .hero__head > *, .hero.is-arriving .hero__bento { opacity: 0; transform: translateY(10px); }
-.hero.is-ready .hero__head > *, .hero.is-ready .hero__bento { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.hero.is-arriving .hero__head, .hero.is-arriving .hero__bento { opacity: 0; transform: translateY(10px); }
+.hero.is-ready .hero__head, .hero.is-ready .hero__bento { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 @media (prefers-reduced-motion: reduce) {
-  .hero.is-arriving .hero__head > *, .hero.is-arriving .hero__bento { transform: none; }
+  .hero.is-arriving .hero__head, .hero.is-arriving .hero__bento { transform: none; }
   .bento__col .photo:hover { transform: none; }
 }
 
 /* ---------- The stack ----------
-   Four cards, each the hue itself at full strength, in the logo's ring order. Sticky, each 10px lower than the one before;
-   js/main.js scales a covered card down from its top edge as the next climbs over it. One photograph per card. */
+   Four cards, and four different beats — the same text-and-panel arrangement four times read as one long note.
+   01 splits, 02 gives the whole card to the photograph and nests the text in a colour panel over its corner,
+   03 mirrors 01, 04 is the colour itself with the call to action on it. Sticky, each 10px lower than the last;
+   js/main.js scales a covered card down from its top edge as the next climbs over it. */
 .stack { display: grid; gap: var(--sp-4); }
 .stack__card { position: sticky; top: calc(var(--nav-h) + var(--sp-4) + var(--i, 0) * 10px); border-radius: var(--r-xl); overflow: hidden; transform-origin: 50% 0; will-change: transform; padding: var(--card-pad); align-items: center; row-gap: var(--sp-8); }
 .stack__head { grid-column: 1 / -1; display: grid; gap: var(--sp-5); align-content: start; }
 .stack__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 14em; text-wrap: balance; }
 .stack__body .t-body { color: var(--ink-2); }
 .stack__body .t-body:first-child { color: var(--ink); }
-/* The card is the raised ground; its hue is a solid panel holding the photograph — the same tile-and-photograph
-   pairing the hero's bento uses. Four full-strength cards flooded the page; this keeps the colour accurate and spare.
-   The photograph is sized by HEIGHT, so a 4:5 frame cannot stretch the card past the text beside it. */
+/* the split beat: the card is the raised ground, its hue is the solid panel holding the photograph */
 .stack__figure { grid-column: 1 / -1; display: grid; place-items: center; background: var(--accent); border-radius: var(--r-lg); padding: clamp(16px, 2vw, 32px); }
 .stack__figure .photo { height: clamp(260px, 28vw, 380px); width: auto; max-width: 100%; }
 @media (min-width: 768px) {
-  /* both live in row 1 explicitly: on the mirrored cards the figure's columns sit BEHIND the head's, and grid's
-     forward-only auto-placement would drop it to a second row and double the card's height */
   .stack__head { grid-column: 1 / span 6; grid-row: 1; }
   .stack__figure { grid-column: 8 / span 5; grid-row: 1; }
   .stack__card { min-height: 420px; }
-  /* the even cards mirror, so the eye crosses the stack instead of running down one side */
-  .stack__card:nth-child(even) .stack__head { grid-column: 7 / span 6; }
-  .stack__card:nth-child(even) .stack__figure { grid-column: 1 / span 5; }
+  .stack__card--mirror .stack__head { grid-column: 7 / span 6; }
+  .stack__card--mirror .stack__figure { grid-column: 1 / span 5; }
 }
+/* the overlay beat: the photograph is the card, and the text sits on a colour panel over its corner */
+.stack__card--overlay { padding: 0; display: block; position: relative; }
+.stack__card--overlay .stack__figure { padding: 0; border-radius: 0; background: none; display: block; }
+.stack__card--overlay .stack__figure .photo { height: clamp(360px, 46vw, 620px); width: 100%; border-radius: 0; }
+.stack__card--overlay .stack__head { position: relative; margin: -20% var(--card-pad) var(--card-pad); background: var(--accent); color: var(--on-accent); border-radius: var(--r-lg); padding: var(--card-pad); max-width: 34em; }
+.stack__card--overlay .stack__title, .stack__card--overlay .stack__body .t-body, .stack__card--overlay .stack__body .t-body:first-child { color: var(--on-accent); }
+@media (min-width: 768px) { .stack__card--overlay .stack__head { margin: -14% var(--card-pad) var(--card-pad); } }
+/* the solid beat: the last card is the hue itself, and it carries the call to action */
+.stack__card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
+.stack__card--solid .stack__figure { background: none; padding: 0; }
+
+/* ---------- The band ----------
+   One photograph, edge to edge, at a scale nothing else on the page reaches. The middle of the page had no such moment:
+   every section was a card of about the same size, and the eye had nothing to rest on between the stack and the ring. */
+.band { padding-block: var(--section-y) 0; }
+/* aspect-ratio must go: with an explicit height a 3:2 frame derives its WIDTH from that height and the band came out
+   930px wide in a 1440px page */
+.band .photo { border-radius: 0; aspect-ratio: auto; width: 100%; height: clamp(300px, 52vh, 620px); }
+.band .photo img { object-position: 50% 34%; }
 
 /* ---------- The quote ring ----------
    The one section Jayden kept: eight circular photographs turning around the quote, upright, driven by the flow. */

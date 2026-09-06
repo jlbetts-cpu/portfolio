@@ -40,8 +40,8 @@ POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 
      'linda-portrait':'22% 40%','boy-fist':'50% 40%','kids-bw-small':'50% 50%','cast-stage-small':'50% 50%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
 USED=[]
-def picture(name, sizes, lazy=True, cls='', ratio=None, button=True):
-    m=man[name]; srcs=[w for w in m['sizes'] if w<=960]
+def picture(name, sizes, lazy=True, cls='', ratio=None, button=True, big=False):
+    m=man[name]; srcs=[w for w in m['sizes'] if big or w<=960]
     av=', '.join(f'images/{name}-{w}.avif {w}w' for w in srcs); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in srcs)
     load='loading="lazy" ' if lazy else 'fetchpriority="high" '
     img=(f'<img src="images/{m["jpeg"]}" width="{m["width"]}" height="{m["height"]}" alt="{html.escape(ALT[name])}" '
@@ -57,29 +57,30 @@ def lb_data():
         out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n]}
     return json.dumps(out,separators=(',',':'))
 
-def photo(name, ratio, sizes, lazy=True, hover=False, caption=None):
+def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False):
     m=man[name]
     h=(f'<figure class="photo photo--{ratio}{" photo--hover" if hover else ""}" style="--pos:{POS[name]};background-image:url({m["placeholder"]})">'
-       + picture(name,sizes,lazy) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
+       + picture(name,sizes,lazy,big=big) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
 # The hero's bento: three columns of photographs that loop with the flow, plus two tiles of pure colour.
 # Each column carries its contents twice; the second copy is aria-hidden and its first child marks the loop length.
 BSIZES='(max-width: 767px) 44vw, (max-width: 1279px) 22vw, 15vw'
+# fifteen photographs and no colour blocks: there are enough pictures. No two black-and-white ones adjacent in a column.
 COLS=[
-  [('p','yellow-trousers'),('t','sky'),('p','three-men'),('p','blue-shirts'),('p','linda-stage')],
-  [('p','circle-hands'),('p','boy-fist'),('t','gold'),('p','conga-line'),('p','scene-handshake')],
-  [('p','laugh-hat'),('p','floor-game'),('p','row-linked-arms'),('p','three-teens'),('p','kids-bw-small')],
+  ['yellow-trousers','blue-shirts','scene-handshake','linda-stage','circle-hands'],
+  ['boy-fist','kids-bw-small','conga-line','three-teens','laugh-hat'],
+  ['three-men','row-linked-arms','linda-portrait','floor-game','cast-pose'],
 ]
-def bento_item(kind, name, hidden, first):
+def bento_item(name, hidden, first, i):
     mid=' data-mid' if first else ''
-    if kind == 't':
-        return f'<div class="tile" data-accent="{name}" aria-hidden="true" style="aspect-ratio:1"{mid}></div>'
     hid=' aria-hidden="true"' if hidden else ''
-    return (f'<figure class="photo photo--4x5" style="--pos:{POS[name]};background-image:url({man[name]["placeholder"]})"{hid}{mid}>'
-            + picture(name, BSIZES, lazy=hidden, button=not hidden) + '</figure>')
+    # only the first two of each column are on screen before the panel crops them; the rest wait
+    ph='' if hidden else f';background-image:url({man[name]["placeholder"]})'   # the second copy is behind the first: no placeholder needed
+    return (f'<figure class="photo photo--4x5" style="--pos:{POS[name]}{ph}"{hid}{mid}>'
+            + picture(name, BSIZES, lazy=hidden or i > 1, button=not hidden) + '</figure>')
 def bento_col(i, items):
-    body=''.join(bento_item(k,n,False,False) for k,n in items) + ''.join(bento_item(k,n,True,j==0) for j,(k,n) in enumerate(items))
+    body=''.join(bento_item(n,False,False,j) for j,n in enumerate(items)) + ''.join(bento_item(n,True,j==0,j) for j,n in enumerate(items))
     return f'<div class="bento__col" data-bento="{1 if i % 2 == 0 else -1}" style="--speed:{[1,.74,1.18][i]}">{body}</div>'
 bento=''.join(bento_col(i,c) for i,c in enumerate(COLS))
 
@@ -90,6 +91,7 @@ RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
+band=photo('kids-running','3x2','100vw',big=True)   # the only full-bleed photograph on the page: it may pull the 1440 file
 P=[
  "Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.",
  "Created by educator Linda Kellogg Fulton, based on her fifty plus years working in improvisation, it offers students a unique, beneficial, and fascinating experience-based exploration into the realm of Social Emotional Learning through imaginative excursions and cooperative play.",
@@ -99,19 +101,24 @@ P=[
  "All while having as much fun as possible!",
 ]
 TS='(max-width: 767px) 62vw, 22vw'   # the photograph sits inside the colour panel: 304px wide at 1440
-def stack_card(num, accent, title, paras, extra, photo_name):
+def stack_card(num, accent, title, paras, extra, photo_name, kind='split'):
     body=''.join(f'<p class="t-body">{p}</p>' for p in paras)
     extra_html=('<div>'+extra+'</div>') if extra else ''
-    return (f'<article class="stack__card card card--line grid" data-accent="{accent}" aria-labelledby="stack-{num}">'
-            f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>'
-            f'{extra_html}</div>'
-            f'<div class="stack__figure">{photo(photo_name, "4x5", TS, hover=True)}</div></article>')
+    cls={'split':'card card--line grid','mirror':'card card--line grid stack__card--mirror',
+         'overlay':'card card--line stack__card--overlay','solid':'card card--solid grid stack__card--solid'}[kind]
+    ratio='3x2' if kind=='overlay' else '4x5'
+    sizes='(max-width: 767px) 96vw, 96vw' if kind=='overlay' else TS
+    return (f'<article class="stack__card {cls}" data-accent="{accent}" aria-labelledby="stack-{num}">'
+            + (f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>' if kind=='overlay' else '')
+            + f'<div class="stack__head"><h2 class="stack__title" id="stack-{num}">{title}</h2><div class="stack__body">{body}</div>{extra_html}</div>'
+            + ('' if kind=='overlay' else f'<div class="stack__figure">{photo(photo_name, ratio, sizes, hover=True)}</div>')
+            + '</article>')
 btn4='<button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button>'
 # the four cards take the logo's arcs in ring order, second through fifth
-stack=(stack_card('01','violet','Welcome to Developmental Improvisation',P[0:2],'','linda-circle')
-      +stack_card('02','orange','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing')
-      +stack_card('03','green','“What would you do?”',P[3:4],'','two-lines')
-      +stack_card('04','pink','The end result',P[4:6],btn4,'zoom-group'))
+stack=(stack_card('01','violet','Welcome to Developmental Improvisation',P[0:2],'','linda-circle','split')
+      +stack_card('02','orange','Safe, educational, and thrilling exercises and games',P[2:3],'','kids-dancing','overlay')
+      +stack_card('03','green','“What would you do?”',P[3:4],'','two-lines','mirror')
+      +stack_card('04','pink','The end result',P[4:6],btn4,'zoom-group','solid'))
 
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
@@ -174,12 +181,16 @@ page=f'''<!DOCTYPE html>
         </div>
         <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
       </div>
-      <div class="hero__bento" id="gallery">{bento}</div>
+      <div class="hero__bento" id="gallery" data-accent="gold">{bento}</div>
     </div>
   </section>
 
   <section class="section" id="welcome" aria-label="Welcome">
     <div class="container"><div class="stack">{stack}</div></div>
+  </section>
+
+  <section class="band" aria-label="Photograph">
+    {band}
   </section>
 
   <section class="section ring" id="quote" aria-label="Quote">
