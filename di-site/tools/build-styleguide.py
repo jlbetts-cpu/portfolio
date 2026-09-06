@@ -84,7 +84,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <div class="trow"><div class="tmeta"><b>h3</b><br><span>card titles · Sen 700</span><br><code>.t-h3</code></div><div class="t-h3">Creativity in motion creates knowledge!</div></div>
 <div class="trow"><div class="tmeta"><b>lead</b><br><span>subtitle, quotes · Jakarta 400</span><br><code>.t-lead</code></div><div class="t-lead">Pre-wiring the brain &amp; educating the heart</div></div>
 <div class="trow"><div class="tmeta"><b>body</b><br><span>paragraphs · Jakarta 400</span><br><code>.t-body</code></div><div class="t-body">Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.</div></div>
-<div class="trow"><div class="tmeta"><b>mark</b><br><span>the headline's highlight · sky, the selection's own colour</span><br><code>&lt;mark&gt;</code></div><div class="t-h3">New tools for <mark>cognitive</mark> development</div></div>
+<div class="trow"><div class="tmeta"><b>mark</b><br><span>the headline's highlight · sky, the selection's own colour</span><br><code>&lt;mark&gt;</code></div><div class="t-h3">New tools for <mark>cognitive</mark> development &amp; <mark data-accent="pink">emotional</mark> understanding</div></div>
 <div class="trow"><div class="tmeta"><b>label</b><br><span>section labels · Jakarta 600, uppercase</span><br><code>.label</code></div><div class="label">Testimonials</div></div>
 <div class="trow"><div class="tmeta"><b>caption</b><br><span>captions, © · 400</span><br><code>.t-caption</code></div><div class="t-caption">© 2026 Developmental Improvisation</div></div>
 <h2 class="t-h2" id="space">Space</h2>

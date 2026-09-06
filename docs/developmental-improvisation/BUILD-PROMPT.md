@@ -101,7 +101,8 @@ testimonials. Under `@media (hover: none)` a card's hue is its resting colour: w
 state, and a touch screen would otherwise never see it. Jayden, twice: the colour must not be distracting, and the site
 is premium first.
 
-No gradients anywhere. No coloured text. No hue as a border. A hue is never a 12px frame drawn round a photograph —
+No gradients anywhere. No hue as a border. The only coloured type on the site is the headline's two `<mark>`s —
+**cognitive** in sky, **emotional** in pink — and `mark` reads `--accent`, so a second colour is one `data-accent`. A hue is never a 12px frame drawn round a photograph —
 that was built once and read as a neon outline, not as a panel. Colour is spare: a panel, a card head, a field.
 
 ### 3.5 One shape for photographs
