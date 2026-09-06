@@ -102,19 +102,21 @@ P=[
 # ---- The four cards ----
 # One row of the bento: four cards of the same shape, each one clickable, each carrying one of the logo's arcs.
 # Two of them say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is.
-# The card shows a chip, a title, a summary and a photograph; the whole card opens a reader with the full copy,
-# so the page keeps four short blocks instead of six long ones.
+# The card shows a title, a summary and a photograph; the whole card opens a reader with the full copy, so the page
+# keeps four short blocks instead of six long ones. The paragraphs are allocated so no reader is a third the length of
+# another: card 03 carried 615 characters against card 01's 198, and P[4] — the outcome of the method — closes "what
+# it is" at least as well as it closed "what would you do?". 390 / 279 / 423 / 280 now.
 BS='(max-width: 767px) 68vw, (max-width: 1279px) 40vw, 21vw'
 BRIEFS=[
  ('01','The method','violet','What Developmental Improvisation is',
   'A new tool for teaching cognitive development and social/emotional understanding through the art of improvisation.',
-  [P[0]],'linda-circle'),
+  [P[0],P[4]],'linda-circle'),
  ('02','In the room','orange','Inside a session',
   'Safe, educational, and thrilling exercises and games, built to let students meet the whole range of human behavior.',
   [P[2],P[5]],'kids-dancing'),
  ('03','The idea','green','\u201cWhat would you do?\u201d',
   'Spontaneously imaginative situations that put critical thinking and creative problem-solving to the test.',
-  [P[3],P[4]],'two-lines'),
+  [P[3]],'two-lines'),
  ('04','The founder','pink','Who Linda is',
   'Educator Linda Kellogg Fulton created Developmental Improvisation out of fifty plus years working in improvisation.',
   [P[1]],'linda-portrait'),

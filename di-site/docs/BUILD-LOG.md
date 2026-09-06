@@ -7,6 +7,10 @@ He is right, and the reason is the one I flagged when I shipped it: **the footag
 
 What the removal costs, honestly: the page has **no signature moment** again, and nothing below the hero is big. Those are still the two things between this and a 10, and neither is fixable with the assets that exist. What it does NOT cost is the round's other work — **the proof row stays**, and it is now the biggest type below the hero on its own.
 
+
+**And two things that were ours to fix, no new information needed.** The **founder's photograph** was measured rather than described: 87% of its pixels sat in the bottom sixteenth of the luminance range, channel means of 16/255. It is a studio portrait on a black backdrop — the blackness is the picture, not a bad exposure — but it left her a floating head and a shoe in a row of three bright classroom pictures. A **gamma lift of 2.2 in the pipeline** opens the jacket and the chair without touching the white point; a linear stretch was tried first and clipped her face and the shoe. `images/src` keeps the untouched original and `build-images.mjs` carries a per-photograph `GRADE` table, so the correction is reproducible and visible in code. If card 04 needs to be *bright*, that is a different photograph, not a grade.
+**The readers were lopsided**: 198 / 279 / 615 / 280 characters, so card 03 was three times card 01. P[4] — the outcome of the method — closes "what Developmental Improvisation is" at least as well as it closed "what would you do?". **390 / 279 / 423 / 280** now, same six paragraphs.
+
 **Measured after v16.** Back to 44 gate lines and six self-tests. First load 424KB desktop / 367KB phone. Worst contrast 4.82:1 light / 5.28:1 dark.
 
 ## v15 (2026-09-06) — the one moving picture, and three figures

@@ -9,13 +9,19 @@ const SRC = path.resolve(import.meta.dirname, '../images/src');
 const OUT = path.resolve(import.meta.dirname, '../images');
 const WIDTHS = [160, 320, 480, 960, 1440];   // 160 is for the hero shapes and the ring: a 74px circle should not pull a 320px file
 const SKIP = /^(letters|\.)/;
+// Per-photograph grading, applied on the way out so images/src keeps the untouched original. Measured, not eyeballed:
+// linda-portrait is a studio portrait on a black backdrop and 87% of its pixels sat in the bottom sixteenth of the
+// luminance range, which left her a floating head and a shoe in a row of four bright classroom pictures. A gamma lift
+// opens the jacket without touching the white point — a linear stretch was tried and clipped her face and the shoe.
+const GRADE = { 'linda-portrait': img => img.gamma(2.2) };
 
 await mkdir(OUT, { recursive: true });
 const files = (await readdir(SRC)).filter(f => /\.(jpe?g|png|heic)$/i.test(f) && !SKIP.test(f));
 const manifest = {};
 for (const file of files) {
   const name = file.replace(/\.[^.]+$/, '');
-  const input = sharp(path.join(SRC, file)).rotate(); // apply EXIF orientation
+  const graded = GRADE[name] || (i => i);
+  const input = graded(sharp(path.join(SRC, file)).rotate()); // EXIF orientation, then any per-photograph grade
   const meta = await input.metadata();
   const w = meta.width, h = meta.height;
   const entry = { source: file, width: w, height: h, sizes: [], placeholder: '' };
