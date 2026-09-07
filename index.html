@@ -2160,8 +2160,40 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    the tab row and the first cover -- which is the reveal he asked for twice
    ("making the hero smaller like take up less space to see the tabs and case
    study below"). The old note's own fallback line is now the whole answer. */
+/* ── THE AIR ABOVE THE HEADLINE.  2026-09-06 ──────────────────────────────
+   Jayden: "fix the dead air above the hero headline."
+
+   MEASURED, and the padding was not the cause. The Hero grid holds exactly ONE
+   in-flow child -- .heroCopy, 93px tall -- in a 344px row, with
+   align-items:center. The headline therefore sat at 108 + (344-93)/2 = 233, and
+   the 161px between the bar's floor and the headline was simply half of the row
+   it did not fill. The head is absolutely positioned and never entered it.
+
+   That is why the obvious levers did nothing: sweeping --heroPadT from 108 to 72
+   moved the headline 24px, because centring halves any change, and sweeping
+   min-height 560 -> 460 moved it ZERO, because the row height was not what
+   placed it.
+
+   SO IT STOPS CENTRING AND STATES THE DISTANCE. .heroCopy aligns to the start of
+   its row, which makes --heroPadT the literal gap from the top of the Hero.
+   THE FLOOR IS THE NIGHT SKY, NOT TASTE. The first pass took the headline to 162
+   and hero-night-sky-contract failed it: at night a shooting star reaches 173px
+   into a 560px Hero, and that contract wants 24px of clearance above the
+   headline. 162 gave -11px, i.e. a streak crossing the text -- invisible in every
+   daylight screenshot of this change. So the headline sits at the lowest point
+   that clears the streaks, not the lowest that looks tidy. Measured after:
+   the headline sits at 203 on a 900 viewport, 131px below the bar against 161
+   before, and the gate reports 30px of clearance.
+
+   BOTH BRANCHES MOVE. The svh value below is inside @supports; this fallback is
+   what a browser without svh uses, and leaving it at 72 would have split the
+   behaviour in two.
+
+   The corner variant is untouched -- `:root[data-hero-headline="corner"]
+   .heroCopy` is (0,2,0) and sets align-self:auto itself. */
+.heroCopy{align-self:start}
 .hero{
- --heroPadT:72px;
+ --heroPadT:198px;
  --heroPadB:calc(72px + env(safe-area-inset-bottom));
  /* The corner control's own inset off the Hero's floor. It is NOT --heroPadB:
     the block padding is the row the copy is centred in and is 108px at 1440,
@@ -2189,7 +2221,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  corner-shape:var(--corner);background:var(--c50)
 }
 @supports (height:1svh){
- .hero{--heroPadT:clamp(72px,12svh,112px);
+ .hero{--heroPadT:clamp(150px,22.5svh,212px);
   --heroPadB:calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom))}
 }
 /* AND THE COPY STOPS MOVING TOO. The note above accepts that a live dvh change
@@ -2390,7 +2422,15 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
     inset, not a margin. */
 }
 @media(max-height:720px) and (min-width:761px){
- .hero{--heroPadT:var(--sp-48);--heroPadB:var(--sp-48);padding-block:var(--heroPadT) var(--heroPadB)}
+ /* --sp-48 WAS SAFE ONLY WHILE THE COPY WAS CENTRED. This rule tightens the
+    Hero in a short desktop window, and 48px of top padding was fine because
+    align-items:center pushed the headline well below it. Now that .heroCopy
+    aligns to the START of its row, --heroPadT is the literal offset, and 48 puts
+    the headline UNDER the 72px bar -- measured at 1440x720 as a -24px gap, i.e.
+    the first line behind the sticky header. 150 keeps this window tighter than a
+    tall one, clears the bar, and clears the streaks the night-sky contract
+    measures. */
+ .hero{--heroPadT:150px;--heroPadB:var(--sp-48);padding-block:var(--heroPadT) var(--heroPadB)}
  /* DELETED 2026-08-20: `.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}`. It
     was a wart, not a safeguard -- 3.2vw capped at 36 made a 1280x650 window set
     a BIGGER headline than a 1440x900 one set at the 35px base, which is the
