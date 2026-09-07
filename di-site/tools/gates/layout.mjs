@@ -14,13 +14,13 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const edges = new Set(cont.map(c => c.join('-')));
     // offsetWidth, not the bounding rect: a card lifts 4px under the pointer and the rect would report the transform
     const cards = [...document.querySelectorAll('.brief')].map(c => c.offsetWidth);
-    // The testimonials are the ring now, so the person chip sits INSIDE the necklace. What it must never do is land
-    // under a photograph: the clear space is a circle and the chip is a rectangle at the bottom of the quote, which is
-    // exactly where the inscribed rectangle runs out. Every ring photograph is a box the chip must miss.
-    const boxes = [...document.querySelectorAll('.ring__item .photo')].map(c => c.getBoundingClientRect());
-    const whos = [...document.querySelectorAll('.ring__quote.is-on .who')].map(c => c.getBoundingClientRect());
+    // the testimonial's person chip overhangs its card by half its height; whatever follows must start clear of it
+    const boxes = [...document.querySelectorAll('.voice')].map(c => c.getBoundingClientRect())
+      .concat([document.querySelector('.close__field').getBoundingClientRect()]);
+    const whos = [...document.querySelectorAll('.voice__who')].map(c => c.getBoundingClientRect());
     let overhang = 0;
-    whos.forEach((w) => boxes.forEach((b) => {
+    whos.forEach((w, i) => boxes.forEach((b, j) => {
+      if (j <= i) return;
       if (w.bottom > b.top + 1 && w.top < b.bottom - 1 && w.right > b.left + 1 && w.left < b.right - 1) overhang++;
     }));
     return { overflow, lines, edges: [...edges], cards, overhang };

@@ -20,13 +20,12 @@ const r1 = await pg.evaluate(async (st) => {
   for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) { scrollTo(0, y); await new Promise(r => setTimeout(r, 120)); }
   await new Promise(r => setTimeout(r, 500));
   if (st) document.querySelector('.brief').classList.add('reveal');   // --self-test: the state below forbids
-  const shown = [...document.querySelectorAll('.brief, .scene__panel, .ring__centre .reveal, #contact .close__field')];
+  const shown = [...document.querySelectorAll('.brief, .voices > .voice, #contact .close__field')];
   // arrived AND handed its motion back: an element that keeps .reveal keeps the arrival's 360ms and its stagger delay
   // on every later hover, and the hue in its own transition list never fades at all
-  const bad = shown.filter(e => getComputedStyle(e).opacity !== '1' || e.classList.contains('reveal')).map(e => e.className + ':' + getComputedStyle(e).opacity);
-  const revealed = shown.length >= 6 && bad.length === 0;
+  const revealed = shown.length > 6 && shown.every(e => getComputedStyle(e).opacity === '1' && !e.classList.contains('reveal'));
   const cardStill = getComputedStyle(document.querySelector('.brief')).transform;
-  return { running, still, revealed, shown: shown.length, bad, cardStill };
+  return { running, still, revealed, shown: shown.length, cardStill };
 }, selfTest);
 const ok1 = r1.running === 0 && r1.still && r1.revealed && (r1.cardStill === 'none' || r1.cardStill === 'matrix(1, 0, 0, 1, 0, 0)');
 report('motion (reduced)', ok1, JSON.stringify(r1));

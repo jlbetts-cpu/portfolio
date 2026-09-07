@@ -89,38 +89,9 @@ bento=''.join(bento_col(i,c) for i,c in enumerate(COLS))
 
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
 # its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
-# a placeholder that obeys the ring's own 90-character rule, so the layout is the real layout
-LOREM90="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor."
-
-# The ring IS the testimonials now. Eight photographs on the necklace, eight voices at its centre, and the one under
-# the pointer — or the one standing at the top of the circle while it turns — is the one speaking. Item 0 is at the top
-# when the flow's angle is 0, which is where the page starts, so Linda's own line is the one you arrive on.
-# THE RULE FOR A RING QUOTE: 90 characters. The clear space inside the necklace is 2r − item and a rectangle inscribed
-# in a circle is short; past 90 the type has to drop below the size that gives the ring its presence. It is a good
-# constraint — it makes each testimonial give up its best line instead of all of them.
-RING=[
- ('linda-laughing','gold','“Creativity in motion creates knowledge!”','Linda Kellogg Fulton','Founder','LK'),
- ('bow-tie-chairs','sky',LOREM90,'First Last','Role, Organization','FL'),
- ('cast-pose','magenta',LOREM90,'First Last','Role, Organization','FL'),
- ('floor-game','violet',LOREM90,'First Last','Role, Organization','FL'),
- ('laugh-hat','orange',LOREM90,'First Last','Role, Organization','FL'),
- ('cast-stage-small','green',LOREM90,'First Last','Role, Organization','FL'),
- ('three-men','pink',LOREM90,'First Last','Role, Organization','FL'),
- ('duo-brick','yellow',LOREM90,'First Last','Role, Organization','FL'),
-]
+RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
 RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
-ring=''.join(f'<div class="ring__item" data-i="{i}"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for i,(n,*_) in enumerate(RING))
-# every quote is in the DOM at once, stacked in one grid cell so the box never jumps and a screen reader reads all
-# eight in page order. No live region: a centre that announced itself every twelve seconds would be unusable.
-def voice(i, item):
-    n, accent, quote, name, role, ini = item
-    mark = '' if i else ' data-real="true"'
-    ph = '' if i == 0 else ' data-placeholder="true"'
-    return (f'<li class="ring__quote{" is-on" if i == 0 else ""}" data-i="{i}" data-accent="{accent}"{ph}>'
-            f'<blockquote class="ring__text">{quote}</blockquote>'
-            f'<p class="ring__who"><span class="who"><span class="who__avatar" aria-hidden="true">{ini}</span>'
-            f'<span><span class="who__name">{name}</span><span class="who__role">{role}</span></span></span></p></li>')
-quotes_html=''.join(voice(i, it) for i, it in enumerate(RING))
+ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
 P=[
@@ -164,6 +135,13 @@ def brief(num, chip, accent, title, summary, paras, photo_name):   # chip: kept 
             f'<span class="brief__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span></button></div>'
             f'<div class="brief__full">{full}</div></article>')
 briefs=''.join(brief(*b) for b in BRIEFS)
+
+LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
+# three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
+# three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
+VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
+pile=''.join(f'<li class="voice reveal" data-accent="{a}" data-placeholder="true"><p class="voice__mark" aria-hidden="true">“</p><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -247,21 +225,23 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="section ring" id="voices" aria-label="What people say">
+  <section class="section ring" id="quote" aria-label="Quote">
     <div class="container">
-      <div class="ring__wrap">
-        <div class="ring__stage reveal--parts">
-          <div class="ring__orbit">{ring}</div>
-        </div>
-        <!-- the voice is a SIBLING of the necklace, not a child of it: on a phone the clear circle inside eight
-             photographs is too small for a quote and a person chip, so it stops being a centre and sits underneath -->
+      <div class="ring__stage reveal--parts">
+        <div class="ring__orbit">{ring}</div>
         <div class="ring__centre"><div class="reveal">
-          <ul class="ring__quotes">{quotes_html}</ul>
+          <blockquote class="ring__text">“Creativity in motion creates knowledge!”</blockquote>
+          <p class="ring__who">Linda Kellogg Fulton</p>
         </div></div>
       </div>
     </div>
   </section>
 
+  <section class="voices-sec" id="voices" aria-label="Testimonials">
+    <div class="container">
+      <ul class="voices grid reveal--stagger">{pile}</ul>
+    </div>
+  </section>
 </main>
 
 <footer class="close" id="contact">

@@ -107,7 +107,6 @@
       hold(key, on) { if (on) holds.add(key); else holds.delete(key); wake(); },
       get angle() { return angle; },
       get scrollAngle() { return sAngle; },
-      get target() { return target; },     // where the angle is heading, not where it is: the ring phases on this
       get held() { return holds.size > 0; },
       set(a) { angle = target = a; emit(); },   // test hook
       get holdKeys() { return [...holds].map(h => typeof h === 'string' ? h : (h.className || h.tagName)); },   // test hook
@@ -174,54 +173,21 @@
     bento.addEventListener('touchstart', () => { flow.hold(bento, true); clearTimeout(bentoTouch); bentoTouch = setTimeout(() => flow.hold(bento, false), 4000); }, { passive: true });
   }
 
-  /* ---- The ring: eight photographs on a circle, upright, turning with the flow — and it IS the testimonials.
-     The one standing at the top of the circle is the one speaking; hovering or focusing any of them makes that one
-     speak instead, which is the whole interaction. Item i sits at angle a + i·45° and the transform puts angle 0 at
-     the top, so the speaker is −a/45 rounded, wrapped. ---- */
+  /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
   $$('.ring__orbit').forEach(orbit => {
     const items = $$('.ring__item', orbit);
-    // the voices are a sibling of the necklace, not a child of it — on a phone they sit underneath — so look for them
-    // from the wrapper, not from the stage
-    const quotes = $$('.ring__quote', orbit.closest('.ring__wrap') || document);
-    let r = 300, n = items.length, shown = -1, pinned = null, phase = null;
+    let r = 300, n = items.length;
     const read = () => { const cs = getComputedStyle(root); r = num(cs, '--ring-r', 300); };
     read(); addEventListener('resize', read);
-    // The necklace takes its phase when it is CENTRED, not when it first appears, so item 0 — Linda's own line — is
-    // the one standing at the top when you get there. Without a phase at all the flow has already turned 200-odd
-    // degrees by the time the ring is on screen (drift plus 0.06° a pixel scrolled) and which voice you meet is an
-    // accident of scroll speed; phasing on first intersection instead left another 40° to run and landed on item 7.
-    const stage = orbit.closest('.ring__stage') || orbit;
-    const speak = (i) => {
-      if (i === shown || !quotes.length) return;
-      shown = i;
-      for (let k = 0; k < quotes.length; k++) quotes[k].classList.toggle('is-on', k === i);
-      for (let k = 0; k < items.length; k++) items[k].classList.toggle('is-active', k === i);
-    };
     const render = (a) => {
-      if (phase === null) {
-        const box = stage.getBoundingClientRect();
-        // the TARGET, not the current angle: the angle is still easing toward it with a 0.32s time constant when the
-        // scroll stops, and phasing on the angle left another 40° to run — one whole slot, landing on item 7.
-        if (Math.abs(box.top + box.height / 2 - innerHeight / 2) < innerHeight * 0.12) phase = flow.target;
-      }
-      // the GEOMETRY turns on the phased angle too, not just the index — phase only the index and item 0 speaks
-      // while some other photograph is standing at the top, which is the one thing this section must not do.
-      // Before the phase is taken the necklace simply holds its arrangement; there is nothing to see yet.
-      const turned = a - (phase === null ? a : phase);
       for (let i = 0; i < items.length; i++) {
-        const t = (turned + i * 360 / n) * Math.PI / 180;
+        const t = (a + i * 360 / n) * Math.PI / 180;
         items[i].style.transform = `translate3d(${(r * Math.sin(t)).toFixed(2)}px, ${(-r * Math.cos(t)).toFixed(2)}px, 0)`;
       }
-      speak(pinned !== null ? pinned : ((-Math.round(turned / (360 / n)) % n) + n) % n);
     };
     flow.on(render);
-    const pin = (e) => { const it = e.target.closest('.ring__item'); if (!it) return; pinned = +it.dataset.i; speak(pinned); };
-    const unpin = () => { pinned = null; };
-    orbit.addEventListener('pointerover', pin);
-    orbit.addEventListener('focusin', pin);
-    orbit.addEventListener('focusout', unpin);
     orbit.addEventListener('pointerover', (e) => { if (e.target.closest('.photo')) flow.hold(orbit, true); });
-    orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo') && orbit.contains(e.relatedTarget))) { flow.hold(orbit, false); unpin(); } });
+    orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo') && orbit.contains(e.relatedTarget))) flow.hold(orbit, false); });
     let touchTimer;
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
     flow.watch(orbit.closest('.ring') || orbit);

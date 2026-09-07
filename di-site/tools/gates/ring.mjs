@@ -3,16 +3,11 @@
 // scrolling turns it faster than the drift. Bento: every column moves, adjacent columns move in opposite directions, no column
 // runs past its own loop length, the pointer stops THE COLUMN IT IS OVER while the others carry on (and the wheel
 // scrubs that one by hand), and the panel clips columns that overrun it.
-// The ring is also the testimonials: exactly one voice is on, the photograph it belongs to is the one marked active
-// AND the one standing at the top of the circle, hovering another photograph hands it the centre, turning the ring
-// advances it on its own, and the centre block never leaves the clear circle inside the necklace.
 // --self-test: sets --ring-r to 90 and expects the photo-on-photo check to fail at 1440×900.
-// --self-test-voices: takes the active mark off every photograph, which the speaker checks must catch.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
-const selfTestVoices = process.argv.includes('--self-test-voices');
 const b = await browser();
-const VP = (selfTest || selfTestVoices) ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844]];
+const VP = selfTest ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844]];
 let allOk = true;
 for (const [w, h] of VP) {
   const pg = await open(b, w, h);
@@ -109,59 +104,10 @@ for (const [w, h] of VP) {
     const br = b.getBoundingClientRect();
     return [...document.querySelectorAll('[data-bento]')].every(c => c.getBoundingClientRect().height > br.height + 40);
   });
-  // ---- the ring IS the testimonials ----
-  await pg.evaluate(() => { const s = document.querySelector('.ring__stage'); scrollTo(0, scrollY + s.getBoundingClientRect().top + s.offsetHeight / 2 - innerHeight / 2); });
-  await pg.mouse.move(4, 4); await pg.waitForTimeout(1000);
-  if (selfTestVoices) await pg.evaluate(() => document.querySelectorAll('.ring__item').forEach(e => e.classList.remove('is-active')));
-  const voice = () => pg.evaluate(() => {
-    const on = [...document.querySelectorAll('.ring__quote.is-on')].map(e => +e.dataset.i);
-    const act = [...document.querySelectorAll('.ring__item.is-active')].map(e => +e.dataset.i);
-    // which photograph is actually highest on the circle right now
-    const st = document.querySelector('.ring__stage').getBoundingClientRect();
-    const cy = st.top + st.height / 2;
-    let top = -1, best = Infinity;
-    for (const it of document.querySelectorAll('.ring__item')) { const r = it.getBoundingClientRect(); const y = r.top + r.height / 2 - cy; if (y < best) { best = y; top = +it.dataset.i; } }
-    // The INK of EVERY voice must stay inside the clear circle the necklace leaves — not just the one showing, and
-    // not the <li> box. All eight are stacked in one grid cell so each <li> is as tall as the tallest and its corners
-    // are empty space; measuring those made the check fail on air. And measuring only the one showing made it pass or
-    // fail on which quote the drift happened to land on: Linda's is 40 characters and a placeholder is 79.
-    const cs = getComputedStyle(document.documentElement);
-    const safe = parseFloat(cs.getPropertyValue('--ring-r')) - parseFloat(cs.getPropertyValue('--ring-item')) / 2;
-    const cx = st.left + st.width / 2;
-    let worst = 0;
-    for (const q of document.querySelectorAll('.ring__quote')) for (const e of q.querySelectorAll('.ring__text, .who')) {
-      let rects;
-      if (e.classList.contains('ring__text')) { const rg = document.createRange(); rg.selectNodeContents(e); rects = [...rg.getClientRects()]; }
-      else rects = [e.getBoundingClientRect()];
-      for (const r of rects) { if (!r.width) continue;
-        for (const [x, y] of [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]]) worst = Math.max(worst, Math.hypot(x - cx, y - cy)); }
-    }
-    return { on, act, top, inside: worst <= safe, worst: Math.round(worst), safe: Math.round(safe) };
-  });
-  const v0 = await voice();
-  const onePlace = v0.on.length === 1 && v0.act.length === 1 && v0.on[0] === v0.act[0] && v0.act[0] === v0.top;
-  // hovering another photograph hands it the centre
-  const other = (v0.top + 3) % 8;
-  const pt = await pg.evaluate((i) => { const r = document.querySelector(`.ring__item[data-i="${i}"]`).getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, other);
-  await pg.mouse.move(pt[0], pt[1]); await pg.waitForTimeout(500);
-  const vh = await voice();
-  const hoverSpeaks = vh.on[0] === other && vh.act[0] === other;
-  await pg.mouse.move(4, 4); await pg.waitForTimeout(400);
-  // and it advances on its own as the ring turns
-  const before = (await voice()).on[0];
-  await pg.evaluate(() => window.__di.flow.set(window.__di.flow.angle + 135));
-  await pg.waitForTimeout(600);
-  const after = await voice();
-  const turnsSpeaker = after.on[0] !== before && after.on[0] === after.act[0] && after.act[0] === after.top;
-  const voicesOk = onePlace && hoverSpeaks && turnsSpeaker && v0.inside;
-  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped && voicesOk;
+  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && bentoMoves && opposed && wrapped && bentoStops && clipped;
   allOk = allOk && ok;
-  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, hoveredStops, othersCarryOn, scrubs, clipped, onePlace, hoverSpeaks, turnsSpeaker, centreInside: v0.inside, dy: deltas.map(d => +d.toFixed(1)) }));
+  report(`ring+bento ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), bentoMoves, opposed, wrapped, hoveredStops, othersCarryOn, scrubs, clipped, dy: deltas.map(d => +d.toFixed(1)) }));
   await pg.close();
 }
 await b.close();
-if (selfTest || selfTestVoices) {
-  const caught = !allOk;
-  console.log(caught ? `SELF-TEST OK: the ${selfTestVoices ? 'unmarked speaker' : 'injected overlap'} was caught` : 'SELF-TEST FAILED: gate cannot fail');
-  process.exitCode = caught ? 0 : 1;
-}
+if (selfTest) { const caught = !allOk; console.log(caught ? 'SELF-TEST OK: the injected overlap was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }

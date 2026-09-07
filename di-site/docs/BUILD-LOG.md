@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v20 (2026-09-07) — the ring goes back
+*"I dont really like that the testimonals section is where the creativity in motion section was… I actually love the creativity and motion section."* Reverted. The necklace carries **“Creativity in motion creates knowledge!”** again, at 3.5rem with Linda's name under it, and the testimonials are three cards in their own section below it. v18 and v19 are gone from `home.css`, `tokens.css`, `main.js`, `build-html.py` and the three gates that changed with them; **everything from v17 and before is untouched** — the full-field photograph, the proof in the hero, the second way in, the graded portrait, the balanced readers.
+
+**Why the merge was wrong, in his terms and mine.** Mine was arithmetic: the ring was 880px of ground that was 71% empty carrying one static quote, and the testimonials were three more equal tiles. His is the one that counts — **that quote is the best line on the page, and it was the whole section.** Folding it into a carousel made it one of eight, and seven of the eight are lorem. A signature moment made of placeholder content is not a signature moment; it is a mechanism waiting for content, and it cost a line that already worked. The 71% of empty ground is what a single line at 3.5rem in a necklace is *supposed* to look like.
+
+What the merge was right about is still true and still open: the testimonials are three equal tiles of lorem. That is a **redesign of the testimonials**, not a merge with something that already works.
+
+**Measured after v20.** Back to 44 gate lines and six self-tests, all caught. Worst contrast 4.82:1 light / 5.28:1 dark.
+
 ## v19 (2026-09-06) — the swap, and the voice back inside the circle
 Two notes on v18, both right.
 
