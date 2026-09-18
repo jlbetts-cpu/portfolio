@@ -422,7 +422,19 @@ def main():
 
     audited_media = {
         "bearings.html": (("cmpBoard", "media--full"), ("photoPair", "media--full")),
-        "strata.html": (("videoFrame", "media--full"), ("photoPair", "media--full")),
+        # STRATA'S FILM IS GONE WITH THE PRODUCT IT FILMED, and this is the same
+        # substitution the note above makes for the demo's controls: the region moved
+        # out, so the requirement re-points at what now owns that slot rather than
+        # being dropped. 2026-09-17, when the study was rewritten around the iOS app
+        # that ships on TestFlight: the embedded YouTube walkthrough was a recording
+        # of the 2025 WEB PROTOTYPE, a different product with streaks and XP in it, so
+        # a page arguing for the current app was showing a film of the old one. The
+        # full-measure media it leaves behind is the Memories gallery, a .scrollbox,
+        # and the requirement is unchanged in substance: a full-measure region on a
+        # case study declares the shared `media` primitive and exactly one role.
+        # This still fails if the gallery is built without them, which is the defect
+        # the entry exists to catch.
+        "strata.html": (("scrollbox", "media--full"), ("photoPair", "media--full")),
         "cluster.html": (("photoPair", "media--full"),),
         "ucdavis.html": (("photoPair", "media--full"),),
     }
