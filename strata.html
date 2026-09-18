@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, an iOS app designed and built by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/strata/daytime-1200.webp" imagesrcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=722bc348b3">
+<link rel="stylesheet" href="tokens.css?v=3b68a76c01">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -1378,11 +1378,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=722bc348b3">
+<link rel="stylesheet" href="controls.css?v=3b68a76c01">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata#work","url":"https://jaydenbetts.design/strata","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is an iOS app on TestFlight, designed and built solo: every win you log becomes a block, the blocks stack into a tower, and a camera, a map and weekly replays keep where it happened. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=722bc348b3">
-<link rel="stylesheet" href="footer.css?v=722bc348b3">
-<link rel="stylesheet" href="site-theme.css?v=722bc348b3">
+<link rel="stylesheet" href="header.css?v=3b68a76c01">
+<link rel="stylesheet" href="footer.css?v=3b68a76c01">
+<link rel="stylesheet" href="site-theme.css?v=3b68a76c01">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -1557,14 +1557,26 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          (images/cs/<project>.webp) and is deliberately not time-aware -- a
          social preview must not depend on the visitor's clock. -->
 
-    <!-- TRY NOW, same as the other five studies. THE LABEL NAMES WHAT IS BEHIND IT.
-         It said "Play Strata" and pointed at strata-play.html, which is the 2025 web
-         prototype: a different product from the iOS app this page is now about, with
-         streaks and XP still in it. A button that says the app's name and opens an old
-         version of it is the same staleness this rewrite exists to remove, so the label
-         says which one it is. The door itself is untouched, and play.html's card still
-         points at the same page. -->
-    <p class="csTry"><a class="ctl ctl--primary" href="/strata-play">Play the 2025 prototype</a></p>
+    <!-- THERE IS NO TRY NOW BUTTON HERE ANY MORE, AND THAT IS THE POINT.
+         It read "Play the 2025 prototype" and opened strata-play.html: a filled ink
+         slab, the loudest thing on the page, advertising the OLD version of the very
+         product this rewrite exists to replace. The other studies' Try now buttons
+         open the thing the study is about; this one could not, because the thing the
+         study is about is on TestFlight and has no web door.
+         A primary control that cannot lead is worse than none, so the hero has no
+         button and the cover leads. Apollo, Bearings, Cluster and UC Davis carry no
+         .csTry either -- a study without a live artifact has never had one.
+         THE DOOR IS NOT LOST, it moved into the prose that already describes it:
+         "My own 2025 prototype" in the first section is an inline prose link now
+         (.footIn, the site's own component), and play.html's card still points at
+         the same page. One honest mention instead of one loud button.
+         IT HAS TO LIVE IN .secBody AND NOT IN A .rv BLOCK, which cost a measurement
+         to find. The reveal splits every word of an .rv element into
+         <span class="abw"> inline-blocks, and CSS does not paint an ancestor's
+         text-decoration under an atomic inline-level descendant -- so the same link
+         in the Process row drew 4px of underline, under the word space and nowhere
+         else. Measured at 1512 and 390. Prose paragraphs are not .rv, which is why
+         the Apollo link two thousand lines down has always looked right. -->
 
     <figure class="cover media media--full" id="cover"><img data-time-thumbnail="strata" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1200" height="600" alt="Strata on three iPhone screens standing on a sheep pasture: the tower of wins, the launch mark, and the map of where wins happened." loading="eager" decoding="async"></figure>
     <script src="time-aware-thumbnails.js"></script>
@@ -1598,7 +1610,16 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      <ul class="contrib rv" data-f="0.011">
       <li><span class="contribK">2025</span><span class="contribV">A class pitch, built as a web prototype. It had streaks and XP in it, and it is still up.</span></li>
       <li><span class="contribK">Rewrite</span><span class="contribV">Rebuilt native in Swift, which is the version this page is about.</span></li>
-      <li><span class="contribK">Cut</span><span class="contribV">Insights became History, History became Memories, and Memories became the map.</span></li>
+      <!-- THE "Cut" ROW IS GONE BECAUSE IT WAS ALREADY SAID, WORD FOR WORD. It read
+           "Insights became History, History became Memories, and Memories became the
+           map" and the second paragraph of "What was broken" ends "Insights became
+           History, History became Memories, and then Memories stopped being a list
+           and became a map." Measured at 0.82 sequence similarity against all 64
+           prose sentences on the page -- the next closest row scores 0.50.
+           The prose version is the one that earns it: it arrives after the reasoning
+           that makes it true, and it carries the extra clause. The row was the echo.
+           This is the rule the structure comment at the top of this file already
+           states -- "If you add a row, check it is not already said elsewhere." -->
       <li><span class="contribK">Ship</span><span class="contribV">On TestFlight, and the launch is its own piece of design.</span></li>
      </ul>
     </div>
@@ -1606,7 +1627,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
    <!-- THE PLAYABLE BUILD MOVED OUT. It was a phone-shaped iframe of the Lovable app
         here, two thirds down the page. On 2026-09-01 it got its own page --
-        strata-play.html, reachable from the Try now button at the top of this study and
+        strata-play.html, reachable from the Process row's "still up" link above and
         from the Play grid -- and he asked why a second playable copy was still sitting
         here. One app, one door. The study is the argument; the page is the thing. -->
 
@@ -1614,7 +1635,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="problem" class="sec">
     <div class="kicker">What was broken</div>
     <h2 class="secHead">A streak only knows how to punish you.</h2>
-    <p class="secBody">Every habit app I had used kept a ledger of what I owed it, and the day I missed, the one number it showed me went to zero. My own prototype did the same thing: it had streaks, XP and levels in it, because that is what a habit app looks like. <strong>So the rewrite started by deleting the scoreboard.</strong> You log something you already did, which means there is nothing in the app you can fail at, and the only direction the thing can move is up.</p>
+    <p class="secBody">Every habit app I had used kept a ledger of what I owed it, and the day I missed, the one number it showed me went to zero. <a class="footIn" href="/strata-play">My own 2025 prototype</a> did the same thing: it had streaks, XP and levels in it, because that is what a habit app looks like. <strong>So the rewrite started by deleting the scoreboard.</strong> You log something you already did, which means there is nothing in the app you can fail at, and the only direction the thing can move is up.</p>
     <p class="secBody">That one decision took the app apart. A tracker needs a plan, a calendar and a dashboard; a record needs somewhere to put what happened. <strong>Four tabs became three: Wins, Camera, Memories.</strong> Insights became History, History became Memories, and then Memories stopped being a list and became a map.</p>
    </section>
    <!-- THE PHOTOGRAPHS MOVED UP HERE FROM THE FOOT OF THE PAGE.  2026-08-27.
@@ -2110,11 +2131,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  var r=matchMedia('(prefers-reduced-motion:reduce)').matches;
  b.addEventListener('click',function(){scrollTo({top:0,behavior:r?'auto':'smooth'});var h=document.querySelector('h1');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}});})();
  </script>
-<script>
-</script>
 <!-- The demo driver went with the embed it drove. It was already inert -- it
-     returns early when #demoPhone is absent -- but a listener bound to nothing
-     is a thing the next reader has to work out. -->
+     returned early when #demoPhone was absent -- but a listener bound to nothing
+     is a thing the next reader has to work out. The empty <script></script> it
+     left behind went too: a tag the parser opens, closes and runs for no reason
+     is the same debt one line shorter. -->
 
 <script>
 /* a tiny visitor: if you made your own head in Extras, it peeks in once while you read */
