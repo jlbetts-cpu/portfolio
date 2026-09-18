@@ -235,10 +235,16 @@ async function test(name,run){
   h.images.forEach(image=>assert.match(attr(image,"src"),/-cover\.webp$/));
  });
 
- await test("home HTML marks exactly four thumbnails and loads the controller once",async()=>{
+ await test("every home card declares its project and the controller loads once",async()=>{
   const html=fs.readFileSync(require.resolve("../index.html"),"utf8");
   assert.equal((html.match(/data-time-thumbnail="bearings"/g)||[]).length,2);
   assert.equal((html.match(/data-time-thumbnail="apollo"/g)||[]).length,2);
+  /* STRATA DECLARES ITSELF TOO, as of 2026-09-17, when it moved to the top of both
+     panels. Its card used to rely on the href sniff in projectFor(), which is the
+     weakest of the three lookups and the one time-aware-thumbnails.js itself warns
+     about: "a card that declares itself is never at the mercy of the filename". The
+     card that leads the page is the worst one to leave on that footing. */
+  assert.equal((html.match(/data-time-thumbnail="strata"/g)||[]).length,2);
   /* THE TAG LOST ITS defer AND MOVED, and this assertion was still pinned to the
      old one -- it has been failing against HEAD since the script was moved to sit
      immediately after the last cover (see the note at the top of
@@ -252,7 +258,23 @@ async function test(name,run){
   assert.equal((html.match(tag)||[]).length,1);
   assert.ok(html.search(tag)>html.lastIndexOf('class="csItem'),
    "time-aware-thumbnails.js must be loaded BELOW the last .csItem");
-  assert.equal((html.match(/<img class="csImg"[^>]*data-time-thumbnail=/g)||[]).length,4);
+  /* THE COUNT WAS A CENSUS, AND A CENSUS CANNOT FAIL FOR THE RIGHT REASON. It read
+     `=== 4` because bearings and apollo happened to be the only two projects carrying
+     the attribute, in two panels each; adding a third declaring card broke it while
+     making the markup strictly more correct, which is a gate reporting the fix as the
+     regression. What actually matters is the thing the controller needs: EVERY card
+     must be resolvable to a project, by the attribute or by the .csItem[data-slug]
+     the controller checks next. A card resolvable by neither is stuck on its daytime
+     plate forever, which is the defect this file exists for and the one the old count
+     could not see -- it passed the whole time ucdavis, strata and cluster carried no
+     attribute at all. Delete a data-slug or misspell a data-time-thumbnail and this
+     fails by name. */
+  const declared=(html.match(/<img class="csImg"[^>]*data-time-thumbnail="([a-z]+)"/g)||[]).length;
+  const items=html.match(/<article class="csItem"[^>]*>/g)||[];
+  assert.ok(items.length>=5,"the home work list has gone missing: "+items.length);
+  const undeclared=items.filter(tag=>!/data-slug="[a-z]+"/.test(tag));
+  assert.deepEqual(undeclared,[],"every .csItem needs a data-slug the controller can resolve");
+  assert.ok(declared>=2,"at least the eager lead card must declare its project outright");
  });
 
  if(failures.length){

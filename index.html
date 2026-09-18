@@ -2842,11 +2842,29 @@ if(location.hash==="#about")location.replace("about.html");</script>
       state in time-aware-thumbnails.js:ORIGINALS, and the five case studies use
       them as their og:image, their preload and their own hero cover. -->
  <div class="csPanel on" data-panel="cs" role="tabpanel" aria-label="Featured">
+  <!-- STRATA LEADS BOTH LISTS. 2026-09-17: it is the only thing here that is a
+       shipping product rather than a study of one, and it is the one an iOS team
+       would open first. The Featured / Case Studies split is untouched -- Featured
+       is still a strict subset, and the order of everything else is unchanged in
+       both panels. The eager cover moved with it: exactly one plate on this page
+       carries loading="eager" fetchpriority="high", and it has to be the one that
+       paints first or the LCP image is fetched at low priority. -->
+  <article class="csItem" data-slug="strata">
+   <div class="csTrack">
+    <div class="csStage">
+     <div class="csStageInner">
+      <a class="csGo" href="/strata" aria-label="View the Strata case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="strata" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Strata: an iOS app where wins stack into a tower, shown across three iPhone screens standing on a sheep pasture" loading="eager" fetchpriority="high" decoding="async"></figure></a>
+      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2026</span><span class="csImpact">Designed and built solo &middot; shipping on TestFlight</span></div>
+     </div>
+    </div>
+   </div>
+  </article>
+
   <article class="csItem" data-slug="bearings">
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="/bearings" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings: a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
+      <a class="csGo" href="/bearings" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings: a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span><span class="csImpact">Audience Choice Award &middot; 5 weeks with 4 designers</span></div>
      </div>
     </div>
@@ -2866,7 +2884,17 @@ if(location.hash==="#about")location.replace("about.html");</script>
   </div>
 
  <div class="csPanel" data-panel="fun" role="tabpanel" aria-label="Case Studies" hidden>
-  
+
+  <article class="csItem" data-slug="strata">
+   <div class="csTrack">
+    <div class="csStage">
+     <div class="csStageInner">
+      <a class="csGo" href="/strata" aria-label="View the Strata case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="strata" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Strata: an iOS app where wins stack into a tower, shown across three iPhone screens standing on a sheep pasture" loading="lazy" decoding="async"></figure></a>
+      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2026</span><span class="csImpact">Designed and built solo &middot; shipping on TestFlight</span></div>
+     </div>
+    </div>
+   </div>
+  </article>
   <article class="csItem" data-slug="bearings">
    <div class="csTrack">
     <div class="csStage">
@@ -2893,16 +2921,6 @@ if(location.hash==="#about")location.replace("about.html");</script>
      <div class="csStageInner">
       <a class="csGo" href="/ucdavis" aria-label="View the UC Davis Rec Redesign case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/ucrec/daytime-1200.webp" srcset="images/cs/variants/time/ucrec/daytime-1200.webp 1200w, images/cs/variants/time/ucrec/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="UC Davis Rec app redesign: the redesigned home screen with events, live hours, and a Member ID" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">UC Davis Rec Redesign</span><span class="csYear">2026</span><span class="csImpact">Member ID in Apple Wallet &middot; killed the login for good</span></div>
-     </div>
-    </div>
-   </div>
-  </article>
-  <article class="csItem" data-slug="strata">
-   <div class="csTrack">
-    <div class="csStage">
-     <div class="csStageInner">
-      <a class="csGo" href="/strata" aria-label="View the Strata &middot; Lovable case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Strata: a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2025</span><span class="csImpact">Designed and built solo, playable on this page</span></div>
      </div>
     </div>
    </div>
@@ -3700,7 +3718,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
   var CSINFO={   // recruiter-scan copy: one crisp Problem sentence + one crisp Solution sentence, every fact kept
    bearings:{role:"Product designer",problem:"Planning a group road trip means five apps and a group chat.",solution:"One shared canvas to route, split costs, and lock the plan."},
    apollo:{role:"Founder & product designer",problem:"The middle of building a habit goes unseen and unrewarded.",solution:"A social app where close friends witness your daily wins."},
-   ucdavis:{role:"Solo product designer",problem:"The rec app forced a login every visit and buried the rest.",solution:"A hierarchy-first redesign, with the gym ID moved into Apple Wallet."},strata:{role:"Designer & builder",problem:"Some habits never start, so I made building them a game.",solution:"A habit builder where wins stack into a tower: sound, photos, XP."},
+   ucdavis:{role:"Solo product designer",problem:"The rec app forced a login every visit and buried the rest.",solution:"A hierarchy-first redesign, with the gym ID moved into Apple Wallet."},strata:{role:"Designer & iOS engineer",problem:"What you actually got done disappears the moment the day ends.",solution:"An iOS app where every win becomes a block, and the blocks stack into a tower."},
    cluster:{role:"Product designer",problem:"UC Davis has 800+ clubs, but the niche ones are impossible to find.",solution:"A campus app to discover clubs, follow them, and find your people."},
    headmaker:{role:"Design & code",problem:"The floating head is the soul of this site, but only I had one.",solution:"Turn a photo into a living cutout that hops around beside mine."}
   };
