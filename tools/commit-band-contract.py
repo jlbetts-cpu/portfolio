@@ -491,7 +491,20 @@ def browser_contract(base, patched_js=None, patched_css=None):
             # announced "0 contributions" over 53 live squares. That is the failure
             # this branch exists to catch, so it is asserted directly below rather
             # than only implied.
-            wanted = [("active days", active), ("longest run", longest)]
+            # THE LONGEST RUN IS NOT IN THE CAPTION, BY REQUEST, AND MUST STAY OUT.
+            # He asked for it gone on 2026-09-25. It was the third number in a two
+            # line sentence and the squares say it better than a figure does. It is
+            # still in the aria-label, checked below, because that string is what
+            # somebody gets INSTEAD of the picture rather than beside it.
+            assert "unbroken run" not in m["note"].lower(), \
+                ("%d: the longest run is back in the caption" % width, m["note"])
+            assert "unbroken run" in m["aria"].lower(), \
+                ("%d: the text alternative lost the longest run, which the squares "
+                 "still show" % width, m["aria"])
+            assert str(longest) in m["aria"].replace(",", ""), \
+                ("%d: the text alternative does not report the file's own longest "
+                 "run (%d)" % (width, longest), m["aria"])
+            wanted = [("active days", active)]
             if commits is None:
                 wanted.append(("window length", total))
                 assert "0 contributions" not in m["note"] \

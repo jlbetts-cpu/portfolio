@@ -214,6 +214,10 @@
       "Contribution calendar. " + (hasCount
         ? commas(commits) + " contributions on " + active + " days in " + span
         : active + " of " + span + " carried work") +
+      /* THE TEXT ALTERNATIVE KEEPS IT, and that is not an inconsistency. A sighted
+         reader can see the run in the squares; this string is what somebody gets
+         INSTEAD of the squares, so dropping it there would take away something the
+         picture still carries rather than removing a repetition. */
       "; the longest unbroken run is " + plural(longest, "day") +
       ". Each square is a day, shaded by how busy it was.");
 
@@ -241,8 +245,13 @@
     note.textContent = (hasCount
       ? commas(commits) + " contributions on " + active + " days in " + span
       : commas(active) + " of " + span + " carried work") +
-      ". Each square is a day. The longest unbroken run is " +
-      plural(longest, "day") + ".";
+      /* NO LONGEST RUN. He asked for it gone on 2026-09-25, and it was the third
+         number in a two line caption: the headline is the count, the sentence
+         repeats it with the day tally, and a streak on top of that is a statistic
+         about consistency that the squares already show better than a number can.
+         The value is still computed, because the aria-label has nothing but words
+         and the contract still reads it -- it is just not said twice. */
+      ". Each square is a day.";
 
     /* ══ THE USAGE FIGURE ═══════════════════════════════════════════════════════════
        Same guard as the calendar's: no data, no block.
