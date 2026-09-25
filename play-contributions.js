@@ -110,7 +110,19 @@
        profile prints. Everything the page says is either that number or a count of days,
        and a count of days is something a level can carry. */
     var total = days.length;
-    var commits = data.commits | 0;
+    /* NULL IS A REAL ANSWER HERE, SO IT IS NOT COERCED.  `| 0` turns null into 0 and
+       the page would have announced "0 contributions" over a graph full of squares.
+       On a window shorter than the year `data.commits` is deliberately absent, because
+       GitHub's public page publishes ONE total, for the trailing year, and per-day
+       levels with no counts. So the page says what it can count itself. */
+    var hasCount = typeof data.commits === "number";
+    var commits = hasCount ? (data.commits | 0) : null;
+    /* THE SPAN COMES FROM THE DAYS, not from the label, so the sentence cannot drift
+       from the picture. `window` only decides WHETHER this is a short band; how long
+       it is, is however many squares there are. The builder writes the same number
+       into `window`, and if the two ever disagree the squares win. */
+    var windowDays = String(data.window || "") !== "year"
+      && /^\d+d$/.test(String(data.window || "")) ? total : null;
     var active = 0, streak = 0, longest = 0, i;
     for (i = 0; i < days.length; i++) {
       if ((days[i].l | 0) > 0) { active++; streak++; if (streak > longest) longest = streak; }
@@ -184,16 +196,22 @@
     /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 371 individually labelled
        squares is not an alternative, it is a maze. role="img" collapses the subtree and
        this sentence is what a screen reader gets instead. */
+    var span = windowDays ? ("the last " + windowDays + " days")
+      : ("the year to " + human(data.last));
     graph.setAttribute("aria-label",
-      "Contribution calendar. " + commas(commits) + " contributions on " + active +
-      " days in the year to " + human(data.last) + "; the longest unbroken run is " +
-      plural(longest, "day") + ". Each square is a day, shaded by how busy it was.");
+      "Contribution calendar. " + (hasCount
+        ? commas(commits) + " contributions on " + active + " days in " + span
+        : active + " of " + span + " carried work") +
+      "; the longest unbroken run is " + plural(longest, "day") +
+      ". Each square is a day, shaded by how busy it was.");
 
     /* THE FIGURE IS THE HEADLINE NOW, which is the reference's structure: a label, then
        the number, then the picture. The heading element and its id are unchanged, so the
        section is still labelled by the thing that names it. */
     var count = document.getElementById("pGitCount");
-    if (count) count.textContent = commas(commits) + " contributions";
+    if (count) count.textContent = hasCount
+      ? commas(commits) + " contributions"
+      : commas(active) + " active days";
 
     stamp.textContent = "Snapshot taken " + generated;
     /* THE SENTENCE MAKES NO CLAIM THE DATA CANNOT CARRY, and it now has to be careful
@@ -208,8 +226,10 @@
        whatever the page's ink is, so on a night page the busiest days are the LIGHTEST
        squares and the sentence beside them was false. The key under the graph carries
        the direction instead, in the ramp's own colours, and is right in both themes. */
-    note.textContent = commas(commits) + " contributions on " + active +
-      " days in the last year. Each square is a day. The longest unbroken run is " +
+    note.textContent = (hasCount
+      ? commas(commits) + " contributions on " + active + " days in " + span
+      : commas(active) + " of " + span + " carried work") +
+      ". Each square is a day. The longest unbroken run is " +
       plural(longest, "day") + ".";
 
     /* ══ THE USAGE FIGURE ═══════════════════════════════════════════════════════════

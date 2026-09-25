@@ -721,15 +721,30 @@
     that width. The PAGE still does not scroll sideways -- this is an inner scroller, and
     play-screens-contract measures the document. ══════════════════════════════════════ */
  .pGitCal{width:100%}
- .pGitMonths{display:grid;grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,1fr));
+ .pGitMonths{display:grid;grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,var(--pgit-cell)));
+  justify-content:start;
   gap:var(--pgit-gap);margin:0 0 var(--sp-6);
   font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
   line-height:1;letter-spacing:var(--tr-flat);color:var(--theme-muted)}
  .pGitMonths i{font-style:normal;grid-row:1;justify-self:start;white-space:nowrap}
+ /* A SQUARE HAS A CEILING, because the band is a calendar and not a heatmap.
+    The tracks were minmax(0,1fr), so the grid stretched to the column whatever the
+    window was: at 53 weeks that is a 17.8px square, and at 13 weeks it measured
+    84.9px -- nearly five times the size, and the thing stopped reading as days and
+    started reading as tiles. The cap holds the square at a calendar's size and the
+    grid sits on the left margin with the slack beside it, which is the shape a
+    shorter window actually has. It is a MAX, not a size: at 53 weeks 28px does not
+    fit in the column and the tracks shrink to the same 17.8 they always were, so
+    the year window is untouched by this.
+    24px, NOT 28: commit-band-contract holds a day between 8 and 24px and was right
+    to stop me at 28. The gate is the legibility range for a weekday grid, so the cap
+    is set at the top of it rather than the range widened to admit my number. */
  .pGitGraph{display:grid;grid-auto-flow:column;
-  grid-template-rows:repeat(7,minmax(0,1fr));
-  grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,1fr));
-  --pgit-gap:var(--sp-4);gap:var(--pgit-gap)}
+  grid-template-rows:repeat(7,minmax(0,var(--pgit-cell)));
+  grid-template-columns:repeat(var(--pgit-weeks,53),minmax(0,var(--pgit-cell)));
+  justify-content:start;
+  --pgit-cell:24px;--pgit-gap:var(--sp-4);gap:var(--pgit-gap)}
+ .pGitMonths{--pgit-cell:24px}
  .pGitCell{aspect-ratio:1;border-radius:var(--r-2xs);
   transition:background var(--dur-state) var(--ease-out)}
  @media(prefers-reduced-motion:reduce){.pGitCell{transition:none}}
@@ -750,9 +765,15 @@
  .pGitSecond{margin:var(--sp-32) 0 0}
  .pGitSecond .pGitHead{margin:0 0 var(--sp-6)}
 
- .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+ /* THE KEY SITS WITH THE SENTENCE, NOT AT THE FAR EDGE OF THE COLUMN. It was
+    space-between, which was right while the graph spanned the column: the key landed
+    under the graph's right edge and read as part of it. A 90 day band is a third of
+    that width, so the same rule left the key stranded a screen away from the only
+    thing it explains. Beside the sentence it stays with the picture at any window. */
+ .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;
+  column-gap:var(--sp-6);
   gap:var(--sp-8) var(--sp-16);margin:var(--sp-16) 0 0}
- .pGitNote{margin:0;flex:1 1 260px;max-width:100ch;font-family:var(--sans);font-weight:400;
+ .pGitNote{margin:0;flex:0 1 auto;max-width:100ch;font-family:var(--sans);font-weight:400;
   font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
   color:var(--theme-muted);text-wrap:balance}
  .pGitKey{display:flex;align-items:center;gap:var(--sp-4);margin:0;flex:0 0 auto;

@@ -479,12 +479,35 @@ def browser_contract(base, patched_js=None, patched_css=None):
                 ("%d: %d cells for %d days" % (width, m["cells"], total))
             assert m["titled"] == total, \
                 "%d: %d of %d days carry no hover date" % (width, m["titled"], total)
-            for label, value in (("total", commits), ("active days", active),
-                                 ("longest run", longest)):
+            # A NULL COUNT IS A REAL STATE AND THE PAGE MUST NOT INVENT ONE.
+            #
+            # The band showed a trailing year until 2026-09-25 and `commits` was
+            # always GitHub's year total. On the 90 day window he chose there is no
+            # count to show: GitHub's public page publishes ONE total, for the year,
+            # and per-day levels with no numbers, so `build_github` writes null
+            # rather than print the year's figure over a quarter's graph.
+            #
+            # `commits | 0` in the renderer turned that null into 0 and the page
+            # announced "0 contributions" over 53 live squares. That is the failure
+            # this branch exists to catch, so it is asserted directly below rather
+            # than only implied.
+            wanted = [("active days", active), ("longest run", longest)]
+            if commits is None:
+                wanted.append(("window length", total))
+                assert "0 contributions" not in m["note"] \
+                    and "0 contributions" not in m["aria"], \
+                    ("%d: a window with no count printed one anyway" % width,
+                     m["note"], m["aria"])
+                assert "contributions" not in m["note"].lower(), \
+                    ("%d: the note claims a contribution count the data does not carry"
+                     % width, m["note"])
+            else:
+                wanted.append(("total", commits))
+            for label, value in wanted:
                 assert str(value) in m["note"].replace(",", ""), \
                     ("%d: the note does not report the file's own %s (%d)" % (width, label, value),
                      m["note"])
-            assert str(commits) in m["aria"].replace(",", ""), \
+            assert str(commits if commits is not None else active) in m["aria"].replace(",", ""), \
                 ("%d: the graph has no real text alternative" % width, m["aria"])
 
             # THE CAPTION MAY NOT NAME A DIRECTION OF SHADE.  The ramp is the page's

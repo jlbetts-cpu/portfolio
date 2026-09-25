@@ -125,7 +125,26 @@ def github_year():
     return cells, total
 
 
-def build_github():
+# HOW MANY WEEKS THE BAND SHOWS.  He chose 90 days on 2026-09-25 after seeing the
+# year: 74 active days over 370 is 20% density, so two thirds of the grid was empty
+# and every commit was jammed against the right edge.  The same data over the last
+# 13 weeks is 53 active days, 59%.  Nothing is hidden by the shorter window because
+# the sentence under the graph names it.
+#
+# WHOLE WEEKS BACK FROM A SUNDAY, PLUS THE WEEK IN PROGRESS.  The grid is seven
+# rows, one column a week, so the window has to START on a Sunday or the first
+# column is a stub: trimming a flat 91 days off the tail put a Saturday first and
+# the band drew 14 columns whose first held one square.  Measured, not reasoned --
+# 97 cells in a 91 day window.
+#
+# So: twelve whole weeks, then back up to the Sunday, and let the current partial
+# week be the last column exactly as GitHub's own graph does. That lands at 89 days
+# today and moves between 85 and 91 across the week. The page prints the span out of
+# the data rather than saying "90", so the sentence is true on every day of the week.
+WINDOW_WEEKS = 12
+
+
+def build_github(weeks=WINDOW_WEEKS):
     cells, total = github_year()
     # Trim the leading part-week so the grid's first column is a whole Sunday-start week.
     start = datetime.strptime(cells[0][0], "%Y-%m-%d").date()
@@ -142,6 +161,31 @@ def build_github():
             longest = max(longest, streak)
         else:
             streak = 0
+    # TRIM TO THE WINDOW, AND RECOUNT RATHER THAN REUSE.  active, streak and the
+    # histogram above were accumulated over the whole year, so every one of them is
+    # wrong for a shorter band and has to be computed again from the days that
+    # survive.  Anchored on the END, because the newest week is the point.
+    yearCommits = total
+    if weeks:
+        # The year list has already had its leading part-week trimmed, so index i is
+        # a Sunday exactly when i % 7 == 0. Walk the start back to one.
+        start = max(0, len(days) - weeks * 7)
+        start -= start % 7
+        days = days[start:]
+        active = sum(1 for d in days if d["l"])
+        longest = streak = 0
+        for d in days:
+            streak = streak + 1 if d["l"] else 0
+            longest = max(longest, streak)
+        # NO CONTRIBUTION COUNT FOR A SHORT WINDOW, AND THAT IS NOT AN OVERSIGHT.
+        # GitHub's public page gives one total, for the trailing year, and per-day
+        # LEVELS with no counts -- the `note` below has always said so.  So a band
+        # over 13 weeks can state how many of those days carried work and how long
+        # the longest run was, both of which are counted right here, and cannot
+        # state a number of contributions for them.  Rather than print the year's
+        # 1,611 over a 90 day graph and let it read as the window's, `commits` is
+        # null and the page falls back to the active-day figure it can prove.
+        total = None
     histogram = collections.Counter(day["l"] for day in days)
     return {
         "generated": date.today().isoformat(),
@@ -149,11 +193,16 @@ def build_github():
         "note": ("l is GitHub's own 0-4 level for the day, scaled against his busiest "
                  "day. GitHub does not publish a per-day count, so there is none here "
                  "and the page makes no claim about one."),
-        "window": "year",
+        # THE SPAN THAT IS ACTUALLY IN `days`, not the twelve weeks that were asked
+        # for. They differ by the part-week in progress, and the label is what the
+        # page reads, so a label saying 84 over a 90 day graph would be the section's
+        # own kind of quiet wrongness.
+        "window": ("%dd" % len(days)) if weeks else "year",
+        "yearCommits": yearCommits,
         "weekStart": "sunday",
         "levelFloors": None,
         "days": days,
-        "commits": total if total is not None else 0,
+        "commits": total,
         "activeDays": active,
         "totalDays": len(days),
         "longestStreak": longest,
@@ -365,8 +414,13 @@ def main():
         data = build(root, args.window)
 
     pct = 100.0 * data["activeDays"] / data["totalDays"]
-    summary = ("%d contributions, %d of %d days (%.0f%%), longest run %d"
-               % (data["commits"], data["activeDays"], data["totalDays"], pct,
+    # `commits` is None on a short GitHub window, where there is no count to print.
+    # See build_github: the public page gives one total, for the trailing year.
+    head = ("%d contributions" % data["commits"]) if data.get("commits") is not None \
+        else ("no count (%s window; year total %s)"
+              % (data["window"], data.get("yearCommits")))
+    summary = ("%s, %d of %d days (%.0f%%), longest run %d"
+               % (head, data["activeDays"], data["totalDays"], pct,
                   data["longestStreak"]))
     if data.get("busiest"):
         summary += ", busiest %d" % data["busiest"]["n"]
