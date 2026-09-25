@@ -141,7 +141,19 @@ def github_year():
 # week be the last column exactly as GitHub's own graph does. That lands at 89 days
 # today and moves between 85 and 91 across the week. The page prints the span out of
 # the data rather than saying "90", so the sentence is true on every day of the week.
-WINDOW_WEEKS = 12
+#
+# **AND IT IS OFF. THE BAND SHIPS THE FULL YEAR.**  He asked for 90 days on
+# 2026-09-25, saw it, and asked for the year back the same day: "I actually lowkey
+# liked the whole year look better."  His call, and the year answers his other note
+# in the same move -- a rolling "53 active days" is a claim about today on a file
+# that is almost never written today, where "1,611 contributions in the year to 25
+# September" names the day it closed and cannot go quietly false.
+#
+# The short-window path below is kept and still works; set this to a week count to
+# turn it back on. What it cost is written at each of its pieces, and the measured
+# reason to reach for it is the phone: 53 columns need a horizontal scroller there
+# and 13 fill the width at full size.
+WINDOW_WEEKS = None
 
 
 def build_github(weeks=WINDOW_WEEKS):

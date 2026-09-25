@@ -196,7 +196,19 @@
     /* THE TEXT ALTERNATIVE IS THE WHOLE GRAPH'S JOB, because 371 individually labelled
        squares is not an alternative, it is a maze. role="img" collapses the subtree and
        this sentence is what a screen reader gets instead. */
-    var span = windowDays ? ("the last " + windowDays + " days")
+    /* "THESE 90 DAYS", NEVER "THE LAST 90 DAYS".
+       The owner, 2026-09-25: "I don't like the 53 active days because we aren't
+       updating it every day."
+       He is right, and the fault was the word "last", not the number. A rolling
+       count is a claim about TODAY, so the day after a snapshot is taken it is
+       quietly false and nothing on the page can tell you -- and this band is a
+       committed JSON file, on a site with no build step, so it is almost always
+       older than today. At 90 days that decays fast enough to notice.
+       "These" points at the squares that are drawn. It is true on the day the file
+       is written and equally true a month later, because the sentence describes the
+       picture rather than the present, and the snapshot stamp underneath says how
+       old the picture is. The number stops being a promise the page cannot keep. */
+    var span = windowDays ? ("these " + windowDays + " days")
       : ("the year to " + human(data.last));
     graph.setAttribute("aria-label",
       "Contribution calendar. " + (hasCount

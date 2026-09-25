@@ -765,15 +765,16 @@
  .pGitSecond{margin:var(--sp-32) 0 0}
  .pGitSecond .pGitHead{margin:0 0 var(--sp-6)}
 
- /* THE KEY SITS WITH THE SENTENCE, NOT AT THE FAR EDGE OF THE COLUMN. It was
-    space-between, which was right while the graph spanned the column: the key landed
-    under the graph's right edge and read as part of it. A 90 day band is a third of
-    that width, so the same rule left the key stranded a screen away from the only
-    thing it explains. Beside the sentence it stays with the picture at any window. */
- .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;
+ /* SPACE-BETWEEN, because the band spans the column at the year window and the key
+    then lands under the graph's right edge and reads as part of it. This was briefly
+    flex-start: a 90 day band is a third of the column, and space-between left the key
+    stranded a screen away from the only thing it explains. The year came back, so
+    this did too -- if the short window is ever turned on again (see WINDOW_WEEKS in
+    tools/build-commit-calendar.py) the key needs flex-start again with it. */
+ .pGitFoot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
   column-gap:var(--sp-6);
   gap:var(--sp-8) var(--sp-16);margin:var(--sp-16) 0 0}
- .pGitNote{margin:0;flex:0 1 auto;max-width:100ch;font-family:var(--sans);font-weight:400;
+ .pGitNote{margin:0;flex:1 1 260px;max-width:100ch;font-family:var(--sans);font-weight:400;
   font-size:var(--fs-label);line-height:var(--lh-note);letter-spacing:var(--tr-flat);
   color:var(--theme-muted);text-wrap:balance}
  .pGitKey{display:flex;align-items:center;gap:var(--sp-4);margin:0;flex:0 0 auto;
