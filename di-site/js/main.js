@@ -40,7 +40,8 @@
       curtain.classList.add('is-open');
       setTimeout(() => { root.classList.remove('curtaining'); curtain.remove(); }, 1000);
     };
-    const shot = $$('.hero__bento img').slice(0, 6);
+    // the curtain waits on the first photographs the page will actually show — the bento it used to watch is gone
+    const shot = $$('.tell__figure img, .ring__item img').slice(0, 4);
     const loaded = new Promise(res => {
       let n = shot.filter(i => !i.complete).length;
       if (!n) return res();
@@ -124,55 +125,6 @@
     }
   }
 
-  /* ---- The hero's bento: columns of photographs looping vertically with the flow, in alternating directions ----
-     Each column holds its contents twice; [data-mid] is the first child of the second copy, so its offsetTop is the
-     loop length. Every tile has an intrinsic ratio, so that length is stable before the images load.
-
-     The column under the pointer HOLDS STILL and takes the wheel — you can scrub one column up and down by hand while
-     the other two carry on with the flow. It freezes at the angle it was on and keeps its own offset, so letting go
-     never jumps. The wheel is only taken back from the page while the scrub is small: a determined scroll past the
-     hero (480px in one direction) gives the page back rather than trapping it, and a coarse pointer never has any of
-     this — there is no hover to start it and a scroll trap on a phone is just a broken page. */
-  const fine = matchMedia('(hover: hover) and (pointer: fine)');
-  $$('[data-bento]').forEach(col => {
-    const dir = +col.dataset.bento || 1;
-    const speed = parseFloat(getComputedStyle(col).getPropertyValue('--speed')) || 1;
-    const mid = $('[data-mid]', col);
-    let half = 0, pxPerDeg = 5, held = false, frozen = 0, offset = 0;
-    const k = () => pxPerDeg * speed;
-    const measure = () => { half = mid ? mid.offsetTop : col.scrollHeight / 2; pxPerDeg = num(getComputedStyle(root), '--bento-px', 5); };
-    measure(); addEventListener('resize', measure);
-    const place = () => {
-      if (!half) return;
-      const pos = (held ? frozen : flow.angle) * k() + offset;
-      const y = ((pos % half) + half) % half;
-      col.style.transform = `translate3d(0, ${(dir > 0 ? -y : y - half).toFixed(2)}px, 0)`;
-    };
-    flow.on(place);
-    if (!fine.matches) return;
-    col.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse') return; frozen = flow.angle; held = true; });
-    col.addEventListener('pointerleave', () => { if (!held) return; offset -= (flow.angle - frozen) * k(); held = false; place(); });
-    let run = 0, lastWheel = 0;
-    col.addEventListener('wheel', (e) => {
-      if (!held) return;
-      const now = performance.now();
-      if (now - lastWheel > 500 || (run && Math.sign(e.deltaY) !== Math.sign(run))) run = 0;
-      lastWheel = now; run += e.deltaY;
-      if (Math.abs(run) > 480) return;          // the escape hatch: the page gets the rest of this gesture
-      e.preventDefault();
-      offset += e.deltaY * (dir > 0 ? 1 : -1);
-      place();
-    }, { passive: false });
-  });
-  const bento = $('.hero__bento');
-  if (bento) {
-    flow.watch(bento);
-    // touch has no hover, so the whole panel still holds for a few seconds after a tap — that is what makes a
-    // photograph tappable at all while the strip is moving
-    let bentoTouch;
-    bento.addEventListener('touchstart', () => { flow.hold(bento, true); clearTimeout(bentoTouch); bentoTouch = setTimeout(() => flow.hold(bento, false), 4000); }, { passive: true });
-  }
-
   /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
   $$('.ring__orbit').forEach(orbit => {
     const items = $$('.ring__item', orbit);
@@ -243,29 +195,6 @@
   // the ring assembles: each photograph a beat after the last, going round
   $$('.ring__orbit .ring__item').forEach((el, i) => { const ph = $('.photo', el); if (ph) ph.style.setProperty('--d', i); });
 
-  /* ---- The reader: the full copy behind a card. One dialog, filled from whichever card opened it, and the whole
-     card is the trigger — the button inside it is the keyboard route and its click bubbles up to the same handler. ---- */
-  const reader = $('#reader');
-  if (reader) {
-    const title = $('.reader__title', reader), prose = $('.reader__prose', reader);
-    let from = null;
-    $$('.brief').forEach(card => card.addEventListener('click', () => {
-      // a card is a big click target wrapped around selectable text: a drag-select ends in a click on the card,
-      // and opening a dialog on top of the words someone just highlighted is the wrong answer
-      if (reader.open || String(getSelection() || '').length) return;
-      from = $('.brief__more', card) || card;
-      reader.dataset.accent = card.dataset.accent || '';
-      title.textContent = $('.brief__title', card).textContent;
-      prose.innerHTML = $('.brief__full', card).innerHTML;
-      prose.scrollTop = 0;
-      reader.showModal();
-      title.focus({ preventScroll: true });
-      flow.hold('reader', true);
-    }));
-    $('.dialog__close', reader).addEventListener('click', () => reader.close());
-    reader.addEventListener('click', (e) => { if (e.target === reader) reader.close(); });
-    reader.addEventListener('close', () => { flow.hold('reader', false); if (from && from.isConnected) from.focus({ preventScroll: true }); });
-  }
 
   /* ---- Menu sheet (mobile) ---- */
   const sheet = $('#menuSheet');
@@ -349,5 +278,5 @@
     });
   });
 
-  window.__di = { flow, lightbox: lb, reader };   // hooks for tools/gates
+  window.__di = { flow, lightbox: lb };   // hooks for tools/gates
 })();

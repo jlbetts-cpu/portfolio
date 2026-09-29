@@ -221,11 +221,10 @@ Only sentences from the old site, and only the ones the page needs. Labels may b
 lorem with `data-placeholder="true"`. The `copy` gate fails on any other string — including a plausible one-word link label.
 
 ## 8. Gates
-`di-site/tools/gates/run-all.sh`, serially, 44 lines: layout (overflow, headline lines, the column, equal card widths) ·
-targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the bento) · reader · nav ·
-lightbox · dialog · curtain · a11y. Six self-tests, each of which must fail: `ring.mjs` shrinks the ring,
-`contrast.mjs` paints the ink onto the ground, `curtain.mjs` pins the curtain in place, `reader.mjs` breaks the reader's
-copy, `nav.mjs` freezes the header, and `motion.mjs` puts a settled element's `reveal` class back. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
+`di-site/tools/gates/run-all.sh`, serially, 40 lines: layout (overflow, headline lines, the column, equal card widths) ·
+targets · contrast (every text node, both themes) · copy · images · motion · ring (the ring and the bento) · nav ·
+lightbox · dialog · curtain · a11y. Five self-tests, each of which must fail: `ring.mjs` shrinks the ring,
+`contrast.mjs` paints the ink onto the ground, `curtain.mjs` pins the curtain in place, `nav.mjs` freezes the header, and `motion.mjs` puts a settled element's `reveal` class back. Every gate but `dialog` starts with the newsletter popup already marked shown so it cannot open over the thing
 being measured. Serve on `127.0.0.1:4611` from `di-site/`, never `localhost`.
 
 ## 9. Tried and rejected — do not propose these again

@@ -1,124 +1,41 @@
-/* Home page: the hero, the gallery, the stack, the quote ring, the voices, the closing field.
-   Six sections. Each is built on the same twelve columns and the same superellipse corner; the photographs are one shape. */
+/* Home page: the hero masthead, what Developmental Improvisation is, who Linda is, the quote ring, the voices and
+   the closing field. Six sections on the same twelve columns and the same superellipse corner; one photograph shape. */
 
-/* ---------- Hero ----------
-   Two panels side by side on the page, the way the reference layers them: the copy on a cream panel, the photographs
-   inside a colour panel that CLIPS them. The panel's own rounded edge is the crop now — the soft mask is gone. */
-/* The page is one bento field: the header tiles, the hero's two panels, the four cards, then — after the ring —
-   the voices and the closing field. Every row sits on the same twelve columns, at the same gutter, and every gap
-   between panels is --grid-gap. Nothing floats on its own band; the only break is the ring. */
+/* ---------- Hero — a masthead ----------
+   Linda's brief: far too busy, too many images, and the logo more prevalent. The fifteen drifting photographs are
+   gone. What is left is the order an institution opens in — the mark, the claim, the one action, the figures — on one
+   panel, centred. Centred is the register: left-aligned reads editorial and modern, centred reads formal, and "a
+   serious new tool for education" is the second one. The page's first photograph is the section below, which is the
+   first thing you scroll to, so the hero does not have to carry a picture at all. */
 .hero { padding-top: var(--field-top); padding-bottom: 0; }
-/* the panel's height IS the hero's height, so the fold lands exactly on the field's next gap: no centring air below
-   the panels (that would put a gap bigger than --grid-gap between the hero and the cards and break the field) */
-.hero__grid { align-items: stretch; row-gap: var(--grid-gap); }
-.hero__head { grid-column: 1 / -1; display: grid; align-content: center; gap: var(--sp-6); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(28px, 3.6vw, 64px); }
-.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); text-wrap: balance; }
-.hero__meta { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 24em; }
-.hero__bento { grid-column: 1 / -1; height: clamp(400px, 78svh, 880px); background: var(--accent); border-radius: var(--r-xl); padding: clamp(16px, 1.6vw, 28px); display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--grid-gap); overflow: hidden; align-content: start; }
-.bento__col { display: grid; gap: var(--grid-gap); grid-auto-rows: max-content; will-change: transform; }
-.bento__col .photo { transition: transform var(--t) var(--ease-out); }
-.bento__col .photo:hover { transform: translateY(-4px); }
-.bento__col .photo:has(.photo__open:active) { transform: translateY(-1px); transition-duration: var(--dur-press); }
-/* on a phone the panels stack, so the colour panel takes a share of the screen rather than three quarters of it */
-@media (max-width: 767px) { .hero__bento { height: clamp(300px, 46svh, 460px); } }
-@media (min-width: 768px) {
-  .hero__head { grid-column: 1 / span 5; }
-  /* an explicit height, never auto: overflow:hidden does not constrain a box that is sizing to its own content,
-     and the column of ten tiles made the row 3197px tall, which pushed the copy panel off the screen */
-  .hero__bento { grid-column: 6 / span 7; height: max(460px, calc(100svh - var(--field-top))); }
-}
-@media (min-width: 1280px) { .hero__bento { grid-template-columns: repeat(3, minmax(0,1fr)); } }
-/* first paint: once per session */
-.hero.is-arriving .hero__head, .hero.is-arriving .hero__bento { opacity: 0; transform: translateY(10px); }
-.hero.is-ready .hero__head, .hero.is-ready .hero__bento { opacity: 1; transform: none; transition: opacity var(--dur-enter) var(--ease-out), transform var(--dur-enter) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
-@media (prefers-reduced-motion: reduce) {
-  .hero.is-arriving .hero__head, .hero.is-arriving .hero__bento { transform: none; }
-  .bento__col .photo:hover, .bento__col .photo:has(.photo__open:active) { transform: none; }
-}
+.hero__panel { --hero-col: min(100%, 900px); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(40px, 6vw, 96px) clamp(24px, 4vw, 72px); display: grid; justify-items: center; text-align: center; gap: var(--sp-6); }
+/* the mark is the biggest single object in the hero, which is the point of the brief */
+.hero__mark { width: clamp(84px, 9vw, 132px); display: grid; place-items: center; margin-bottom: var(--sp-2); }
+.hero__mark .logo { width: 100%; height: auto; overflow: visible; }
+.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
+.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 30em; }
+.hero__act { margin-top: var(--sp-2); }
+/* the hairline and the headline share one column, so the masthead is a single block rather than three widths */
+.hero__panel .proof { width: 100%; max-width: var(--hero-col); margin-top: var(--sp-6); text-align: left; }
 
-/* ---------- The four cards ----------
-   The row under the hero, at the bento's own gap so the two read as one field. Every card is the same object:
-   a head, a photograph on its hue, and one control. The head fills with the card's colour under the pointer —
-   the reference's one coloured card among plain ones, made a state instead of an arbitrary choice.
-   The whole card is the control; the full copy lives in a reader so four short blocks replace six long ones. */
-.briefs { padding-top: var(--grid-gap); }
-.brief { position: relative; grid-column: span 6; display: flex; flex-direction: column; background: var(--bg-raised); border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; cursor: pointer; color: var(--ink);
-  transition: transform var(--t) var(--ease-out), background-color var(--t) var(--ease-out), color var(--t) var(--ease-out), box-shadow var(--t) var(--ease-out); }
-.brief:hover { transform: translateY(-4px); }
-/* the press: the card goes back down under the finger. --t is inherited, so setting it here also puts the card's
-   descendants on the press rung for the length of the press — which is what makes the whole card read as one object
-   being pushed rather than a lid moving over a fixed picture. */
-.brief:active { transform: translateY(-1px); --t: var(--dur-press); }
-/* the whole card becomes the hue — head and ground together. Filling only the head left a seam across the card at the
-   photograph's top edge, which read as two objects stacked rather than one card lighting up. The ink rebind stays on
-   the HEAD: put it on the card and the pill inherits it, and a control whose ground is --bg-overlay and whose ink is
-   --on-accent renders as a black blob on an orange card. */
-/* :focus-visible, not :focus-within — closing the reader puts focus back on the card's own button, and with
-   :focus-within that left the card painted long after the pointer had gone. A keyboard focus still reveals it. */
-.brief:hover, .brief:has(.brief__more:focus-visible) { background: var(--accent); box-shadow: none; }
-.brief:hover .brief__head, .brief:has(.brief__more:focus-visible) .brief__head { color: var(--on-accent);
-  --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
-/* The hue is a STATE, not a resting decoration: four coloured blocks under the hero competed with it. At rest the row
-   is four quiet panels and a photograph each; the card's colour arrives under the pointer and on keyboard focus, and
-   it is the same colour the reader opens on. The ink tokens are rebound while it is there, exactly as on a solid card:
-   a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
-.brief__head { flex: 1 0 auto; display: grid; align-content: start; gap: var(--sp-4); padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + var(--slip)); transition: color var(--t) var(--ease-out); }
-.brief__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); text-wrap: balance; }
-.brief__sum { font-size: var(--fs-small); line-height: 1.5; color: var(--ink-2); }
-.brief__full { padding: 0 var(--sp-6) var(--sp-6); }
-.js .brief__full { display: none; }          /* the reader carries it once there is script to open one */
-/* the photograph slips up out of its box and over the colour — the one place on the page a panel's contents cross
-   its edge. --slip is the whole idea, and it is small on purpose: 20px reads as deliberate, 60px reads as broken. */
-.brief__figure { position: relative; margin: calc(-1 * var(--slip)) var(--sp-3) var(--sp-3); display: grid; place-items: center; }
-.brief__figure .photo { width: 100%; }
-/* The control sits on the photograph, in the corner the reference puts it, and it arrives with the hue: at rest the
-   card is a title, a summary and a picture. Focus reveals it too — an invisible control that the keyboard can reach
-   but never see is worse than no control at all. */
-.brief__more { position: absolute; left: var(--sp-6); bottom: var(--sp-6); display: none; align-items: center; gap: var(--sp-2); height: var(--hit); padding: 0 var(--sp-2) 0 var(--sp-5); border-radius: var(--r-full); corner-shape: round; background: var(--bg-overlay); color: var(--ink); font-size: var(--fs-small); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line);
-  opacity: 0; transform: translateY(6px); transition: opacity var(--t) var(--ease-out), transform var(--t) var(--ease-out); }
-.js .brief__more { display: inline-flex; }
-/* one gesture, not four events: the ground fills and the card lifts together, then the control and its arrow follow
-   60ms behind. Leaving has no delay at all — everything goes at once, so the card never sheds its parts in sequence. */
-.brief:hover .brief__more, .brief__more:focus-visible { opacity: 1; transform: none; transition-delay: 60ms; }
-.brief__arrow { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg-overlay); transition: transform var(--t) var(--ease-out); }
-.brief__arrow .icon { width: 16px; height: 16px; }
-.brief:hover .brief__arrow { transform: translateX(3px); transition-delay: 60ms; }
-/* the picture answers the CARD, not itself: hovering the head lifted the card while hovering the photograph lifted
-   the card AND scaled the picture, so one card had two different responses depending on where the pointer landed */
-.brief:hover .brief__figure img { transform: scale(1.03); }
-@media (min-width: 1280px) { .brief { grid-column: span 3; } }
-/* A wide card is a HORIZONTAL card. Under a 4:5 photograph, a card's height tracks its WIDTH — so the wider the card
-   the taller it gets, which is backwards for a row that should get shorter as the screen narrows: at 1200 a 569px card
-   made a 683px photograph and an 850px card. Beside the copy instead, the photograph is sized by the card's height, it
-   keeps 4:5, and the row keeps a sensible one. This is the range a card grid always gets wrong. */
-/* Two bands, because it is the CARD's width that decides, not the viewport's: two-up between 1024 and 1279 gives a
-   486–569px card, and one-up between 561 and 767 gives a 529–735px one. Everywhere else the card is 288–486 and the
-   vertical arrangement is right. */
-@media (min-width: 561px) and (max-width: 767px), (min-width: 1024px) and (max-width: 1279px) {
-  /* the figure takes a FIXED share of the card, or the photograph's height and the head's width chase each other:
-     sized by the card's height, the picture grew until the title was breaking one word to a line */
-  .brief { flex-direction: row; align-items: stretch; }
-  .brief__head { flex: 1 1 auto; align-self: center; padding: var(--sp-6); }
-  .brief__figure { flex: 0 0 40%; margin: var(--sp-3) var(--sp-3) var(--sp-3) 0; align-self: center; }
-  .brief__figure .photo { width: 100%; height: auto; }
-  .brief__more { left: var(--sp-6); bottom: var(--sp-6); }
-}
-/* no pointer, no hover: on a touch screen the hue and the control are simply the resting state, or the section never
-   has either */
-@media (hover: none) {
-  .brief__more { opacity: 1; transform: none; }
-  .brief { background: var(--accent); box-shadow: none; }
-  .brief__head { color: var(--on-accent);
-    --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); --line: color-mix(in srgb, var(--on-accent) 30%, transparent); --line-strong: color-mix(in srgb, var(--on-accent) 44%, transparent); }
-}
-@media (max-width: 767px) {
-  .brief__head { padding-bottom: calc(var(--sp-6) + var(--slip)); }
-  .brief__more { left: var(--sp-5); bottom: var(--sp-5); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .brief:hover, .brief:active, .brief:hover .brief__arrow, .brief__more, .brief:hover .brief__figure img { transform: none; }
-  .brief:hover .brief__more, .brief:hover .brief__arrow { transition-delay: 0s; }
+/* ---------- The two sections ----------
+   What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
+   on one side, a label, a heading and the prose on the other. This replaced four clickable cards and the reader
+   dialog behind them — two sections of prose do not need a dialog to hold them, and a page trying to be taken
+   seriously puts its case in the open rather than behind a click. */
+.tell { padding-top: var(--grid-gap); }
+.tell__row { align-items: center; row-gap: var(--sp-8); }
+.tell__figure { grid-column: 1 / -1; margin: 0; }
+.tell__figure .photo { width: 100%; }
+.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: center; }
+.tell__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
+@media (min-width: 768px) {
+  .tell__figure { grid-column: 1 / span 5; }
+  .tell__copy { grid-column: 7 / span 6; }
+  /* flipped, so the two sections do not read as one long list of the same row */
+  .tell--flip .tell__figure { grid-column: 8 / span 5; grid-row: 1; }
+  .tell--flip .tell__copy { grid-column: 1 / span 6; grid-row: 1; }
 }
 
 /* ---------- Proof ----------
@@ -128,7 +45,7 @@
    never a panel: this is inside one. Three across at every width — stacked, they add 200px to a phone's hero. */
 .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); margin: 0; padding-top: var(--sp-6); box-shadow: inset 0 1px 0 var(--line); }
 .proof__item { display: grid; gap: var(--sp-1); }
-.proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); }
+.proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 600; color: var(--ink); }
 .proof__label { font-size: var(--fs-caption); line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
 /* on a phone the copy panel is 302px wide inside its padding, so a third of it is 91px and IMPROVISATION is 105px —
    the label ran straight over the next figure. One per line instead, the figure beside its label: three rows cost
@@ -138,15 +55,6 @@
   .proof__item { grid-template-columns: auto 1fr; align-items: baseline; gap: var(--sp-3); }
   .proof__figure { font-size: 1.5rem; }
 }
-
-/* ---------- One photograph at the size of the field ----------
-   Nothing below the hero was bigger than a quarter of the page: four cards and three quotes, every one the same size,
-   and a row of equal tiles has no peak. This is a TILE in the field, not a band across the page — the container, the
-   field's radius, the field's gap — which is the difference between it and the band that was rejected. 5:2 because
-   the picture is built horizontally; on a phone that is a 143px strip, so it takes 4:3 and crops its own sides. */
-.scene { padding-top: var(--grid-gap); }
-.scene__panel { margin: 0; aspect-ratio: 5 / 2; border-radius: var(--r-xl); }
-@media (max-width: 767px) { .scene__panel { aspect-ratio: 4 / 3; } }
 
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
@@ -164,36 +72,30 @@
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
    whatever the breakpoint does to either number */
 .ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 32px); text-align: center; z-index: 2; }
-.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; color: var(--ink); text-wrap: balance; }
+.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 600; color: var(--ink); text-wrap: balance; }
 .ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); color: var(--ink-3); }
 
 @media (prefers-reduced-motion: reduce) { .ring__item .photo:hover, .ring__item .photo:has(.photo__open:active) { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
 
 /* ---------- Voices ----------
-   Three quiet cards; the hue is on the PERSON, in the nested sub-card that overhangs the bottom-left corner. Three
-   full-strength cards side by side were the loudest thing left on the page once the four cards went quiet, and the
-   brief is premium first. The colour is still the logo's, still in its order — it is a chip now, not a field. */
+   Cleaned up, and mostly by deletion. The 4rem quote mark is gone: it was 60px of decoration per card announcing
+   "this is a quote" about an object that is obviously a quote. The fixed 320px card is gone: three quotes are never
+   the same length and the card was insisting they are — the third was 18% words and 82% air. And the overhanging
+   colour chip is gone with them; on a page that is trying to read as a serious tool, a saturated tag under every
+   quote was the loudest thing left. What survives of the hue is the smallest form it has: one disc with the person's
+   initials. The name sits on a hairline at the foot of the card, and the hairlines line up across the row because
+   the block is pushed down with margin — the cards stretch, the quotes do not have to match. */
 .voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { position: relative; display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad) var(--card-pad) calc(var(--card-pad) + 44px); min-height: 320px; }
-.voice__mark { font-family: var(--font-display); font-size: 4rem; line-height: .8; font-weight: 800; color: color-mix(in srgb, var(--ink) 16%, transparent); margin-bottom: var(--sp-4); }
-/* the quote sits on the BOTTOM of the card, against the person chip; the mark stays pinned to the top. Three quotes
-   are never the same length, and top-aligning both left the shortest card with the slack between the text and the
-   chip — a hole. Pinned at both ends the row gets two straight lines instead of one, and the slack collects under
-   the mark, where it reads as air. */
-.voice__quote { margin-top: auto; font-size: var(--fs-lead); line-height: 1.4; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
-/* the nested card: it overhangs the foot of the coloured card, which is what gives the group its depth without a shadow */
-.voice__who { position: absolute; left: var(--card-pad); bottom: 0; transform: translateY(50%); display: flex; align-items: center; gap: var(--sp-3); background: var(--accent); color: var(--on-accent); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
-  --ink: var(--on-accent); --ink-3: var(--on-accent); }
-.voice__avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--on-accent); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
-.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.3; }
-.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.3; }
+.voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad); }
+.voice__quote { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
+.voice__who { margin-top: auto; padding-top: var(--sp-6); display: flex; align-items: center; gap: var(--sp-3); box-shadow: inset 0 1px 0 var(--line); }
+.voice__avatar { width: 36px; height: 36px; border-radius: 50%; corner-shape: round; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
+.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.35; }
+.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.35; }
 @media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
-
-/* the sub-card hangs 30px below its card, and whatever comes next has to start clear of it, not on it: the closing
-   field below the row, and — where the cards stack — the next card. On a phone the plain grid gap left the chip
-   sitting 18px INSIDE the following quote. */
-.voices-sec { padding-bottom: calc(30px + var(--grid-gap)); }
-@media (max-width: 767px) { .voices { row-gap: calc(var(--grid-gap) + 30px); } }
+/* the field's own gap between this row and the closing panel — without it the cards sit 7px off it, which reads as a
+   collision rather than as the field's rhythm */
+.voices-sec { padding-bottom: var(--grid-gap); }
 
 /* ---------- The closing field ----------
    Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and
@@ -203,16 +105,16 @@
 .close { padding-bottom: var(--gutter); }
 .close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 600; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
 /* The one surface down here whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
    for the subtree, which keeps every component inside it (title, field, button) correct in both themes. */
 .close__sign { grid-column: 1 / -1; background: var(--c-sky); border-radius: var(--r-lg); padding: var(--card-pad);
   --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
 .close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
-.close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
+.close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
 .close__reach .label { margin-bottom: var(--sp-2); }
-.close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
+.close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
 .close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
 .close__reach a:hover { text-decoration-color: currentColor; }
 /* the second way in is a control, not one of the big contact links above it, so it opts out of their type at the

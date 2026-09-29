@@ -58,26 +58,27 @@
   --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  /* Type — Jost 800/700 for the display and the titles, Plus Jakarta Sans 400/600 for everything else.
-     Jost is a Futura, and a Futura is what the logo is drawn as: circular bowls, one stroke weight, flat terminals.
-     Its x-height is 0.460em against Sen's 0.488, so the display scale carries a little more size to hold the same
-     optical weight. The body face does NOT change: a small-x-height geometric is a display face, not a reading one. */
-  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Jost", "Futura", "Century Gothic", "Avenir Next", ui-sans-serif, system-ui, sans-serif;
-  --fs-display: clamp(2.375rem, 1rem + 4.2vw, 4.75rem);     --lh-display: 1.04; --ls-display: -0.038em;
-  --fs-h1:      clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);    --lh-h1: 1.04;      --ls-h1: -0.035em;
-  --fs-h2:      clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);    --lh-h2: 1.08;      --ls-h2: -0.03em;
-  --fs-h3:      clamp(1.25rem, 1.05rem + .8vw, 1.625rem);   --lh-h3: 1.16;      --ls-h3: -0.02em;
-  --fs-lead:    clamp(1.0625rem, .95rem + .5vw, 1.25rem);   --lh-lead: 1.45;    --ls-lead: -0.01em;
-  --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.58;    --ls-body: 0;
-  --fs-small:   0.875rem;                                   --lh-small: 1.5;    --ls-small: 0;
-  --fs-label:   0.75rem;                                    --lh-label: 1;      --ls-label: 0.06em;
-  --fs-caption: 0.8125rem;                                  --lh-caption: 1.4;  --ls-caption: 0.005em;
+  /* Type — ONE face. Geist, 400 and 600, in a single 68KB variable file. Two weights only; leading and tracking are
+     the levers, not the family. Jost and Plus Jakarta Sans are both gone: a display face plus a reading face is two
+     voices, and Linda asked for one serious one. Geist's x-height is 0.52em against Jost's 0.460, so every display
+     size came DOWN — the same optical weight needs less size — and the tracking went tighter, because a grotesque at
+     display size wants to be closed up where a geometric wants air. */
+  --font: "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font);
+  --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.035em;
+  --fs-h1:      clamp(2rem, 1.3rem + 3vw, 3.25rem);         --lh-h1: 1.08;      --ls-h1: -0.032em;
+  --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.026em;
+  --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.016em;
+  --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.005em;
+  --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
+  --fs-small:   0.875rem;                                   --lh-small: 1.55;   --ls-small: 0;
+  --fs-label:   0.75rem;                                    --lh-label: 1;      --ls-label: 0.09em;
+  --fs-caption: 0.8125rem;                                  --lh-caption: 1.45; --ls-caption: 0;
   --fs-ui:      0.9375rem;
   /* Measures are in em, never ch */
-  --measure-display: 12.5em;
-  --measure-h2: 15em;
-  --measure-body: 32em;
+  --measure-display: 15em;
+  --measure-h2: 17em;
+  --measure-body: 34em;
 
   /* Space — 4px grid. The page runs wider and closer to the edge than it did: a 1400 column inside a 16–32px gutter. */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;

@@ -5,12 +5,11 @@ const b = await browser();
 const pg = await open(b, 1440, 900);
 const count = await pg.evaluate(() => document.querySelectorAll('[data-photo]').length);
 const names = await pg.evaluate(() => new Set([...document.querySelectorAll('[data-photo]')].map(b => b.dataset.photo)).size);
-// a bento tile: the columns drift, so stop them with the pointer, then pick one that is wholly on screen and click its centre
-const bb = await pg.evaluate(() => { const r = document.querySelector('.hero__bento').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
-await pg.mouse.move(bb[0], bb[1]); await pg.waitForTimeout(1400);
+// a section photograph: it does not move, so it is simply scrolled to and clicked
+await pg.evaluate(() => document.querySelector('.tell__figure .photo').scrollIntoView({ block: 'center' }));
+await pg.waitForTimeout(700);
 const pick = await pg.evaluate(() => {
-  const b = document.querySelector('.hero__bento').getBoundingClientRect();
-  const el = [...document.querySelectorAll('.bento__col .photo__open')].find(x => { const r = x.getBoundingClientRect(); return r.top > b.top + 8 && r.bottom < b.bottom - 8; });
+  const el = document.querySelector('.tell__figure .photo__open');
   const r = el.getBoundingClientRect();
   return { name: el.dataset.photo, x: r.x + r.width / 2, y: r.y + r.height / 2 };
 });

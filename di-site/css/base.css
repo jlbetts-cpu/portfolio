@@ -1,10 +1,12 @@
 /* Reset, fonts, type roles, layout primitives */
-@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/PlusJakartaSans-400.woff2") format("woff2"); }
-@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/PlusJakartaSans-600.woff2") format("woff2"); }
-@font-face { font-family: "Plus Jakarta Sans Fallback"; src: local("Arial"); size-adjust: 106%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
-/* Jost — a Futura, which is what the logo's letterforms are: a perfectly circular bowl on a straight stem, one stroke
-   weight, flat terminals, a single-storey 'a'. One variable latin file, every weight from 100 to 900, 25KB. */
-@font-face { font-family: "Jost"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("../fonts/Jost-100-900.woff2") format("woff2"); }
+/* ONE face, for everything. Geist — a neutral grotesque, 400 to 700 in a single 68KB variable file. It replaced Jost
+   and Plus Jakarta Sans together: three files became one, and a display face plus a reading face became one voice.
+   Jost was chosen to echo the mark's geometry and it did that well, but the brief changed — Linda asked for a serious
+   tool for education, and a Futura is the wrong register for that: geometric circles read as friendly and a little
+   retro. A grotesque reads as institutional, which is what "a new tool for education" has to be. The mark keeps its
+   own geometry; the type no longer imitates it. */
+@font-face { font-family: "Geist"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../fonts/geist-variable.woff2") format("woff2-variations"); }
+@font-face { font-family: "Geist Fallback"; src: local("Arial"); size-adjust: 97%; ascent-override: 98%; descent-override: 24%; line-gap-override: 0%; }
 
 *, *::before, *::after { box-sizing: border-box; }
 /* Every corner on this site is a superellipse, not an arc. One declaration, for everything that takes a radius. */
@@ -27,10 +29,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 .is-theming, .is-theming * { transition: background-color 240ms linear, border-color 240ms linear, color 240ms linear !important; }
 
 /* Type roles */
-.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 800; color: var(--ink); }
-.t-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 800; color: var(--ink); }
-.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: var(--measure-h2); }
-.t-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); }
+.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); }
+.t-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); }
+.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); }
+.t-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); }
 .t-lead { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); }
 .t-body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
 .t-small { font-size: var(--fs-small); line-height: var(--lh-small); }

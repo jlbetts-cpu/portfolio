@@ -64,84 +64,47 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, b
        + picture(name,sizes,lazy,big=big,button=button) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
-# The hero's bento: three columns of photographs that loop with the flow, plus two tiles of pure colour.
-# Each column carries its contents twice; the second copy is aria-hidden and its first child marks the loop length.
-BSIZES='(max-width: 767px) 44vw, (max-width: 1279px) 22vw, 15vw'
-# the one full-field photograph: the container's width, which caps at --page-max minus two gutters
-SCENE_SIZES='(min-width: 1793px) 1648px, 96vw'
-# fifteen photographs and no colour blocks: there are enough pictures. No two black-and-white ones adjacent in a column.
-COLS=[
-  ['yellow-trousers','blue-shirts','scene-handshake','linda-stage','circle-hands'],
-  ['boy-fist','kids-bw-small','bow-ties-wall','three-teens','laugh-hat'],
-  ['three-men','row-linked-arms','kids-running','floor-game','cast-pose'],
-]
-def bento_item(name, hidden, first, i):
-    mid=' data-mid' if first else ''
-    hid=' aria-hidden="true"' if hidden else ''
-    # only the first two of each column are on screen before the panel crops them; the rest wait
-    ph='' if hidden else f';background-image:url({man[name]["placeholder"]})'   # the second copy is behind the first: no placeholder needed
-    return (f'<figure class="photo photo--4x5" style="--pos:{POS[name]}{ph}"{hid}{mid}>'
-            + picture(name, BSIZES, lazy=hidden or i > 1, button=not hidden) + '</figure>')
-def bento_col(i, items):
-    body=''.join(bento_item(n,False,False,j) for j,n in enumerate(items)) + ''.join(bento_item(n,True,j==0,j) for j,n in enumerate(items))
-    return f'<div class="bento__col" data-bento="{1 if i % 2 == 0 else -1}" style="--speed:{[1,.74,1.18][i]}">{body}</div>'
-bento=''.join(bento_col(i,c) for i,c in enumerate(COLS))
-
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
 # its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
-RING=['bow-tie-chairs','linda-laughing','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
+RING=['bow-tie-chairs','linda-stage','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
 RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
-P=[
- "Developmental Improvisation is a new, revolutionary tool for teaching cognitive development and social/emotional understanding using the art of improvisation designed specifically for the classroom.",
- "Created by educator Linda Kellogg Fulton, based on her fifty plus years working in improvisation, it offers students a unique, beneficial, and fascinating experience-based exploration into the realm of Social Emotional Learning through imaginative excursions and cooperative play.",
- "Developmental Improvisation provides participants an opportunity to experience all the probabilities of human behavior in realistic, authentic situations that come through a variety of safe, educational, and thrilling exercises and games.",
- "Developmental Improvisation provides balance to traditional education, offering students a vehicle for enhancing their intellect, cooperation, communication, and other skills by encouraging them to find solutions for any issues. This revolutionary approach to learning allows students to put their critical thinking and creative problem-solving to the test through spontaneously imaginative “What would you do?” situations.",
- "The end result is students growing in not just their intellect, but also their compassion and instinct, making for well-rounded individuals who will be prepared for anything life has to offer.",
- "All while having as much fun as possible!",
-]
-# ---- The four cards ----
-# One row of the bento: four cards of the same shape, each one clickable, each carrying one of the logo's arcs.
-# Two of them say what Developmental Improvisation is, one says what it asks of a student, one says who Linda is.
-# The card shows a title, a summary and a photograph; the whole card opens a reader with the full copy, so the page
-# keeps four short blocks instead of six long ones. The paragraphs are allocated so no reader is a third the length of
-# another: card 03 carried 615 characters against card 01's 198, and P[4] — the outcome of the method — closes "what
-# it is" at least as well as it closed "what would you do?". 390 / 279 / 423 / 280 now.
-BS='(max-width: 767px) 68vw, (max-width: 1279px) 40vw, 21vw'
-BRIEFS=[
- ('01','The method','violet','What Developmental Improvisation is',
-  'A new tool for teaching cognitive development and social/emotional understanding through the art of improvisation.',
-  [P[0],P[4]],'linda-circle'),
- ('02','In the room','orange','Inside a session',
-  'Safe, educational, and thrilling exercises and games, built to let students meet the whole range of human behavior.',
-  [P[2],P[5]],'kids-dancing'),
- ('03','The idea','green','\u201cWhat would you do?\u201d',
-  'Spontaneously imaginative situations that put critical thinking and creative problem-solving to the test.',
-  [P[3]],'two-lines'),
- ('04','The founder','pink','Who Linda is',
-  'Educator Linda Kellogg Fulton created Developmental Improvisation out of fifty plus years working in improvisation.',
-  [P[1]],'linda-portrait'),
-]
-def brief(num, chip, accent, title, summary, paras, photo_name):   # chip: kept in the data, not drawn — the title says it
-    full=''.join(f'<p class="t-body">{p}</p>' for p in paras)
-    return (f'<article class="brief reveal" data-accent="{accent}" aria-labelledby="brief-{num}">'
-            f'<div class="brief__head">'
-            f'<h2 class="brief__title" id="brief-{num}">{title}</h2>'
-            f'<p class="brief__sum">{summary}</p></div>'
-            f'<div class="brief__figure">{photo(photo_name, "4x5", BS, hover=True, button=False)}'
-            f'<button class="brief__more" type="button" data-reader>Read more'
-            f'<span class="brief__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"/></svg></span></button></div>'
-            f'<div class="brief__full">{full}</div></article>')
-briefs=''.join(brief(*b) for b in BRIEFS)
+# ---- The two sections that replace the four cards ----
+# Linda's brief, after seeing the cards: split the about into two — what Developmental Improvisation is, and who she
+# is — and fill them with placeholder copy while she writes the real thing. So the six verbatim paragraphs from the
+# old site are out of the page for now, and so is the reader dialog that carried them: two sections of prose do not
+# need a dialog to hold them. THE BODY COPY HERE IS PLACEHOLDER and must be replaced before this is published.
+# the page's own description stays real: it is not visible copy, and a search result should say what this is
+META_DESC="Developmental Improvisation is a new tool for teaching cognitive development and social/emotional understanding using the art of improvisation, designed specifically for the classroom."
 
+LOREM=[
+ "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+ "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+ "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+]
+TSIZES='(max-width: 767px) 92vw, 44vw'
+TELL=[
+ ('about','The method','What Developmental Improvisation is','two-lines',[LOREM[0],LOREM[1]],False),
+ ('founder','The founder','Who Linda is','linda-laughing',[LOREM[2],LOREM[1]],True),
+]
+def tell(idp, label, title, name, paras, flip):
+    body=''.join(f'<p class="tell__p">{t}</p>' for t in paras)
+    return (f'<section class="tell{" tell--flip" if flip else ""}" id="{idp}" aria-labelledby="{idp}Title">'
+            f'<div class="container grid tell__row">'
+            f'<figure class="tell__figure reveal">{photo(name, "4x5", TSIZES, hover=True)}</figure>'
+            f'<div class="tell__copy reveal">'
+            f'<p class="label">{label}</p>'
+            f'<h2 class="tell__title" id="{idp}Title">{title}</h2>'
+            f'{body}</div></div></section>')
+tells=''.join(tell(*t) for t in TELL)
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
 # three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
 VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
-pile=''.join(f'<li class="voice reveal" data-accent="{a}" data-placeholder="true"><p class="voice__mark" aria-hidden="true">“</p><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
+pile=''.join(f'<li class="voice reveal" data-accent="{a}" data-placeholder="true"><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -153,12 +116,12 @@ page=f'''<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
-<meta name="description" content="{html.escape(P[0])}">
+<meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
 <meta name="theme-color" content="#131211">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Developmental Improvisation">
-<meta property="og:description" content="{html.escape(P[0])}">
+<meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
 <meta property="og:image" content="assets/og.png">
 <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
@@ -189,41 +152,29 @@ page=f'''<!DOCTYPE html>
 </header>
 
 <main id="main">
+  <!-- Linda's brief: "far too busy, too many images, a much simpler hero would do wonders" and "the logo more
+       prevalent". So the fifteen drifting photographs are gone and the hero is a masthead: the mark, the line, one
+       action and the three figures, centred on one panel. A page about a serious tool for education opens the way an
+       institution opens — the name first, then the claim, then the one thing to do. -->
   <section class="hero" id="top" aria-labelledby="heroTitle">
-    <div class="container grid hero__grid">
-      <div class="hero__head">
+    <div class="container">
+      <div class="hero__panel reveal">
+        <div class="hero__mark">{logo}</div>
         <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
-        <div class="hero__meta">
-          <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-        </div>
-        <div><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
+        <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
+        <div class="hero__act"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
         <!-- PLACEHOLDER FIGURES. 50+ is real (fifty plus years, from Linda's own copy); the zeros are the shape of a
-             number, not a claim, and must carry her real counts before this is ever published. They live in the hero
-             because the copy panel was carrying 288px of empty ground and credibility belongs above the fold. -->
+             number, not a claim, and must carry her real counts before this is ever published. -->
         <dl class="proof">
           <div class="proof__item"><dt class="proof__label">Years in improvisation</dt><dd class="proof__figure">50+</dd></div>
           <div class="proof__item"><dt class="proof__label">Schools and programs</dt><dd class="proof__figure">000</dd></div>
           <div class="proof__item"><dt class="proof__label">Students</dt><dd class="proof__figure">0,000</dd></div>
         </dl>
       </div>
-      <div class="hero__bento" id="gallery" data-accent="gold">{bento}</div>
     </div>
   </section>
 
-  <section class="briefs" id="about" aria-label="About Developmental Improvisation">
-    <div class="container grid briefs__row">{briefs}</div>
-  </section>
-
-  <!-- One photograph at the size of the field. Nothing below the hero was bigger than a quarter of the page — four
-       cards and three quotes, all one size — and a row of equal tiles has no peak. It is a tile IN the field, not a
-       band across the page: the container, the field's radius, the field's gap. `conga-line` is built horizontally
-       and its source is 2048px, so a 1648px panel is sharp; it left the bento in the same move so it is not in two
-       places at once. -->
-  <section class="scene" aria-label="A session">
-    <div class="container">
-      <figure class="scene__panel photo photo--hover reveal" style="--pos:50% 30%;background-image:url({man['conga-line']['placeholder']})">{picture('conga-line', SCENE_SIZES, lazy=True, big=True)}</figure>
-    </div>
-  </section>
+{tells}
 
   <section class="section ring" id="quote" aria-label="Quote">
     <div class="container">
@@ -285,11 +236,6 @@ page=f'''<!DOCTYPE html>
   {form('dlg')}
 </dialog>
 
-<dialog class="dialog reader" id="reader" aria-labelledby="readerTitle">
-  <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
-  <div class="reader__head"><h2 class="reader__title" id="readerTitle" tabindex="-1"></h2></div>
-  <div class="reader__prose"></div>
-</dialog>
 
 <div class="curtain" aria-hidden="true">
   <div class="curtain__half curtain__half--l"></div>
