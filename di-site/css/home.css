@@ -1,34 +1,34 @@
 /* Home page: the hero masthead, what Developmental Improvisation is, who Linda is, the quote ring, the voices and
    the closing field. Six sections on the same twelve columns and the same superellipse corner; one photograph shape. */
 
-/* ---------- Hero — a masthead ----------
+/* ---------- Hero — a masthead, on the page ----------
    Linda's brief: far too busy, too many images, and the logo more prevalent. The fifteen drifting photographs are
-   gone. What is left is the order an institution opens in — the mark, the claim, the one action, the figures — on one
-   panel, centred. Centred is the register: left-aligned reads editorial and modern, centred reads formal, and "a
-   serious new tool for education" is the second one. The page's first photograph is the section below, which is the
-   first thing you scroll to, so the hero does not have to carry a picture at all. */
-.hero { padding-top: var(--field-top); padding-bottom: 0; }
-.hero__panel { --hero-col: min(100%, 900px); background: var(--bg-raised); border-radius: var(--r-xl); padding: clamp(40px, 6vw, 96px) clamp(24px, 4vw, 72px); display: grid; justify-items: center; text-align: center; gap: var(--sp-6); }
+   gone. What is left is the order an institution opens in — the mark, the claim, the one action, the figures —
+   centred, and now with NO PANEL UNDER IT. "Does the hero really need to be in a container? less is so much more."
+   No: a raised box around type is a box drawn for its own sake, and taking it away leaves the mark and the line
+   sitting on the page, which is what a masthead is. The surfaces that are left are the ones that are objects — the
+   quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
+.hero { padding-top: var(--field-top); }
+.hero__panel { --hero-col: min(100%, 900px); display: grid; justify-items: center; text-align: center; gap: var(--sp-7); }
 /* the mark is the biggest single object in the hero, which is the point of the brief */
-.hero__mark { width: clamp(84px, 9vw, 132px); display: grid; place-items: center; margin-bottom: var(--sp-2); }
+.hero__mark { width: clamp(84px, 9vw, 132px); display: grid; place-items: center; margin-bottom: var(--sp-4); }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 .hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 30em; }
-.hero__act { margin-top: var(--sp-2); }
+.hero__act { margin-top: var(--sp-4); }
 /* the hairline and the headline share one column, so the masthead is a single block rather than three widths */
-.hero__panel .proof { width: 100%; max-width: var(--hero-col); margin-top: var(--sp-6); text-align: left; }
+.hero__panel .proof { width: 100%; max-width: var(--hero-col); margin-top: var(--sp-12); text-align: left; }
 
 /* ---------- The two sections ----------
    What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
    on one side, a label, a heading and the prose on the other. This replaced four clickable cards and the reader
    dialog behind them — two sections of prose do not need a dialog to hold them, and a page trying to be taken
    seriously puts its case in the open rather than behind a click. */
-.tell { padding-top: var(--grid-gap); }
-.tell__row { align-items: center; row-gap: var(--sp-8); }
+.tell__row { align-items: center; row-gap: var(--sp-12); }
 .tell__figure { grid-column: 1 / -1; margin: 0; }
 .tell__figure .photo { width: 100%; }
-.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: center; }
-.tell__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-5); align-content: center; }
+.tell__title { margin-top: calc(-1 * var(--sp-2)); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
 .tell__p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
@@ -43,7 +43,7 @@
    about whether it has ever been used — and the panel was carrying 288px of empty ground, 36% of its height, above
    and below a centred block. Credibility belongs above the fold and the air was already paid for. A hairline above,
    never a panel: this is inside one. Three across at every width — stacked, they add 200px to a phone's hero. */
-.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); margin: 0; padding-top: var(--sp-6); box-shadow: inset 0 1px 0 var(--line); }
+.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); margin: 0; padding-top: var(--sp-8); box-shadow: inset 0 1px 0 var(--line); }
 .proof__item { display: grid; gap: var(--sp-1); }
 .proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 600; color: var(--ink); }
 .proof__label { font-size: var(--fs-caption); line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
@@ -95,7 +95,7 @@
 @media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
 /* the field's own gap between this row and the closing panel — without it the cards sit 7px off it, which reads as a
    collision rather than as the field's rhythm */
-.voices-sec { padding-bottom: var(--grid-gap); }
+
 
 /* ---------- The closing field ----------
    Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and

@@ -80,21 +80,26 @@
   --measure-h2: 17em;
   --measure-body: 34em;
 
-  /* Space — 4px grid. The page runs wider and closer to the edge than it did: a 1400 column inside a 16–32px gutter. */
+  /* Space — 4px grid. Jayden, after Linda's round: "the spacing of the site feels so cramped, not premium — let
+     sections breathe." He was right, and the cause was structural. The page used to be one bento field, where every
+     row was a tile and the gap between tiles was --grid-gap, about 16px. That is correct for tiles butted together;
+     it is wrong for a sequence of sections on open ground, which is what the page became when the bento went and the
+     hero stopped being a panel. The gap between sections is --section-y now, and it is more than twice what it was.
+     The gutter grew with it: 29px of air at the edge of a 1440 screen is a brochure, 49px is a page. */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
   --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px;
   /* the column is wide enough that on a laptop the page IS the screen minus a small, even inset, which is what
      puts the big surfaces "a small spacing from the outer edge" instead of inside a narrow centred strip */
   --page-max: 1720px;
-  --gutter: clamp(16px, 2vw, 36px);
-  --grid-gap: clamp(12px, 1.1vw, 20px);
-  --section-y: clamp(56px, 2.2vw + 32px, 88px);
+  --gutter: clamp(20px, 3.4vw, 64px);
+  --grid-gap: clamp(16px, 1.8vw, 32px);      /* between COLUMNS, which is all it means now */
+  --section-y: clamp(80px, 8vw, 168px);      /* between SECTIONS */
   --card-pad: clamp(20px, 2.2vw, 40px);
   --slip: 20px;           /* how far a photograph rises out of the panel it sits in */
 
   /* the header is two tiles in the field, so its height is a tile's height: 5px of panel padding either side of a 44px target */
   --nav-h: 54px;
-  --field-top: calc(var(--grid-gap) * 2 + var(--nav-h) + var(--sp-2));   /* the header row, and the gap under it */
+  --field-top: calc(var(--nav-h) + clamp(48px, 6vw, 120px));   /* the header, and real air under it */
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
 

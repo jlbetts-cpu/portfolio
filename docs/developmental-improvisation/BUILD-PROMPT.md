@@ -73,7 +73,7 @@ The old page put a 1280 column inside a 40px gutter and read as a narrow strip f
 | | value |
 |---|---|
 | `--page-max` | 1400px |
-| `--gutter` | `clamp(16px, 2vw, 32px)` — content starts 49px from the edge at 1440, not 120px |
+| `--gutter` | `clamp(20px, 3.4vw, 64px)` — content starts 49px from the edge at 1440 |
 | `--grid-gap` | `clamp(12px, 1.1vw, 20px)` |
 | `--section-y` | `clamp(56px, 2.2vw + 32px, 88px)` |
 | `--card-pad` | `clamp(20px, 2.2vw, 40px)` |

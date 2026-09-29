@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v22 (2026-09-29) — let it breathe, and take the box off the hero
+*"the spacing of the site feels so cramped, not premium — let sections breathe"* and *"does the hero really need to be in a container? less is so much more."* Both right, and the first one had a structural cause rather than a taste one.
+
+**The page was still spaced like a bento field.** Every row used to be a tile and the gap between tiles was `--grid-gap`, about 16px. That is correct for tiles butted together. It is wrong for a sequence of sections on open ground — which is exactly what the page became in v21, when the bento went and four cards became two prose sections. The spacing never followed the structure. So: **`--grid-gap` means between COLUMNS now and `--section-y` means between SECTIONS**, one rule carries it (`main > section + section, .close { margin-top: var(--section-y) }`), and the ring gets 1.4× because it is the page's one break and a break the same distance as everything else is not a break. Measured at 1440: **115px between sections and 161px either side of the ring, against 16px before.** The gutter went with it, `clamp(16px, 2vw, 36px)` → `clamp(20px, 3.4vw, 64px)`: **29px of air at the edge of a 1440 screen is a brochure, 49px is a page.** And `--field-top` is `--nav-h` plus `clamp(48px, 6vw, 120px)` rather than two grid gaps, so the masthead starts with room above it.
+
+**The hero has no container.** A raised box drawn around type is a box drawn for its own sake; taking it away leaves the mark and the line sitting on the page, which is what a masthead is. What it also does is make the surface rule simpler than the field it replaced: **the things that still have a surface are the things that are objects** — the quote cards, the sign-up card, the closing panel. Nothing is a panel merely for being a section.
+
+**Measured after v22.** 40 gate lines pass, five self-tests caught. No overflow at 320 through 1920. Worst contrast 4.82:1 light / 5.95:1 dark.
+
 ## v21 (2026-09-29) — Linda's brief: simpler, more serious, one face
 Jayden showed his aunt the site. Her notes, and they are the whole round: **the hero is far too busy, too many images** — a much simpler one would do wonders; **the logo should be more prevalent**; **the brand has to read serious, a new tool for education, and the design has to reflect that**; **split the about into two** — what Developmental Improvisation is, and who she is — **filled with placeholder copy** for now; then the quotes, the testimonials and the footer, cleaned up; and **change the face to something like Geist**, so the site feels focused and mature.
 

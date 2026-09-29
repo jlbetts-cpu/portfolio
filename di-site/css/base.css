@@ -41,7 +41,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* Layout */
 .container { max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto; }
-.section { padding-block: var(--section-y); }
+/* one rhythm: every section after the first is --section-y from the one above it. The ring takes half as much again,
+   because it is the page's one break and a break that is the same distance as everything else is not a break. */
+main > section + section, .close { margin-top: var(--section-y); }
+.section.ring { margin-block: calc(var(--section-y) * 1.4); }
 /* the label: 12px caps, nothing else. It had a coloured dot; Jayden removed it. */
 .label { display: block; font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink-3); }
 /* the twelve-column grid every section lays out on */
