@@ -43,6 +43,7 @@ on every number I had and was still wrong.
 | **The about is two sections** — what Developmental Improvisation is, and who Linda is | 2026-09-29, Linda | — |
 | **One face.** Geist, 400 and 700 | 2026-09-29 | "lets make the site feel a lot more focused and mature" |
 | **The photographs under the hero are a VERTICAL scroll** — columns rising on their own, faded at the top and the bottom | 2026-10-02 | "the reference I liked was more of a vertical image scroll"; the horizontal strip lasted one round |
+| **The gallery keeps one shape.** Every photograph in it is 4:5; the masonry edge comes from column offsets and speeds, not mixed heights | 2026-10-02 | asked with the reference's mixed-height grid beside it: "Keep one shape" |
 | **The gallery cannot be scrubbed by hand.** It drifts and it fades; there is no wheel handler, and a wheel over it scrolls the page | 2026-10-02 | "you cant like manually scroll through like the old version I like how it fades" |
 | **No statistics under the newsletter button** | 2026-10-02 | "take out the statistics under the sign up for newsletter" |
 | **Sections breathe.** `--section-y` between sections, never a tile gap | 2026-10-02 | "the spacing of the site feels so cramped not premium" |
@@ -77,6 +78,5 @@ on every number I had and was still wrong.
 | **The newsletter endpoint** | `[NEWSLETTER_ACTION_URL]`. Mailchimp, a form, or her inbox — her call. |
 | **The phone number** | (857) or (877), never confirmed. |
 | **The mark against feedhippo.com** | Built from his description — the site was unreachable from the build machine, so the turn has not been compared with the reference side by side. |
-| **Masonry with mixed heights** | The reference's columns hold photographs of different proportions. Here every photograph is 4:5 (LOCKED) and the masonry comes from offsets and speeds. Mixed ratios would reopen the lock — his call. |
 | **The hero mark in dark** | The sheen reads as pastel on the dark ground where it reads as a band on the light one. Worth another pass. |
 | **A second photograph for the sections** | Both are strong; if Linda's copy is short, 4:5 may want to become 3:2. |
