@@ -9,17 +9,20 @@
    sitting on the page, which is what a masthead is. The surfaces that are left are the ones that are objects — the
    quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
 .hero { padding-top: var(--field-top); }
-.hero__panel { --hero-col: min(100%, 900px); display: grid; justify-items: center; text-align: center; gap: var(--sp-7); }
+.hero__panel { --hero-col: min(100%, 900px); display: grid; justify-items: center; text-align: center; gap: var(--sp-6); }
 /* The mark is the biggest single object in the hero, which is the point of the brief — and it is BLACK now, with the
    palette moving across it rather than printed into it. The colour logo was eight flat hues at rest; this is the ink
    mark with a band of those same eight hues sweeping over it, masked to its own shape, which is how light behaves on
    something physical. It is the one place on this site that carries a gradient, and it carries it because Jayden
    asked for colour "in a premium way" on a black mark — everywhere else the no-gradient rule stands.
-   And it turns: drag it and it spins on its Y axis with momentum, clamped at ±72° so the monogram never flips to its
-   mirror image, then springs back. The sheen's position is tied to that angle, so turning it changes the light. */
-.hero__mark { width: clamp(96px, 10vw, 148px); display: grid; place-items: center; margin-bottom: var(--sp-5); perspective: 900px; cursor: grab; touch-action: pan-y; }
-.hero__mark:active { cursor: grabbing; }
-.hero__mark__spin { width: 100%; transform: rotateY(var(--spin, 0deg)); transform-style: preserve-3d; will-change: transform; }
+   And it turns to face the pointer, wherever the pointer is on the page — Jayden, after feedhippo.com: "the logo
+   spins depending on where your mouse is pointing". It replaced a drag-to-spin that nobody would ever discover: this
+   one answers the first movement anyone makes. Two axes, so it looks up and down as well as across, held to ±30° and
+   ±20°, which is far enough to read as an object turning and short of the angle where a flat mark shows its edge.
+   With no pointer to follow (a phone) it sways on the page's own clock instead. The sheen is tied to the angle, so
+   turning it moves the light across it. */
+.hero__mark { width: clamp(104px, 11vw, 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
+.hero__mark__spin { width: 100%; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); will-change: transform; }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
 .logo--hero .logo__ink { fill: var(--ink); }
 .logo--hero .logo__sheen { transform: translateX(calc(var(--sheen, 0) * 1px)); opacity: .82; mix-blend-mode: screen; }
@@ -28,37 +31,43 @@
 :root[data-theme="dark"] .logo--hero .logo__sheen { mix-blend-mode: multiply; opacity: .88; }
 @media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
 
-/* ---------- The strip ----------
-   Jayden, after the Hippo reference: he liked the old horizontal carousel and liked theirs more — a row that drifts on
-   its own, fades at both ends, and that you CANNOT scrub by hand. This is the bento's flow driver turned on its side
-   and stripped of every control. It breaks the container deliberately: the fade only reads as a fade if the row runs
-   off both edges of the SCREEN, not off the edge of a column. One height, one shape, because the photographs on this
-   site are one shape. The pointer holds it so a photograph can be clicked without chasing it — that is not scrubbing.
-   Twelve photographs that appear nowhere else on the page: a strip that reprises the sections would read as padding. */
-.strip { margin-inline: calc(50% - 50vw); overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%); }
-.strip__track { display: flex; width: max-content; will-change: transform; }
-.strip__row { display: flex; gap: var(--grid-gap); list-style: none; margin: 0; padding: 0 0 0 var(--grid-gap); }
-.strip__item { flex: none; height: clamp(176px, 22vw, 320px); }
-.strip__item .photo { height: 100%; width: auto; }
-.strip__item .photo picture, .strip__item .photo__open { height: 100%; }
+/* ---------- The gallery ----------
+   The strip, stood up. Jayden: "the reference I liked was more of a vertical image scroll." Four columns on the page's
+   own grid, rising on their own and faded at the top and the bottom, so the photographs come up out of the page and
+   go back into it rather than starting and stopping at a cut. Still not scrubbable — the flow drives them and the
+   pointer only holds them — and still one shape: the masonry the reference has comes from columns that sit at
+   different heights and travel at different speeds, which js/main.js gives them, not from photographs of different
+   proportions. The gap between photographs IS the gap between columns, so the four read as one field.
+   The mask is uneven on purpose: a short fade where the hero hands over, a long one at the foot, which is where the
+   reference lets its pictures dissolve. Four columns, then three, then two. */
+.gallery { margin-top: var(--sp-16); }
+.gallery__stage { height: clamp(520px, 84vh, 920px); overflow: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); align-items: start;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 62%, transparent 100%); }
+.gallery__col { will-change: transform; }
+.gallery__run { display: grid; gap: var(--grid-gap); padding-bottom: var(--grid-gap); }
+@media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gallery__col:nth-child(n+4) { display: none; } }
+@media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(480px, 78vh, 720px); } .gallery__col:nth-child(n+3) { display: none; } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
+/* the claim in ink and its second half a tier down: the line reads as one statement with a weight to it, the way the
+   reference sets its headline, and it costs nothing — same face, same weight, same size, one token */
+.hero__title__soft { color: var(--ink-3); }
+/* on a screen wide enough to hold the claim on one line, the two halves get a line each — the soft half as its own
+   line rather than an ampersand left hanging at the end of the first */
+@media (min-width: 1100px) { .hero__title { max-width: 21em; } .hero__title__soft { display: block; } }
 .hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 30em; }
 .hero__act { margin-top: var(--sp-4); }
-/* the hairline and the headline share one column, so the masthead is a single block rather than three widths */
-.hero__panel .proof { width: 100%; max-width: var(--hero-col); margin-top: var(--sp-12); text-align: left; }
 
 /* ---------- The two sections ----------
    What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
    on one side, a label, a heading and the prose on the other. This replaced four clickable cards and the reader
    dialog behind them — two sections of prose do not need a dialog to hold them, and a page trying to be taken
    seriously puts its case in the open rather than behind a click. */
-.tell__row { align-items: center; row-gap: var(--sp-12); }
+.tell__row { align-items: center; row-gap: var(--sp-8); }
 .tell__figure { grid-column: 1 / -1; margin: 0; }
 .tell__figure .photo { width: 100%; }
-.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-5); align-content: center; }
-.tell__title { margin-top: calc(-1 * var(--sp-2)); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: center; }
+.tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
 .tell__p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
@@ -66,24 +75,6 @@
   /* flipped, so the two sections do not read as one long list of the same row */
   .tell--flip .tell__figure { grid-column: 8 / span 5; grid-row: 1; }
   .tell--flip .tell__copy { grid-column: 1 / span 6; grid-row: 1; }
-}
-
-/* ---------- Proof ----------
-   Three figures inside the hero's copy panel. The page said what the method is and who made it and nothing at all
-   about whether it has ever been used — and the panel was carrying 288px of empty ground, 36% of its height, above
-   and below a centred block. Credibility belongs above the fold and the air was already paid for. A hairline above,
-   never a panel: this is inside one. Three across at every width — stacked, they add 200px to a phone's hero. */
-.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); margin: 0; padding-top: var(--sp-8); box-shadow: inset 0 1px 0 var(--line); }
-.proof__item { display: grid; gap: var(--sp-1); }
-.proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); }
-.proof__label { font-size: var(--fs-caption); line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-/* on a phone the copy panel is 302px wide inside its padding, so a third of it is 91px and IMPROVISATION is 105px —
-   the label ran straight over the next figure. One per line instead, the figure beside its label: three rows cost
-   120px against the 200px that stacking them as blocks would have. */
-@media (max-width: 599px) {
-  .proof { grid-template-columns: 1fr; gap: var(--sp-3); }
-  .proof__item { grid-template-columns: auto 1fr; align-items: baseline; gap: var(--sp-3); }
-  .proof__figure { font-size: 1.5rem; }
 }
 
 /* ---------- The quote ring ----------
@@ -117,7 +108,7 @@
    the block is pushed down with margin — the cards stretch, the quotes do not have to match. */
 .voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad); }
-.voice__quote { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
+.voice__quote { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; margin-bottom: var(--sp-8); }   /* the longest quote ran to 15px off the hairline; this is the floor under all three */
 .voice__who { margin-top: auto; padding-top: var(--sp-6); display: flex; align-items: center; gap: var(--sp-3); box-shadow: inset 0 1px 0 var(--line); }
 /* Jayden's app: "saturated colour means a win or a photograph; chrome is ink and light." The three hue discs were
    chrome wearing colour, so they are ink now — the only colour left below the hero is the photographs themselves. */
@@ -138,14 +129,16 @@
 .close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
 .close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
-/* The one surface down here whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
-   for the subtree, which keeps every component inside it (title, field, button) correct in both themes. */
-.close__sign { grid-column: 1 / -1; background: var(--c-sky); border-radius: var(--r-lg); padding: var(--card-pad);
-  --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
+/* The sign-up is the INVERTED surface: the ink as its ground, the page as its type. It used to be the one sky field on
+   the page, and with the neutrals gone cool a saturated card was the single thing still reading as a template. An
+   inverted card is how the reference marks its one paid plan among plain ones — weight, not hue — and it follows the
+   theme by construction, because it is defined from the two tokens that swap. */
+.close__sign { grid-column: 1 / -1; background: var(--ink); border-radius: var(--r-lg); padding: var(--card-pad);
+  --ink-on: var(--bg); color: var(--ink-on); }
+.close__sign .close__title, .close__sign .close__mark { color: var(--ink-on); }
 .close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
-.close__reach .label { margin-bottom: var(--sp-2); }
 .close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
 .close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
 .close__reach a:hover { text-decoration-color: currentColor; }
@@ -154,9 +147,14 @@
 .close__reach .close__ask { justify-self: start; margin-top: var(--sp-5); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
 .close__foot { grid-column: 1 / -1; margin-top: var(--sp-6); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
 .close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
-.close__sign .input { background: rgba(255,255,255,.94); box-shadow: none; }
-.close__sign .btn--primary { background: var(--ink); color: #F7F5F0; }
-@media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } }   /* the address is 29 characters: at h3 it breaks mid-word on a phone */
+.close__sign .input { background: color-mix(in srgb, var(--ink-on) 10%, transparent); color: var(--ink-on); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-on) 22%, transparent); }
+.close__sign .input::placeholder { color: color-mix(in srgb, var(--ink-on) 60%, transparent); }
+.close__sign .btn--primary { background: var(--ink-on); color: var(--ink); }
+.close__sign .field__message { color: color-mix(in srgb, var(--ink-on) 70%, transparent); }
+/* the address is 29 characters, 276px at the lead size, and a 390 phone gives it 264px beside its icon — it was breaking
+   as "gmail.co" over "m". On a phone the icons go (an address and a number explain themselves), which buys back the
+   30px; narrower than that, the <wbr> lets it break at the @ instead of inside a word. */
+@media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } .close__reach a .icon { display: none; } }
 @media (min-width: 1024px) {
   .close__sign { grid-column: 1 / span 6; }
   .close__reach { grid-column: 8 / span 5; padding-top: var(--sp-2); }

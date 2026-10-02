@@ -41,7 +41,7 @@ POS={'yellow-trousers':'50% 40%','bow-tie-chairs':'25% 50%','circle-hands':'45% 
      'linda-portrait':'22% 40%','boy-fist':'50% 40%','kids-bw-small':'50% 50%','cast-stage-small':'50% 50%','linda-circle':'45% 50%','kids-dancing':'50% 50%','kids-running':'50% 50%','cast-pose':'50% 55%','two-lines':'52% 55%','zoom-group':'50% 55%','duo-brick':'50% 45%'}
 
 USED=[]
-def picture(name, sizes, lazy=True, cls='', ratio=None, button=True, big=False):
+def picture(name, sizes, lazy=True, cls='', ratio=None, button=True, big=False, ghost=False):
     m=man[name]; srcs=[w for w in m['sizes'] if big or w<=960]
     av=', '.join(f'images/{name}-{w}.avif {w}w' for w in srcs); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in srcs)
     load='loading="lazy" ' if lazy else 'fetchpriority="high" '
@@ -49,6 +49,7 @@ def picture(name, sizes, lazy=True, cls='', ratio=None, button=True, big=False):
          f'{load}decoding="async">')
     pic=f'<picture><source type="image/avif" srcset="{av}" sizes="{sizes}"><source type="image/webp" srcset="{wp}" sizes="{sizes}">{img}</picture>'
     if not button: return pic
+    if ghost: return f'<button class="photo__open" type="button" tabindex="-1" data-photo="{name}">{pic}</button>'
     if name not in USED: USED.append(name)
     return f'<button class="photo__open" type="button" data-photo="{name}" aria-label="Open photograph: {html.escape(ALT[name])}">{pic}</button>'
 def lb_data():
@@ -58,10 +59,10 @@ def lb_data():
         out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n]}
     return json.dumps(out,separators=(',',':'))
 
-def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, button=True):
+def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, button=True, ghost=False):
     m=man[name]
     h=(f'<figure class="photo photo--{ratio}{" photo--hover" if hover else ""}" style="--pos:{POS[name]};background-image:url({m["placeholder"]})">'
-       + picture(name,sizes,lazy,big=big,button=button) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
+       + picture(name,sizes,lazy,big=big,button=button,ghost=ghost) + (f'<figcaption class="photo__caption">{caption}</figcaption>' if caption else '') + '</figure>')
     return h
 
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
@@ -71,19 +72,27 @@ RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
-# ---- The strip ----
-# Jayden, after the Hippo reference: he liked the old horizontal carousel, and liked theirs more — a row that drifts on
-# its own, fades at both ends, and that you CANNOT scrub by hand. So this is the bento's flow driver turned on its
-# side and stripped of every control: one row, one height, two copies for the loop, a mask at the edges. Twelve
-# photographs that appear nowhere else on the page, so the strip is not a reprise of the sections or the ring.
-STRIP=['linda-circle','blue-shirts','kids-dancing','scene-handshake','boy-fist','circle-hands',
-       'three-teens','kids-running','row-linked-arms','yellow-trousers','zoom-group','conga-line']
-SSIZES='(max-width: 767px) 180px, 22vw'
-def strip_row(hidden):
-    hid=' aria-hidden="true"' if hidden else ''
-    items=''.join(f'<li class="strip__item">{photo(n, "4x5", SSIZES, button=not hidden)}</li>' for n in STRIP)
-    return f'<ul class="strip__row"{hid}>{items}</ul>'
-strip=strip_row(False)+strip_row(True)
+# ---- The gallery ----
+# Jayden, a round after the strip: "the reference I liked was more of a vertical image scroll." So the row stood up.
+# Four columns of photographs rising on their own, faded out at the top and the bottom, and still nothing you can
+# scrub — the flow drives them, the pointer only holds them. Each column is two copies of one run, so its loop length
+# is the first run's height and the translate wraps without a seam.
+# ONE SHAPE STILL: every photograph here is 4:5, like every other one on the page. The masonry look the reference has
+# comes from the columns sitting at different heights and travelling at different speeds, not from mixed ratios —
+# mixed ratios would reopen a locked decision and that is his call, not a side effect of this one.
+# Order matters: a phone shows the first two columns and a tablet the first three, so the strongest pictures lead.
+GALLERY=[
+ ['linda-circle','kids-dancing','boy-fist','row-linked-arms'],
+ ['blue-shirts','scene-handshake','three-teens','linda-portrait'],
+ ['circle-hands','kids-running','yellow-trousers','kids-bw-small'],
+ ['zoom-group','conga-line','bow-ties-wall'],
+]
+GSIZES='(max-width: 767px) 46vw, (max-width: 1023px) 31vw, 23vw'
+def gallery_col(names):
+    run=lambda ghost: ''.join(f'<li class="gallery__item">{photo(n, "4x5", GSIZES, ghost=ghost)}</li>' for n in names)
+    return (f'<div class="gallery__col"><ul class="gallery__run">{run(False)}</ul>'
+            f'<ul class="gallery__run" aria-hidden="true">{run(True)}</ul></div>')
+gallery=''.join(gallery_col(c) for c in GALLERY)
 
 # the hero's mark, built from the same source as every other copy of it: the paths once for the black shape, and once
 # more inside a mask so a moving band of the palette can be laid over them without duplicating the geometry in markup.
@@ -131,7 +140,6 @@ def tell(idp, label, title, name, paras, flip):
             f'<div class="container grid tell__row">'
             f'<figure class="tell__figure reveal">{photo(name, "4x5", TSIZES, hover=True)}</figure>'
             f'<div class="tell__copy reveal">'
-            f'<p class="label">{label}</p>'
             f'<h2 class="tell__title" id="{idp}Title">{title}</h2>'
             f'{body}</div></div></section>')
 tells=''.join(tell(*t) for t in TELL)
@@ -140,7 +148,7 @@ quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit 
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
 # three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
 VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
-pile=''.join(f'<li class="voice reveal" data-accent="{a}" data-placeholder="true"><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
+pile=''.join(f'<li class="voice reveal" data-placeholder="true"><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -154,7 +162,7 @@ page=f'''<!DOCTYPE html>
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#131211">
+<meta name="theme-color" content="#0B0B0F">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
@@ -163,9 +171,7 @@ page=f'''<!DOCTYPE html>
 <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="preload" href="fonts/PlusJakartaSans-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/PlusJakartaSans-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/Jost-100-900.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={STAMP}">
 <link rel="stylesheet" href="css/base.css?v={STAMP}">
 <link rel="stylesheet" href="css/components.css?v={STAMP}">
@@ -196,16 +202,16 @@ page=f'''<!DOCTYPE html>
     <div class="container">
       <div class="hero__panel reveal">
         <div class="hero__mark" data-mark><div class="hero__mark__spin">{heromark}</div></div>
-        <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
+        <h1 class="hero__title" id="heroTitle">New tools for cognitive development <span class="hero__title__soft">&amp; emotional understanding</span></h1>
         <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
         <div class="hero__act"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
       </div>
     </div>
   </section>
 
-  <!-- the photographs sit right under the mark, edge to edge, drifting and faded at both ends -->
-  <section class="strip" aria-label="From the sessions">
-    <div class="strip__track" data-strip>{strip}</div>
+  <!-- the photographs sit right under the mark: four columns rising on their own, faded at the top and the bottom -->
+  <section class="gallery" aria-label="From the sessions">
+    <div class="container"><div class="gallery__stage" data-gallery>{gallery}</div></div>
   </section>
 
 {tells}
@@ -239,8 +245,7 @@ page=f'''<!DOCTYPE html>
         {form('nl')}
       </div>
       <div class="close__reach">
-        <p class="label">Contact</p>
-        <a href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov@gmail.com</a>
+        <a href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov<wbr>@gmail.com</a>
         <a href="tel:+18573523221"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(857) 352-3221</a>
         <!-- the page's second way in. Everything else here points at a newsletter; a teacher who wants this in their
              classroom had nowhere to go. No new address and no form to build — the one already on the page, with the
@@ -263,7 +268,7 @@ page=f'''<!DOCTYPE html>
 </dialog>
 <script type="application/json" id="lbData">{{LBDATA}}</script>
 
-<dialog class="dialog card--tint" id="newsletterDialog" aria-labelledby="dialogTitle" data-accent="orange">
+<dialog class="dialog" id="newsletterDialog" aria-labelledby="dialogTitle">
   <button class="dialog__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
   <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
   <h2 id="dialogTitle" tabindex="-1">Sign Up for our Newsletter!</h2>

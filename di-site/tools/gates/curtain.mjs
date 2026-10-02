@@ -1,4 +1,4 @@
-// Gate: the curtain. On the first load of a session two halves of sky cover the page and part within three seconds,
+// Gate: the curtain. On the first load of a session two flat halves of the dark ground cover the page and part within three seconds,
 // leaving nothing behind and a page that scrolls; a second load in the same session shows no curtain at all; under
 // reduced motion it never appears. The worst bug this could have is a site stranded behind it, so the timings are
 // asserted from the DOM at the centre of the viewport, not from a class name.

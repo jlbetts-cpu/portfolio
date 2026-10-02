@@ -19,7 +19,7 @@
   const applyTheme = (t, animate) => {
     if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
     root.dataset.theme = t;
-    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#131211' : '#F0ECE3';
+    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#0B0B0F' : '#FAFAFB';
     $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
   };
   applyTheme(root.dataset.theme === 'light' ? 'light' : 'dark', false);
@@ -96,7 +96,7 @@
       requestAnimationFrame(frame);
     };
     const wake = () => { if (running) return; running = true; lastT = 0; requestAnimationFrame(frame); };
-    // the scroll feeds the flow only while the strip or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
+    // the scroll feeds the flow only while the gallery or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
     addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; if (holds.has('offscreen')) return; target += d; sTarget += d; wake(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
@@ -125,67 +125,74 @@
     }
   }
 
-  /* ---- The strip: one row of photographs drifting sideways, and nothing you can scrub ----
-     The bento's driver, turned on its side and stripped of its controls. Two copies of the row; the loop length is
-     the first copy's width, so the translate wraps without a seam. The pointer HOLDS it rather than steering it —
-     a photograph you have to chase is a photograph nobody opens — and there is no wheel handler at all, which is the
-     whole difference from the version this replaced. ---- */
-  const strip = $('[data-strip]');
-  if (strip) {
-    const first = $('.strip__row', strip);
-    let half = 0, px = 14;
-    const measure = () => { half = first ? first.getBoundingClientRect().width : 0; px = num(getComputedStyle(root), '--strip-px', 14); };
-    measure(); addEventListener('resize', measure);
-    addEventListener('load', measure);
+  /* ---- The gallery: four columns of photographs rising on their own, and nothing you can scrub ----
+     The strip, stood up. Every column is two copies of one run; its loop length is the first run's height, so the
+     translate wraps without a seam. The columns share the flow but not its rate — each has its own speed and its own
+     starting height, which is what gives one-shape photographs the uneven, masonry edge of the reference. The pointer
+     HOLDS them rather than steering them, and there is no wheel handler: a wheel over the gallery scrolls the page. ---- */
+  const gallery = $('[data-gallery]');
+  if (gallery) {
+    const SPEED = [1, 1.18, .9, 1.1], START = [.08, .52, .3, .78];   // per column: rate against the flow, and phase in item heights
+    const cols = $$('.gallery__col', gallery).map((el, i) => ({ el, run: $('.gallery__run', el), n: $$('.gallery__item', el).length / 2, len: 0, speed: SPEED[i % 4], start: START[i % 4] }));
+    let px = 11;
+    const measure = () => { px = num(getComputedStyle(root), '--gallery-px', 11); for (const c of cols) c.len = c.run.getBoundingClientRect().height; };
+    measure(); addEventListener('resize', measure); addEventListener('load', measure);
     flow.on((a) => {
-      if (!half) { measure(); if (!half) return; }
-      const x = ((a * px % half) + half) % half;
-      strip.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
+      for (const c of cols) {
+        if (!c.len) continue;                    // a column the breakpoint hides has no height and no motion
+        const y = (((a * px * c.speed + c.start * c.len / c.n) % c.len) + c.len) % c.len;
+        c.el.style.transform = `translate3d(0, ${(-y).toFixed(2)}px, 0)`;
+      }
     });
-    flow.watch(strip.closest('.strip') || strip);
-    strip.addEventListener('pointerenter', () => flow.hold(strip, true));
-    strip.addEventListener('pointerleave', () => flow.hold(strip, false));
-    let t; strip.addEventListener('touchstart', () => { flow.hold(strip, true); clearTimeout(t); t = setTimeout(() => flow.hold(strip, false), 4000); }, { passive: true });
+    flow.watch(gallery);
+    gallery.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') flow.hold(gallery, true); });
+    gallery.addEventListener('pointerleave', () => flow.hold(gallery, false));
+    let t; gallery.addEventListener('touchstart', () => { flow.hold(gallery, true); clearTimeout(t); t = setTimeout(() => flow.hold(gallery, false), 4000); }, { passive: true });
   }
 
-  /* ---- The mark: black, with the palette sweeping over it, and it turns ----
-     A flat mark spun past 90° shows its own mirror image and the monogram reads backwards, so the rotation is clamped
-     at ±72° and springs back to rest. The sheen's offset is tied to the same angle: turning the mark moves the light
-     on it, which is the whole reason the rotation is worth having. ---- */
+  /* ---- The mark: black, with the palette sweeping over it, and it turns to face the pointer ----
+     Anywhere on the page, not only over the mark: the offset from the mark's centre, as a fraction of the room
+     between the mark and that edge of the window, is the angle. It eases toward that with a short time constant, so it follows like something with a
+     little weight rather than snapping to the cursor. A flat mark turned far enough shows its edge, so it is held
+     to ±30° across and ±20° up and down. With no hovering pointer it sways slowly on the flow instead, so a phone
+     still sees an object rather than a picture of one. The sheen's offset is tied to the same angles. ---- */
   const mark = $('[data-mark]');
-  if (mark && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const LIMIT = 72;
-    let angle = 0, vel = 0, grab = null, last = 0, raf = 0;
-    // the band travels on the same clock as everything else that moves on this page, plus whatever the drag has
-    // added — so it is never still, and turning the mark moves the light on it
+  if (mark && !reduced.matches) {
+    const MAX_Y = 30, MAX_X = 20, TAU = .2;
+    const hover = matchMedia('(hover: hover) and (pointer: fine)');
+    let ry = 0, rx = 0, ty = 0, tx = 0, raf = 0, last = 0, box = null;
     const paint = () => {
-      mark.style.setProperty('--spin', angle.toFixed(2) + 'deg');
+      mark.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+      mark.style.setProperty('--rx', rx.toFixed(2) + 'deg');
       // the rect is twice the mark's width and carries two bands, so a sweep of one mark-width covers every state
-      mark.style.setProperty('--sheen', (((flow.angle * 2.4 + angle * 5) % 800) + 800) % 800);
+      mark.style.setProperty('--sheen', (((flow.angle * 2.4 + ry * 6 - rx * 4) % 800) + 800) % 800);
     };
-    flow.on(() => { if (grab === null && !raf) paint(); });
     const tick = (t) => {
-      const dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t;
-      if (grab === null) {
-        vel += (-angle * 11 - vel * 5.2) * dt;      // a spring back to rest, critically damped enough not to wobble
-        angle += vel * dt;
-        if (Math.abs(angle) < 0.05 && Math.abs(vel) < 0.5) { angle = 0; vel = 0; paint(); raf = 0; return; }
-      }
+      const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+      const k = 1 - Math.exp(-dt / TAU);
+      ry += (ty - ry) * k; rx += (tx - rx) * k;
       paint();
+      if (Math.abs(ty - ry) < .02 && Math.abs(tx - rx) < .02) { raf = 0; return; }
       raf = requestAnimationFrame(tick);
     };
     const wake = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } };
-    mark.addEventListener('pointerdown', (e) => { grab = e.clientX; vel = 0; mark.setPointerCapture(e.pointerId); wake(); });
-    mark.addEventListener('pointermove', (e) => {
-      if (grab === null) return;
-      const d = (e.clientX - grab) * 0.55; grab = e.clientX;
-      angle = Math.max(-LIMIT, Math.min(LIMIT, angle + d));
-      vel = d * 30; paint();
+    const place = () => { const r = mark.getBoundingClientRect(); box = [r.left + r.width / 2 + scrollX, r.top + r.height / 2 + scrollY]; };
+    place(); addEventListener('resize', place); addEventListener('load', place);
+    addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
+      // each side is normalised by the room on that side, so the edge of the window is the full turn in every
+      // direction — the mark sits high in the viewport, and halving the height made "up" a third of "down"
+      const cx = box[0] - scrollX, cy = box[1] - scrollY, dx = e.clientX - cx, dy = e.clientY - cy;
+      ty = clamp(dx / Math.max(1, dx < 0 ? cx : innerWidth - cx), -1, 1) * MAX_Y;
+      tx = -clamp(dy / Math.max(1, dy < 0 ? cy : innerHeight - cy), -1, 1) * MAX_X;
+      wake();
+    }, { passive: true });
+    // the pointer leaving the window is the pointer going away: the mark comes back to face the visitor
+    document.documentElement.addEventListener('mouseleave', () => { ty = 0; tx = 0; wake(); });
+    flow.on((a) => {
+      if (!hover.matches) { ty = Math.sin(a * Math.PI / 45) * MAX_Y * .5; tx = 0; wake(); }   // one sway every 24s at rest
+      else if (!raf) paint();
     });
-    const release = () => { if (grab === null) return; grab = null; wake(); };
-    mark.addEventListener('pointerup', release);
-    mark.addEventListener('pointercancel', release);
-    mark.addEventListener('lostpointercapture', release);
     paint();
   }
 
@@ -212,8 +219,8 @@
   const lb = $('#lightbox');
   const lbData = (() => { try { return JSON.parse($('#lbData').textContent); } catch { return null; } })();
   if (lb && lbData) {
-    const buttons = $$('[data-photo]').filter(b => !b.closest('[aria-hidden="true"]'));
-    const names = [...new Set(buttons.map(b => b.dataset.photo))];
+    const buttons = $$('[data-photo]');
+    const names = [...new Set(buttons.filter(b => !b.closest('[aria-hidden="true"]')).map(b => b.dataset.photo))];
     const figure = $('.lightbox__figure', lb);
     const live = $('.lightbox__live', lb);
     let index = 0, opener = null;

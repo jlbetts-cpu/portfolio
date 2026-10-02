@@ -42,7 +42,8 @@ on every number I had and was still wrong.
 | **The hero is simple, with the logo prevalent.** No gallery of drifting images in it | 2026-09-29, Linda | "far too busy too many images a much more simple hero would do wonders" |
 | **The about is two sections** — what Developmental Improvisation is, and who Linda is | 2026-09-29, Linda | — |
 | **One face.** Geist, 400 and 700 | 2026-09-29 | "lets make the site feel a lot more focused and mature" |
-| **The strip cannot be scrubbed by hand.** It drifts and it fades; there is no wheel handler | 2026-10-02 | "you cant like manually scroll through like the old version I like how it fades" |
+| **The photographs under the hero are a VERTICAL scroll** — columns rising on their own, faded at the top and the bottom | 2026-10-02 | "the reference I liked was more of a vertical image scroll"; the horizontal strip lasted one round |
+| **The gallery cannot be scrubbed by hand.** It drifts and it fades; there is no wheel handler, and a wheel over it scrolls the page | 2026-10-02 | "you cant like manually scroll through like the old version I like how it fades" |
 | **No statistics under the newsletter button** | 2026-10-02 | "take out the statistics under the sign up for newsletter" |
 | **Sections breathe.** `--section-y` between sections, never a tile gap | 2026-10-02 | "the spacing of the site feels so cramped not premium" |
 
@@ -52,7 +53,7 @@ on every number I had and was still wrong.
 
 | Rule | The number | The range | Where it lives |
 |---|---|---|---|
-| Type floor | **14px** | nothing under it but a glyph inside a shape | `--fs-caption`, `--fs-label` |
+| Type floor | **15px** | nothing under it but a glyph inside a shape; Strata says 15pt and the page now matches it | `--fs-caption`, `--fs-small` |
 | Type weights | **400 / 700** | two, and no third | `tokens.css` |
 | Display scale | 4.25rem top, −0.035em | down, not up; Geist's x-height is 0.52em | `--fs-display` |
 | Section rhythm | `clamp(80px, 8vw, 168px)`, ring at 1.4× | 115px at 1440 measured | `base.css` |
@@ -60,9 +61,10 @@ on every number I had and was still wrong.
 | Contrast | 4.5:1, measured on the ground it sits on | — | `contrast.mjs` |
 | Targets | 44px, measured not declared | one exemption: inline prose links | `targets.mjs` |
 | Motion | 6 rungs: 100 / 160 / 240 / 280 / 360 / 500 | hover arrives in 160 and leaves in 240 | `--dur-*`, `--t` |
-| Strip speed | `--strip-px` 14 per degree | — | `tokens.css` |
+| Gallery speed | `--gallery-px` 11 per degree, 41px/s at rest | per-column rates 0.9–1.18; equal rates read as one sliding sheet, not masonry | `tokens.css`, `main.js` |
+| Mark turn | ±30° across, ±20° up and down, τ 0.2s | past ~35° a flat mark shows its edge | `main.js` |
 | Ring geometry | eight items at 0.765r apart; the quote fits a rectangle inscribed in `2r − item` | — | `home.css` |
-| Colour | the photographs, the mark's sweep, and the sign-up card | **Strata's rule is stricter** — "saturated colour means a win or a photograph; chrome is ink and light" — which would take the sky off the sign-up too | `tokens.css` |
+| Colour | the photographs and the mark's sweep, nothing else | Strata's rule, applied in v24: "saturated colour means a win or a photograph; chrome is ink and light". Neutrals are cool — a blue-black ink, a near-white ground | `tokens.css` |
 
 ---
 
@@ -74,6 +76,7 @@ on every number I had and was still wrong.
 | **Three testimonials** | Placeholder. Needs a name, a role and a short quote each. |
 | **The newsletter endpoint** | `[NEWSLETTER_ACTION_URL]`. Mailchimp, a form, or her inbox — her call. |
 | **The phone number** | (857) or (877), never confirmed. |
-| **The sign-up card's sky** | The one saturated surface left. Strata's rule says it should be ink. One line either way. |
+| **The mark against feedhippo.com** | Built from his description — the site was unreachable from the build machine, so the turn has not been compared with the reference side by side. |
+| **Masonry with mixed heights** | The reference's columns hold photographs of different proportions. Here every photograph is 4:5 (LOCKED) and the masonry comes from offsets and speeds. Mixed ratios would reopen the lock — his call. |
 | **The hero mark in dark** | The sheen reads as pastel on the dark ground where it reads as a band on the light one. Worth another pass. |
 | **A second photograph for the sections** | Both are strong; if Linda's copy is short, 4:5 may want to become 3:2. |

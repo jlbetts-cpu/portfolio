@@ -6,22 +6,25 @@
    and closes on sky at full strength: the mark's own colour, the loudest note, kept for last. */
 :root {
   color-scheme: light;
-  /* Ground — a warm off-white, low chroma: hue ≈ 80°, lightness .97 */
-  /* the page is the lighter of the two and the panels on it are the cream — the layering of the reference, inverted
-     from where this started: a white card on a cream ground read as nothing, a cream panel on a white page reads as an object */
-  --bg:          #FBFAF7;
-  --bg-raised:   #F0ECE3;
-  --bg-sunken:   #E5E0D5;
+  /* THE NEUTRALS ARE COOL NOW. Jayden: "the color still feels not like a premium site." It was warm — a cream ground
+     and a brown-black ink — and warm reads craft, cosy, handmade, which is the opposite register from "a serious new
+     tool for education". The reference he keeps pointing at (feedhippo.com) is a near-white with the faintest cool
+     cast and an ink that is a blue-black, not a brown one. These are those, held at the same contrast steps. The
+     brand's colour lives in the photographs and in the mark's sweep; the page itself is ink and light, which is the
+     rule in his own app: "saturated colour means a win or a photograph; chrome is ink and light." */
+  --bg:          #FAFAFB;
+  --bg-raised:   #F2F2F5;
+  --bg-sunken:   #E8E8EE;
   --bg-overlay:  #FFFFFF;
-  --line:        rgba(27,25,22,.12);
-  --line-strong: rgba(27,25,22,.22);
-  --scrim:       rgba(27,25,22,.48);
-  --glass:       rgba(251,250,247,.78);
+  --line:        rgba(21,20,29,.10);
+  --line-strong: rgba(21,20,29,.20);
+  --scrim:       rgba(21,20,29,.48);
+  --glass:       rgba(250,250,251,.8);
 
-  /* Ink — a warm black and two tiers */
-  --ink:    #1B1916;
-  --ink-2:  #514C45;                      /* 7.8:1 on the ground */
-  --ink-3:  #6C665D;                      /* 4.9:1 on the deeper ground */
+  /* Ink — a blue-black and two tiers */
+  --ink:    #15141D;
+  --ink-2:  #4E4C5F;                      /* 8.2:1 on the ground */
+  --ink-3:  #6A687D;                      /* 5.1:1 on the ground, 4.7:1 on the raised one */
 
   /* The logo, held at one lightness. The hues are the mark's own — the same eight angles, in the same order — but on
      the cream page each is taken to OKLCH L .885 with the chroma the hue can carry there (C ≤ .105). That is what makes
@@ -36,13 +39,13 @@
   --c-green:   #9EEEBC;                   /* 156.0° */
   --c-pink:    #FFC7E0;                   /* 350.2° */
   --c-yellow:  #F1D886;                   /* 93.2° */
-  --on-violet: #1B1916;                   /* the one hue whose ink changes with the theme */
+  --on-violet: #15141D;                   /* the one hue whose ink changes with the theme */
 
   /* A hue reaches the page ONE way: at full strength, on a surface, with the ink that hue takes. Mixing a hue into the
      ground made a pastel that was no longer the brand colour and shifted again between the themes; there are no mixes now.
      --on-accent is the only ink that clears 4.5:1 on that hue. */
   --accent:    var(--c-sky);
-  --on-accent: #1B1916;
+  --on-accent: #15141D;
   --focus:    var(--ink);
   --btn-primary-bg:  var(--ink);
   --btn-primary-ink: var(--bg);
@@ -76,9 +79,9 @@
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.016em;
   --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.005em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
-  --fs-small:   0.875rem;                                   --lh-small: 1.55;   --ls-small: 0;
+  --fs-small:   0.9375rem;                                  --lh-small: 1.5;    --ls-small: 0;
   --fs-label:   0.8125rem;                                  --lh-label: 1;      --ls-label: 0.09em;
-  --fs-caption: 0.875rem;                                   --lh-caption: 1.45; --ls-caption: 0;
+  --fs-caption: 0.9375rem;                                  --lh-caption: 1.45; --ls-caption: 0;
   --fs-ui:      0.9375rem;
   /* Measures are in em, never ch */
   --measure-display: 15em;
@@ -128,7 +131,7 @@
   --flow-drift: 3.75;
   --flow-scroll: 0.06;
   --flow-settle: 0.32;
-  --strip-px: 14;          /* the strip travels this many px per degree of the flow */
+  --gallery-px: 11;        /* the gallery rises this many px per degree of the flow: 41px a second at rest */
   --ring-r: 330;          /* eight circles this far out sit 0.765r apart, so an item near that wide reads as a necklace, not as dots */
   --ring-item: 220px;
   --ring-n: 8;
@@ -137,17 +140,17 @@
 /* Dark — the visitor's choice. The hues do not change; the ground and the ink swap and the wash deepens. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg:          #131211;
-  --bg-raised:   #1C1A18;
-  --bg-sunken:   #0E0D0C;
-  --bg-overlay:  #1C1A18;
-  --line:        rgba(244,241,235,.12);
-  --line-strong: rgba(244,241,235,.22);
+  --bg:          #0B0B0F;
+  --bg-raised:   #15151B;
+  --bg-sunken:   #070709;
+  --bg-overlay:  #17171D;
+  --line:        rgba(243,243,247,.10);
+  --line-strong: rgba(243,243,247,.20);
   --scrim:       rgba(0,0,0,.6);
-  --glass:       rgba(19,18,17,.78);
-  --ink:    #F4F1EB;
-  --ink-2:  rgba(244,241,235,.74);
-  --ink-3:  rgba(244,241,235,.58);
+  --glass:       rgba(11,11,15,.8);
+  --ink:    #F3F3F7;
+  --ink-2:  rgba(243,243,247,.72);
+  --ink-3:  rgba(243,243,247,.56);
   /* full strength: the logo read literally, which is what a saturated hue needs a near-black ground for */
   --c-sky:     #58CDFC;
   --c-gold:    #FFE469;
@@ -158,21 +161,21 @@
   --c-pink:    #FB9BC9;
   --c-yellow:  #FEE79B;
   --on-violet: #FFFFFF;                   /* 4.6:1 — the only hue in the set dark enough to need it */
-  --focus:  var(--c-sky);
+  --focus:  var(--ink);
   --btn-primary-bg:  var(--ink);
-  --btn-primary-ink: #131211;
+  --btn-primary-ink: #0B0B0F;
 }
 
 /* Accents — set once, on the surface that takes the hue. The page spends the six arcs in the logo's own order.
    Every hue carries the warm black; violet at full strength is the one exception and takes white in the dark theme. */
-[data-accent="sky"]     { --accent: var(--c-sky);     --on-accent: #1B1916; }
-[data-accent="magenta"] { --accent: var(--c-magenta); --on-accent: #1B1916; }
+[data-accent="sky"]     { --accent: var(--c-sky);     --on-accent: #15141D; }
+[data-accent="magenta"] { --accent: var(--c-magenta); --on-accent: #15141D; }
 [data-accent="violet"]  { --accent: var(--c-violet);  --on-accent: var(--on-violet); }
-[data-accent="orange"]  { --accent: var(--c-orange);  --on-accent: #1B1916; }
-[data-accent="green"]   { --accent: var(--c-green);   --on-accent: #1B1916; }
-[data-accent="pink"]    { --accent: var(--c-pink);    --on-accent: #1B1916; }
-[data-accent="yellow"]  { --accent: var(--c-yellow);  --on-accent: #1B1916; }
-[data-accent="gold"]    { --accent: var(--c-gold);    --on-accent: #1B1916; }
+[data-accent="orange"]  { --accent: var(--c-orange);  --on-accent: #15141D; }
+[data-accent="green"]   { --accent: var(--c-green);   --on-accent: #15141D; }
+[data-accent="pink"]    { --accent: var(--c-pink);    --on-accent: #15141D; }
+[data-accent="yellow"]  { --accent: var(--c-yellow);  --on-accent: #15141D; }
+[data-accent="gold"]    { --accent: var(--c-gold);    --on-accent: #15141D; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }

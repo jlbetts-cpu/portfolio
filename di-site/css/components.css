@@ -151,7 +151,7 @@
 .lightbox { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--bg); z-index: var(--z-dialog); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out), display var(--dur-state-out) allow-discrete, overlay var(--dur-state-out) allow-discrete; }
 .lightbox[open] { opacity: 1; transition-duration: var(--dur-enter); }
 @starting-style { .lightbox[open] { opacity: 0; } }
-.lightbox::backdrop { background: rgba(27,25,22,.93); }
+.lightbox::backdrop { background: rgba(11,11,15,.94); }
 .lightbox__stage { position: absolute; inset: 0; display: grid; place-items: center; padding: calc(var(--nav-h) + var(--sp-4)) var(--sp-20) var(--sp-16); }
 .lightbox__figure { margin: 0; max-width: 100%; max-height: 100%; display: grid; place-items: center; transform: scale(.97); transition: transform var(--dur-enter) var(--ease-out); }
 .lightbox[open] .lightbox__figure { transform: none; }
@@ -180,7 +180,7 @@
 .curtaining .curtain { display: block; }
 .curtaining { overflow: hidden; }
 /* 50.5% so the seam cannot show a hairline of the page between them at fractional widths */
-.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: #131211; transition: transform 900ms var(--ease-in-out); }
+.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: #0B0B0F; transition: transform 900ms var(--ease-in-out); }
 .curtain__half--l { left: 0; }
 .curtain__half--r { right: 0; }
 .curtain.is-open .curtain__half--l { transform: translateX(-100.5%); }
@@ -188,6 +188,6 @@
 .curtain__load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-5); transition: opacity var(--dur-state) var(--ease-out); }
 .curtain.is-open .curtain__load { opacity: 0; }
 .curtain__load .logo { width: 68px; height: auto; overflow: visible; }
-.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(244,241,235,.24); overflow: hidden; }
-.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #F4F1EB; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
+.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(243,243,247,.24); overflow: hidden; }
+.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #F3F3F7; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
 @keyframes curtain-load { from { transform: translateX(-110%); } to { transform: translateX(275%); } }
