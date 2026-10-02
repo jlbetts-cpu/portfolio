@@ -1,5 +1,20 @@
 # Build log — Developmental Improvisation, home page
 
+## v23 (2026-10-02) — the strip, the mark, and a floor under the type
+Four asks, plus a design document of his own to borrow from.
+
+**The carousel is back, and it is the Hippo one rather than ours.** *"you cant like manually scroll through like the old version I like how it fades."* So: the bento's flow driver turned on its side and stripped of every control. One row at one height, two copies so the loop has no seam, edge to edge so the mask at both ends reads as a fade rather than as a cut, and **no wheel handler at all** — the difference from the version it replaces is a deletion. The pointer HOLDS it so a photograph can be clicked without chasing it, which is not scrubbing. Twelve photographs that appear nowhere else on the page: a strip that reprised the sections would read as padding. New gate, `strip.mjs`, whose hardest assertion is that **the strip's position is a pure function of the flow** — it cannot be tested as "the transform does not change", because the flow is scroll-coupled and 240px of scroll legitimately advances it, so what is measured is where the strip IS against where the flow says it should be.
+
+**The mark is ink, with the palette passing over it.** *"do it in black and add some sort of affect on it that adds color in a premium way and animates… being able to spin it like its a 3d object."* The geometry is emitted twice from one source — once with its fills stripped so CSS can ink it, once solid white inside a mask — and a rect carrying two bands of the eight brand hues sweeps underneath. **A path's own `fill` attribute beats a fill inherited from a styled parent**, which is why the first version came out magenta instead of black. The band's offset rides the same clock as the strip and the ring, so it is never still, and the drag adds to it: turning the mark moves the light on it. The rotation is clamped at ±72° with a spring back, because a flat mark spun past 90° shows its own mirror image and the monogram reads backwards. The blend flips with the theme — screen lights a dark mark, multiply colours a light one.
+
+**The statistics are gone** from under the newsletter button, and `.proof` with them.
+
+**And four things borrowed from his own `design.md`.** A **14px floor** under the type, from "nothing below 15pt, no tiny thin font anywhere" — 13px captions and a 12px label were the two smallest things here and both moved up. **Two weights 400 and 700**, not 400 and 600: his app sets Bold against Medium at 34% of stroke apart, and 600 against 400 in a grotesque is a narrower gap. **The testimonial hue discs are ink**, from "saturated colour means a win or a photograph; chrome is ink and light" — the only colour below the hero now is the photographs. And the structural idea, which is worth more than the three: **`docs/decisions.md`, an index of what is LOCKED, GUIDED and OPEN.** This project records why and never recorded whether a thing may be reopened, and the cost is on the record — the ring merge measured better on every number I had and still had to be reverted in full.
+
+**Measured after v23.** 42 gate lines pass and six self-tests are caught. Worst contrast 4.82:1 light / 5.95:1 dark.
+
+**Not done, and his call:** Strata's colour rule is stricter than what ships — it would take the sky off the sign-up card too, leaving the photographs and the mark as the page's only colour. One line either way.
+
 ## v22 (2026-09-29) — let it breathe, and take the box off the hero
 *"the spacing of the site feels so cramped, not premium — let sections breathe"* and *"does the hero really need to be in a container? less is so much more."* Both right, and the first one had a structural cause rather than a taste one.
 

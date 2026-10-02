@@ -125,6 +125,70 @@
     }
   }
 
+  /* ---- The strip: one row of photographs drifting sideways, and nothing you can scrub ----
+     The bento's driver, turned on its side and stripped of its controls. Two copies of the row; the loop length is
+     the first copy's width, so the translate wraps without a seam. The pointer HOLDS it rather than steering it —
+     a photograph you have to chase is a photograph nobody opens — and there is no wheel handler at all, which is the
+     whole difference from the version this replaced. ---- */
+  const strip = $('[data-strip]');
+  if (strip) {
+    const first = $('.strip__row', strip);
+    let half = 0, px = 14;
+    const measure = () => { half = first ? first.getBoundingClientRect().width : 0; px = num(getComputedStyle(root), '--strip-px', 14); };
+    measure(); addEventListener('resize', measure);
+    addEventListener('load', measure);
+    flow.on((a) => {
+      if (!half) { measure(); if (!half) return; }
+      const x = ((a * px % half) + half) % half;
+      strip.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
+    });
+    flow.watch(strip.closest('.strip') || strip);
+    strip.addEventListener('pointerenter', () => flow.hold(strip, true));
+    strip.addEventListener('pointerleave', () => flow.hold(strip, false));
+    let t; strip.addEventListener('touchstart', () => { flow.hold(strip, true); clearTimeout(t); t = setTimeout(() => flow.hold(strip, false), 4000); }, { passive: true });
+  }
+
+  /* ---- The mark: black, with the palette sweeping over it, and it turns ----
+     A flat mark spun past 90° shows its own mirror image and the monogram reads backwards, so the rotation is clamped
+     at ±72° and springs back to rest. The sheen's offset is tied to the same angle: turning the mark moves the light
+     on it, which is the whole reason the rotation is worth having. ---- */
+  const mark = $('[data-mark]');
+  if (mark && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const LIMIT = 72;
+    let angle = 0, vel = 0, grab = null, last = 0, raf = 0;
+    // the band travels on the same clock as everything else that moves on this page, plus whatever the drag has
+    // added — so it is never still, and turning the mark moves the light on it
+    const paint = () => {
+      mark.style.setProperty('--spin', angle.toFixed(2) + 'deg');
+      // the rect is twice the mark's width and carries two bands, so a sweep of one mark-width covers every state
+      mark.style.setProperty('--sheen', (((flow.angle * 2.4 + angle * 5) % 800) + 800) % 800);
+    };
+    flow.on(() => { if (grab === null && !raf) paint(); });
+    const tick = (t) => {
+      const dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t;
+      if (grab === null) {
+        vel += (-angle * 11 - vel * 5.2) * dt;      // a spring back to rest, critically damped enough not to wobble
+        angle += vel * dt;
+        if (Math.abs(angle) < 0.05 && Math.abs(vel) < 0.5) { angle = 0; vel = 0; paint(); raf = 0; return; }
+      }
+      paint();
+      raf = requestAnimationFrame(tick);
+    };
+    const wake = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } };
+    mark.addEventListener('pointerdown', (e) => { grab = e.clientX; vel = 0; mark.setPointerCapture(e.pointerId); wake(); });
+    mark.addEventListener('pointermove', (e) => {
+      if (grab === null) return;
+      const d = (e.clientX - grab) * 0.55; grab = e.clientX;
+      angle = Math.max(-LIMIT, Math.min(LIMIT, angle + d));
+      vel = d * 30; paint();
+    });
+    const release = () => { if (grab === null) return; grab = null; wake(); };
+    mark.addEventListener('pointerup', release);
+    mark.addEventListener('pointercancel', release);
+    mark.addEventListener('lostpointercapture', release);
+    paint();
+  }
+
   /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
   $$('.ring__orbit').forEach(orbit => {
     const items = $$('.ring__item', orbit);

@@ -71,6 +71,42 @@ RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
+# ---- The strip ----
+# Jayden, after the Hippo reference: he liked the old horizontal carousel, and liked theirs more — a row that drifts on
+# its own, fades at both ends, and that you CANNOT scrub by hand. So this is the bento's flow driver turned on its
+# side and stripped of every control: one row, one height, two copies for the loop, a mask at the edges. Twelve
+# photographs that appear nowhere else on the page, so the strip is not a reprise of the sections or the ring.
+STRIP=['linda-circle','blue-shirts','kids-dancing','scene-handshake','boy-fist','circle-hands',
+       'three-teens','kids-running','row-linked-arms','yellow-trousers','zoom-group','conga-line']
+SSIZES='(max-width: 767px) 180px, 22vw'
+def strip_row(hidden):
+    hid=' aria-hidden="true"' if hidden else ''
+    items=''.join(f'<li class="strip__item">{photo(n, "4x5", SSIZES, button=not hidden)}</li>' for n in STRIP)
+    return f'<ul class="strip__row"{hid}>{items}</ul>'
+strip=strip_row(False)+strip_row(True)
+
+# the hero's mark, built from the same source as every other copy of it: the paths once for the black shape, and once
+# more inside a mask so a moving band of the palette can be laid over them without duplicating the geometry in markup.
+_paths = re.findall(r'<path[^>]*/>', logo)
+# two copies of the same geometry: one with its fills STRIPPED so CSS can ink it (a path's own fill attribute beats a
+# fill inherited from a styled parent, which is what painted the first version magenta), one solid white for the mask
+_ink  = ''.join(re.sub(r'\s*fill="[^"]*"', '', p) for p in _paths)
+_shape = ''.join(re.sub(r'fill="[^"]*"', 'fill="#fff"', p) for p in _paths)
+# two bands of the palette across a rect twice the mark's width, so one of them is always crossing it and the colour
+# never stops moving. Transparent between the bands: the mark is BLACK with light passing over it, not a coloured mark.
+_stops = ''.join(f'<stop offset="{o}" stop-color="{c}" stop-opacity="{a}"/>' for o, c, a in
+                 [('0','#58CDFC','0'),('0.09','#58CDFC','0'),('0.16','#58CDFC','.85'),('0.23','#7358FC','1'),
+                  ('0.30','#E744E2','1'),('0.38','#F0895B','.85'),('0.46','#F0895B','0'),('0.59','#FFE469','0'),
+                  ('0.66','#FFE469','.85'),('0.73','#51E596','1'),('0.80','#58CDFC','1'),('0.88','#FB9BC9','.85'),
+                  ('0.96','#FB9BC9','0'),('1','#FB9BC9','0')])
+heromark = (f'<svg class="logo logo--hero" viewBox="0 0 787 842" role="img" aria-labelledby="heroLogoTitle">'
+            f'<title id="heroLogoTitle">Developmental Improvisation</title>'
+            f'<defs><linearGradient id="markSheen" x1="0" y1="0.15" x2="1" y2="0.85">{_stops}</linearGradient>'
+            f'<mask id="markMask" maskUnits="userSpaceOnUse" x="0" y="0" width="787" height="842">{_shape}</mask></defs>'
+            f'<g class="logo__ink">{_ink}</g>'
+            f'<g mask="url(#markMask)"><rect class="logo__sheen" x="-640" y="-100" width="1180" height="1040" fill="url(#markSheen)"/></g>'
+            f'</svg>')
+
 # ---- The two sections that replace the four cards ----
 # Linda's brief, after seeing the cards: split the about into two — what Developmental Improvisation is, and who she
 # is — and fill them with placeholder copy while she writes the real thing. So the six verbatim paragraphs from the
@@ -159,19 +195,17 @@ page=f'''<!DOCTYPE html>
   <section class="hero" id="top" aria-labelledby="heroTitle">
     <div class="container">
       <div class="hero__panel reveal">
-        <div class="hero__mark">{logo}</div>
+        <div class="hero__mark" data-mark><div class="hero__mark__spin">{heromark}</div></div>
         <h1 class="hero__title" id="heroTitle">New tools for cognitive development &amp; emotional understanding</h1>
         <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
         <div class="hero__act"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
-        <!-- PLACEHOLDER FIGURES. 50+ is real (fifty plus years, from Linda's own copy); the zeros are the shape of a
-             number, not a claim, and must carry her real counts before this is ever published. -->
-        <dl class="proof">
-          <div class="proof__item"><dt class="proof__label">Years in improvisation</dt><dd class="proof__figure">50+</dd></div>
-          <div class="proof__item"><dt class="proof__label">Schools and programs</dt><dd class="proof__figure">000</dd></div>
-          <div class="proof__item"><dt class="proof__label">Students</dt><dd class="proof__figure">0,000</dd></div>
-        </dl>
       </div>
     </div>
+  </section>
+
+  <!-- the photographs sit right under the mark, edge to edge, drifting and faded at both ends -->
+  <section class="strip" aria-label="From the sessions">
+    <div class="strip__track" data-strip>{strip}</div>
   </section>
 
 {tells}

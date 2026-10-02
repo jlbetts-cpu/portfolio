@@ -10,10 +10,40 @@
    quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
 .hero { padding-top: var(--field-top); }
 .hero__panel { --hero-col: min(100%, 900px); display: grid; justify-items: center; text-align: center; gap: var(--sp-7); }
-/* the mark is the biggest single object in the hero, which is the point of the brief */
-.hero__mark { width: clamp(84px, 9vw, 132px); display: grid; place-items: center; margin-bottom: var(--sp-4); }
-.hero__mark .logo { width: 100%; height: auto; overflow: visible; }
-.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
+/* The mark is the biggest single object in the hero, which is the point of the brief — and it is BLACK now, with the
+   palette moving across it rather than printed into it. The colour logo was eight flat hues at rest; this is the ink
+   mark with a band of those same eight hues sweeping over it, masked to its own shape, which is how light behaves on
+   something physical. It is the one place on this site that carries a gradient, and it carries it because Jayden
+   asked for colour "in a premium way" on a black mark — everywhere else the no-gradient rule stands.
+   And it turns: drag it and it spins on its Y axis with momentum, clamped at ±72° so the monogram never flips to its
+   mirror image, then springs back. The sheen's position is tied to that angle, so turning it changes the light. */
+.hero__mark { width: clamp(96px, 10vw, 148px); display: grid; place-items: center; margin-bottom: var(--sp-5); perspective: 900px; cursor: grab; touch-action: pan-y; }
+.hero__mark:active { cursor: grabbing; }
+.hero__mark__spin { width: 100%; transform: rotateY(var(--spin, 0deg)); transform-style: preserve-3d; will-change: transform; }
+.hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
+.logo--hero .logo__ink { fill: var(--ink); }
+.logo--hero .logo__sheen { transform: translateX(calc(var(--sheen, 0) * 1px)); opacity: .82; mix-blend-mode: screen; }
+/* the blend has to flip with the theme or the band disappears into the ink it is crossing: screen lights a dark mark,
+   multiply colours a light one. Screen over the dark theme's off-white ink came out as pastel wash. */
+:root[data-theme="dark"] .logo--hero .logo__sheen { mix-blend-mode: multiply; opacity: .88; }
+@media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
+
+/* ---------- The strip ----------
+   Jayden, after the Hippo reference: he liked the old horizontal carousel and liked theirs more — a row that drifts on
+   its own, fades at both ends, and that you CANNOT scrub by hand. This is the bento's flow driver turned on its side
+   and stripped of every control. It breaks the container deliberately: the fade only reads as a fade if the row runs
+   off both edges of the SCREEN, not off the edge of a column. One height, one shape, because the photographs on this
+   site are one shape. The pointer holds it so a photograph can be clicked without chasing it — that is not scrubbing.
+   Twelve photographs that appear nowhere else on the page: a strip that reprises the sections would read as padding. */
+.strip { margin-inline: calc(50% - 50vw); overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%); }
+.strip__track { display: flex; width: max-content; will-change: transform; }
+.strip__row { display: flex; gap: var(--grid-gap); list-style: none; margin: 0; padding: 0 0 0 var(--grid-gap); }
+.strip__item { flex: none; height: clamp(176px, 22vw, 320px); }
+.strip__item .photo { height: 100%; width: auto; }
+.strip__item .photo picture, .strip__item .photo__open { height: 100%; }
+.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 .hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 30em; }
 .hero__act { margin-top: var(--sp-4); }
 /* the hairline and the headline share one column, so the masthead is a single block rather than three widths */
@@ -28,7 +58,7 @@
 .tell__figure { grid-column: 1 / -1; margin: 0; }
 .tell__figure .photo { width: 100%; }
 .tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-5); align-content: center; }
-.tell__title { margin-top: calc(-1 * var(--sp-2)); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__title { margin-top: calc(-1 * var(--sp-2)); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
 .tell__p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); }
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
@@ -45,7 +75,7 @@
    never a panel: this is inside one. Three across at every width — stacked, they add 200px to a phone's hero. */
 .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); margin: 0; padding-top: var(--sp-8); box-shadow: inset 0 1px 0 var(--line); }
 .proof__item { display: grid; gap: var(--sp-1); }
-.proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 600; color: var(--ink); }
+.proof__figure { order: -1; margin: 0; font-family: var(--font-display); font-size: clamp(1.5rem, 2.4vw, 2.5rem); line-height: .96; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); }
 .proof__label { font-size: var(--fs-caption); line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
 /* on a phone the copy panel is 302px wide inside its padding, so a third of it is 91px and IMPROVISATION is 105px —
    the label ran straight over the next figure. One per line instead, the figure beside its label: three rows cost
@@ -72,7 +102,7 @@
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
    whatever the breakpoint does to either number */
 .ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc((var(--ring-r) * 2px) - var(--ring-item) - 32px); text-align: center; z-index: 2; }
-.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.ring__text { font-family: var(--font-display); font-size: clamp(1.5rem, 3.9vw, 3.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 700; color: var(--ink); text-wrap: balance; }
 .ring__who { margin-top: var(--sp-5); font-size: var(--fs-small); color: var(--ink-3); }
 
 @media (prefers-reduced-motion: reduce) { .ring__item .photo:hover, .ring__item .photo:has(.photo__open:active) { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
@@ -89,7 +119,9 @@
 .voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad); }
 .voice__quote { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; }
 .voice__who { margin-top: auto; padding-top: var(--sp-6); display: flex; align-items: center; gap: var(--sp-3); box-shadow: inset 0 1px 0 var(--line); }
-.voice__avatar { width: 36px; height: 36px; border-radius: 50%; corner-shape: round; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex: none; }
+/* Jayden's app: "saturated colour means a win or a photograph; chrome is ink and light." The three hue discs were
+   chrome wearing colour, so they are ink now — the only colour left below the hero is the photographs themselves. */
+.voice__avatar { width: 36px; height: 36px; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex: none; }
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.35; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.35; }
 @media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
@@ -105,21 +137,21 @@
 .close { padding-bottom: var(--gutter); }
 .close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-8); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 600; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
 /* The one surface down here whose colour does not follow the theme, so its ink cannot either: the tokens are rebound
    for the subtree, which keeps every component inside it (title, field, button) correct in both themes. */
 .close__sign { grid-column: 1 / -1; background: var(--c-sky); border-radius: var(--r-lg); padding: var(--card-pad);
   --ink: #1B1916; --ink-2: rgba(27,25,22,.80); --ink-3: rgba(27,25,22,.64); --line: rgba(27,25,22,.22); color: var(--ink); }
 .close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
-.close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
+.close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
 .close__reach .label { margin-bottom: var(--sp-2); }
-.close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
+.close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
 .close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
 .close__reach a:hover { text-decoration-color: currentColor; }
 /* the second way in is a control, not one of the big contact links above it, so it opts out of their type at the
    same specificity — .close__reach a is (0,2,0) and this rule has to match it to win */
-.close__reach .close__ask { justify-self: start; margin-top: var(--sp-5); font-family: inherit; font-size: var(--fs-ui); font-weight: 600; letter-spacing: normal; text-decoration: none; min-height: 0; }
+.close__reach .close__ask { justify-self: start; margin-top: var(--sp-5); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
 .close__foot { grid-column: 1 / -1; margin-top: var(--sp-6); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
 .close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
 .close__sign .input { background: rgba(255,255,255,.94); box-shadow: none; }

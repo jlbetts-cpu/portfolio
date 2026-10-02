@@ -62,7 +62,12 @@
      the levers, not the family. Jost and Plus Jakarta Sans are both gone: a display face plus a reading face is two
      voices, and Linda asked for one serious one. Geist's x-height is 0.52em against Jost's 0.460, so every display
      size came DOWN — the same optical weight needs less size — and the tracking went tighter, because a grotesque at
-     display size wants to be closed up where a geometric wants air. */
+     display size wants to be closed up where a geometric wants air.
+     THE FLOOR IS 14px. Taken from Jayden's own app, where the rule reads "nothing below 15pt, no tiny thin font
+     anywhere" — 13px captions and a 12px label were the two smallest things on this page and both moved up. The one
+     thing still under it is the initials inside a 36px disc, which is a glyph in a shape rather than something to
+     read. And the two weights are 400 and 700, not 400 and 600: his app sets Bold against Medium at 34% of stroke
+     apart, and 600 against 400 in a grotesque is a narrower gap than that. */
   --font: "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
   --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.035em;
@@ -72,8 +77,8 @@
   --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.005em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
   --fs-small:   0.875rem;                                   --lh-small: 1.55;   --ls-small: 0;
-  --fs-label:   0.75rem;                                    --lh-label: 1;      --ls-label: 0.09em;
-  --fs-caption: 0.8125rem;                                  --lh-caption: 1.45; --ls-caption: 0;
+  --fs-label:   0.8125rem;                                  --lh-label: 1;      --ls-label: 0.09em;
+  --fs-caption: 0.875rem;                                   --lh-caption: 1.45; --ls-caption: 0;
   --fs-ui:      0.9375rem;
   /* Measures are in em, never ch */
   --measure-display: 15em;
@@ -123,7 +128,7 @@
   --flow-drift: 3.75;
   --flow-scroll: 0.06;
   --flow-settle: 0.32;
-  --bento-px: 5;          /* the hero's columns move this many pixels per degree of flow */
+  --strip-px: 14;          /* the strip travels this many px per degree of the flow */
   --ring-r: 330;          /* eight circles this far out sit 0.765r apart, so an item near that wide reads as a necklace, not as dots */
   --ring-item: 220px;
   --ring-n: 8;
