@@ -15,6 +15,10 @@
   const num = (cs, name, d) => { const v = parseFloat(cs.getPropertyValue(name)); return Number.isFinite(v) ? v : d; };
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+  /* iOS Safari applies :active only inside something listening for touchstart, so without this every press on the
+     page — the buttons' scale, the photographs' — never showed on an iPhone. Passive and empty: it changes nothing else. */
+  document.addEventListener('touchstart', () => {}, { passive: true });
+
   /* ---- Theme: light unless the visitor chose dark. The choice is read before first paint by the inline script in <head>. ---- */
   const applyTheme = (t, animate) => {
     if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
@@ -147,7 +151,9 @@
     flow.watch(gallery);
     gallery.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') flow.hold(gallery, true); });
     gallery.addEventListener('pointerleave', () => flow.hold(gallery, false));
-    let t; gallery.addEventListener('touchstart', () => { flow.hold(gallery, true); clearTimeout(t); t = setTimeout(() => flow.hold(gallery, false), 4000); }, { passive: true });
+    // no hold on touch. The gallery is 78% of a phone's height, so most scroll gestures start on it, and a hold on
+    // touchstart froze it for four seconds after nearly every scroll. A tap opens the lightbox, which holds the flow
+    // itself, and a photograph rising at 41px a second does not escape a finger.
   }
 
   /* ---- The mark: black, with the palette sweeping over it, and it turns to face the pointer ----
@@ -199,15 +205,17 @@
   /* ---- The quote ring: shaped photographs on a circle, upright, turning with the flow ---- */
   $$('.ring__orbit').forEach(orbit => {
     const items = $$('.ring__item', orbit);
+    const stage = orbit.closest('.ring__stage');
     let r = 300, n = items.length;
-    const read = () => { const cs = getComputedStyle(root); r = num(cs, '--ring-r', 300); };
-    read(); addEventListener('resize', read);
+    // the radius CSS drew: the stage is two radii plus one circle tall (see .ring__stage), so it is read back, not re-derived
+    const read = () => { const h = stage ? stage.getBoundingClientRect().height : 0, it = items[0] ? items[0].offsetWidth : 0; r = h && it ? (h - it) / 2 : num(getComputedStyle(root), '--ring-r', 300); render(flow.angle); };
     const render = (a) => {
       for (let i = 0; i < items.length; i++) {
         const t = (a + i * 360 / n) * Math.PI / 180;
         items[i].style.transform = `translate3d(${(r * Math.sin(t)).toFixed(2)}px, ${(-r * Math.cos(t)).toFixed(2)}px, 0)`;
       }
     };
+    read(); addEventListener('resize', read);
     flow.on(render);
     orbit.addEventListener('pointerover', (e) => { if (e.target.closest('.photo')) flow.hold(orbit, true); });
     orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo') && orbit.contains(e.relatedTarget))) flow.hold(orbit, false); });

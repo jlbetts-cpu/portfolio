@@ -1,5 +1,25 @@
 # Build log — Developmental Improvisation, home page
 
+## v25 (2026-10-02) — the phone, emulated as a phone
+*"rate the site and also build and optimize the mobile view until both are at a ten."* Every earlier phone check was a desktop browser squeezed to 390px. This round ran the page the way a phone runs it: touch, no hover, a coarse pointer, three pixels to the point. That showed nine defects a narrow desktop window could not.
+
+**Fixed, each measured:**
+- **The newsletter sheet stopped 36px short of the right edge** whenever a button opened it. A modal `<dialog>` gets the UA's `max-width: calc(100% - 6px - 2em)`; the automatic sheet is not modal, which is why the old gate never saw it. 353.6px → 390px.
+- **iOS zoomed the whole page in on the email field** and left it zoomed, because the field was 15px. It is 16px on a coarse pointer.
+- **Hover stuck after a tap.** A phone keeps an element in `:hover` until the next tap, so a photograph opened from its section stayed scaled once the lightbox closed and a tapped button kept its hover ground. All 16 hover rules now sit inside `@media (hover: hover)`. Focus had the same problem through `:focus-within`, now `:focus-visible`.
+- **The ring's outer circles hung 23px off each side of a 390 screen**, cut in half. The radius drawn is now the token or what the screen can hold with every circle whole and 12px clear, whichever is smaller. The script reads it back from the stage, so CSS decides it in one place. The quote also lost the 80px of UA `<blockquote>` margin it had always carried: on a phone that took the column from 186px to 106px and stacked the line five deep into the circles. On a wide screen the 40px stays, written down, because his line breaks were set against it.
+- **The footer was a box around a box.** On a phone the closing field's chrome put the sign-up card 56px narrower than the column and the brand line three lines deep. The chrome goes below 768px: the card runs the full column (350px at 390), the line takes two lines, and "Bring this to your school" is full width under it.
+- **A touch froze the gallery for four seconds.** It fills 78% of a phone's height, so most scroll gestures start on it. The touch hold is gone; a tap opens the lightbox, which holds the flow itself.
+- **The page scrolled behind open modals** on touch, so closing the menu or the lightbox could land you somewhere else. It is locked while a modal is open, touch only. The automatic sheet stays scrollable, by design.
+- **iOS shows no `:active` press** unless something listens for touchstart, so no press on the page showed on an iPhone. One passive empty listener fixes that. This cannot be checked here; it needs a real iPhone.
+- **The grey tap flash is off.** Every control has its own press, and photographs now have one too (0.985).
+
+**And the type.** The two-tone headline now breaks cleanly at every width: the soft half gets its own line from 600px, and a no-break space keeps the ampersand with it on a phone. Before this, a tablet changed colour mid-line ("development & emotional"). The hero sub no longer leaves "heart" alone on a line at 320, and the body paragraphs use `text-wrap: pretty`. An empty error line no longer adds 21px under every Subscribe button.
+
+**New gate `mobile.mjs`** at 390, 360 and 320 under real phone emulation. It reads every `:hover` rule from the live CSSOM and fails on any outside a hover query, checks the email fields are 16px, checks the tap highlight is off, taps a photograph open and closed and looks for a stuck scale, checks the scroll lock both ways, holds every ring circle inside the screen across a full slot of its turn, checks the footer has no panel and the card is as wide as the column, and checks a touch does not hold the flow. Its self-test adds one ungated hover rule. `dialog.mjs` now checks the modal sheet's width, and it fails on the old CSS at 353.6px. `ring.mjs` adds 320 and stops reading `--ring-item` through `getPropertyValue`: on a phone that returned an unresolved `clamp()`, `parseFloat` gave NaN, and its "pointer away from the ring" check had been passing only by luck.
+
+**Measured after v25.** 50 gate lines pass and 8 self-tests are caught. Contrast is unchanged: worst 4.83:1 light, 5.84:1 dark. No overflow at 320, 360, 390, 430, 768 or 844 landscape. A phone's first load is 585KB at 3x over 17 requests; the HTML is 24.7KB gzipped.
+
 ## v24 (2026-10-02) — the gallery stands up, the colour goes cool, the mark looks at you
 *"the reference I liked was more of a vertical image scroll · the color still feels not like a premium site · look over the design.md · I like what feedhippo.com does where the logo spins depending on where your mouse is pointing."*
 

@@ -10,13 +10,19 @@
 :where(.btn, .arrow, .theme, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
   .input, .bento__col .photo, .ring__item .photo, .close__reach a):hover { --t: var(--dur-state); }
 
+/* EVERY HOVER EFFECT LIVES INSIDE @media (hover: hover). A phone has no hover, but it fakes one: a tap leaves the
+   element in :hover until the next tap somewhere else, so a photograph opened from its section stayed scaled after the
+   lightbox closed and a tapped button kept its hover ground. The press (:active) is the touch answer, and it is never
+   gated. The same goes for focus: a photograph scales for :focus-visible, not :focus-within, because closing the
+   lightbox hands focus back to the photograph that opened it and a tap is not a keyboard. */
+
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-sm); font-size: var(--fs-ui); font-weight: 600; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .btn:active { transform: scale(.97); }
 .btn--primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
-.btn--primary:hover { background: color-mix(in srgb, var(--btn-primary-bg) 90%, var(--btn-primary-ink)); }
+@media (hover: hover) { .btn--primary:hover { background: color-mix(in srgb, var(--btn-primary-bg) 90%, var(--btn-primary-ink)); } }
 .btn--secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
-.btn--secondary:hover { border-color: color-mix(in srgb, var(--ink) 34%, transparent); }
+@media (hover: hover) { .btn--secondary:hover { border-color: color-mix(in srgb, var(--ink) 34%, transparent); } }
 .btn--ghost { background: transparent; color: var(--ink); }
 .btn--compact { height: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); }
 .btn .icon { width: 18px; height: 18px; }
@@ -27,14 +33,14 @@
 
 /* Round arrow buttons (the gallery) */
 .arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) var(--ease-out), background-color var(--t) var(--ease-out); }
-.arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); }
+@media (hover: hover) { .arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); } }
 .arrow:active { transform: scale(.94); }
 .arrow .icon { width: 18px; height: 18px; }
 .arrows { display: flex; gap: var(--sp-2); }
 
 /* The theme toggle: moon on the light ground, sun on the dark */
 .theme { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.theme:hover { color: var(--ink); background: var(--bg-raised); }
+@media (hover: hover) { .theme:hover { color: var(--ink); background: var(--bg-raised); } }
 .theme:active { transform: scale(.94); }
 .theme .icon { width: 20px; height: 20px; }
 .theme .icon--sun { display: none; }
@@ -63,23 +69,33 @@
 .photo__open { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: inherit; }
 .photo__open:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
 .photo__open picture { width: 100%; height: 100%; }
+.photo { transition: transform var(--dur-press) var(--ease-out); }
+.photo:has(> .photo__open:active) { transform: scale(.985); }
 .photo--4x5 { aspect-ratio: 4 / 5; }
 .photo--3x2 { aspect-ratio: 3 / 2; }
 .photo--1x1 { aspect-ratio: 1 / 1; }
 .photo--circle { border-radius: 50%; }
 .photo picture { width: 100%; height: 100%; }
 .photo img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); transition: transform var(--dur-move) var(--ease-out); }
-.photo--hover:hover img, .photo--hover:focus-within img { transform: scale(1.03); }
+.photo--hover:has(.photo__open:focus-visible) img { transform: scale(1.03); }
+@media (hover: hover) { .photo--hover:hover img { transform: scale(1.03); } }
 
 /* Field */
 .field { display: flex; gap: var(--sp-2); align-items: stretch; }
 .input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-4); border-radius: var(--r-sm); background: var(--bg-overlay); box-shadow: inset 0 0 0 1px var(--line); border: 0; color: var(--ink); font-size: var(--fs-ui); transition: box-shadow var(--t) var(--ease-out); }
 .input::placeholder { color: var(--ink-3); }
-.input:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
+@media (hover: hover) { .input:hover { box-shadow: inset 0 0 0 1px var(--line-strong); } }
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
 .field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); min-height: 1.4em; }
 .field__message[data-state="error"] { color: var(--ink); }
 @media (max-width: 599px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
+/* iOS Safari zooms the page in when a field set under 16px takes focus, and leaves it zoomed. On a touch screen the
+   field is 16px; the 15px UI size stays where there is a mouse. */
+@media (pointer: coarse) { .input { font-size: 16px; } }
+/* the message line reserves its height only while it has something to say — empty, it was 21px of extra padding under
+   every Subscribe button, so the sign-up card sat heavier at the foot than at the head. It stays rendered at zero
+   height, so it is still a live region. */
+.field__message:empty { min-height: 0; margin-top: 0; }
 
 /* Nav — no container at all: the wordmark on the left, the controls on the right, directly on the page at the field's
    gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top
@@ -91,16 +107,16 @@
 .nav.is-hidden { transform: translateY(-100%); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
 .nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.nav__brand:hover { opacity: .72; }
+@media (hover: hover) { .nav__brand:hover { opacity: .72; } }
 .nav__brand:active { transform: scale(.97); }
 .nav__brand .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-1); }
 .nav__links { display: flex; align-items: center; }
 .nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.nav__links a:hover { color: var(--ink); }
+@media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
 .nav__panel .theme { width: var(--hit); height: var(--hit); }
-.nav__panel .theme:hover { background: none; color: var(--ink); }
+@media (hover: hover) { .nav__panel .theme:hover { background: none; color: var(--ink); } }
 /* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
 .nav__menu { display: none; width: var(--hit); height: var(--hit); align-items: center; justify-content: center; color: var(--ink); border-radius: var(--r-xs); transition: transform var(--dur-press) var(--ease-out); }
 .nav__menu:active { transform: scale(.92); }
@@ -121,10 +137,10 @@
 .sheet::backdrop { background: var(--scrim); }
 .sheet__head { display: flex; justify-content: flex-end; align-items: center; height: var(--hit); margin-bottom: var(--sp-8); }
 .sheet__close { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-xs); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.sheet__close:hover { color: var(--ink); }
+@media (hover: hover) { .sheet__close:hover { color: var(--ink); } }
 .sheet__close:active { transform: scale(.92); }
 .sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); box-shadow: inset 0 -1px 0 var(--line); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
-.sheet__links a:hover { opacity: .68; }
+@media (hover: hover) { .sheet__links a:hover { opacity: .68; } }
 .sheet__links a:active { transform: scale(.98); }
 .sheet .btn--primary { width: 100%; margin-top: var(--sp-8); }
 
@@ -136,12 +152,14 @@
 .dialog[open]::backdrop { opacity: 1; }
 @starting-style { .dialog[open]::backdrop { opacity: 0; } }
 .dialog__close { position: absolute; top: var(--sp-3); right: var(--sp-3); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.dialog__close:hover { color: var(--ink); background: var(--bg-raised); }
+@media (hover: hover) { .dialog__close:hover { color: var(--ink); background: var(--bg-raised); } }
 .dialog__close:active { transform: scale(.92); }
 .dialog .mark { width: 30px; height: 32px; color: var(--ink); margin-bottom: var(--sp-4); }
 .dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
+/* the UA gives a modal dialog max-width: calc(100% - 6px - 2em), which left the phone sheet ending 36px short of the
+   right edge of the screen; the sheet is the screen's width, so that limit goes */
 @media (max-width: 767px) {
-  .dialog { inset: auto 0 0 0; width: 100%; max-height: 38vh; margin: 0; border-radius: var(--r-xl) var(--r-xl) 0 0; transform: translateY(24px); }
+  .dialog { inset: auto 0 0 0; width: 100%; max-width: none; max-height: 38vh; margin: 0; border-radius: var(--r-xl) var(--r-xl) 0 0; transform: translateY(24px); }
   .dialog[open] { transform: none; }
   @starting-style { .dialog[open] { transform: translateY(24px); } }
 }
@@ -161,9 +179,9 @@
 .lightbox__prev { position: absolute; left: var(--sp-4); top: 50%; transform: translateY(-50%); }
 .lightbox__next { position: absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); }
 .lightbox .arrow, .lightbox .dialog__close { background: var(--bg); color: var(--ink); }
-.lightbox .arrow:hover { background: #fff; }
+@media (hover: hover) { .lightbox .arrow:hover { background: #fff; } }
 .lightbox .dialog__close { width: var(--hit); height: var(--hit); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
-.lightbox .dialog__close:hover { background: #fff; color: var(--ink); }
+@media (hover: hover) { .lightbox .dialog__close:hover { background: #fff; color: var(--ink); } }
 @media (max-width: 767px) {
   .lightbox__stage { padding: calc(var(--nav-h) + var(--sp-2)) var(--sp-4) calc(var(--hit) + var(--sp-8)); }
   .lightbox__prev { left: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; }

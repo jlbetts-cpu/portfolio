@@ -64,7 +64,8 @@ on every number I had and was still wrong.
 | Motion | 6 rungs: 100 / 160 / 240 / 280 / 360 / 500 | hover arrives in 160 and leaves in 240 | `--dur-*`, `--t` |
 | Gallery speed | `--gallery-px` 11 per degree, 41px/s at rest | per-column rates 0.9–1.18; equal rates read as one sliding sheet, not masonry | `tokens.css`, `main.js` |
 | Mark turn | ±30° across, ±20° up and down, τ 0.2s | past ~35° a flat mark shows its edge | `main.js` |
-| Ring geometry | eight items at 0.765r apart; the quote fits a rectangle inscribed in `2r − item` | — | `home.css` |
+| Ring geometry | eight items at 0.765r apart; the quote fits a rectangle inscribed in `2r − item` | on a phone, r = min(token, 50vw − item/2 − 12px) and the item is `clamp(60px, 19vw, 80px)`: every circle whole on the screen | `home.css`, `tokens.css` |
+| Phone | touch is not a narrow desktop: hover only inside `(hover: hover)`, fields 16px, the closing field is not a panel below 768 | — | `mobile.mjs` |
 | Colour | the photographs and the mark's sweep, nothing else | Strata's rule, applied in v24: "saturated colour means a win or a photograph; chrome is ink and light". Neutrals are cool — a blue-black ink, a near-white ground | `tokens.css` |
 
 ---

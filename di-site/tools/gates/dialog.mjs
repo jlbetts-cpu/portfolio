@@ -36,4 +36,11 @@ pg = await open(b, 390, 844, { popup: true });
 await pg.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight * 0.5); }); await pg.waitForTimeout(11000);
 const m = await pg.evaluate(() => { const d = document.querySelector('#newsletterDialog'); const before = scrollY; scrollBy(0, 40); return { open: d.open, modal: d.matches(':modal'), scrolled: scrollY !== before, height: d.getBoundingClientRect().height, vh: innerHeight }; });
 report('dialog: mobile sheet is non-modal and ≤38vh', m.open && !m.modal && m.scrolled && m.height <= m.vh * 0.38 + 1, JSON.stringify(m));
+await pg.close();
+// the sheet a BUTTON opens is modal, and a modal dialog gets the UA's max-width: calc(100% - 6px - 2em) — which held it
+// 36px short of the right edge of a 390 phone while the automatic, non-modal one ran full width. Both must be the screen.
+pg = await open(b, 390, 844);
+await pg.click('.hero__act .btn'); await pg.waitForTimeout(700);
+const sw = await pg.evaluate(() => { const r = document.querySelector('#newsletterDialog').getBoundingClientRect(); return { modal: document.querySelector('#newsletterDialog').matches(':modal'), left: r.left, right: Math.round(r.right * 10) / 10, vw: document.documentElement.clientWidth, bottom: Math.round(r.bottom), vh: innerHeight }; });
+report('dialog: the modal sheet on a phone is the full width of the screen, on its foot', sw.modal && sw.left === 0 && Math.abs(sw.right - sw.vw) < 1 && Math.abs(sw.bottom - sw.vh) < 2, JSON.stringify(sw));
 await pg.close(); await b.close();

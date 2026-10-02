@@ -182,4 +182,4 @@
 }
 @media (max-width: 1279px) { :root { --ring-r: 290; --ring-item: 190px; } }
 @media (max-width: 1023px) { :root { --ring-r: 250; --ring-item: 150px; } }
-@media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: 96px;  } }
+@media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: clamp(60px, 19vw, 80px); } }   /* the circle and the radius shrink with the screen; see .ring__stage */

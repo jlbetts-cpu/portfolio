@@ -6,7 +6,7 @@
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
-const VP = selfTest ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844]];
+const VP = selfTest ? [[1440, 900]] : [[1440, 900], [1024, 768], [390, 844], [320, 640]];
 let allOk = true;
 for (const [w, h] of VP) {
   const pg = await open(b, w, h);
@@ -50,8 +50,10 @@ for (const [w, h] of VP) {
   // further from the stage's centre than r + item/2 is clear of every item; the stage's corners always are.
   const away = await pg.evaluate(() => {
     const s = document.querySelector('.ring__stage').getBoundingClientRect();
-    const cs = getComputedStyle(document.documentElement);
-    const reach = parseFloat(cs.getPropertyValue('--ring-r')) + parseFloat(cs.getPropertyValue('--ring-item')) / 2;
+    // the stage is two radii plus one circle tall, so half of it is the reach. Reading --ring-r and --ring-item gave
+    // NaN on a phone, where the item is a clamp() and getPropertyValue hands back the unresolved string — every
+    // corner then failed the test and the pointer was parked at [4,4] by the fallback, which only passed by luck.
+    const reach = s.height / 2;
     const cx = s.left + s.width / 2, cy = s.top + s.height / 2;
     const corners = [[s.left + 4, s.top + 4], [s.right - 4, s.top + 4], [s.left + 4, s.bottom - 4], [s.right - 4, s.bottom - 4]];
     return corners.find(([x, y]) => Math.hypot(x - cx, y - cy) > reach + 8 && x > 0 && y > 0 && x < innerWidth && y < innerHeight) || [4, 4];
