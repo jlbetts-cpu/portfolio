@@ -1,5 +1,22 @@
 # Build log — Developmental Improvisation, home page
 
+## v26 (2026-10-03) — every section to its ceiling
+*"can you keep editing till its a ten in all sections."* Each section was captured on its own at 1440 (light and dark), 1024, 820 and 390, rated, and the weakest worked until nothing more could be fixed in the design. Two things stop the score at 10 and neither is design: the body copy of both sections and the three testimonials are still placeholder.
+
+**The prose was the weakest thing on the page, and it was a size problem.** At 1440 both sections set their paragraphs at body size, 16px, beside a 680px photograph, so the copy read as a caption to the picture. They now use a reading size, `--fs-read` (20px at 1440, 17px on a phone, line height 1.6), held to about 66 characters a line. The copy block went from 330px to about 420px against the photograph, and the section now reads as text and image rather than image with a note.
+
+**The quotes went the same way:** `--fs-quote` is 23px at 1440, set a hair tight, with roomier card padding. Two layout fixes below desktop:
+- **Tablet (768–1023):** three-up made each card 244px wide, four words a line at 820. One quote per row now, words on the left and the person on the right across a hairline.
+- **Phone:** the stack was 775px of grey cards. It is now a native scroll-snap row with the next card showing 64px at the edge, snapped to the gutter, and keyboard-reachable while it overflows. There's no script beyond toggling the tab stop and no dots, because the edge of the next card is the instruction. It is not used on tablets: a narrow desktop window has no swipe, and with the scrollbar hidden a mouse could not have reached the third quote.
+
+**The hero:** the subline is 23px rather than 19px, and the one action is a large button, 54px. At 46px under a 68px headline it read as a footnote.
+
+**The closing field is two rows, each with a job.** The brand's line and the ways to reach Linda now share the top row, the contacts set on the line's last baseline. Before, they sat beside the card under it and left the top right of the field an empty 600×150 rectangle. The sign-up takes the whole second row as one ink band: the mark and the ask on the left, the field on the right, on a shared foot. The envelope and phone glyphs are gone. An address and a number explain themselves, and the 30px they took is what the address needed: it had been breaking at the @ at 1024. It is now one line at 320, 360, 390, 1024, 1280 and 1920.
+
+**Small:** gallery photographs lean in on hover like the sections' photographs do. The pointer already holds the columns, so a photograph cannot slide out from under it.
+
+**Gates.** `mobile.mjs` now also checks the quote row on a phone: it scrolls, the next card shows at least 24px, it snaps to the gutter, and it carries a tab stop. 50 lines pass and 8 self-tests are caught. Contrast is unchanged: 4.83:1 light, 5.84:1 dark.
+
 ## v25 (2026-10-02) — the phone, emulated as a phone
 *"rate the site and also build and optimize the mobile view until both are at a ten."* Every earlier phone check was a desktop browser squeezed to 390px. This round ran the page the way a phone runs it: touch, no hover, a coarse pointer, three pixels to the point. That showed nine defects a narrow desktop window could not.
 

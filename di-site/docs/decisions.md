@@ -57,6 +57,7 @@ on every number I had and was still wrong.
 | Type floor | **15px** | nothing under it but a glyph inside a shape; Strata says 15pt and the page now matches it | `--fs-caption`, `--fs-small` |
 | Type weights | **400 / 700** | two, and no third | `tokens.css` |
 | Display scale | 4.25rem top, −0.035em | down, not up; Geist's x-height is 0.52em | `--fs-display` |
+| Reading sizes | `--fs-read` 20px at 1440 for the sections' prose, `--fs-quote` 23px for the quotes | body size (16px) is for chrome; a paragraph the page wants read is never set at it beside a 680px photograph | `tokens.css` |
 | Section rhythm | `clamp(80px, 8vw, 168px)`, ring at 1.4× | 115px at 1440 measured | `base.css` |
 | Gutter | `clamp(20px, 3.4vw, 64px)` | 49px at 1440; under 30 reads as a brochure | `--gutter` |
 | Contrast | 4.5:1, measured on the ground it sits on | — | `contrast.mjs` |

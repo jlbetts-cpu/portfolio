@@ -223,6 +223,14 @@
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
     flow.watch(orbit.closest('.ring') || orbit);
   });
+  /* ---- The quotes on a phone are a swipeable row. A row that scrolls has to be reachable without a pointer, so it
+     takes a tab stop exactly while it overflows, and gives it back when the layout is the three-up grid again. ---- */
+  const voices = $('.voices');
+  if (voices) {
+    const reach = () => { const scrolls = voices.scrollWidth > voices.clientWidth + 1; if (scrolls) voices.setAttribute('tabindex', '0'); else voices.removeAttribute('tabindex'); };
+    reach(); addEventListener('resize', reach);
+  }
+
   /* ---- Lightbox: every photograph opens large; arrows and keys move through all of them in page order ---- */
   const lb = $('#lightbox');
   const lbData = (() => { try { return JSON.parse($('#lbData').textContent); } catch { return null; } })();

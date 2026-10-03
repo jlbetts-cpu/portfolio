@@ -46,6 +46,9 @@
   mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 62%, transparent 100%); }
 .gallery__col { will-change: transform; }
 .gallery__run { display: grid; gap: var(--grid-gap); padding-bottom: var(--grid-gap); }
+/* a photograph here is a button, and on a desktop it now says so the way the sections' photographs do: the picture
+   leans in inside its own frame. The pointer is already holding the columns, so it cannot slide out from under it. */
+@media (hover: hover) { .gallery .photo:hover img { transform: scale(1.035); } }
 @media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gallery__col:nth-child(n+4) { display: none; } }
 @media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(480px, 78vh, 720px); } .gallery__col:nth-child(n+3) { display: none; } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
@@ -57,8 +60,8 @@
    it runs inline, and a no-break space keeps the ampersand on the soft side of the break. */
 @media (min-width: 600px) { .hero__title__soft { display: block; } }
 @media (min-width: 1100px) { .hero__title { max-width: 21em; } }
-.hero__sub { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink-2); max-width: 30em; text-wrap: balance; }   /* at 320 it left "heart" alone on a line */
-.hero__act { margin-top: var(--sp-4); }
+.hero__sub { font-size: clamp(1.125rem, 1rem + .55vw, 1.4375rem); line-height: 1.45; letter-spacing: -0.008em; color: var(--ink-2); max-width: 30em; text-wrap: balance; }   /* at 320 it left "heart" alone on a line */
+.hero__act { margin-top: var(--sp-6); }
 
 /* ---------- The two sections ----------
    What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
@@ -70,7 +73,7 @@
 .tell__figure .photo { width: 100%; }
 .tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: center; }
 .tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
-.tell__p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink-2); max-width: var(--measure-body); text-wrap: pretty; }   /* no one-word last lines */
+.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink-2); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
   .tell__copy { grid-column: 7 / span 6; }
@@ -119,15 +122,36 @@
    initials. The name sits on a hairline at the foot of the card, and the hairlines line up across the row because
    the block is pushed down with margin — the cards stretch, the quotes do not have to match. */
 .voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: var(--card-pad); }
-.voice__quote { font-size: var(--fs-lead); line-height: 1.5; letter-spacing: var(--ls-lead); color: var(--ink); text-wrap: pretty; margin-bottom: var(--sp-8); }   /* the longest quote ran to 15px off the hairline; this is the floor under all three */
+.voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: clamp(24px, 2.8vw, 48px); }
+.voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; margin-bottom: var(--sp-8); }   /* the longest quote ran to 15px off the hairline; this is the floor under all three */
 .voice__who { margin-top: auto; padding-top: var(--sp-6); display: flex; align-items: center; gap: var(--sp-3); box-shadow: inset 0 1px 0 var(--line); }
 /* Jayden's app: "saturated colour means a win or a photograph; chrome is ink and light." The three hue discs were
    chrome wearing colour, so they are ink now — the only colour left below the hero is the photographs themselves. */
 .voice__avatar { width: 36px; height: 36px; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex: none; }
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.35; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.35; }
-@media (min-width: 768px) { .voices > .voice { grid-column: span 4; } }
+@media (min-width: 1024px) { .voices > .voice { grid-column: span 4; } }
+/* Between a phone and a laptop three-up made each card 244px wide — four words a line at the quote size, measured at
+   820. A tablet gets one quote per row instead, the words on the left and the person on the right across a hairline,
+   so the line runs long enough to read as a sentence. Not the swipe row: a narrow desktop window has no swipe, and
+   with the scrollbar hidden a mouse could not have reached the third quote. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .voices > .voice { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 200px; column-gap: var(--sp-8); align-items: end; }
+  .voice__quote { margin-bottom: 0; }
+  .voice__who { margin-top: 0; padding-top: 0; padding-left: var(--sp-6); box-shadow: inset 1px 0 0 var(--line); align-self: stretch; align-items: flex-end; }
+}
+/* On a phone the three quotes are a row you swipe, not a stack you scroll: stacked they were 775px — most of a screen
+   of grey cards — and a phone's own idiom for a set of equals is the horizontal row with the next one showing at the
+   edge. Native scroll-snap, no script and no dots: the 14% of the next card is the instruction. The row runs to the
+   screen's edges so a card can be swiped off it, and snaps to the gutter so a resting card lines up with everything
+   above and below it. */
+@media (max-width: 767px) {
+  .voices { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 84%; gap: var(--sp-3);
+    margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  .voices::-webkit-scrollbar { display: none; }
+  .voices > .voice { grid-column: auto; scroll-snap-align: start; }
+}
 /* the field's own gap between this row and the closing panel — without it the cards sit 7px off it, which reads as a
    collision rather than as the field's rhythm */
 
@@ -163,10 +187,12 @@
 .close__sign .input::placeholder { color: color-mix(in srgb, var(--ink-on) 60%, transparent); }
 .close__sign .btn--primary { background: var(--ink-on); color: var(--ink); }
 .close__sign .field__message { color: color-mix(in srgb, var(--ink-on) 70%, transparent); }
-/* the address is 29 characters, 276px at the lead size, and a 390 phone gives it 264px beside its icon — it was breaking
-   as "gmail.co" over "m". On a phone the icons go (an address and a number explain themselves), which buys back the
-   30px; narrower than that, the <wbr> lets it break at the @ instead of inside a word. */
-@media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } .close__reach a .icon { display: none; } }
+/* The address is 29 characters. It broke as "gmail.co" over "m" on a 390 phone, and at 1024 it broke at the @ beside
+   the sign-off. The envelope and the phone glyph are gone everywhere — an address and a number explain themselves,
+   and the 30px they took is what the address needed. The size follows the column it sits in, and the <wbr> means the
+   one place it can ever break is the @. */
+@media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } }
+@media (min-width: 1024px) { .close__reach a { font-size: clamp(1.125rem, .25rem + 1.6vw, 1.5rem); } }
 /* On a phone the closing field is not a panel. Its chrome — the raised ground, the hairline, 28px of padding — put a
    box around a box: the sign-up card sat 56px narrower than the screen's own column, the email field inside it 96px
    narrower, and the brand line broke three deep. The field's contents sit on the page at the gutter instead, the
@@ -176,6 +202,14 @@
   .close__reach .close__ask { justify-self: stretch; }
 }
 @media (min-width: 1024px) {
-  .close__sign { grid-column: 1 / span 6; }
-  .close__reach { grid-column: 8 / span 5; padding-top: var(--sp-2); }
+  /* Two rows, each with a job. The brand's line and the ways to reach Linda share the top row, the contacts set on the
+     line's last baseline — they used to sit under it beside the card, which left the top right of the field an empty
+     600×150 rectangle. The sign-up takes the whole second row as one ink band: the mark and the ask on the left, the
+     field on the right, on a shared foot. */
+  .close__lead { grid-column: 1 / span 7; grid-row: 1; margin-bottom: 0; align-self: end; }
+  .close__reach { grid-column: 8 / span 5; grid-row: 1; align-self: end; }
+  .close__sign { grid-column: 1 / -1; grid-row: 2; margin-top: var(--sp-8); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mark ." "title form"; column-gap: var(--sp-16); align-items: end; padding: clamp(32px, 3vw, 48px); }
+  .close__sign .close__mark { grid-area: mark; }
+  .close__sign .close__title { grid-area: title; margin-bottom: 0; }
+  .close__sign form { grid-area: form; }
 }

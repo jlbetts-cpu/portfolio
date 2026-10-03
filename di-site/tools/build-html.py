@@ -207,7 +207,7 @@ page=f'''<!DOCTYPE html>
         <div class="hero__mark" data-mark><div class="hero__mark__spin">{heromark}</div></div>
         <h1 class="hero__title" id="heroTitle">New tools for cognitive development <span class="hero__title__soft">&amp;&nbsp;emotional understanding</span></h1>
         <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
-        <div class="hero__act"><button class="btn btn--primary" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
+        <div class="hero__act"><button class="btn btn--primary btn--lg" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
       </div>
     </div>
   </section>
@@ -233,7 +233,7 @@ page=f'''<!DOCTYPE html>
 
   <section class="voices-sec" id="voices" aria-label="Testimonials">
     <div class="container">
-      <ul class="voices grid reveal--stagger">{pile}</ul>
+      <ul class="voices grid reveal--stagger" aria-label="Testimonials">{pile}</ul>
     </div>
   </section>
 </main>
@@ -248,8 +248,8 @@ page=f'''<!DOCTYPE html>
         {form('nl')}
       </div>
       <div class="close__reach">
-        <a href="mailto:developmentalimprov@gmail.com"><svg class="icon" aria-hidden="true"><use href="#i-envelope-simple"/></svg>developmentalimprov<wbr>@gmail.com</a>
-        <a href="tel:+18573523221"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(857) 352-3221</a>
+        <a href="mailto:developmentalimprov@gmail.com">developmentalimprov<wbr>@gmail.com</a>
+        <a href="tel:+18573523221">(857) 352-3221</a>
         <!-- the page's second way in. Everything else here points at a newsletter; a teacher who wants this in their
              classroom had nowhere to go. No new address and no form to build — the one already on the page, with the
              subject written for them. -->

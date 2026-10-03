@@ -25,6 +25,8 @@
 @media (hover: hover) { .btn--secondary:hover { border-color: color-mix(in srgb, var(--ink) 34%, transparent); } }
 .btn--ghost { background: transparent; color: var(--ink); }
 .btn--compact { height: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); }
+/* the one large button: the hero's single action. 46px under a 68px headline read as a footnote to it. */
+.btn--lg { height: 54px; padding: 0 var(--sp-8); font-size: 1rem; }
 .btn .icon { width: 18px; height: 18px; }
 .btn[aria-busy="true"] { color: transparent; position: relative; }
 .btn[aria-busy="true"]::after { content: ""; position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--btn-primary-ink); border-right-color: transparent; animation: spin .8s linear infinite; }

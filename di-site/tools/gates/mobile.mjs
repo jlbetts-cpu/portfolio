@@ -8,6 +8,7 @@
 //   the footer     the closing field is not a panel; the sign-up card runs the column's full width
 //   the gallery    a touch does not freeze it (a phone's scroll gestures start on it)
 //   scroll lock    the page under an open modal does not scroll, and scrolls again once it closes
+//   the quotes     a row that swipes, the next card showing at the edge, snapping to the gutter, keyboard-reachable
 // --self-test: adds an ungated :hover rule, which the sticky-hover check must catch.
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -67,8 +68,21 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
   const lbOpen = await pg.evaluate(() => document.querySelector('#lightbox').open);
   if (lbOpen) { await pg.tap('.lightbox__close'); await pg.waitForTimeout(500); }
   const keys = await pg.evaluate(() => window.__di.flow.holdKeys.filter(k => k !== 'offscreen'));
-  const ok = env.coarse && env.noHover && ungated.length === 0 && inputs.every(f => f >= 16) && /rgba\(0, 0, 0, 0\)|transparent/.test(tapHL) && locked && unlocked && notStuck && ring === 0 && !foot.panel && Math.abs(foot.card - foot.column) <= 1 && keys.length === 0;
-  report(`mobile ${w}×${h}`, ok, JSON.stringify({ ...env, ungated, inputs, tapHL, locked, unlocked, notStuck, ringOut: ring, ...foot, holds: keys }));
+  // the quotes: a row that swipes, the next card showing at the edge, snapping to the gutter, and reachable by keyboard
+  const row = await pg.evaluate(async () => {
+    const v = document.querySelector('.voices'); v.scrollIntoView({ block: 'center' });
+    await new Promise(r => setTimeout(r, 300));
+    const gut = parseFloat(getComputedStyle(document.querySelector('#voices .container')).paddingLeft);
+    const c = [...v.children].map(x => x.getBoundingClientRect());
+    const before = { first: Math.round(c[0].left - gut), peek: Math.round(innerWidth - c[1].left) };
+    v.scrollBy({ left: c[1].left - c[0].left, behavior: 'instant' });
+    await new Promise(r => setTimeout(r, 400));
+    const after = Math.round(v.children[1].getBoundingClientRect().left - gut);
+    return { scrolls: v.scrollWidth > v.clientWidth + 1, tab: v.getAttribute('tabindex'), ...before, after };
+  });
+  const swipes = row.scrolls && row.tab === '0' && Math.abs(row.first) <= 1 && row.peek >= 24 && Math.abs(row.after) <= 2;
+  const ok = env.coarse && env.noHover && ungated.length === 0 && inputs.every(f => f >= 16) && /rgba\(0, 0, 0, 0\)|transparent/.test(tapHL) && locked && unlocked && notStuck && ring === 0 && !foot.panel && Math.abs(foot.card - foot.column) <= 1 && keys.length === 0 && swipes;
+  report(`mobile ${w}×${h}`, ok, JSON.stringify({ ...env, ungated, inputs, tapHL, locked, unlocked, notStuck, ringOut: ring, ...foot, holds: keys, quotes: row }));
   await ctx.close();
 }
 await b.close();
