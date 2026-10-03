@@ -205,7 +205,7 @@ page=f'''<!DOCTYPE html>
     <div class="container">
       <div class="hero__panel reveal">
         <div class="hero__mark" data-mark><div class="hero__mark__spin">{heromark}</div></div>
-        <h1 class="hero__title" id="heroTitle">New tools for cognitive development <span class="hero__title__soft">&amp;&nbsp;emotional understanding</span></h1>
+        <h1 class="hero__title" id="heroTitle">New tools for cognitive development <span class="hero__title__line">&amp;&nbsp;emotional understanding</span></h1>
         <p class="hero__sub">Pre-wiring the brain &amp; educating the heart</p>
         <div class="hero__act"><button class="btn btn--primary btn--lg" type="button" data-open-dialog>Sign Up for our Newsletter!</button></div>
       </div>

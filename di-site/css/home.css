@@ -52,13 +52,12 @@
 @media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gallery__col:nth-child(n+4) { display: none; } }
 @media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(480px, 78vh, 720px); } .gallery__col:nth-child(n+3) { display: none; } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
-/* the claim in ink and its second half a tier down: the line reads as one statement with a weight to it, the way the
-   reference sets its headline, and it costs nothing — same face, same weight, same size, one token */
-.hero__title__soft { color: var(--ink-3); }
-/* the soft half starts its own line from 600px up — on a tablet it had been sharing a line with "development", so the
-   colour changed mid-line — and from 1100px the claim is wide enough to hold the first half on one line. On a phone
-   it runs inline, and a no-break space keeps the ampersand on the soft side of the break. */
-@media (min-width: 600px) { .hero__title__soft { display: block; } }
+/* ONE COLOUR. The second half of the claim was set a tier down (v24) and Jayden asked why: "why is emotional
+   understanding greyed out." There was no good answer — the grey was a device borrowed from product headlines, and
+   here it said that half of Linda's claim mattered less, when emotional understanding is half of what the method is
+   for. The whole line is ink. What stays from that round is the break: "& emotional understanding" starts its own line
+   from 600px up, which is where the sentence turns, and on a phone a no-break space keeps the ampersand with it. */
+@media (min-width: 600px) { .hero__title__line { display: block; } }
 @media (min-width: 1100px) { .hero__title { max-width: 21em; } }
 .hero__sub { font-size: clamp(1.125rem, 1rem + .55vw, 1.4375rem); line-height: 1.45; letter-spacing: -0.008em; color: var(--ink-2); max-width: 30em; text-wrap: balance; }   /* at 320 it left "heart" alone on a line */
 .hero__act { margin-top: var(--sp-6); }
@@ -119,10 +118,12 @@
    which is the testimonial block of every template. Everything else here sits on the page: the sections, the ring,
    the gallery. So do the quotes now. Each one stands under a hairline, the words at the quote size with the opening
    mark hung in the margin so the text itself starts on the column, and the person under it in two lines of type. The
-   discs are gone with the boxes. On a row the names line up along the bottom however uneven the quotes are. */
+   discs are gone with the boxes. And the hairline each quote stood under went next: "remove the lines, just use clean
+   white space." The quotes are held apart by space alone — 64px between columns, 48px between rows. On a row the
+   names line up along the bottom however uneven the quotes are. */
 .voices { row-gap: var(--sp-12); }
 .voices > .voice { grid-column: 1 / -1; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { display: flex; flex-direction: column; padding-top: var(--sp-6); box-shadow: inset 0 1px 0 var(--line-strong); color: var(--ink); }
+.voice { display: flex; flex-direction: column; color: var(--ink); }
 .voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; text-indent: -0.42em; }
 .voice__quote::before { content: "\201C"; }
 .voice__quote::after { content: "\201D"; }
@@ -140,11 +141,12 @@
 /* ---------- The closing field ----------
    No panel and no ink box. It had both — a raised field with a border, and a black sign-up card inside it — and next
    to sections that sit on the page those read as the template the rest of the site has left behind. Jayden: the
-   footer "looks outdated compared to the cleanness of the rest of the site." It is three bands of type now, divided
-   by the same hairline the quotes stand under: the closing line; the newsletter and the ways to reach Linda side by
-   side; and a bottom bar with the copyright and the theme switch, which is where the switch moved to from the header. */
+   footer "looks outdated compared to the cleanness of the rest of the site." It is three bands of type now, held apart
+   by space and nothing else — the hairlines that divided them went the same day ("remove the lines"): the closing
+   line; the newsletter and the ways to reach Linda side by side; and a bottom bar with the copyright and the theme
+   switch, which is where the switch moved to from the header. */
 .close { padding-bottom: var(--sp-8); }
-.close__body { padding-top: var(--sp-12); box-shadow: inset 0 1px 0 var(--line-strong); color: var(--ink); }
+.close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
 .close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
 .close__sign { grid-column: 1 / -1; }
@@ -156,7 +158,7 @@
 /* the second way in is a control, not one of the big contact links above it, so it opts out of their type at the
    same specificity — .close__reach a is (0,2,0) and this rule has to match it to win */
 .close__reach .close__ask { margin-top: var(--sp-4); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
-.close__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-16); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
+.close__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-24); }
 .close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
 /* The address is 29 characters, and the <wbr> means the one place it can ever break is the @. */
 @media (max-width: 767px) {

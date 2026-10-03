@@ -21,8 +21,12 @@
 .btn:active { transform: scale(.97); }
 .btn--primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
 @media (hover: hover) { .btn--primary:hover { background: color-mix(in srgb, var(--btn-primary-bg) 90%, var(--btn-primary-ink)); } }
-.btn--secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
-@media (hover: hover) { .btn--secondary:hover { border-color: color-mix(in srgb, var(--ink) 34%, transparent); } }
+/* NO LINES ANYWHERE (2026-10-03): "remove the lines I want it more minimal, just use clean white space design." A
+   control that used to be drawn as an outline is a soft fill now, so it still reads as something to press without a
+   rule round it; dividers are gone and the space between things does their job. The focus ring and the error ring
+   stay — those are states, not decoration. */
+.btn--secondary { background: var(--bg-raised); color: var(--ink); border-color: transparent; }
+@media (hover: hover) { .btn--secondary:hover { background: var(--bg-sunken); } }
 .btn--ghost { background: transparent; color: var(--ink); }
 .btn--compact { height: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); }
 /* the one large button: the hero's single action. 46px under a 68px headline read as a footnote to it. */
@@ -43,7 +47,7 @@
 /* The theme switch — in the footer, Jayden's call: "I actually like the dark mode but I think the button to change it
    should be in the footer." Two words, not an icon riddle: Light and Dark, each with its glyph, the chosen one the
    inverted pill. Each option is the full 44px target; the pill is drawn inside it. aria-pressed carries the state. */
-.switch { display: inline-flex; padding: 1px; border-radius: var(--r-full); box-shadow: inset 0 0 0 1px var(--line); }
+.switch { display: inline-flex; border-radius: var(--r-full); }
 /* the pill is the option's own background, clipped to its content box 4px inside the target — a real background, so a
    contrast check reads the ink the label actually sits on, where a ::before pill read as the page behind it (1:1) */
 .switch__opt { height: var(--hit); padding: 3px; border-radius: var(--r-full); corner-shape: round; background-clip: content-box; font-size: var(--fs-small); font-weight: 600; color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out); }
@@ -60,7 +64,6 @@
    On a solid card every text tier goes to --on-accent: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
 .card { position: relative; background: var(--bg-raised); border-radius: var(--r-lg); padding: var(--card-pad); }
 .card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
-.card--line { box-shadow: inset 0 0 0 1px var(--line); }
 /* a tile of pure colour, no photograph: the only other place a hue appears */
 .tile { background: var(--accent); border-radius: var(--r-lg); }
 
@@ -83,9 +86,9 @@
 
 /* Field */
 .field { display: flex; gap: var(--sp-2); align-items: stretch; }
-.input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-4); border-radius: var(--r-sm); background: var(--bg-overlay); box-shadow: inset 0 0 0 1px var(--line); border: 0; color: var(--ink); font-size: var(--fs-ui); transition: box-shadow var(--t) var(--ease-out); }
+.input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-4); border-radius: var(--r-sm); background: var(--bg-raised); box-shadow: none; border: 0; color: var(--ink); font-size: var(--fs-ui); transition: background-color var(--t) var(--ease-out); }
 .input::placeholder { color: var(--ink-3); }
-@media (hover: hover) { .input:hover { box-shadow: inset 0 0 0 1px var(--line-strong); } }
+@media (hover: hover) { .input:hover { background: var(--bg-sunken); } }
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
 .field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); min-height: 1.4em; }
 .field__message[data-state="error"] { color: var(--ink); }
@@ -104,7 +107,7 @@
    over a photograph — the ground at 78%, blurred, with a hairline. Keyboard focus always brings it back. */
 .nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: var(--grid-gap) 0 var(--sp-2);
   transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state) var(--ease-out), box-shadow var(--dur-state) var(--ease-out); }
-.nav.is-scrolled { background: var(--glass); box-shadow: 0 1px 0 var(--line); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+.nav.is-scrolled { background: var(--glass); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
 .nav.is-hidden { transform: translateY(-100%); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
 /* THE BRAND IS THE NAME, SET IN TYPE. Jayden: "the header looks off." The cause was the mark: a line drawing of a
@@ -138,7 +141,7 @@
 @media (prefers-reduced-motion: reduce) { .nav { transition: background-color var(--dur-state) linear; } .nav.is-hidden { transform: none; } }
 
 /* Menu sheet (mobile) */
-.sheet { position: fixed; inset: 0 0 0 auto; width: min(100vw, 340px); height: 100dvh; max-height: none; margin: 0; padding: var(--sp-5); background: var(--bg-overlay); color: var(--ink); border: 0; box-shadow: inset 1px 0 0 var(--line); z-index: var(--z-dialog); transform: translateX(100%); transition: transform var(--dur-move) var(--ease-settle), display var(--dur-move) allow-discrete, overlay var(--dur-move) allow-discrete; }
+.sheet { position: fixed; inset: 0 0 0 auto; width: min(100vw, 340px); height: 100dvh; max-height: none; margin: 0; padding: var(--sp-5); background: var(--bg-overlay); color: var(--ink); border: 0; z-index: var(--z-dialog); transform: translateX(100%); transition: transform var(--dur-move) var(--ease-settle), display var(--dur-move) allow-discrete, overlay var(--dur-move) allow-discrete; }
 .sheet[open] { transform: none; }
 @starting-style { .sheet[open] { transform: translateX(100%); } }
 .sheet::backdrop { background: var(--scrim); }
@@ -146,7 +149,7 @@
 .sheet__close { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-xs); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .sheet__close:hover { color: var(--ink); } }
 .sheet__close:active { transform: scale(.92); }
-.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); box-shadow: inset 0 -1px 0 var(--line); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
+.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
 @media (hover: hover) { .sheet__links a:hover { opacity: .68; } }
 .sheet__links a:active { transform: scale(.98); }
 .sheet .btn--primary { width: 100%; margin-top: var(--sp-8); }

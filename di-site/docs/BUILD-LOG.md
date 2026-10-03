@@ -1,5 +1,21 @@
 # Build log — Developmental Improvisation, home page
 
+## v29 (2026-10-03) — one colour, no lines
+*"I dont understand the point of having the grey text in the hero … why is emotional understanding greyed out"*, then *"also remove the lines I want it more minimal just use clean white space design."*
+
+**The headline is all ink.** I set the second half a tier down in v24, as a device borrowed from product headlines. It said half of Linda's claim mattered less, and emotional understanding is half of what the method is for. There was no good answer to his question, so it went. What stays from that round is the break: "& emotional understanding" starts its own line from 600px up, which is where the sentence turns. `layout.mjs` now asserts every word of the headline computes to the same colour, and it fails with the grey put back.
+
+**Every line is gone.** These are the ones that were drawn:
+- the hairline above each quote;
+- the hairline above the footer and the one above its bottom bar;
+- the hairline under the scrolled header;
+- the separators between the phone menu's links, and the menu's left edge;
+- the outlines on the email field, the "Bring this to your school" button and the theme switch.
+
+Space does their job now: 64px between the quote columns, 48px between stacked quotes, 96px above the footer's bottom bar. The two controls that needed a shape got a soft fill instead of a rule: the field and the secondary button sit on the raised ground and go one step deeper on hover. The focus ring and the error ring stay, because those are states, not decoration. `layout.mjs` asserts that no visible element at rest draws a border or a box-shadow at 1440, 1024, 390 or 320. On the previous styles it fails, naming the three quotes, the footer and its bottom bar.
+
+**Measured after v29.** 54 gate lines pass and 9 self-tests are caught. Worst contrast is 5.18:1 light and 5.95:1 dark.
+
 ## v28 (2026-10-03) — dark mode back with a switch in the footer, and the last two template sections cleaned up
 *"I still only see dark mode"*, then mid-turn: *"I actually like the dark mode but I think the button to change it should be in the footer. Also I feel like the footer and testimonials section looks outdated compared to the cleanness of the rest of the site."*
 

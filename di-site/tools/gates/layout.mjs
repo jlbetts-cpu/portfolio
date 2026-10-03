@@ -26,11 +26,22 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const cards = [...document.querySelectorAll('.voice')].map(c => c.offsetWidth);
     const rules = [...document.querySelectorAll('.voice__who')].map(c => Math.round(c.getBoundingClientRect().top));
     const ragged = innerWidth >= 1024 && new Set(rules).size > 1 ? 1 : 0;
-    return { overflow, lines, edges: [...edges], cards, cross, ragged };
+    // the headline is one colour: every word of the claim in the ink, none of it a tier down (2026-10-03)
+    const inks = [...h1.querySelectorAll('*')].concat(h1).map(e => getComputedStyle(e).color);
+    const oneInk = new Set(inks).size === 1;
+    // no lines anywhere (2026-10-03, "remove the lines … just use clean white space"): no visible element draws a
+    // border or a box-shadow. Focus and error rings only appear in those states, so a page at rest has none.
+    const drawn = [...document.querySelectorAll('body *')].filter(e => {
+      if (!e.getClientRects().length || e.closest('dialog:not([open]), .curtain')) return false;
+      const cs = getComputedStyle(e);
+      const border = ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(cs['border' + k + 'Width']) > 0 && cs['border' + k + 'Style'] !== 'none' && !/rgba\([^)]*, 0\)|transparent/.test(cs['border' + k + 'Color']));
+      return border || cs.boxShadow !== 'none';
+    }).map(e => String(e.className || e.tagName).slice(0, 30));
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
-  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}`);
+  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}`);
   await pg.close();
 }
 await b.close();
