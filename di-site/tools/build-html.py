@@ -151,7 +151,7 @@ quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit 
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
 # three that read apart from each other: the first arc, the star, and the arc the eye has not seen for a screen
 VOICES=[('magenta',quotes[0]),('gold',quotes[1]),('green',quotes[2])]
-pile=''.join(f'<li class="voice reveal" data-placeholder="true"><p class="voice__quote">{q}</p><div class="voice__who"><span class="voice__avatar" aria-hidden="true">FL</span><div><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></div></li>' for a,q in VOICES)
+pile=''.join(f'<li class="voice reveal" data-placeholder="true"><p class="voice__quote">{q}</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li>' for a,q in VOICES)
 
 form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" method="post" novalidate><div class="field"><label class="sr-only" for="{idp}-email">Email</label>'
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
@@ -166,7 +166,7 @@ page=f'''<!DOCTYPE html>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
 <meta name="theme-color" content="#FAFAFB">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
@@ -182,7 +182,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme='light';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,c=1,t=null;try{{t=localStorage.getItem('di:theme');c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';h.dataset.diTheme=t;h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -239,11 +239,13 @@ page=f'''<!DOCTYPE html>
 </main>
 
 <footer class="close" id="contact">
-  <div class="container"><div class="close__field reveal">
+  <!-- No panel and no ink box. The closing line, then the two ways in side by side — the newsletter on the left, Linda
+       on the right — then a bottom bar with the copyright and the theme switch. Everything sits on the page itself,
+       on the same hairlines the testimonials use. -->
+  <div class="container"><div class="close__body reveal">
     <div class="grid close__grid">
       <p class="close__lead">Prepared for anything life has to offer.</p>
       <div class="close__sign">
-        <svg class="close__mark" aria-hidden="true"><use href="#mark"/></svg>
         <h2 class="close__title" id="newsletterTitle">Sign Up for our Newsletter!</h2>
         {form('nl')}
       </div>
@@ -255,8 +257,12 @@ page=f'''<!DOCTYPE html>
              subject written for them. -->
         <a class="btn btn--secondary close__ask" href="mailto:developmentalimprov@gmail.com?subject=Bringing%20Developmental%20Improvisation%20to%20our%20school">Bring this to your school</a>
       </div>
-      <div class="close__foot">
-        <p class="close__copy">© 2026 Developmental Improvisation</p>
+    </div>
+    <div class="close__foot">
+      <p class="close__copy">© 2026 Developmental Improvisation</p>
+      <div class="switch" role="group" aria-label="Colour theme">
+        <button class="switch__opt" type="button" data-theme-set="light" aria-pressed="true"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>Light</span></button>
+        <button class="switch__opt" type="button" data-theme-set="dark" aria-pressed="false"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg>Dark</span></button>
       </div>
     </div>
   </div></div>

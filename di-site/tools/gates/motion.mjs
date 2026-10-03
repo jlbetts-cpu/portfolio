@@ -20,7 +20,7 @@ const r1 = await pg.evaluate(async (st) => {
   for (let y = 0; y <= document.body.scrollHeight; y += innerHeight / 2) { scrollTo(0, y); await new Promise(r => setTimeout(r, 120)); }
   await new Promise(r => setTimeout(r, 500));
   if (st) document.querySelector('.tell__copy').classList.add('reveal');   // --self-test: the state below forbids
-  const shown = [...document.querySelectorAll('.tell__figure, .tell__copy, .voices > .voice, #contact .close__field')];
+  const shown = [...document.querySelectorAll('.tell__figure, .tell__copy, .voices > .voice, #contact .close__body')];
   // arrived AND handed its motion back: an element that keeps .reveal keeps the arrival's 360ms and its stagger delay
   // on every later hover, and the hue in its own transition list never fades at all
   const revealed = shown.length > 6 && shown.every(e => getComputedStyle(e).opacity === '1' && !e.classList.contains('reveal'));

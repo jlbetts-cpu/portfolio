@@ -7,7 +7,7 @@
    and is never slowed by it. That last part was a real bug: `.btn:hover { transition-duration: var(--dur-state) }`
    also caught the transform, and since a press only ever happens while hovered, the press rung was dead on every
    button on the page. */
-:where(.btn, .arrow, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
+:where(.btn, .arrow, .switch__opt, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
   .input, .bento__col .photo, .ring__item .photo, .close__reach a):hover { --t: var(--dur-state); }
 
 /* EVERY HOVER EFFECT LIVES INSIDE @media (hover: hover). A phone has no hover, but it fakes one: a tap leaves the
@@ -39,6 +39,19 @@
 .arrow:active { transform: scale(.94); }
 .arrow .icon { width: 18px; height: 18px; }
 .arrows { display: flex; gap: var(--sp-2); }
+
+/* The theme switch — in the footer, Jayden's call: "I actually like the dark mode but I think the button to change it
+   should be in the footer." Two words, not an icon riddle: Light and Dark, each with its glyph, the chosen one the
+   inverted pill. Each option is the full 44px target; the pill is drawn inside it. aria-pressed carries the state. */
+.switch { display: inline-flex; padding: 1px; border-radius: var(--r-full); box-shadow: inset 0 0 0 1px var(--line); }
+/* the pill is the option's own background, clipped to its content box 4px inside the target — a real background, so a
+   contrast check reads the ink the label actually sits on, where a ::before pill read as the page behind it (1:1) */
+.switch__opt { height: var(--hit); padding: 3px; border-radius: var(--r-full); corner-shape: round; background-clip: content-box; font-size: var(--fs-small); font-weight: 600; color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.switch__in { display: inline-flex; align-items: center; gap: 6px; height: 100%; padding: 0 var(--sp-3); }
+.switch__opt[aria-pressed="true"] { background-color: var(--ink); color: var(--bg); }
+.switch__opt:active { transform: scale(.96); }
+.switch__opt .icon { width: 16px; height: 16px; }
+@media (hover: hover) { .switch__opt:not([aria-pressed="true"]):hover { color: var(--ink); } }
 
 /* Icons */
 .icon { width: 22px; height: 22px; fill: currentColor; flex: none; }

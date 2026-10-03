@@ -1,5 +1,28 @@
 # Build log — Developmental Improvisation, home page
 
+## v28 (2026-10-03) — dark mode back with a switch in the footer, and the last two template sections cleaned up
+*"I still only see dark mode"*, then mid-turn: *"I actually like the dark mode but I think the button to change it should be in the footer. Also I feel like the footer and testimonials section looks outdated compared to the cleanness of the rest of the site."*
+
+**Why dark mode would not go away.** The claude.ai preview writes `data-theme="dark"` onto the page for anyone whose claude.ai is dark, and the dark tokens were keyed on `:root[data-theme="dark"]`, the same attribute. So removing the toggle changed nothing for Jayden. Reproduced by setting the attribute as a host would: the page went to `rgb(11,11,15)`. The page now answers only to its own attribute, `data-di-theme`, plus an `html:root[data-theme]` rule that keeps a host's colour-scheme rule from turning form fields dark.
+
+**Dark mode is back, and the switch is in the footer.** With no choice made, the page follows the visitor's system. A choice from the switch beats the system and is remembered. The switch is two words with their glyphs, Light and Dark, and the chosen one is an inverted pill. Each option is a full 44px target. The pill is the option's own background clipped to its content box, not a `::before`: the contrast gate read the pseudo-element pill as the page behind it and reported 1:1, and a real background reports the true 5.18:1.
+
+**The testimonials lost their cards.** A grey box with a border round every quote and a black disc of initials under it is the testimonial block of every template. Each quote now stands under a hairline, with the opening mark hung in the margin so the words start on the column, and the person in two lines of type underneath. On a row the names line up along the foot. On a tablet each quote is one row, with the person beside it. On a phone they stack on hairlines; the swipe row went with the cards, because without a card's edge the next quote peeking in reads as overflow.
+
+**The footer lost its panel and its ink box.** It is three bands of type on the page, divided by the same hairline as the quotes:
+- the closing line;
+- the newsletter, with a plain field and button, on the left, and the ways to reach Linda on the right, with the address set on the sign-up title's line;
+- a bottom bar with the copyright and the theme switch.
+
+The small mark that sat in the sign-up card went too, for the same reason it left the header.
+
+**Gates.** New `theme.mjs`:
+- with no choice, the page follows the system;
+- the footer switch beats the system and survives a reload;
+- a host's `data-theme="dark"` changes nothing.
+
+Its self-test keys a dark ground on the host's attribute again, and it is caught. `contrast.mjs` runs both themes again. `nav.mjs` checks the switch is in the footer and not the header. `mobile.mjs` checks the footer has no panel and the quotes are a stack with no boxes and nothing scrolling sideways. `layout.mjs` checks the names align on a row from 1024. 54 gate lines pass and 9 self-tests are caught. Worst contrast is 5.18:1 light and 5.95:1 dark.
+
 ## v27 (2026-10-03) — light only, and a header that is the name
 *"I feel like the header looks off, lets take away the dark mode for now and i want the header to be updated."*
 

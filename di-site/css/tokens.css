@@ -5,7 +5,7 @@
    clockwise from the top is magenta, violet, orange, green, pink, yellow. The page spends them in that order, once each,
    and closes on sky at full strength: the mark's own colour, the loudest note, kept for last. */
 :root {
-  color-scheme: light;
+  color-scheme: light;   /* restated below against a host's [data-theme] rule, which would outrank a bare :root */
   /* THE NEUTRALS ARE COOL NOW. Jayden: "the color still feels not like a premium site." It was warm — a cream ground
      and a brown-black ink — and warm reads craft, cosy, handmade, which is the opposite register from "a serious new
      tool for education". The reference he keeps pointing at (feedhippo.com) is a near-white with the faintest cool
@@ -142,10 +142,12 @@
   --ring-n: 8;
 }
 
-/* Dark — OFF FOR NOW (2026-10-03, "lets take away the dark mode for now"). Nothing sets data-theme="dark" any more:
-   the head script writes "light" and the toggle is gone. The block is kept as it was so that bringing dark mode back
-   is the toggle, the head script and contrast.mjs's dark pass — git 88cae27 has all three — not a palette from nothing. */
-:root[data-theme="dark"] {
+/* Dark — the visitor's system setting until they choose, then their choice, from the switch in the footer. Keyed on
+   a PRIVATE attribute, data-di-theme, written only by this page. It used to be data-theme, and that name is not ours:
+   the claude.ai preview writes data-theme="dark" onto the page for anyone whose claude.ai is dark, which is why dark
+   mode would not go away when the toggle was removed ("I still only see dark mode"). Now the page answers to its own
+   switch and nothing else. */
+:root[data-di-theme="dark"] {
   color-scheme: dark;
   --bg:          #0B0B0F;
   --bg-raised:   #15151B;
@@ -190,3 +192,8 @@
 @media (max-width: 1279px) { :root { --ring-r: 290; --ring-item: 190px; } }
 @media (max-width: 1023px) { :root { --ring-r: 250; --ring-item: 150px; } }
 @media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: clamp(60px, 19vw, 80px); } }   /* the circle and the radius shrink with the screen; see .ring__stage */
+
+/* the page's own theme, whatever the host says: a page embedded in a dark host gets data-theme="dark" and often a
+   color-scheme rule keyed on it, which turns form fields and scrollbars dark. html:root[...] outranks :root[...]. */
+:root, html:root[data-theme] { color-scheme: light; }
+html:root[data-di-theme="dark"] { color-scheme: dark; }

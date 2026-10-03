@@ -28,7 +28,7 @@
 .logo--hero .logo__sheen { transform: translateX(calc(var(--sheen, 0) * 1px)); opacity: .82; mix-blend-mode: screen; }
 /* the blend has to flip with the theme or the band disappears into the ink it is crossing: screen lights a dark mark,
    multiply colours a light one. Screen over the dark theme's off-white ink came out as pastel wash. */
-:root[data-theme="dark"] .logo--hero .logo__sheen { mix-blend-mode: multiply; opacity: .88; }
+:root[data-di-theme="dark"] .logo--hero .logo__sheen { mix-blend-mode: multiply; opacity: .88; }
 @media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
 
 /* ---------- The gallery ----------
@@ -114,102 +114,59 @@
 @media (hover: hover) and (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } }
 
 /* ---------- Voices ----------
-   Cleaned up, and mostly by deletion. The 4rem quote mark is gone: it was 60px of decoration per card announcing
-   "this is a quote" about an object that is obviously a quote. The fixed 320px card is gone: three quotes are never
-   the same length and the card was insisting they are — the third was 18% words and 82% air. And the overhanging
-   colour chip is gone with them; on a page that is trying to read as a serious tool, a saturated tag under every
-   quote was the loudest thing left. What survives of the hue is the smallest form it has: one disc with the person's
-   initials. The name sits on a hairline at the foot of the card, and the hairlines line up across the row because
-   the block is pushed down with margin — the cards stretch, the quotes do not have to match. */
-.voices > .voice { grid-column: span 6; transition-delay: calc(var(--stagger) * var(--d, 0)); }
-.voice { display: flex; flex-direction: column; border-radius: var(--r-xl); background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); padding: clamp(24px, 2.8vw, 48px); }
-.voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; margin-bottom: var(--sp-8); }   /* the longest quote ran to 15px off the hairline; this is the floor under all three */
-.voice__who { margin-top: auto; padding-top: var(--sp-6); display: flex; align-items: center; gap: var(--sp-3); box-shadow: inset 0 1px 0 var(--line); }
-/* Jayden's app: "saturated colour means a win or a photograph; chrome is ink and light." The three hue discs were
-   chrome wearing colour, so they are ink now — the only colour left below the hero is the photographs themselves. */
-.voice__avatar { width: 36px; height: 36px; border-radius: 50%; corner-shape: round; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex: none; }
-.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.35; }
-.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.35; }
-@media (min-width: 1024px) { .voices > .voice { grid-column: span 4; } }
-/* Between a phone and a laptop three-up made each card 244px wide — four words a line at the quote size, measured at
-   820. A tablet gets one quote per row instead, the words on the left and the person on the right across a hairline,
-   so the line runs long enough to read as a sentence. Not the swipe row: a narrow desktop window has no swipe, and
-   with the scrollbar hidden a mouse could not have reached the third quote. */
+   Jayden, 2026-10-03: the testimonials "look outdated compared to the cleanness of the rest of the site." They were
+   the last cards on the page — a grey box with a border round every quote and a black disc of initials under it,
+   which is the testimonial block of every template. Everything else here sits on the page: the sections, the ring,
+   the gallery. So do the quotes now. Each one stands under a hairline, the words at the quote size with the opening
+   mark hung in the margin so the text itself starts on the column, and the person under it in two lines of type. The
+   discs are gone with the boxes. On a row the names line up along the bottom however uneven the quotes are. */
+.voices { row-gap: var(--sp-12); }
+.voices > .voice { grid-column: 1 / -1; transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.voice { display: flex; flex-direction: column; padding-top: var(--sp-6); box-shadow: inset 0 1px 0 var(--line-strong); color: var(--ink); }
+.voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; text-indent: -0.42em; }
+.voice__quote::before { content: "\201C"; }
+.voice__quote::after { content: "\201D"; }
+.voice__who { margin-top: auto; padding-top: var(--sp-6); }
+.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.4; }
+.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.4; }
+@media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
+/* a tablet: one per row, the words across eight columns and the person beside them on the last four — three-up made
+   each quote 244px wide at 820, four words a line */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .voices > .voice { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 200px; column-gap: var(--sp-8); align-items: end; }
-  .voice__quote { margin-bottom: 0; }
-  .voice__who { margin-top: 0; padding-top: 0; padding-left: var(--sp-6); box-shadow: inset 1px 0 0 var(--line); align-self: stretch; align-items: flex-end; }
+  .voices > .voice { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); column-gap: var(--sp-8); align-items: start; }
+  .voice__who { margin-top: 0; padding-top: 0; }
 }
-/* On a phone the three quotes are a row you swipe, not a stack you scroll: stacked they were 775px — most of a screen
-   of grey cards — and a phone's own idiom for a set of equals is the horizontal row with the next one showing at the
-   edge. Native scroll-snap, no script and no dots: the 14% of the next card is the instruction. The row runs to the
-   screen's edges so a card can be swiped off it, and snaps to the gutter so a resting card lines up with everything
-   above and below it. */
-@media (max-width: 767px) {
-  .voices { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 84%; gap: var(--sp-3);
-    margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); overflow-x: auto; overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
-  .voices::-webkit-scrollbar { display: none; }
-  .voices > .voice { grid-column: auto; scroll-snap-align: start; }
-}
-/* the field's own gap between this row and the closing panel — without it the cards sit 7px off it, which reads as a
-   collision rather than as the field's rhythm */
-
 
 /* ---------- The closing field ----------
-   Newsletter, contact and footer were three thin bands. They are one panel now — and the SKY moved off the panel and
-   onto the sign-up inside it. A full-strength hue across a page-wide field is a floodlight on a near-black ground;
-   Jayden: "the footer is a bit too crazy strong in dark mode". The hue is on the thing you are meant to act on, which
-   is where it earns its place, and it is the same move the testimonials made. */
-.close { padding-bottom: var(--gutter); }
-.close__field { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-xl); padding: clamp(28px, 3.4vw, 56px); color: var(--ink); }
-.close__grid { align-items: start; row-gap: var(--sp-8); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; margin-bottom: var(--sp-8); text-wrap: balance; }
-/* The sign-up is the INVERTED surface: the ink as its ground, the page as its type. It used to be the one sky field on
-   the page, and with the neutrals gone cool a saturated card was the single thing still reading as a template. An
-   inverted card is how the reference marks its one paid plan among plain ones — weight, not hue — and it follows the
-   theme by construction, because it is defined from the two tokens that swap. */
-.close__sign { grid-column: 1 / -1; background: var(--ink); border-radius: var(--r-lg); padding: var(--card-pad);
-  --ink-on: var(--bg); color: var(--ink-on); }
-.close__sign .close__title, .close__sign .close__mark { color: var(--ink-on); }
-.close__mark { width: 34px; height: 36px; color: var(--ink); margin-bottom: var(--sp-5); }
-.close__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 700; color: var(--ink); max-width: 9em; margin-bottom: var(--sp-6); }
-.close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-2); align-content: start; }
-.close__reach a { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
+   No panel and no ink box. It had both — a raised field with a border, and a black sign-up card inside it — and next
+   to sections that sit on the page those read as the template the rest of the site has left behind. Jayden: the
+   footer "looks outdated compared to the cleanness of the rest of the site." It is three bands of type now, divided
+   by the same hairline the quotes stand under: the closing line; the newsletter and the ways to reach Linda side by
+   side; and a bottom bar with the copyright and the theme switch, which is where the switch moved to from the header. */
+.close { padding-bottom: var(--sp-8); }
+.close__body { padding-top: var(--sp-12); box-shadow: inset 0 1px 0 var(--line-strong); color: var(--ink); }
+.close__grid { align-items: start; row-gap: var(--sp-12); }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
+.close__sign { grid-column: 1 / -1; }
+.close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); }
+.close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-1); align-content: start; justify-items: start; }
+.close__reach a { display: inline-flex; align-items: center; min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
 .close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
 @media (hover: hover) { .close__reach a:hover { text-decoration-color: currentColor; } }
 /* the second way in is a control, not one of the big contact links above it, so it opts out of their type at the
    same specificity — .close__reach a is (0,2,0) and this rule has to match it to win */
-.close__reach .close__ask { justify-self: start; margin-top: var(--sp-5); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
-.close__foot { grid-column: 1 / -1; margin-top: var(--sp-6); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
+.close__reach .close__ask { margin-top: var(--sp-4); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
+.close__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-16); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--line); }
 .close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
-.close__sign .input { background: color-mix(in srgb, var(--ink-on) 10%, transparent); color: var(--ink-on); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-on) 22%, transparent); }
-.close__sign .input::placeholder { color: color-mix(in srgb, var(--ink-on) 60%, transparent); }
-.close__sign .btn--primary { background: var(--ink-on); color: var(--ink); }
-.close__sign .field__message { color: color-mix(in srgb, var(--ink-on) 70%, transparent); }
-/* The address is 29 characters. It broke as "gmail.co" over "m" on a 390 phone, and at 1024 it broke at the @ beside
-   the sign-off. The envelope and the phone glyph are gone everywhere — an address and a number explain themselves,
-   and the 30px they took is what the address needed. The size follows the column it sits in, and the <wbr> means the
-   one place it can ever break is the @. */
-@media (max-width: 767px) { .close__reach a { font-size: var(--fs-lead); } }
-@media (min-width: 1024px) { .close__reach a { font-size: clamp(1.125rem, .25rem + 1.6vw, 1.5rem); } }
-/* On a phone the closing field is not a panel. Its chrome — the raised ground, the hairline, 28px of padding — put a
-   box around a box: the sign-up card sat 56px narrower than the screen's own column, the email field inside it 96px
-   narrower, and the brand line broke three deep. The field's contents sit on the page at the gutter instead, the
-   sign-up card is the one object, and the actions under it run the width of the column like the Subscribe above. */
+/* The address is 29 characters, and the <wbr> means the one place it can ever break is the @. */
 @media (max-width: 767px) {
-  .close__field { background: none; box-shadow: none; border-radius: 0; padding: 0; }
+  .close__reach a { font-size: var(--fs-lead); }
   .close__reach .close__ask { justify-self: stretch; }
+  .close__foot { flex-direction: column-reverse; align-items: flex-start; }
 }
 @media (min-width: 1024px) {
-  /* Two rows, each with a job. The brand's line and the ways to reach Linda share the top row, the contacts set on the
-     line's last baseline — they used to sit under it beside the card, which left the top right of the field an empty
-     600×150 rectangle. The sign-up takes the whole second row as one ink band: the mark and the ask on the left, the
-     field on the right, on a shared foot. */
-  .close__lead { grid-column: 1 / span 7; grid-row: 1; margin-bottom: 0; align-self: end; }
-  .close__reach { grid-column: 8 / span 5; grid-row: 1; align-self: end; }
-  .close__sign { grid-column: 1 / -1; grid-row: 2; margin-top: var(--sp-8); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mark ." "title form"; column-gap: var(--sp-16); align-items: end; padding: clamp(32px, 3vw, 48px); }
-  .close__sign .close__mark { grid-area: mark; }
-  .close__sign .close__title { grid-area: title; margin-bottom: 0; }
-  .close__sign form { grid-area: form; }
+  .close__reach a { font-size: clamp(1.125rem, .25rem + 1.6vw, 1.5rem); }
+  .close__lead { grid-column: 1 / span 9; }
+  .close__sign { grid-column: 1 / span 6; }
+  .close__reach { grid-column: 8 / span 5; margin-top: -8px; }   /* a link's 44px box centres its text; this sets the address on the sign-up title's line */
 }

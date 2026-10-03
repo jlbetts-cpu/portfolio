@@ -5,10 +5,10 @@
 //   no zoom        the email fields are 16px on a coarse pointer, or iOS zooms the page in on focus and stays there
 //   no flash       the system tap highlight is off; every control has its own press
 //   the ring       all eight circles whole and inside the screen, at every turn of the slot
-//   the footer     the closing field is not a panel; the sign-up card runs the column's full width
+//   the footer     no panel; the sign-up field runs the column's full width
 //   the gallery    a touch does not freeze it (a phone's scroll gestures start on it)
 //   scroll lock    the page under an open modal does not scroll, and scrolls again once it closes
-//   the quotes     a row that swipes, the next card showing at the edge, snapping to the gutter, keyboard-reachable
+//   the quotes     a stack on hairlines, no boxes, each the column's width, nothing scrolling sideways
 // --self-test: adds an ungated :hover rule, which the sticky-hover check must catch.
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -52,10 +52,11 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
     for (let a = 0; a < 45; a += 5) { window.__di.flow.set(a); for (const p of document.querySelectorAll('.ring__item .photo')) { const r = p.getBoundingClientRect(); if (r.left < 0 || r.right > innerWidth) out++; } }
     return out;
   });
+  // the footer sits on the page — no panel, no box — and the sign-up field and its button run the column's width
   const foot = await pg.evaluate(() => {
-    const f = getComputedStyle(document.querySelector('.close__field')), col = document.querySelector('#contact .container');
+    const body = document.querySelector('.close__body'), cs = getComputedStyle(body), col = document.querySelector('#contact .container');
     const pad = parseFloat(getComputedStyle(col).paddingLeft) + parseFloat(getComputedStyle(col).paddingRight);
-    return { panel: f.backgroundColor !== 'rgba(0, 0, 0, 0)' || f.boxShadow !== 'none', card: Math.round(document.querySelector('.close__sign').getBoundingClientRect().width), column: Math.round(col.getBoundingClientRect().width - pad) };
+    return { panel: cs.backgroundColor !== 'rgba(0, 0, 0, 0)', card: Math.round(document.querySelector('#nl-email').getBoundingClientRect().width), column: Math.round(col.getBoundingClientRect().width - pad) };
   });
   // a touch on the gallery must not hold the flow
   const held = await pg.evaluate(async () => {
@@ -68,19 +69,14 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
   const lbOpen = await pg.evaluate(() => document.querySelector('#lightbox').open);
   if (lbOpen) { await pg.tap('.lightbox__close'); await pg.waitForTimeout(500); }
   const keys = await pg.evaluate(() => window.__di.flow.holdKeys.filter(k => k !== 'offscreen'));
-  // the quotes: a row that swipes, the next card showing at the edge, snapping to the gutter, and reachable by keyboard
-  const row = await pg.evaluate(async () => {
-    const v = document.querySelector('.voices'); v.scrollIntoView({ block: 'center' });
-    await new Promise(r => setTimeout(r, 300));
-    const gut = parseFloat(getComputedStyle(document.querySelector('#voices .container')).paddingLeft);
-    const c = [...v.children].map(x => x.getBoundingClientRect());
-    const before = { first: Math.round(c[0].left - gut), peek: Math.round(innerWidth - c[1].left) };
-    v.scrollBy({ left: c[1].left - c[0].left, behavior: 'instant' });
-    await new Promise(r => setTimeout(r, 400));
-    const after = Math.round(v.children[1].getBoundingClientRect().left - gut);
-    return { scrolls: v.scrollWidth > v.clientWidth + 1, tab: v.getAttribute('tabindex'), ...before, after };
+  // the quotes on a phone: a stack on hairlines, each the column's width, nothing scrolling sideways
+  const row = await pg.evaluate(() => {
+    const v = document.querySelector('.voices'), col = document.querySelector('#voices .container');
+    const w = col.getBoundingClientRect().width - parseFloat(getComputedStyle(col).paddingLeft) - parseFloat(getComputedStyle(col).paddingRight);
+    const items = [...v.children].map(c => Math.round(c.getBoundingClientRect().width));
+    return { sideways: v.scrollWidth > v.clientWidth + 1, items, column: Math.round(w), boxed: [...v.children].some(c => getComputedStyle(c).backgroundColor !== 'rgba(0, 0, 0, 0)') };
   });
-  const swipes = row.scrolls && row.tab === '0' && Math.abs(row.first) <= 1 && row.peek >= 24 && Math.abs(row.after) <= 2;
+  const swipes = !row.sideways && !row.boxed && row.items.every(x => Math.abs(x - row.column) <= 1);
   const ok = env.coarse && env.noHover && ungated.length === 0 && inputs.every(f => f >= 16) && /rgba\(0, 0, 0, 0\)|transparent/.test(tapHL) && locked && unlocked && notStuck && ring === 0 && !foot.panel && Math.abs(foot.card - foot.column) <= 1 && keys.length === 0 && swipes;
   report(`mobile ${w}×${h}`, ok, JSON.stringify({ ...env, ungated, inputs, tapHL, locked, unlocked, notStuck, ringOut: ring, ...foot, holds: keys, quotes: row }));
   await ctx.close();

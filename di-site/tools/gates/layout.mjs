@@ -21,11 +21,11 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
       const side = innerWidth >= 768;
       if (side && f.right > c.left + 1 && f.left < c.right - 1) cross++;
     }
-    // the three quote cards: equal width, and their rules on one line across the row — the cards stretch so the
-    // hairlines align however uneven the quotes are, and that is the thing the design is holding
+    // the three quotes: equal width, and on a row (1024 up) the names on one line however uneven the quotes are —
+    // each quote stands under a hairline and the name is pushed to the foot. Below 1024 they are one per row.
     const cards = [...document.querySelectorAll('.voice')].map(c => c.offsetWidth);
     const rules = [...document.querySelectorAll('.voice__who')].map(c => Math.round(c.getBoundingClientRect().top));
-    const ragged = innerWidth >= 768 && new Set(rules).size > 1 ? 1 : 0;
+    const ragged = innerWidth >= 1024 && new Set(rules).size > 1 ? 1 : 0;
     return { overflow, lines, edges: [...edges], cards, cross, ragged };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
