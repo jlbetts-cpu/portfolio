@@ -1,5 +1,24 @@
 # Build log — Developmental Improvisation, home page
 
+## v30 (2026-10-03) — the hero is the first screen
+*"make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero."*
+
+At 1440×900 the hero stopped at 669px and the gallery started at 733px, so 167px of photographs were on the first screen. The hero is now the viewport's height less a peek (`clamp(48px, 7vh, 72px)`), with its content centred in it, and the gallery starts exactly at the peek. With the gallery's own fade at the top, those 60-odd pixels read as a hint of photographs rather than a row of them.
+
+Measured (gallery peek; space above the mark / below the button):
+- 1440×900: 63px; 113 / 121
+- 1920×1080: 72px; 198 / 200
+- 1280×720: 50px; 48 / 59
+- 390×844: 59px; 99 / 117
+
+On shorter phones (375×667, 320×640) the hero's content is taller than the screen, so the gallery starts just below the fold. The logo now also scales with the screen's height (`min(11vw, 17vh)`), because on a 1280×720 laptop it sat 22px under the header.
+
+**Details that mattered:**
+- On a phone the height is `svh`, the viewport with the address bar showing, which is the first screen a phone actually shows. It sits behind `@supports`: a `var()` declaration with a unit the browser does not know falls to `unset` at computed time rather than back to the `vh` line above it.
+- Making the hero a flex column shrank its inner container to its content (148–1292 instead of the page's 49–1391). `layout.mjs` caught it, and the container is set back to full width.
+
+**Gate.** `layout.mjs` asserts at most 80px of gallery on the first screen, and at least 32px on any screen 700px or taller. On the previous hero it fails at 167px. 54 gate lines pass and 9 self-tests are caught.
+
 ## v29 (2026-10-03) — one colour, no lines
 *"I dont understand the point of having the grey text in the hero … why is emotional understanding greyed out"*, then *"also remove the lines I want it more minimal just use clean white space design."*
 

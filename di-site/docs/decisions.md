@@ -43,6 +43,7 @@ on every number I had and was still wrong.
 | **No cards on the testimonials or the footer.** Quotes stand under hairlines; the footer is three bands of type on the page | 2026-10-03 | "the footer and testimonials section looks outdated compared to the cleanness of the rest of the site" |
 | **The headline is one colour**, all ink. No half of the claim set a tier down | 2026-10-03 | "why is emotional understanding greyed out … I feel like that should all be black" |
 | **No lines.** No hairlines, dividers or outlined controls; space separates things, and a control that needs a shape gets a soft fill. Focus and error rings stay | 2026-10-03 | "remove the lines I want it more minimal just use clean white space design" |
+| **The hero is the first screen; the gallery only peeks under it** — 50 to 72px on a screen that holds the hero | 2026-10-03 | "make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero" |
 | **The header carries the name in type, not the mark.** The mark is a line drawing and does not hold at nav size; the hero carries it once, large. One filled action (Subscribe) | 2026-10-03 | "I feel like the header looks off… i want the header to be updated" |
 | **The hero has no container either** | 2026-10-02 | "does the hero really need to be in a container I feel like less is so much more" |
 | **The hero is simple, with the logo prevalent.** No gallery of drifting images in it | 2026-09-29, Linda | "far too busy too many images a much more simple hero would do wonders" |

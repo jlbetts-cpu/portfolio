@@ -8,7 +8,20 @@
    No: a raised box around type is a box drawn for its own sake, and taking it away leaves the mark and the line
    sitting on the page, which is what a masthead is. The surfaces that are left are the ones that are objects — the
    quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
-.hero { padding-top: var(--field-top); }
+/* THE HERO IS THE FIRST SCREEN. Jayden: "make sure there is more space from the hero and the carousel — you should be
+   able to barely see that it's under the hero." So the hero is the viewport's height less a peek, with its content
+   centred in it, and the gallery begins exactly at the peek: its first ~60px show at the foot of the screen, and with
+   the gallery's own fade at the top they show as a hint of photographs rather than as a row of them. It was 167px of
+   gallery at 1440×900, under a hero that stopped short at 669px.
+   svh, not vh, on a phone: the small viewport is the one with the address bar showing, which is the first screen a
+   phone actually shows — and it sits behind @supports, because a var() declaration with a unit the browser does not
+   know falls to unset at computed time rather than back to the vh line above it. */
+.hero { --peek: clamp(48px, 7vh, 72px); display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
+  min-height: calc(100vh - var(--peek)); padding-top: calc(var(--nav-h) + var(--grid-gap) + var(--sp-6)); padding-bottom: var(--sp-8); }
+@supports (height: 100svh) { .hero { min-height: calc(100svh - var(--peek)); } }
+.hero > .container { width: 100%; }   /* a flex item with auto side margins shrinks to its content; the column must stay the page's */
+/* the mark is the one element in the hero sized by the screen's HEIGHT as well as its width (17vh): on a 1280×720
+   laptop the hero's content was 503px of a 720px screen and the mark sat 22px under the header. */
 .hero__panel { --hero-col: min(100%, 900px); display: grid; justify-items: center; text-align: center; gap: var(--sp-6); }
 /* The mark is the biggest single object in the hero, which is the point of the brief — and it is BLACK now, with the
    palette moving across it rather than printed into it. The colour logo was eight flat hues at rest; this is the ink
@@ -21,7 +34,7 @@
    ±20°, which is far enough to read as an object turning and short of the angle where a flat mark shows its edge.
    With no pointer to follow (a phone) it sways on the page's own clock instead. The sheen is tied to the angle, so
    turning it moves the light across it. */
-.hero__mark { width: clamp(104px, 11vw, 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
+.hero__mark { width: clamp(84px, min(11vw, 17vh), 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
 .hero__mark__spin { width: 100%; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); will-change: transform; }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
 .logo--hero .logo__ink { fill: var(--ink); }
@@ -40,7 +53,7 @@
    proportions. The gap between photographs IS the gap between columns, so the four read as one field.
    The mask is uneven on purpose: a short fade where the hero hands over, a long one at the foot, which is where the
    reference lets its pictures dissolve. Four columns, then three, then two. */
-.gallery { margin-top: var(--sp-16); }
+.gallery { margin-top: 0; }   /* the hero's own height is the space above it now */
 .gallery__stage { height: clamp(520px, 84vh, 920px); overflow: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); align-items: start;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 62%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 62%, transparent 100%); }

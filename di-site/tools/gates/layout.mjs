@@ -37,11 +37,17 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
       const border = ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(cs['border' + k + 'Width']) > 0 && cs['border' + k + 'Style'] !== 'none' && !/rgba\([^)]*, 0\)|transparent/.test(cs['border' + k + 'Color']));
       return border || cs.boxShadow !== 'none';
     }).map(e => String(e.className || e.tagName).slice(0, 30));
-    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn };
+    // the hero is the first screen and the gallery only peeks under it (2026-10-03, "you should be able to barely see
+    // that it's under the hero"): never more than 80px of it on the first screen, and on a screen tall enough to hold
+    // the hero (700px up) never less than 32px — a peek nobody can see is no peek
+    const gTop = document.querySelector('.gallery').getBoundingClientRect().top + scrollY;
+    const peek = Math.round(innerHeight - gTop);
+    const peekOk = peek <= 80 && (innerHeight < 700 || peek >= 32);
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
-  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}`);
+  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px`);
   await pg.close();
 }
 await b.close();
