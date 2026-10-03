@@ -1,5 +1,8 @@
 # Build log — Developmental Improvisation, home page
 
+## v31 (2026-10-03) — a softer edge on the gallery
+*"I dont think the fade needs to be that strong tone it down."* The gallery's mask faded the top 12% and the bottom 38%, so the lower third of every column was half-dissolved and a photograph was never seen whole until it had risen past the middle. It is now 6% at the top and 18% at the foot, each eased through a 65% stop so the edge has no visible start. The before and after were captured at the same frozen flow angle, so they show the same photographs, and the change was judged on those. 54 gate lines pass; `gallery.mjs` still asserts both ends fade to transparent.
+
 ## v30 (2026-10-03) — the hero is the first screen
 *"make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero."*
 
