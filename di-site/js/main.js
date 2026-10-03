@@ -19,18 +19,9 @@
      page — the buttons' scale, the photographs' — never showed on an iPhone. Passive and empty: it changes nothing else. */
   document.addEventListener('touchstart', () => {}, { passive: true });
 
-  /* ---- Theme: light unless the visitor chose dark. The choice is read before first paint by the inline script in <head>. ---- */
-  const applyTheme = (t, animate) => {
-    if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
-    root.dataset.theme = t;
-    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#0B0B0F' : '#FAFAFB';
-    $$('[data-theme-toggle]').forEach(b => b.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
-  };
-  applyTheme(root.dataset.theme === 'light' ? 'light' : 'dark', false);
-  $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
-    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    store.set('di:theme', t); applyTheme(t, true);
-  }));
+  /* ---- Light only, for now. Jayden, 2026-10-03: "lets take away the dark mode for now." The toggle, the stored
+     choice and the cross-fade are gone; the dark token block in tokens.css is kept, unreferenced, so bringing it back
+     is the toggle and the head script, not a palette rebuilt from nothing. ---- */
 
   /* ---- The curtain: the first load of a session. It waits for the fonts and the hero's first photographs, then parts.
      Three things guarantee the site is never stuck behind it: a hard timeout, a floor on how long it can show, and

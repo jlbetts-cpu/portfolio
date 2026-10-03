@@ -7,7 +7,7 @@
    and is never slowed by it. That last part was a real bug: `.btn:hover { transition-duration: var(--dur-state) }`
    also caught the transform, and since a press only ever happens while hovered, the press rung was dead on every
    button on the page. */
-:where(.btn, .arrow, .theme, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
+:where(.btn, .arrow, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
   .input, .bento__col .photo, .ring__item .photo, .close__reach a):hover { --t: var(--dur-state); }
 
 /* EVERY HOVER EFFECT LIVES INSIDE @media (hover: hover). A phone has no hover, but it fakes one: a tap leaves the
@@ -39,20 +39,6 @@
 .arrow:active { transform: scale(.94); }
 .arrow .icon { width: 18px; height: 18px; }
 .arrows { display: flex; gap: var(--sp-2); }
-
-/* The theme toggle: moon on the light ground, sun on the dark */
-.theme { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-@media (hover: hover) { .theme:hover { color: var(--ink); background: var(--bg-raised); } }
-.theme:active { transform: scale(.94); }
-.theme .icon { width: 20px; height: 20px; }
-.theme .icon--sun { display: none; }
-:root[data-theme="dark"] .theme .icon--sun { display: block; }
-:root[data-theme="dark"] .theme .icon--moon { display: none; }
-
-/* The mark. On the light page it is black — the colour logo needs a dark ground to hold together. The star in the
-   counter of the "d" takes the page's colour, not the ink, or it closes up. */
-:root[data-theme="light"] .nav__brand .logo path { fill: var(--ink); }
-:root[data-theme="light"] .nav__brand .logo path[fill="white"] { fill: var(--bg); }
 
 /* Icons */
 .icon { width: 22px; height: 22px; fill: currentColor; flex: none; }
@@ -108,17 +94,22 @@
 .nav.is-scrolled { background: var(--glass); box-shadow: 0 1px 0 var(--line); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
 .nav.is-hidden { transform: translateY(-100%); }
 .nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
-.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); min-width: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+/* THE BRAND IS THE NAME, SET IN TYPE. Jayden: "the header looks off." The cause was the mark: a line drawing of a
+   ring of figures, which at 26px came out as a spindly glyph beside a bold wordmark, a few hundred pixels above the
+   same mark drawn at 160px. Every rendering of it was tried at 26, 32 and 48px and none of them held at nav size —
+   it is a drawing, not an icon. So the header carries the name and the hero carries the mark, once, large. On a
+   phone the name is now there too; it used to be the mark alone, and the name appeared nowhere above the fold. */
+.nav__brand { display: inline-flex; align-items: center; height: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__brand:hover { opacity: .72; } }
 .nav__brand:active { transform: scale(.97); }
-.nav__brand .logo { width: 26px; height: auto; margin: 0; overflow: visible; }
-.nav__panel { display: flex; align-items: center; gap: var(--sp-1); }
+.nav__panel { display: flex; align-items: center; gap: var(--sp-2); }
+/* one filled action in the bar, at the bar's own scale. It was an outlined box — the only bordered thing on the
+   header, next to a moon — and read as a form control dropped into a line of type. */
+.nav__subscribe { padding: 0 var(--sp-5); font-size: var(--fs-small); }
 .nav__links { display: flex; align-items: center; }
 .nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
-.nav__panel .theme { width: var(--hit); height: var(--hit); }
-@media (hover: hover) { .nav__panel .theme:hover { background: none; color: var(--ink); } }
 /* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
 .nav__menu { display: none; width: var(--hit); height: var(--hit); align-items: center; justify-content: center; color: var(--ink); border-radius: var(--r-xs); transition: transform var(--dur-press) var(--ease-out); }
 .nav__menu:active { transform: scale(.92); }
@@ -126,10 +117,11 @@
 .nav__menu[aria-expanded="true"] .icon--close { display: block; }
 @media (max-width: 767px) {
   .nav__bar { gap: var(--sp-3); }
-  .nav__brand .word { display: none; }
   .nav__links, .nav__subscribe { display: none; }
+  .nav__menu { margin-right: calc(-1 * var(--sp-3)); }   /* the icon's glyph, not its 44px box, sits on the gutter */
   .nav__menu { display: inline-flex; }
 }
+@media (max-width: 359px) { .nav__brand { font-size: 15px; } }   /* the name and the menu fit at 320 */
 @media (prefers-reduced-motion: reduce) { .nav { transition: background-color var(--dur-state) linear; } .nav.is-hidden { transform: none; } }
 
 /* Menu sheet (mobile) */

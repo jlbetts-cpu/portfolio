@@ -165,8 +165,8 @@ page=f'''<!DOCTYPE html>
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#0B0B0F">
-<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#FAFAFB">
+<meta name="color-scheme" content="light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
@@ -182,17 +182,17 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,t=null,c=1;try{{t=localStorage.getItem('di:theme');c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme=t==='light'?'light':'dark';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.dataset.theme='light';h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
 
 <header class="nav" id="nav">
   <div class="container nav__bar">
-    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navlogo}<span class="word">Developmental Improvisation</span></a>
+    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">Developmental Improvisation</a>
     <div class="nav__panel">
       <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
-      <button class="theme" type="button" data-theme-toggle aria-label="Switch to dark mode"><svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg></button><button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <button class="btn btn--primary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   </div>
 </header>
 

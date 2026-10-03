@@ -38,6 +38,8 @@ on every number I had and was still wrong.
 | **One photograph shape**: a 4:5 rectangle on the superellipse corner, and the circle belongs to the ring | settled | a mixed set of four shapes was built and rejected |
 | **The curtain is flat**, not pleated, and shows once a session | settled | "it looked a lot cleaner when it wasnt like actually a curtain" |
 | **The header is clean**: no container, no bar, leaves going down and comes back going up | 2026-09-06 | "i would rather it be a clean header though not in a container or anything just minimal and clean" |
+| **Light only, for now.** No dark mode, no toggle; a stored dark choice is ignored. The dark tokens are kept, unreferenced | 2026-10-03 | "lets take away the dark mode for now" |
+| **The header carries the name in type, not the mark.** The mark is a line drawing and does not hold at nav size; the hero carries it once, large. One filled action (Subscribe) | 2026-10-03 | "I feel like the header looks off… i want the header to be updated" |
 | **The hero has no container either** | 2026-10-02 | "does the hero really need to be in a container I feel like less is so much more" |
 | **The hero is simple, with the logo prevalent.** No gallery of drifting images in it | 2026-09-29, Linda | "far too busy too many images a much more simple hero would do wonders" |
 | **The about is two sections** — what Developmental Improvisation is, and who Linda is | 2026-09-29, Linda | — |
@@ -80,5 +82,4 @@ on every number I had and was still wrong.
 | **The newsletter endpoint** | `[NEWSLETTER_ACTION_URL]`. Mailchimp, a form, or her inbox — her call. |
 | **The phone number** | (857) or (877), never confirmed. |
 | **The mark against feedhippo.com** | Built from his description — the site was unreachable from the build machine, so the turn has not been compared with the reference side by side. |
-| **The hero mark in dark** | The sheen reads as pastel on the dark ground where it reads as a band on the light one. Worth another pass. |
 | **A second photograph for the sections** | Both are strong; if Linda's copy is short, 4:5 may want to become 3:2. |

@@ -43,5 +43,15 @@ const rm = await pg.evaluate(() => { const n = document.querySelector('#nav'); c
 const rmOk = rm.hidden && (rm.transform === 'none' || rm.transform === 'matrix(1, 0, 0, 1, 0, 0)') && rm.top === 0;
 if (!selfTest) { allOk = allOk && rmOk; report('nav (reduced): hides the class, never the slide', rmOk, JSON.stringify(rm)); }
 await pg.close();
+// Light only, for now (2026-10-03): a visitor who chose dark on an earlier visit still gets light, there is no toggle
+// to find, and the header is the name in type — no small copy of the mark, which did not hold at nav size.
+if (!selfTest) {
+  const lp = await open(b, 1440, 900, { theme: 'dark' });
+  const lo = await lp.evaluate(() => ({ theme: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor, toggles: document.querySelectorAll('[data-theme-toggle]').length, markInBrand: document.querySelectorAll('.nav__brand svg').length, brand: document.querySelector('.nav__brand').textContent.trim() }));
+  const loOk = lo.theme === 'light' && lo.bg === 'rgb(250, 250, 251)' && lo.toggles === 0 && lo.markInBrand === 0 && lo.brand === 'Developmental Improvisation';
+  allOk = allOk && loOk;
+  report('nav: light only — a stored dark choice is ignored, no toggle, the brand is the name', loOk, JSON.stringify(lo));
+  await lp.close();
+}
 await b.close();
 if (selfTest) { const caught = !allOk; console.log(caught ? 'SELF-TEST OK: the frozen header was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }

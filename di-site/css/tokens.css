@@ -142,7 +142,9 @@
   --ring-n: 8;
 }
 
-/* Dark — the visitor's choice. The hues do not change; the ground and the ink swap and the wash deepens. */
+/* Dark — OFF FOR NOW (2026-10-03, "lets take away the dark mode for now"). Nothing sets data-theme="dark" any more:
+   the head script writes "light" and the toggle is gone. The block is kept as it was so that bringing dark mode back
+   is the toggle, the head script and contrast.mjs's dark pass — git 88cae27 has all three — not a palette from nothing. */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg:          #0B0B0F;

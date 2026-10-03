@@ -1,5 +1,19 @@
 # Build log — Developmental Improvisation, home page
 
+## v27 (2026-10-03) — light only, and a header that is the name
+*"I feel like the header looks off, lets take away the dark mode for now and i want the header to be updated."*
+
+**Dark mode is off.** The toggle, the stored choice, the cross-fade and the head script's dark default are gone. The page used to open dark for every first-time visitor, which was never the intent written in `tokens.css`. A visitor who picked dark on an earlier visit now gets light. The dark token block is kept, unreferenced, with a note naming the commit that has the toggle, the head script and the gate's dark pass, so bringing it back is three restores rather than a palette rebuilt. `color-scheme` and `theme-color` are light.
+
+**What was off in the header, measured.** Three things:
+- **The mark.** It is a line drawing of a ring of figures. At 26px it came out as a spindly glyph beside a bold 16px wordmark, a few hundred pixels above the same mark at 160px. Every rendering in the repo was set side by side at 26, 32 and 48px: the inked colour logo, `dilogo.svg`, and the hero's geometry solid and with the star knocked out. None held at nav size; it is a drawing, not an icon.
+- **The moon.** An icon in a line of words.
+- **The Subscribe button.** An outlined box, the only bordered thing on the header, which read as a form control dropped into a line of type.
+
+**The new header** is the name in type at 17px (15px under 360), About and Contact, and one filled Subscribe at the bar's own scale. Two directions were mocked on the live page first. Name alone beat a 34px mark plus the name: the mark was still spindly at 34, and it repeated the hero mark directly below it. On a phone the name now shows. It used to be the mark alone, and the brand's name appeared nowhere above the fold. The menu glyph, not its 44px box, sits on the gutter. Taking the 11KB inline colour logo out of the header also took the HTML from 117KB to 106KB.
+
+**Gates.** `contrast.mjs` runs light only, with a note to put the dark pass back with the toggle. `nav.mjs` adds a check that a stored dark choice is ignored, there is no toggle, and the brand is the name with no mark. Run against the previous page, it fails with theme `dark`, one toggle and one mark. 50 gate lines pass and 8 self-tests are caught.
+
 ## v26 (2026-10-03) — every section to its ceiling
 *"can you keep editing till its a ten in all sections."* Each section was captured on its own at 1440 (light and dark), 1024, 820 and 390, rated, and the weakest worked until nothing more could be fixed in the design. Two things stop the score at 10 and neither is design: the body copy of both sections and the three testimonials are still placeholder.
 
