@@ -7,7 +7,7 @@ export async function open(b, w, h, opts = {}) {
   // the newsletter popup opens by itself after 40% scroll and ten seconds, once a session, and sits over the page; every gate but the dialog gate starts with it already shown
   if (!opts.popup) await pg.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); } catch {} });
   // the theme is read from localStorage before first paint, so a gate that wants dark must set it before the page loads
-  if (opts.theme) await pg.addInitScript((t) => { try { localStorage.setItem('di:theme', t); } catch {} }, opts.theme);
+  if (opts.theme) await pg.addInitScript((t) => { try { localStorage.setItem('di:mode', t); } catch {} }, opts.theme);
   // the curtain covers the page for the first second and locks scrolling while it is up; every gate but its own starts past it
   if (!opts.curtain) await pg.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
   await pg.goto(URL); await pg.evaluate(() => document.fonts.ready);

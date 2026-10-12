@@ -34,13 +34,21 @@ await pg.waitForTimeout(1300);
 const rest = await angles();
 const returns = Math.abs(rest.y) < 1 && Math.abs(rest.x) < 1;
 report('mark faces the pointer', turns && looks && held && returns, JSON.stringify({ right, left, up, down, rest, turns, looks, held, returns }));
+// the mark is in the brand's own colours (2026-10-12), with the glint of light running over it
+const colour = await pg.evaluate(() => {
+  const fills = [...document.querySelectorAll('.logo--hero .logo__art path')].map(p => getComputedStyle(p).fill);
+  const shine = getComputedStyle(document.querySelector('.logo--hero .logo__shine'));
+  return { hues: new Set(fills).size, sky: fills.includes('rgb(88, 205, 252)'), glint: shine.animationName, state: shine.animationPlayState };
+});
+if (!selfTest) report('mark: in the brand\'s colours, the glint running', colour.hues >= 7 && colour.sky && colour.glint === 'mark-glint' && colour.state === 'running', JSON.stringify(colour));
 await pg.close();
 if (!selfTest) {
   const rp = await open(b, 1440, 900, { reduced: true });
   await rp.mouse.move(1430, 200, { steps: 4 }); await rp.waitForTimeout(900);
   const t = await rp.evaluate(() => getComputedStyle(document.querySelector('.hero__mark__spin')).transform);
   const still = t === 'none' || new DOMMatrixReadOnly(t).isIdentity;
-  report('mark still under reduced motion', still, t);
+  const glint = await rp.evaluate(() => getComputedStyle(document.querySelector('.logo--hero .logo__shine')).animationName);
+  report('mark still under reduced motion, no glint', still && glint === 'none', JSON.stringify({ t, glint }));
   await rp.close();
 }
 await b.close();

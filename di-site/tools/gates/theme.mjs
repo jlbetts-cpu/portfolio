@@ -1,5 +1,6 @@
 // Gate: the theme. The page answers to its own switch and to nothing else.
-//   default     with no choice made it follows the visitor's system: dark system → dark page, light → light
+//   default     with no choice made the page is DARK, whatever the visitor's system says (2026-10-12: "keep it in
+//               dark mode, it looks better for this specific site")
 //   choice      a choice from the switch beats the system, and survives a reload
 //   the host    a host that writes data-theme="dark" onto the page (the claude.ai preview does, for anyone whose
 //               claude.ai is dark) changes nothing — that attribute is not ours, and keying the dark tokens on it is
@@ -15,7 +16,7 @@ const page = async (scheme, stored) => {
   const pg = await ctx.newPage();
   // the stored choice is seeded on the FIRST load only — an init script runs again on reload, and clearing the choice
   // there would test the seed, not the page's memory
-  await pg.addInitScript((t) => { try { sessionStorage.setItem('di:nl-shown', '1'); sessionStorage.setItem('di:curtain', '1'); if (!sessionStorage.getItem('gate:seeded')) { if (t) localStorage.setItem('di:theme', t); else localStorage.removeItem('di:theme'); sessionStorage.setItem('gate:seeded', '1'); } } catch {} }, stored);
+  await pg.addInitScript((t) => { try { sessionStorage.setItem('di:nl-shown', '1'); sessionStorage.setItem('di:curtain', '1'); if (!sessionStorage.getItem('gate:seeded')) { if (t) localStorage.setItem('di:mode', t); else localStorage.removeItem('di:mode'); sessionStorage.setItem('gate:seeded', '1'); } } catch {} }, stored);
   await pg.goto(URL); await pg.waitForTimeout(400);
   return { ctx, pg };
 };
@@ -27,7 +28,7 @@ let { ctx, pg } = await page('dark', null);
 const d0 = await bg(pg); await ctx.close();
 ({ ctx, pg } = await page('light', null));
 const l0 = await bg(pg); await ctx.close();
-check('no choice made → the visitor\'s system', d0 === DARK && l0 === LIGHT, JSON.stringify({ darkSystem: d0, lightSystem: l0 }));
+check('no choice made → dark, on a dark system and a light one', d0 === DARK && l0 === DARK, JSON.stringify({ darkSystem: d0, lightSystem: l0 }));
 
 ({ ctx, pg } = await page('dark', null));
 await pg.evaluate(() => document.querySelector('#contact').scrollIntoView());
@@ -37,7 +38,7 @@ const afterClick = await bg(pg);
 const pressed = await pg.evaluate(() => document.querySelector('#contact [data-theme-set="light"]').getAttribute('aria-pressed'));
 await pg.reload(); await pg.waitForTimeout(400);
 const afterReload = await bg(pg);
-check('the footer switch beats the system and survives a reload', sw.length === 2 && sw.every(x => x.h >= 44) && sw.find(x => x.t === 'dark').pressed === 'true' && afterClick === LIGHT && pressed === 'true' && afterReload === LIGHT, JSON.stringify({ sw, afterClick, pressed, afterReload }));
+check('the footer switch beats the default and survives a reload', sw.length === 2 && sw.every(x => x.h >= 44) && sw.find(x => x.t === 'dark').pressed === 'true' && afterClick === LIGHT && pressed === 'true' && afterReload === LIGHT, JSON.stringify({ sw, afterClick, pressed, afterReload }));
 // the host: the visitor chose light; a dark host marks the page dark
 if (selfTest) await pg.addStyleTag({ content: ':root[data-theme="dark"] { --bg: #0B0B0F; }' });   // the bug, back
 await pg.evaluate(() => { document.documentElement.dataset.theme = 'dark'; document.documentElement.classList.add('dark'); }); await pg.waitForTimeout(200);

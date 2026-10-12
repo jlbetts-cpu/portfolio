@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v33 (2026-10-12) — the logo in its own colours, and dark by default
+*"I want the logo to be like the normal colors maybe with a premium shine instead of being black. I think I also want to keep it in dark mode, I think it looks better for this specific site."*
+
+**The mark is the logo again.** The paths go in as the logo file draws them: the sky monogram, the white star and the six coloured arcs. What moves is light. The geometry is emitted a second time, solid white, inside a mask, and a narrow diagonal band of white with soft shoulders travels across it: a 1.5s sweep, then about four and a half seconds off the mark, on `--ease-in-out`. It is a glint that comes and goes, not a shimmer that never stops. Three blends were tried side by side on the dark ground (normal, soft-light, overlay); plain white at 85% read as the most like light on a glossy surface. The first strength, 72% with a thinner band, barely registered in four of six frames, so it went up. The glint rides the tilt: turning the mark toward the pointer slides the light across it by up to ±120 units, the way a real surface catches it. Under reduced motion there is no glint and no turn.
+
+**Dark for everyone.** The page no longer follows the visitor's system; it opens dark, and the colour logo needs that ground to hold together. Rendered on the light page, the pale yellow arc and the white star all but vanish. The footer switch can still pick light, and it remembers. Two fixes cover the light page for anyone who does: the star takes the ink and the yellow arc deepens to #F2C94C. The stored choice moved to a new key (`di:mode`), so a choice made when the page followed the system cannot quietly keep someone out of the new default.
+
+**Gates.** `theme.mjs`: with no choice the page is dark on a dark system and on a light one, the switch to light survives a reload, and a host's `data-theme` changes nothing. `mark.mjs`: the mark's paths carry all eight brand fills and the glint is running; under reduced motion there is neither glint nor turn. 55 gate lines pass and 9 self-tests are caught.
+
 ## v32 (2026-10-12) — Inter
 *"i dont think I like the font I think id prefer inter."* One face still, two weights still (400 and 700); only the family changed.
 

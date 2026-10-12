@@ -33,14 +33,15 @@ on every number I had and was still wrong.
 | Decision | When | His words, or the record |
 |---|---|---|
 | **The quote ring stays as it is** — eight circular photographs turning around Linda's one line | 2026-09-07 | "I actually love the creativity and motion section"; the merge into testimonials was reverted in full |
-| **No gradients on the page.** The one exception is the hero mark's sheen, asked for by name | rejected twice, 2026-08 | "the gradients look cheap" |
+| **No gradients on the page.** The one exception is the hero mark's glint, asked for by name | rejected twice, 2026-08 | "the gradients look cheap" |
 | **No coloured text, no hue as a border, no coloured dot before a label** | settled | the `<mark>` highlights were built and taken out the same day: "i actually dont like the highlights" |
 | **One photograph shape**: a 4:5 rectangle on the superellipse corner, and the circle belongs to the ring | settled | a mixed set of four shapes was built and rejected |
 | **The curtain is flat**, not pleated, and shows once a session | settled | "it looked a lot cleaner when it wasnt like actually a curtain" |
 | **The header is clean**: no container, no bar, leaves going down and comes back going up | 2026-09-06 | "i would rather it be a clean header though not in a container or anything just minimal and clean" |
-| **Dark mode stays, and its switch lives in the footer**, not the header. With no choice made the page follows the visitor's system; a choice from the switch is remembered | 2026-10-03 | "I actually like the dark mode but I think the button to change it should be in the footer" (after "lets take away the dark mode for now" the same day) |
+| **Dark is the site's ground**, for every visitor, whatever their system; the footer switch can still pick light, and remembers it | 2026-10-12 | "I think I also want to keep it in dark mode I think it looks better for this specific site" (the switch itself: "the button to change it should be in the footer", 2026-10-03) |
 | **The page answers to its own theme attribute only** (`data-di-theme`). A host's `data-theme` is never read | 2026-10-03 | the claude.ai preview writes `data-theme="dark"`, and keying the dark tokens on it is why dark mode "would not go away" |
 | **No cards on the testimonials or the footer.** Quotes stand under hairlines; the footer is three bands of type on the page | 2026-10-03 | "the footer and testimonials section looks outdated compared to the cleanness of the rest of the site" |
+| **The hero mark is the logo in its own colours, with a glint of white light** crossing it every six seconds, tied to the tilt. Not black, not a colour sweep | 2026-10-12 | "I want the logo to be like the normal colors maybe with a premium shine instead of being black" |
 | **The headline is one colour**, all ink. No half of the claim set a tier down | 2026-10-03 | "why is emotional understanding greyed out … I feel like that should all be black" |
 | **No lines.** No hairlines, dividers or outlined controls; space separates things, and a control that needs a shape gets a soft fill. Focus and error rings stay | 2026-10-03 | "remove the lines I want it more minimal just use clean white space design" |
 | **The hero is the first screen; the gallery only peeks under it** — 50 to 72px on a screen that holds the hero | 2026-10-03 | "make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero" |

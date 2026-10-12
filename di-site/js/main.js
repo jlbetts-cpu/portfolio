@@ -19,11 +19,11 @@
      page — the buttons' scale, the photographs' — never showed on an iPhone. Passive and empty: it changes nothing else. */
   document.addEventListener('touchstart', () => {}, { passive: true });
 
-  /* ---- Theme: the visitor's system until they choose; then their choice, from the switch in the footer. The head
-     script has already set data-di-theme before first paint, so this only keeps the switch, the browser chrome and a
-     system change in step with it. A host's own data-theme is never read. ---- */
-  const THEME = 'di:theme';
-  const sysDark = matchMedia('(prefers-color-scheme: dark)');
+  /* ---- Theme: DARK, for everyone, unless the visitor picks light from the switch in the footer. Jayden, 2026-10-12:
+     "I think I also want to keep it in dark mode, I think it looks better for this specific site" — and the colour
+     logo needs a dark ground to hold together. The head script has already set data-di-theme before first paint, so
+     this only keeps the switch and the browser chrome in step. A host's own data-theme is never read. ---- */
+  const THEME = 'di:mode';   // renamed from di:theme when dark became the default for everyone (2026-10-12)
   const paintTheme = (t, animate) => {
     if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
     root.dataset.diTheme = t;
@@ -35,7 +35,6 @@
     const t = b.dataset.themeSet; if (t === root.dataset.diTheme) return;
     store.set(THEME, t); paintTheme(t, true);
   }));
-  sysDark.addEventListener('change', (e) => { const c = store.get(THEME); if (c !== 'light' && c !== 'dark') paintTheme(e.matches ? 'dark' : 'light', true); });
 
   /* ---- The curtain: the first load of a session. It waits for the fonts and the hero's first photographs, then parts.
      Three things guarantee the site is never stuck behind it: a hard timeout, a floor on how long it can show, and
@@ -166,7 +165,7 @@
      between the mark and that edge of the window, is the angle. It eases toward that with a short time constant, so it follows like something with a
      little weight rather than snapping to the cursor. A flat mark turned far enough shows its edge, so it is held
      to ±30° across and ±20° up and down. With no hovering pointer it sways slowly on the flow instead, so a phone
-     still sees an object rather than a picture of one. The sheen's offset is tied to the same angles. ---- */
+     still sees an object rather than a picture of one. The glint's offset is tied to the same angles. ---- */
   const mark = $('[data-mark]');
   if (mark && !reduced.matches) {
     const MAX_Y = 30, MAX_X = 20, TAU = .2;
@@ -176,7 +175,8 @@
       mark.style.setProperty('--ry', ry.toFixed(2) + 'deg');
       mark.style.setProperty('--rx', rx.toFixed(2) + 'deg');
       // the rect is twice the mark's width and carries two bands, so a sweep of one mark-width covers every state
-      mark.style.setProperty('--sheen', (((flow.angle * 2.4 + ry * 6 - rx * 4) % 800) + 800) % 800);
+      // the glint rides the turn: tilting the mark slides the light across it, up to ±120 user units
+      mark.style.setProperty('--glare', (ry * 4 - rx * 2).toFixed(1));
     };
     const tick = (t) => {
       const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;

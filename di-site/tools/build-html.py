@@ -97,26 +97,29 @@ def gallery_col(names):
             f'<ul class="gallery__run" aria-hidden="true">{run(True)}</ul></div>')
 gallery=''.join(gallery_col(c) for c in GALLERY)
 
-# the hero's mark, built from the same source as every other copy of it: the paths once for the black shape, and once
-# more inside a mask so a moving band of the palette can be laid over them without duplicating the geometry in markup.
+# the hero's mark: THE BRAND'S OWN COLOURS, with a glint of light passing over them. Jayden, 2026-10-12: "I want the
+# logo to be like the normal colors maybe with a premium shine instead of being black." So the paths go in as the logo
+# file draws them — sky monogram, gold star, the six arcs — and the geometry is emitted a second time, solid white,
+# inside a mask, so a narrow band of white light can travel across the mark and only ever touch the mark itself.
 _paths = re.findall(r'<path[^>]*/>', logo)
-# two copies of the same geometry: one with its fills STRIPPED so CSS can ink it (a path's own fill attribute beats a
-# fill inherited from a styled parent, which is what painted the first version magenta), one solid white for the mask
-_ink  = ''.join(re.sub(r'\s*fill="[^"]*"', '', p) for p in _paths)
+# the two fills that need a different ink when the page is light: the white star (it vanishes on a light ground) and
+# the pale yellow arc. A class on each, so CSS can reach them without a second copy of the logo.
+def _tag(p):
+    if 'fill="white"' in p: return p.replace('<path ', '<path class="logo__star" ', 1)
+    if 'fill="#FEE79B"' in p: return p.replace('<path ', '<path class="logo__pale" ', 1)
+    return p
+_art = ''.join(_tag(p) for p in _paths)
 _shape = ''.join(re.sub(r'fill="[^"]*"', 'fill="#fff"', p) for p in _paths)
-# two bands of the palette across a rect twice the mark's width, so one of them is always crossing it and the colour
-# never stops moving. Transparent between the bands: the mark is BLACK with light passing over it, not a coloured mark.
-_stops = ''.join(f'<stop offset="{o}" stop-color="{c}" stop-opacity="{a}"/>' for o, c, a in
-                 [('0','#58CDFC','0'),('0.09','#58CDFC','0'),('0.16','#58CDFC','.85'),('0.23','#7358FC','1'),
-                  ('0.30','#E744E2','1'),('0.38','#F0895B','.85'),('0.46','#F0895B','0'),('0.59','#FFE469','0'),
-                  ('0.66','#FFE469','.85'),('0.73','#51E596','1'),('0.80','#58CDFC','1'),('0.88','#FB9BC9','.85'),
-                  ('0.96','#FB9BC9','0'),('1','#FB9BC9','0')])
+# the glint: a narrow white band with a soft shoulder either side, laid diagonally. One band, on a rect twice the
+# mark's width, so it crosses the mark and is then off it — a glint that comes and goes, not a shimmer that never stops.
+_shine = ''.join(f'<stop offset="{o}" stop-color="#fff" stop-opacity="{a}"/>' for o, a in
+                 [('0','0'),('.35','0'),('.43','.24'),('.475','.72'),('.5','1'),('.525','.72'),('.57','.24'),('.65','0'),('1','0')])
 heromark = (f'<svg class="logo logo--hero" viewBox="0 0 787 842" role="img" aria-labelledby="heroLogoTitle">'
             f'<title id="heroLogoTitle">Developmental Improvisation</title>'
-            f'<defs><linearGradient id="markSheen" x1="0" y1="0.15" x2="1" y2="0.85">{_stops}</linearGradient>'
+            f'<defs><linearGradient id="markShine" x1="0" y1="0" x2="1" y2=".45">{_shine}</linearGradient>'
             f'<mask id="markMask" maskUnits="userSpaceOnUse" x="0" y="0" width="787" height="842">{_shape}</mask></defs>'
-            f'<g class="logo__ink">{_ink}</g>'
-            f'<g mask="url(#markMask)"><rect class="logo__sheen" x="-640" y="-100" width="1180" height="1040" fill="url(#markSheen)"/></g>'
+            f'<g class="logo__art">{_art}</g>'
+            f'<g mask="url(#markMask)"><g class="logo__glare"><rect class="logo__shine" x="-800" y="-200" width="1600" height="1240" fill="url(#markShine)"/></g></g>'
             f'</svg>')
 
 # ---- The two sections that replace the four cards ----
@@ -165,8 +168,8 @@ page=f'''<!DOCTYPE html>
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#FAFAFB">
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0B0B0F">
+<meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
@@ -182,7 +185,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,c=1,t=null;try{{t=localStorage.getItem('di:theme');c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';h.dataset.diTheme=t;h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,c=1,t=null;try{{t=localStorage.getItem('di:mode');c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}if(t!=='light')t='dark';h.dataset.diTheme=t;h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -261,8 +264,8 @@ page=f'''<!DOCTYPE html>
     <div class="close__foot">
       <p class="close__copy">© 2026 Developmental Improvisation</p>
       <div class="switch" role="group" aria-label="Colour theme">
-        <button class="switch__opt" type="button" data-theme-set="light" aria-pressed="true"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>Light</span></button>
-        <button class="switch__opt" type="button" data-theme-set="dark" aria-pressed="false"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg>Dark</span></button>
+        <button class="switch__opt" type="button" data-theme-set="light" aria-pressed="false"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>Light</span></button>
+        <button class="switch__opt" type="button" data-theme-set="dark" aria-pressed="true"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg>Dark</span></button>
       </div>
     </div>
   </div></div>
