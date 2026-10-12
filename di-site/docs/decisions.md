@@ -48,7 +48,7 @@ on every number I had and was still wrong.
 | **The hero has no container either** | 2026-10-02 | "does the hero really need to be in a container I feel like less is so much more" |
 | **The hero is simple, with the logo prevalent.** No gallery of drifting images in it | 2026-09-29, Linda | "far too busy too many images a much more simple hero would do wonders" |
 | **The about is two sections** — what Developmental Improvisation is, and who Linda is | 2026-09-29, Linda | — |
-| **One face.** Geist, 400 and 700 | 2026-09-29 | "lets make the site feel a lot more focused and mature" |
+| **One face: Inter**, 400 and 700, with its optical-size axis (display design at 32px and up). It replaced Geist (2026-09-29), which replaced Jost and Plus Jakarta Sans | 2026-10-12 | "i dont think I like the font I think id prefer inter" |
 | **The photographs under the hero are a VERTICAL scroll** — columns rising on their own, faded at the top and the bottom | 2026-10-02 | "the reference I liked was more of a vertical image scroll"; the horizontal strip lasted one round |
 | **The gallery keeps one shape.** Every photograph in it is 4:5; the masonry edge comes from column offsets and speeds, not mixed heights | 2026-10-02 | asked with the reference's mixed-height grid beside it: "Keep one shape" |
 | **The gallery cannot be scrubbed by hand.** It drifts and it fades; there is no wheel handler, and a wheel over it scrolls the page | 2026-10-02 | "you cant like manually scroll through like the old version I like how it fades" |
@@ -63,7 +63,7 @@ on every number I had and was still wrong.
 |---|---|---|---|
 | Type floor | **15px** | nothing under it but a glyph inside a shape; Strata says 15pt and the page now matches it | `--fs-caption`, `--fs-small` |
 | Type weights | **400 / 700** | two, and no third | `tokens.css` |
-| Display scale | 4.25rem top, −0.035em | down, not up; Geist's x-height is 0.52em | `--fs-display` |
+| Display scale | 4.25rem top, −0.022em | Inter's display design is already drawn tight; Geist's −0.035em on it read pinched | `--fs-display` |
 | Reading sizes | `--fs-read` 20px at 1440 for the sections' prose, `--fs-quote` 23px for the quotes | body size (16px) is for chrome; a paragraph the page wants read is never set at it beside a 680px photograph | `tokens.css` |
 | Section rhythm | `clamp(80px, 8vw, 168px)`, ring at 1.4× | 115px at 1440 measured | `base.css` |
 | Gutter | `clamp(20px, 3.4vw, 64px)` | 49px at 1440; under 30 reads as a brochure | `--gutter` |

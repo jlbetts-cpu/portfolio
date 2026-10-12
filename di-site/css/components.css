@@ -115,7 +115,7 @@
    same mark drawn at 160px. Every rendering of it was tried at 26, 32 and 48px and none of them held at nav size —
    it is a drawing, not an icon. So the header carries the name and the hero carries the mark, once, large. On a
    phone the name is now there too; it used to be the mark alone, and the name appeared nowhere above the fold. */
-.nav__brand { display: inline-flex; align-items: center; height: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__brand { display: inline-flex; align-items: center; height: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__brand:hover { opacity: .72; } }
 .nav__brand:active { transform: scale(.97); }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-2); }

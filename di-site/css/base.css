@@ -1,12 +1,14 @@
 /* Reset, fonts, type roles, layout primitives */
-/* ONE face, for everything. Geist — a neutral grotesque, 400 to 700 in a single 68KB variable file. It replaced Jost
-   and Plus Jakarta Sans together: three files became one, and a display face plus a reading face became one voice.
-   Jost was chosen to echo the mark's geometry and it did that well, but the brief changed — Linda asked for a serious
-   tool for education, and a Futura is the wrong register for that: geometric circles read as friendly and a little
-   retro. A grotesque reads as institutional, which is what "a new tool for education" has to be. The mark keeps its
-   own geometry; the type no longer imitates it. */
-@font-face { font-family: "Geist"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../fonts/geist-variable.woff2") format("woff2-variations"); }
-@font-face { font-family: "Geist Fallback"; src: local("Arial"); size-adjust: 97%; ascent-override: 98%; descent-override: 24%; line-gap-override: 0%; }
+/* ONE face, for everything: INTER (2026-10-12, Jayden: "i dont think I like the font I think id prefer inter"). It
+   replaced Geist, which replaced Jost and Plus Jakarta Sans; the one-face rule and the two weights carried over, only
+   the family changed. Inter 4, latin, in one 73KB variable file with TWO axes: weight, and optical size (14–32). The
+   second axis is the reason for this file over the 48KB weight-only one — font-optical-sizing is on by default, so
+   everything set at 32px and up is drawn from Inter's display design, with tighter spacing and finer joins, and
+   everything at reading size from the text design, without a second family or a single class. SIL OFL;
+   fonts/inter-OFL.txt travels with the file. */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("../fonts/inter-variable.woff2") format("woff2-variations"); }
+/* the fallback is Arial reshaped to Inter's metrics (Inter is wider and taller-set), so the swap moves nothing */
+@font-face { font-family: "Inter Fallback"; src: local("Arial"); size-adjust: 107.12%; ascent-override: 90.44%; descent-override: 22.52%; line-gap-override: 0%; }
 
 *, *::before, *::after { box-sizing: border-box; }
 /* Every corner on this site is a superellipse, not an arc. One declaration, for everything that takes a radius. */

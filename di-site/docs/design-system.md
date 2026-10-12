@@ -67,6 +67,8 @@ No coloured text — a `<mark>` highlight on two words of the headline was built
 | `--line` / `--line-strong` | ink 10% / 20% | off-white 10% / 20% |
 
 ## 4. Type
+
+**Inter (2026-10-12).** One face, Inter 4, 400 and 700, in a 73KB variable file with weight and optical-size axes: at 32px and up the browser draws Inter's display design, below it the text design. Tracking: display −0.022em, h1 −0.02, h2 −0.018, h3 −0.012; reading sizes near the font's own. What follows describes the Geist era and is kept for the reasoning; the family and the tracking values above supersede it.
 **Geist, two weights: 400 and 600.** One variable latin file, 68KB, for everything — display and reading. It replaced **Jost and Plus Jakarta Sans together**: three files became one, and a display face plus a reading face became one voice.
 
 **Why the change.** Jost was chosen by measuring the mark: the logo's "di" is a circular bowl on a straight stem with one stroke weight and flat terminals, which is a Futura, and Jost is a Futura. That was the right answer to the question "what matches the logo". Linda asked a different question — *a serious new tool for education* — and a Futura is the wrong register for it: geometric circles read friendly and slightly retro. A grotesque reads institutional. **The mark keeps its own geometry; the type stopped imitating it.**

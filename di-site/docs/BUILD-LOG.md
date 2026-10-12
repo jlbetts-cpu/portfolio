@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v32 (2026-10-12) — Inter
+*"i dont think I like the font I think id prefer inter."* One face still, two weights still (400 and 700); only the family changed.
+
+**Which Inter.** Inter 4, latin, in one 73KB variable file with two axes, weight and optical size (14–32). That is 5KB more than the Geist it replaced, and 25KB more than the weight-only file, and the second axis is what the 25KB buys. `font-optical-sizing` is on by default, so everything at 32px and up is drawn from Inter's display design and everything at reading size from the text design, with no second family and no class. Measured on the hero's second line: 1096.6px wide with the axis left to the browser, which is exactly its width with the display design forced (`"opsz" 32`), against 1164.3px with the text design forced. The browser is choosing the display cut. SIL OFL, and `fonts/inter-OFL.txt` travels with the file.
+
+**The tracking came out.** Geist wanted closing up at display size (−0.035em), but Inter's display design is already spaced tight, and the same value on it read pinched. Display is now −0.022em, h1 −0.02, h2 −0.018, h3 −0.012, the brand's closing line −0.022, the ring's quote −0.02 and the header's name −0.014. Reading sizes stay close to the font's own. The fallback is Arial reshaped to Inter's metrics (size-adjust 107.12%), so the swap moves nothing.
+
+**Also fixed while looking:** on a phone the hero mark had dropped to 84px in v30, a side effect of sizing it by the screen's height for short laptops. Linda asked for the logo to be prevalent, so its floor is back to 104px. The laptop fix still holds, because the height term only acts above the floor.
+
+**Measured after v32.** 54 gate lines pass. The headline is 2 lines at 1440 and at 1024 (it was 3 at 1024: Inter's display design is narrower) and 5 on a phone. Worst contrast is 5.18:1 light and 5.95:1 dark. The Geist file is deleted.
+
 ## v31 (2026-10-03) — a softer edge on the gallery
 *"I dont think the fade needs to be that strong tone it down."* The gallery's mask faded the top 12% and the bottom 38%, so the lower third of every column was half-dissolved and a photograph was never seen whole until it had risen past the middle. It is now 6% at the top and 18% at the foot, each eased through a 65% stop so the edge has no visible start. The before and after were captured at the same frozen flow angle, so they show the same photographs, and the change was judged on those. 54 gate lines pass; `gallery.mjs` still asserts both ends fade to transparent.
 

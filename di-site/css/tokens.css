@@ -61,23 +61,20 @@
   --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  /* Type — ONE face. Geist, 400 and 600, in a single 68KB variable file. Two weights only; leading and tracking are
-     the levers, not the family. Jost and Plus Jakarta Sans are both gone: a display face plus a reading face is two
-     voices, and Linda asked for one serious one. Geist's x-height is 0.52em against Jost's 0.460, so every display
-     size came DOWN — the same optical weight needs less size — and the tracking went tighter, because a grotesque at
-     display size wants to be closed up where a geometric wants air.
-     THE FLOOR IS 14px. Taken from Jayden's own app, where the rule reads "nothing below 15pt, no tiny thin font
-     anywhere" — 13px captions and a 12px label were the two smallest things on this page and both moved up. The one
-     thing still under it is the initials inside a 36px disc, which is a glyph in a shape rather than something to
-     read. And the two weights are 400 and 700, not 400 and 600: his app sets Bold against Medium at 34% of stroke
-     apart, and 600 against 400 in a grotesque is a narrower gap than that. */
-  --font: "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Type — ONE face, Inter (see base.css for why this file). Two weights, 400 and 700; leading and tracking are the
+     levers, not the family. The tracking came OUT when Geist went: Geist wanted closing up at display size (−0.035em),
+     and Inter at 32px and up is already its display design, whose spacing is drawn tight — the same −0.035em on it
+     read pinched. So the display steps sit at −0.022 to −0.012em, and reading sizes stay close to the font's own.
+     THE FLOOR IS 15px, from Jayden's own app: "nothing below 15pt, no tiny thin font anywhere." And the two weights
+     are 400 and 700, not 400 and 600: his app sets Bold against Medium at 34% of stroke apart, and 600 against 400 in
+     a grotesque is a narrower gap than that. */
+  --font: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
-  --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.035em;
-  --fs-h1:      clamp(2rem, 1.3rem + 3vw, 3.25rem);         --lh-h1: 1.08;      --ls-h1: -0.032em;
-  --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.026em;
-  --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.016em;
-  --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.005em;
+  --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.022em;
+  --fs-h1:      clamp(2rem, 1.3rem + 3vw, 3.25rem);         --lh-h1: 1.08;      --ls-h1: -0.02em; 
+  --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.018em;
+  --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
+  --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.006em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
   --fs-small:   0.9375rem;                                  --lh-small: 1.5;    --ls-small: 0;
   --fs-label:   0.8125rem;                                  --lh-label: 1;      --ls-label: 0.09em;
@@ -87,7 +84,7 @@
      the three quotes. Body size (16px at 1440) next to a 680px photograph read as a caption to it; this is the size a
      paragraph has on a page that wants it read. */
   --fs-read:    clamp(1.0625rem, 1rem + .3vw, 1.25rem);       --lh-read: 1.6;
-  --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.012em;
+  --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.008em;
   /* Measures are in em, never ch */
   --measure-display: 15em;
   --measure-h2: 17em;

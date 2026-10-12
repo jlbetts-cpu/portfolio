@@ -174,7 +174,7 @@ page=f'''<!DOCTYPE html>
 <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="preload" href="fonts/geist-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={STAMP}">
 <link rel="stylesheet" href="css/base.css?v={STAMP}">
 <link rel="stylesheet" href="css/components.css?v={STAMP}">

@@ -34,7 +34,7 @@
    ±20°, which is far enough to read as an object turning and short of the angle where a flat mark shows its edge.
    With no pointer to follow (a phone) it sways on the page's own clock instead. The sheen is tied to the angle, so
    turning it moves the light across it. */
-.hero__mark { width: clamp(84px, min(11vw, 17vh), 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
+.hero__mark { width: clamp(104px, min(11vw, 17vh), 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
 .hero__mark__spin { width: 100%; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); will-change: transform; }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
 .logo--hero .logo__ink { fill: var(--ink); }
@@ -115,7 +115,7 @@
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
    whatever the breakpoint does to either number */
 .ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--r) * 2 - var(--ring-item) - 32px); text-align: center; z-index: 2; }
-.ring__text { margin: 0; font-family: var(--font-display); font-size: clamp(1.0625rem, 5.6vw, 1.375rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 700; color: var(--ink); text-wrap: balance; }
+.ring__text { margin: 0; font-family: var(--font-display); font-size: clamp(1.0625rem, 5.6vw, 1.375rem); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; color: var(--ink); text-wrap: balance; }
 /* A <blockquote> carries the UA's 40px side margins, and this one always had them: on a phone they took 80px out of a
    174px column and stacked the line five deep into the circles. They are gone on a phone. On a wide screen the line
    breaks Jayden signed off on — Creativity / in motion / creates / knowledge! — were set against that narrower
@@ -162,7 +162,7 @@
 .close { padding-bottom: var(--sp-8); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.022em; font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
 .close__sign { grid-column: 1 / -1; }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-1); align-content: start; justify-items: start; }
