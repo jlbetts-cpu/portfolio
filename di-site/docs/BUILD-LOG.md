@@ -11,6 +11,8 @@
 
 **Past the foot the scroll keeps going.** There is no page left to move at the foot, so a downward wheel or an upward swipe there turns the flow by what the scroll would have: measured, a 1200px wheel turned it 70° in 0.7s against 2° of drift, and a 360px swipe on a phone 28°. Nothing is prevented, and above the foot a wheel scrolls the page as it always has.
 
+**No blur anywhere.** The pill is solid, and asked whether "remove the blur" meant the gallery's soft fade too (*"The carousel fade too"*), its top and bottom are now cut clean; the gate fails on a masked stage.
+
 **The footer** lost "Bring this to your school"; Contact is Email and Call.
 
 **Gates.** The gallery gate wants six columns (5/4/2 by width), full bleed, at most 460px tall, the last thing on the page, and a wheel past the foot to turn the flow (it fails with the hook removed: 0.5°); its wheel goes up now, since there is no page under the foot to scroll into, and that was the gate's bug the first time it ran here. The nav gate wants the pill solid with its edge, and the logo in the brand in the ink. The layout gate's peek is the first section's photograph. **52 gate lines pass, 9 self-tests caught.**

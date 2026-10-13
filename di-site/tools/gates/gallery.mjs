@@ -1,8 +1,8 @@
 // Gate: the gallery. Four columns of photographs rising on their own (three on a tablet, two on a phone). Every
 // visible column drifts, they do NOT all travel at one rate (that is what makes one-shape photographs read as
 // masonry), the pointer holds them so a photograph can be clicked, a wheel over them scrolls the PAGE and never the
-// columns, each column wraps inside its own loop length, the stage clips them, and the top and the bottom are masked
-// so the photographs fade rather than ending on a cut. Since 2026-10-13 it is the last thing on the page, under the
+// columns, each column wraps inside its own loop length, and the stage clips them with a clean top and bottom edge: no
+// fade since 2026-10-13 ("remove the blur" … "the carousel fade too"); it was masked to fade from 2026-10-02. Since 2026-10-13 it is the last thing on the page, under the
 // footer, and thin ("i meant a vertical carousel like it was before but thinner"): its stage is at most 460px.
 // --self-test: gives the gallery the wheel handler the scrubbable version had, which "pageMoved" must catch.
 import { browser, open, report } from './_lib.mjs';
@@ -73,11 +73,11 @@ for (const [w, h] of (selfTest ? [[1440, 900]] : [[1440, 900], [820, 1180], [390
     const runs = cols.every(c => { const r = c.querySelectorAll('.gallery__run'); return r.length === 2 && r[1].getAttribute('aria-hidden') === 'true' && Math.abs(r[0].offsetHeight - r[1].offsetHeight) < 1; });
     const ratios = [...st.querySelectorAll('.photo')].every(p => p.classList.contains('photo--4x5'));
     const sr = st.getBoundingClientRect();
-    return { bleed: Math.round(sr.left) === 0 && Math.round(sr.right) === innerWidth, thin: Math.round(sr.height), last: !!st.closest('footer') && Math.abs(Math.round(sr.bottom + scrollY) - document.documentElement.scrollHeight) <= 1, clips: cs.overflow === 'hidden', faded: /linear-gradient/.test(mask) && (mask.match(/transparent|rgba\(0, 0, 0, 0\)/g) || []).length >= 2, wrapped, filled, runs, ratios, columns: cols.length };
+    return { bleed: Math.round(sr.left) === 0 && Math.round(sr.right) === innerWidth, thin: Math.round(sr.height), last: !!st.closest('footer') && Math.abs(Math.round(sr.bottom + scrollY) - document.documentElement.scrollHeight) <= 1, clips: cs.overflow === 'hidden', clean: !mask || mask === 'none', wrapped, filled, runs, ratios, columns: cols.length };
   });
   // full bleed since 2026-10-13 ("full margin to margin"): six columns at 1200 and up, five at 1024, four on a tablet
   const want = w >= 1200 ? 6 : w >= 1024 ? 5 : w >= 768 ? 4 : 2;
-  const ok = drifts && uneven && holds && noScrub && pageMoved && geom.clips && geom.faded && geom.wrapped && geom.filled && geom.runs && geom.ratios && geom.columns === want && geom.thin <= 460 && geom.last && geom.bleed && pushes;
+  const ok = drifts && uneven && holds && noScrub && pageMoved && geom.clips && geom.clean && geom.wrapped && geom.filled && geom.runs && geom.ratios && geom.columns === want && geom.thin <= 460 && geom.last && geom.bleed && pushes;
   report(`gallery ${w}×${h}`, ok, JSON.stringify({ drifts, uneven, holds, noScrub, offBy: check.off, pageMoved, pushes, pushedBy: +(f1 - f0).toFixed(1), ...geom, want }));
   await pg.close();
 }
