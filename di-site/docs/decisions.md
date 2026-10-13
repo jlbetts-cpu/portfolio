@@ -35,7 +35,8 @@ on every number I had and was still wrong.
 | **The quote ring stays as it is** — eight circular photographs turning around Linda's one line | 2026-09-07 | "I actually love the creativity and motion section"; the merge into testimonials was reverted in full |
 | **No gradients on the page.** The one exception is the hero mark's glint, asked for by name | rejected twice, 2026-08 | "the gradients look cheap" |
 | **No coloured text, no hue as a border, no coloured dot before a label** | settled | the `<mark>` highlights were built and taken out the same day: "i actually dont like the highlights" |
-| **One photograph shape**: a 4:5 rectangle on the superellipse corner, and the circle belongs to the ring | settled | a mixed set of four shapes was built and rejected |
+| **One photograph shape**: a 4:5 rectangle on the superellipse corner, and the circle belongs to the ring. In the gallery the corner is 4px (below) | settled | a mixed set of four shapes was built and rejected |
+| **The gallery is a tight strip**: 4px between photographs, a 4px corner, 4:5, inside the page margins. The sections' and the lightbox's single photographs keep the large corner | 2026-10-13 | picked from three renderings (the 28px corner with 26px gaps, this, and Some Wins' edge-to-edge camera roll): "B: tight strip" |
 | **The curtain is flat**, not pleated, and shows once a session | settled | "it looked a lot cleaner when it wasnt like actually a curtain" |
 | **The header is clean**: no container, no bar, leaves going down and comes back going up | 2026-09-06 | "i would rather it be a clean header though not in a container or anything just minimal and clean" |
 | **Dark only.** No light theme and no switch; `data-di-theme="dark"` is in the markup | 2026-10-13 | "remove the switch" (after "keep it in dark mode, it looks better for this specific site", 2026-10-12) |

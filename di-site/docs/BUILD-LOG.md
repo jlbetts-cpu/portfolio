@@ -13,11 +13,11 @@
 
 **Not taken, and why** (in `taste.md`): the voice rules, because the words are Linda's and carry her exclamation marks; the drawings, because they are his hand; the rounded face, the warm ground and the ground gradient, because Inter, the cool neutrals and "no gradients" are locked here.
 
-**Put to him:** the gallery drawn the way Some Wins draws photographs, a 4px strip or edge to edge with a 2px hairline and no corner, against the locked 4:5 superellipse.
+**The gallery is a tight strip, his pick.** Put to him because it reopened a lock: the 28px superellipse with 26px gaps, a 4px strip, or Some Wins' camera roll (edge to edge, a 2px hairline, no corner). *"B: tight strip."* 4px between photographs across and down, a 4px corner, still 4:5, still inside the margins. The sections' and the lightbox's single photographs keep their large corner: a corner is sized to its object. The run's padding moved with its gap, or the loop would jump by the difference.
 
 **CSS is stamped by content now.** The links carried the date, and eight rounds shipped today under `?v=20261013`; with the CSS served immutable, anybody who loaded the first kept its stylesheets through the next seven. Each link carries a hash of its own file, on the page and on the style guide.
 
-**The layout gate holds the four rules**, and each was shown failing on the v34 files before it passed: weights `400/600/700`, five controls not capsules, two white buttons on the first screen, the heading 164px off the photograph's top. **52 gate lines pass, 9 self-tests caught.**
+**The layout gate holds the four rules**, and each was shown failing on the v34 files before it passed: weights `400/600/700`, five controls not capsules, two white buttons on the first screen, the heading 164px off the photograph's top, and the strip at 26px gaps and a 28px corner. **52 gate lines pass, 9 self-tests caught.**
 
 ## v34 (2026-10-13) — dark only; and his own apps, read
 *"remove the switch. I feel like the website is lacking a lot, do you have access to the [app] files and md files and see how I like my design?"*

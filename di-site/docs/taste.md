@@ -54,11 +54,10 @@ screen with one action on it. Most of those came from his `design.md` in v24 to 
   photograph's top edge; the air goes below. Centred, the heading floated about
   200px down beside the picture with nothing over it.
 
-## Put to him, because it reopens a lock
-
-- **The gallery's photographs.** Some Wins draws photographs with almost no corner
-  and a hairline between them. This site's lock is the 4:5 rectangle on the
-  superellipse corner. Rendered three ways: as now, a 4px strip, and edge to edge.
+- **The gallery is a tight strip** (his pick, from three renderings). Some Wins draws
+  photographs with almost no corner and a hairline between them; here it is 4px
+  between them and a 4px corner, still 4:5 and inside the margins. He chose this over
+  the edge-to-edge camera roll and over the 28px corner it replaced.
 
 ## What does not transfer, and why
 

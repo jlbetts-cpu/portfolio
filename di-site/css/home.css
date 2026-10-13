@@ -51,11 +51,18 @@
    was half-dissolved; Jayden: "I don't think the fade needs to be that strong, tone it down." Now 6% at the top and
    18% at the foot, each eased through a 65% stop so the edge has no visible start. Four columns, then three, then two. */
 .gallery { margin-top: 0; }   /* the hero's own height is the space above it now */
-.gallery__stage { height: clamp(520px, 84vh, 920px); overflow: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--grid-gap); align-items: start;
+/* A tight strip, drawn the way Some Wins draws photographs: 4px between them and a 4px corner, still 4:5 and still
+   inside the page's margins. Jayden's pick on 2026-10-13, from the strip, the camera roll (edge to edge, a 2px
+   hairline, no corner) and the 28px superellipse with 26px gaps that it replaced. Only here: a photograph on its own,
+   in the sections or the lightbox, keeps its large corner, because a corner is sized to its object and a 28px
+   corner on a 4px gap reads as a row of bubbles. The run's padding is the same 4px as its gap, or the loop jumps. */
+.gallery { --strip-gap: 4px; }
+.gallery .photo { border-radius: 4px; }
+.gallery__stage { height: clamp(520px, 84vh, 920px); overflow: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--strip-gap); align-items: start;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 2.5%, #000 6%, #000 82%, rgba(0,0,0,.65) 93%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 2.5%, #000 6%, #000 82%, rgba(0,0,0,.65) 93%, transparent 100%); }
 .gallery__col { will-change: transform; }
-.gallery__run { display: grid; gap: var(--grid-gap); padding-bottom: var(--grid-gap); }
+.gallery__run { display: grid; gap: var(--strip-gap); padding-bottom: var(--strip-gap); }
 /* a photograph here is a button, and on a desktop it now says so the way the sections' photographs do: the picture
    leans in inside its own frame. The pointer is already holding the columns, so it cannot slide out from under it. */
 @media (hover: hover) { .gallery .photo:hover img { transform: scale(1.035); } }

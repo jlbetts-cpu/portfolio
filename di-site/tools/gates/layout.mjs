@@ -56,12 +56,17 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const whites = [...document.querySelectorAll('button, a, input')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && getComputedStyle(e).backgroundColor === primary; }).length;
     // the sections read from the top: above 768 the heading's capitals stand on the photograph's top edge
     const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => Math.abs(row.querySelector('.tell__title').getBoundingClientRect().top - row.querySelector('.tell__figure .photo').getBoundingClientRect().top))) : 0;
-    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, whites, capGap: Math.round(capGap) };
+    // the gallery is a tight strip (his pick, 2026-10-13): 4px between photographs across and down, a 4px corner
+    const cols = [...document.querySelectorAll('.gallery__col')].filter(c => c.offsetParent).map(c => c.getBoundingClientRect());
+    const items = [...document.querySelector('.gallery__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
+    const strip = { across: Math.round(cols[1].left - cols[0].right), down: Math.round(items[1].top - items[0].bottom), corner: parseFloat(getComputedStyle(document.querySelector('.gallery .photo')).borderTopLeftRadius) };
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, whites, capGap: Math.round(capGap), strip };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
-    && r.weights.join() === '500,700' && r.notCapsule.length === 0 && r.whites === 1 && r.capGap <= 2;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, white buttons on the first screen ${r.whites}, heading off the photo's top ${r.capGap}px`);
+    && r.weights.join() === '500,700' && r.notCapsule.length === 0 && r.whites === 1 && r.capGap <= 2
+    && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, white buttons on the first screen ${r.whites}, heading off the photo's top ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner`);
   await pg.close();
 }
 await b.close();
