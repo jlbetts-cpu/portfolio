@@ -77,11 +77,15 @@
    on one side, a label, a heading and the prose on the other. This replaced four clickable cards and the reader
    dialog behind them — two sections of prose do not need a dialog to hold them, and a page trying to be taken
    seriously puts its case in the open rather than behind a click. */
-.tell__row { align-items: center; row-gap: var(--sp-8); }
+/* The copy reads from the top: the heading's capitals stand on the photograph's top edge and the air goes below, as
+   Some Wins' Add and Edit sheets do ("name, its controls, the block, air below"). Centred, the heading floated about
+   200px down beside the picture with nothing over it, and its reference board's rule is that a title cannot float
+   low with nothing above it. text-box trims the line box to the cap height so the two edges are one line. */
+.tell__row { align-items: start; row-gap: var(--sp-8); }
 .tell__figure { grid-column: 1 / -1; margin: 0; }
 .tell__figure .photo { width: 100%; }
-.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: center; }
-.tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: start; }
+.tell__title { text-box: trim-start cap alphabetic; margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
 .tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink-2); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
@@ -138,7 +142,7 @@
 .voice__quote::before { content: "\201C"; }
 .voice__quote::after { content: "\201D"; }
 .voice__who { margin-top: auto; padding-top: var(--sp-6); }
-.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.4; }
+.voice__name { font-size: var(--fs-small); font-weight: 700; color: var(--ink); line-height: 1.4; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.4; }
 @media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
 /* a tablet: one per row, the words across eight columns and the person beside them on the last four — three-up made

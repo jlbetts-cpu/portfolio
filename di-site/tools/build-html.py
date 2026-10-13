@@ -1,5 +1,5 @@
 # Generates index.html once from images/manifest.json + the copy. Dev tool; the output is committed and served static.
-import json, html, datetime, re
+import json, html, re, hashlib
 root='/home/user/portfolio/di-site'
 man=json.load(open(f'{root}/images/manifest.json'))
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
@@ -8,7 +8,10 @@ assert navlogo!=logo
 sprite=open(f'{root}/assets/icons.svg').read().strip()
 whitemark=open(f'{root}/assets/logo/dilogo.svg').read()
 whitemark_paths=''.join(re.findall(r'<path[^>]*/>',whitemark)).replace('fill="white"','fill="currentColor"')
-STAMP=datetime.date.today().strftime('%Y%m%d')
+# Each stylesheet and the script are stamped with a hash of their own bytes, not the date. CSS is served immutable
+# for a year (the portfolio's vercel.json), and on 2026-10-13 eight rounds shipped under one date stamp: anybody who
+# loaded the first kept its stylesheets through the next seven. A hash changes exactly when the file does.
+def V(path): return hashlib.sha1(open(f'{root}/{path}','rb').read()).hexdigest()[:10]
 
 ALT={
  'bow-ties-wall':'Three performers in white shirts and bow ties strike a pose against a brick wall',
@@ -178,11 +181,11 @@ page=f'''<!DOCTYPE html>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/tokens.css?v={STAMP}">
-<link rel="stylesheet" href="css/base.css?v={STAMP}">
-<link rel="stylesheet" href="css/components.css?v={STAMP}">
-<link rel="stylesheet" href="css/home.css?v={STAMP}">
-<script src="js/main.js?v={STAMP}" defer></script>
+<link rel="stylesheet" href="css/tokens.css?v={V('css/tokens.css')}">
+<link rel="stylesheet" href="css/base.css?v={V('css/base.css')}">
+<link rel="stylesheet" href="css/components.css?v={V('css/components.css')}">
+<link rel="stylesheet" href="css/home.css?v={V('css/home.css')}">
+<script src="js/main.js?v={V('js/main.js')}" defer></script>
 </head>
 <body>
 <script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
@@ -195,7 +198,7 @@ page=f'''<!DOCTYPE html>
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">Developmental Improvisation</a>
     <div class="nav__panel">
       <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
-      <button class="btn btn--primary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   </div>
 </header>
 

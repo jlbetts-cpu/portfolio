@@ -1,6 +1,7 @@
 // Gate: no horizontal overflow; the headline's line count (it carries four inline photographs and must not run away);
 // every container on the column — the closing field included, which used to size itself and sat 36px wide of it at 1920 —
-// and the four cards equal width.
+// and the four cards equal width; and since 2026-10-13 Some Wins' rules: two weights, capsule controls, one white
+// button on the first screen, and the sections' headings standing on their photographs' top edge.
 import { browser, open, report } from './_lib.mjs';
 const b = await browser();
 for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
@@ -43,11 +44,24 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const gTop = document.querySelector('.gallery').getBoundingClientRect().top + scrollY;
     const peek = Math.round(innerHeight - gTop);
     const peekOk = peek <= 80 && (innerHeight < 700 || peek >= 32);
-    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk };
+    // Some Wins' rules, taken 2026-10-13 (docs/taste.md). Two weights, Medium and Bold, on every visible word: a third
+    // weight is how a ladder rots, and there were two stray 600s before this check existed.
+    const weights = new Set();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n; while ((n = walker.nextNode())) { const el = n.parentElement; if (!n.textContent.trim() || !el.getClientRects().length || el.closest('script, style, svg, dialog:not([open]), .curtain, .sr-only')) continue; weights.add(getComputedStyle(el).fontWeight); }
+    // every control is a capsule: a corner of at least half its height, drawn round rather than as a superellipse
+    const notCapsule = [...document.querySelectorAll('.btn, .input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open])')).filter(e => { const cs = getComputedStyle(e); return parseFloat(cs.borderTopLeftRadius) < e.offsetHeight / 2 - 0.5 || (cs.cornerShape && !/^round/.test(cs.cornerShape)); }).map(e => String(e.className).slice(0, 30));
+    // one white thing on the first screen: of the controls visible at the top of the page, one carries the primary fill
+    const primary = getComputedStyle(document.querySelector('.hero .btn--primary')).backgroundColor;
+    const whites = [...document.querySelectorAll('button, a, input')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && getComputedStyle(e).backgroundColor === primary; }).length;
+    // the sections read from the top: above 768 the heading's capitals stand on the photograph's top edge
+    const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => Math.abs(row.querySelector('.tell__title').getBoundingClientRect().top - row.querySelector('.tell__figure .photo').getBoundingClientRect().top))) : 0;
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, whites, capGap: Math.round(capGap) };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
-  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px`);
+  const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
+    && r.weights.join() === '500,700' && r.notCapsule.length === 0 && r.whites === 1 && r.capGap <= 2;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, white buttons on the first screen ${r.whites}, heading off the photo's top ${r.capGap}px`);
   await pg.close();
 }
 await b.close();

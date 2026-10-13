@@ -1,5 +1,24 @@
 # Build log — Developmental Improvisation, home page
 
+## v35 (2026-10-13) — Some Wins, read and applied
+*"no nothing with apollo the some wins design I want you to look at."* `docs/taste.md` is rewritten from Some Wins alone: its `design.md`, `brand.md`, `voice.md`, `ten.md`, `space.md`, the reference board, the illustration rules, somewins.xyz and its 33 screens. Apollo is out of it.
+
+**Controls are capsules.** Some Wins has one primary action, a 50pt capsule (`PrimaryCapsule`), and its other controls are capsules too. Every button and the email field here now take `--r-full`, drawn `corner-shape: round`: on the superellipse corner a capsule is a lozenge.
+
+**One white button per screen.** `ten.md` rule 6: "nothing white in dark except the main filled button". The first screen had two, the header's Subscribe and the hero's, for the same action. The header's is the soft capsule now; the hero's is the one white thing on the first screen and the footer's on the last.
+
+**Medium and Bold.** Some Wins' two weights, and its reasons: "no tiny thin font anywhere", "the text reads as premium not dull". Prose went 400 → 500, seen side by side at 20px on the dark ground before it was taken. Two stray 600s (the buttons, the quote's name) were a third weight on a page that said it had two; both are 700.
+
+**The sections read from the top.** Centred, "What Developmental Improvisation is" floated 164px down beside its photograph with nothing over it; Some Wins' rule is that a title cannot float low with nothing above it, and its sheets read "name, its controls, the block, air below". The heading is trimmed to its cap height (`text-box: trim-start cap alphabetic`) and its capitals stand on the photograph's top edge, 0px off at 1440 and 1024.
+
+**Not taken, and why** (in `taste.md`): the voice rules, because the words are Linda's and carry her exclamation marks; the drawings, because they are his hand; the rounded face, the warm ground and the ground gradient, because Inter, the cool neutrals and "no gradients" are locked here.
+
+**Put to him:** the gallery drawn the way Some Wins draws photographs, a 4px strip or edge to edge with a 2px hairline and no corner, against the locked 4:5 superellipse.
+
+**CSS is stamped by content now.** The links carried the date, and eight rounds shipped today under `?v=20261013`; with the CSS served immutable, anybody who loaded the first kept its stylesheets through the next seven. Each link carries a hash of its own file, on the page and on the style guide.
+
+**The layout gate holds the four rules**, and each was shown failing on the v34 files before it passed: weights `400/600/700`, five controls not capsules, two white buttons on the first screen, the heading 164px off the photograph's top. **52 gate lines pass, 9 self-tests caught.**
+
 ## v34 (2026-10-13) — dark only; and his own apps, read
 *"remove the switch. I feel like the website is lacking a lot, do you have access to the [app] files and md files and see how I like my design?"*
 

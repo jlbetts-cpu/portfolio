@@ -1,11 +1,12 @@
 # Generates styleguide.html: every token and component in both themes. Dev tool; the output is committed.
-import json, re, datetime
+import json, re, hashlib
 root='/home/user/portfolio/di-site'
 man=json.load(open(f'{root}/images/manifest.json'))
 sprite=open(f'{root}/assets/icons.svg').read().strip()
 whitemark=''.join(re.findall(r'<path[^>]*/>',open(f'{root}/assets/logo/dilogo.svg').read())).replace('fill="white"','fill="currentColor"')
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip().replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>',' aria-hidden="true">')
-STAMP=datetime.date.today().strftime('%Y%m%d')
+# stamped by content, as index.html is (see build-html.py): a date stamp let a day's later edits hide behind its first
+def V(path): return hashlib.sha1(open(f'{root}/{path}','rb').read()).hexdigest()[:10]
 
 def pic(name, sizes='200px'):
     m=man[name]; ws=[w for w in m['sizes'] if w<=960]; av=', '.join(f'images/{name}-{w}.avif {w}w' for w in ws); wp=', '.join(f'images/{name}-{w}.webp {w}w' for w in ws)
@@ -35,7 +36,7 @@ motion=''.join(f'<div class="mo" data-dur="{k}"><button class="btn btn--secondar
 page=f'''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>DI Style Guide</title><meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/tokens.css?v={STAMP}"><link rel="stylesheet" href="css/base.css?v={STAMP}"><link rel="stylesheet" href="css/components.css?v={STAMP}"><link rel="stylesheet" href="css/home.css?v={STAMP}">
+<link rel="stylesheet" href="css/tokens.css?v={V('css/tokens.css')}"><link rel="stylesheet" href="css/base.css?v={V('css/base.css')}"><link rel="stylesheet" href="css/components.css?v={V('css/components.css')}"><link rel="stylesheet" href="css/home.css?v={V('css/home.css')}">
 <style>
 .sg {{ display:grid; grid-template-columns: 220px minmax(0,1fr); gap: var(--sp-12); padding-top: var(--sp-12); padding-bottom: var(--sp-24); }}
 .sg__index {{ position: sticky; top: var(--sp-12); align-self: start; font-size: var(--fs-small); }}
@@ -123,7 +124,7 @@ code {{ font-family: ui-monospace, Menlo, monospace; font-size: .85em; color: va
 <div class="demo" style="padding:0"><div class="nav__brand" style="padding:var(--sp-6);height:auto">{logo}<span class="word">Developmental Improvisation</span></div></div>
 </div></main>
 <script>function play(b){{const m=b.parentElement;m.style.setProperty('--d',getComputedStyle(document.documentElement).getPropertyValue('--dur-'+m.dataset.dur));m.classList.toggle('is-on');}}</script>
-<script src="js/main.js?v={STAMP}" defer></script>
+<script src="js/main.js?v={V('js/main.js')}" defer></script>
 </body></html>
 '''
 open(f'{root}/styleguide.html','w').write(page)

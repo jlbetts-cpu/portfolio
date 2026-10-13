@@ -15,7 +15,7 @@ Everything in `design-system.md` and `BUILD-LOG.md` records WHY. Nothing recorde
   `<mark>` highlights once, a pleated curtain once. Each is in the log; none was
   marked as closed.
 
-This file is the index of what cannot be changed without asking. `taste.md` is the evidence of how he designs, read from his own apps.
+This file is the index of what cannot be changed without asking. `taste.md` is the evidence of how he designs, read from Some Wins.
 
 | | What it means | What to do |
 |---|---|---|
@@ -45,11 +45,11 @@ on every number I had and was still wrong.
 | **The headline is one colour**, all ink. No half of the claim set a tier down | 2026-10-03 | "why is emotional understanding greyed out … I feel like that should all be black" |
 | **No lines.** No hairlines, dividers or outlined controls; space separates things, and a control that needs a shape gets a soft fill. Focus and error rings stay | 2026-10-03 | "remove the lines I want it more minimal just use clean white space design" |
 | **The hero is the first screen; the gallery only peeks under it** — 50 to 72px on a screen that holds the hero | 2026-10-03 | "make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero" |
-| **The header carries the name in type, not the mark.** The mark is a line drawing and does not hold at nav size; the hero carries it once, large. One filled action (Subscribe) | 2026-10-03 | "I feel like the header looks off… i want the header to be updated" |
+| **The header carries the name in type, not the mark.** The mark is a line drawing and does not hold at nav size; the hero carries it once, large. One filled action (Subscribe), the soft capsule since 2026-10-13 so the hero's is the one white button | 2026-10-03 | "I feel like the header looks off… i want the header to be updated" |
 | **The hero has no container either** | 2026-10-02 | "does the hero really need to be in a container I feel like less is so much more" |
 | **The hero is simple, with the logo prevalent.** No gallery of drifting images in it | 2026-09-29, Linda | "far too busy too many images a much more simple hero would do wonders" |
 | **The about is two sections** — what Developmental Improvisation is, and who Linda is | 2026-09-29, Linda | — |
-| **One face: Inter**, 400 and 700, with its optical-size axis (display design at 32px and up). It replaced Geist (2026-09-29), which replaced Jost and Plus Jakarta Sans | 2026-10-12 | "i dont think I like the font I think id prefer inter" |
+| **One face: Inter**, 500 and 700 (400 and 700 until 2026-10-13), with its optical-size axis (display design at 32px and up). It replaced Geist (2026-09-29), which replaced Jost and Plus Jakarta Sans | 2026-10-12 | "i dont think I like the font I think id prefer inter" |
 | **The photographs under the hero are a VERTICAL scroll** — columns rising on their own, faded at the top and the bottom | 2026-10-02 | "the reference I liked was more of a vertical image scroll"; the horizontal strip lasted one round |
 | **The gallery keeps one shape.** Every photograph in it is 4:5; the masonry edge comes from column offsets and speeds, not mixed heights | 2026-10-02 | asked with the reference's mixed-height grid beside it: "Keep one shape" |
 | **The gallery cannot be scrubbed by hand.** It drifts and it fades; there is no wheel handler, and a wheel over it scrolls the page | 2026-10-02 | "you cant like manually scroll through like the old version I like how it fades" |
@@ -63,7 +63,10 @@ on every number I had and was still wrong.
 | Rule | The number | The range | Where it lives |
 |---|---|---|---|
 | Type floor | **15px** | nothing under it but a glyph inside a shape; Strata says 15pt and the page now matches it | `--fs-caption`, `--fs-small` |
-| Type weights | **400 / 700** | two, and no third | `tokens.css` |
+| Type weights | **500 / 700** | two, and no third: Some Wins' Medium and Bold. 400 read thin on this ground (2026-10-13); the layout gate fails on any third weight | `tokens.css`, `layout.mjs` |
+| Controls | **a capsule**, drawn round | every button and field; a capsule on the superellipse corner is a lozenge | `base.css`, `layout.mjs` |
+| White on a screen | **one** filled white button | Some Wins' "nothing white in dark except the main filled button": the header's Subscribe is the soft capsule, the hero's is white | `build-html.py`, `layout.mjs` |
+| The sections | **read from the top**: the heading's capitals on the photograph's top edge, air below | within 2px, measured; Some Wins' "a title cannot float low with nothing above it" | `home.css`, `layout.mjs` |
 | Display scale | 4.25rem top, −0.022em | Inter's display design is already drawn tight; Geist's −0.035em on it read pinched | `--fs-display` |
 | Reading sizes | `--fs-read` 20px at 1440 for the sections' prose, `--fs-quote` 23px for the quotes | body size (16px) is for chrome; a paragraph the page wants read is never set at it beside a 680px photograph | `tokens.css` |
 | Section rhythm | `clamp(80px, 8vw, 168px)`, ring at 1.4× | 115px at 1440 measured | `base.css` |

@@ -61,13 +61,15 @@
   --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  /* Type — ONE face, Inter (see base.css for why this file). Two weights, 400 and 700; leading and tracking are the
+  /* Type — ONE face, Inter (see base.css for why this file). Two weights, 500 and 700; leading and tracking are the
      levers, not the family. The tracking came OUT when Geist went: Geist wanted closing up at display size (−0.035em),
      and Inter at 32px and up is already its display design, whose spacing is drawn tight — the same −0.035em on it
      read pinched. So the display steps sit at −0.022 to −0.012em, and reading sizes stay close to the font's own.
      THE FLOOR IS 15px, from Jayden's own app: "nothing below 15pt, no tiny thin font anywhere." And the two weights
-     are 400 and 700, not 400 and 600: his app sets Bold against Medium at 34% of stroke apart, and 600 against 400 in
-     a grotesque is a narrower gap than that. */
+     are Some Wins' own pair, Medium (500) for anything read and Bold (700) for anything that is a heading or a label.
+     It was 400 and 700 until 2026-10-13: 400 is the right Regular on paper, but light type on this ground reads
+     thinner than it is, and beside a 680px photograph the prose looked dull, which is the word that took his app
+     from Regular to Medium. Two stray 600s (the button and the quote's name) were a third weight; both are 700. */
   --font: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
   --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.022em;
