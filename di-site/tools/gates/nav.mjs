@@ -50,7 +50,7 @@ if (!selfTest) {
   const lo = await lp.evaluate(() => ({ inHeader: document.querySelectorAll('.nav [data-theme-set], .nav [data-theme-toggle]').length, inFooter: document.querySelectorAll('#contact [data-theme-set]').length, markInBrand: document.querySelectorAll('.nav__brand svg').length, brand: document.querySelector('.nav__brand').textContent.trim() }));
   const loOk = lo.inHeader === 0 && lo.inFooter === 0 && lo.markInBrand === 0 && lo.brand === 'Developmental Improvisation';
   allOk = allOk && loOk;
-  report('nav: the brand is the name; no theme switch anywhere (dark only)', loOk, JSON.stringify(lo));
+  report('nav: the brand is the name; no theme switch anywhere (light only)', loOk, JSON.stringify(lo));
   await lp.close();
 }
 await b.close();

@@ -38,7 +38,7 @@ with a rendering, never straight into the code.
 
 ## Already true on this site because of the same taste
 
-Dark only, ink as the only accent, the photographs and the mark as the only colour,
+Ink as the only accent (and, since 2026-10-13, light only, like his portfolio), the photographs and the mark as the only colour,
 no lines, no shadows, the 15px floor, 44px targets, one face, the hero as the first
 screen with one action on it. Most of those came from his `design.md` in v24 to v29.
 

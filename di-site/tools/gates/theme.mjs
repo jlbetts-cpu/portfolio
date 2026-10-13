@@ -1,16 +1,17 @@
-// Gate: the theme. The page answers to its own switch and to nothing else.
-//   default     with no choice made the page is DARK, whatever the visitor's system says (2026-10-12: "keep it in
-//               dark mode, it looks better for this specific site")
-//   choice      a choice from the switch beats the system, and survives a reload
+// Gate: the theme. The page answers to its own attribute and to nothing else.
+//   LIGHT ONLY  since 2026-10-13 ("should we just do light mode … not dark mode?", then "Light only"). It was dark
+//               only for a day before that, and the shape of this gate is the same either way round:
+//   the system  a visitor whose system is dark still gets the light page
+//   the past    a dark choice stored by an older version of the page changes nothing
 //   the host    a host that writes data-theme="dark" onto the page (the claude.ai preview does, for anyone whose
 //               claude.ai is dark) changes nothing — that attribute is not ours, and keying the dark tokens on it is
-//               what kept the page dark after the toggle was taken away
-//   the switch  two options in the footer, aria-pressed on the chosen one, both 44px targets
-// --self-test: keys a light ground on the host's attribute, which the check must catch.
+//               what once made dark mode impossible to leave ("I still only see dark mode")
+//   no switch   there is none anywhere
+// --self-test: keys a dark ground on the host's attribute, which the check must catch.
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
-const LIGHT = 'rgb(250, 250, 251)', DARK = 'rgb(11, 11, 15)';
+const LIGHT = 'rgb(250, 250, 251)';
 const page = async (scheme, stored) => {
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: scheme });
   const pg = await ctx.newPage();
@@ -24,18 +25,18 @@ const bg = (pg) => pg.evaluate(() => getComputedStyle(document.body).backgroundC
 let ok = true;
 const check = (name, pass, detail) => { if (!selfTest) report(`theme: ${name}`, pass, detail); ok = ok && pass; };
 
-// dark for everyone: a light system, a light choice stored by an older version, and a host writing data-theme="light"
-// all leave the page dark — and there is no switch anywhere to change it
+// light for everyone: a dark system, a dark choice stored by an older version, and a host writing data-theme="dark"
+// all leave the page light — and there is no switch anywhere to change it
 const results = [];
-for (const [scheme, stored] of [['light', null], ['dark', null], ['light', 'light']]) {
+for (const [scheme, stored] of [['dark', null], ['light', null], ['dark', 'dark']]) {
   const { ctx, pg } = await page(scheme, stored);
-  await pg.evaluate(() => { localStorage.setItem('di:theme', 'light'); localStorage.setItem('di:mode', 'light'); });
+  await pg.evaluate(() => { localStorage.setItem('di:theme', 'dark'); localStorage.setItem('di:mode', 'dark'); });
   await pg.reload(); await pg.waitForTimeout(300);
-  if (selfTest) await pg.addStyleTag({ content: ':root[data-theme="light"] { --bg: #FAFAFB; }' });   // the bug, back
-  await pg.evaluate(() => { document.documentElement.dataset.theme = 'light'; }); await pg.waitForTimeout(150);
+  if (selfTest) await pg.addStyleTag({ content: ':root[data-theme="dark"] { --bg: #0B0B0F; }' });   // the bug, back
+  await pg.evaluate(() => { document.documentElement.dataset.theme = 'dark'; }); await pg.waitForTimeout(150);
   results.push(await pg.evaluate(() => ({ bg: getComputedStyle(document.body).backgroundColor, scheme: getComputedStyle(document.documentElement).colorScheme, switches: document.querySelectorAll('[data-theme-set], [data-theme-toggle], .switch').length })));
   await ctx.close();
 }
-check('dark for everyone, whatever the system, an old stored choice or the host says; no switch', results.every(r => r.bg === DARK && r.scheme === 'dark' && r.switches === 0), JSON.stringify(results));
+check('light for everyone, whatever the system, an old stored choice or the host says; no switch', results.every(r => r.bg === LIGHT && r.scheme === 'light' && r.switches === 0), JSON.stringify(results));
 await b.close();
-if (selfTest) { const caught = !ok; console.log(caught ? 'SELF-TEST OK: the host-keyed light ground was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }
+if (selfTest) { const caught = !ok; console.log(caught ? 'SELF-TEST OK: the host-keyed dark ground was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }

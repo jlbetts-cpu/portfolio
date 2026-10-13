@@ -164,15 +164,15 @@ form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" metho
                   f'<button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form>')
 
 page=f'''<!DOCTYPE html>
-<html lang="en" data-di-theme="dark">
+<html lang="en" data-di-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#0B0B0F">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#FAFAFB">
+<meta name="color-scheme" content="light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">

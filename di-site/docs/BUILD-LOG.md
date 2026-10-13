@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v38 (2026-10-13) — light only
+*"also should we just do light mode as well not dark mode?"* Rendered beside the dark page and put to him with a recommendation: his portfolio, the reference he had just given for "professional", is light; Linda's brief was a serious new tool for education; the people deciding are schools. *"Light only."*
+
+**One light theme, no switch.** `data-di-theme="light"` in the markup, `color-scheme: light`, `theme-color` #FAFAFB. The ground is the near-white with a cool cast and the ink the blue-black, both from v24; the one filled button on each screen is now the ink one, and the header's Subscribe stays the soft capsule. The dark block in `tokens.css` is kept, unused.
+
+**The logo's star takes the ink.** It is drawn white, for a dark ground, and on this one it was not there at all. Every other path keeps the brand's own colour. The mark gate fails if either star (the hero's, the curtain's) is anything but the ink, and it did on the v38 CSS without the rule.
+
+**The curtain is the page's own ground** with the ink loading bar, so the first load never flashes near-black in front of a white page ("no tada or any darkening of the website").
+
+**The theme gate turned round**: a dark system, a dark choice stored by an older version and a host writing `data-theme="dark"` all leave the page light; its self-test keys a dark ground on the host's attribute and is caught. Worst contrast 16.35:1. **52 gate lines pass, 9 self-tests caught.**
+
 ## v37 (2026-10-13) — no grey, no caption, his portfolio's scale
 *"Im not a fan of the grey text and the small caption under the hero i think making it professional is the key thing also look at my portfolio for inspiration."*
 

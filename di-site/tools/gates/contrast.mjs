@@ -1,12 +1,12 @@
 // Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM,
-// in the dark theme, the only one. The inverted sign-up card and the raised closing field are ordinary background-colours, so the same walk covers them.
+// in the light theme, the only one since 2026-10-13. The inverted sign-up card and the raised closing field are ordinary background-colours, so the same walk covers them.
 // --self-test: paints the smallest type (a quote's role, the copyright) in the ground colour and expects the walk to fail.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
 let worstAll = 99, failed = 0;
-// dark only since 2026-10-13: the page has no light theme to reach
-for (const theme of ['dark']) {
+// light only since 2026-10-13 (dark only for the day before): the page has one theme to reach
+for (const theme of ['light']) {
   const pg = await open(b, 1440, 900, { theme });
   // it painted --ink-3 until 2026-10-13, when the page stopped setting any text in --ink-3 and the injection fell on
   // nothing: "SELF-TEST FAILED: nothing was caught". It now paints the smallest type on the page, the quote's role and

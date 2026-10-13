@@ -147,8 +147,9 @@
   --ring-n: 8;
 }
 
-/* Dark — THE ONLY THEME (2026-10-13, "remove the switch"). The <html> element carries data-di-theme="dark" in the
-   markup, so the block below always applies and the light values above are only its base. Keyed on a PRIVATE
+/* Dark — NOT IN USE since 2026-10-13. It was the only theme for one day ("remove the switch"); then, beside the
+   light page and his portfolio, "Light only". The <html> element carries data-di-theme="light", so the values above
+   are the page and this block is kept for the record and for the style guide. Keyed on a PRIVATE
    attribute, written only by this page. It used to be data-theme, and that name is not ours:
    the claude.ai preview writes data-theme="dark" onto the page for anyone whose claude.ai is dark, which is why dark
    mode would not go away when the toggle was removed ("I still only see dark mode"). Now the page answers to its own

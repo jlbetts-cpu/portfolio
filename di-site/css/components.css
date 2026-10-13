@@ -187,15 +187,15 @@
 }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
-/* The curtain — the first load of a session only. Two flat panels of the dark ground part to reveal the page.
-   Flat, not pleated: the fabric version read as a theatre curtain rather than as this site. In light it is a
-   near-black reveal; in dark the panels are the ground itself, so what parts open on is the content appearing.
-   No scrim and no darkening: the site is already laid out behind them. */
+/* The curtain — the first load of a session only. Two flat panels of the page's own ground part to reveal it.
+   Flat, not pleated: the fabric version read as a theatre curtain rather than as this site. The panels are the ground
+   itself (light only since 2026-10-13), so what parts open on is the content appearing, never a near-black flash
+   in front of a white page: "no tada or any darkening of the website". No scrim. */
 .curtain { display: none; position: fixed; inset: 0; z-index: var(--z-curtain); pointer-events: none; }
 .curtaining .curtain { display: block; }
 .curtaining { overflow: hidden; }
 /* 50.5% so the seam cannot show a hairline of the page between them at fractional widths */
-.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: #0B0B0F; transition: transform 900ms var(--ease-in-out); }
+.curtain__half { position: absolute; top: 0; bottom: 0; width: 50.5%; background: var(--bg); transition: transform 900ms var(--ease-in-out); }
 .curtain__half--l { left: 0; }
 .curtain__half--r { right: 0; }
 .curtain.is-open .curtain__half--l { transform: translateX(-100.5%); }
@@ -203,6 +203,6 @@
 .curtain__load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-5); transition: opacity var(--dur-state) var(--ease-out); }
 .curtain.is-open .curtain__load { opacity: 0; }
 .curtain__load .logo { width: 68px; height: auto; overflow: visible; }
-.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: rgba(243,243,247,.24); overflow: hidden; }
-.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: #F3F3F7; animation: curtain-load 1.05s var(--ease-in-out) infinite; }
+.curtain__bar { width: 104px; height: 3px; border-radius: var(--r-full); corner-shape: round; background: var(--bg-sunken); overflow: hidden; }
+.curtain__bar i { display: block; width: 38%; height: 100%; border-radius: inherit; background: var(--ink); animation: curtain-load 1.05s var(--ease-in-out) infinite; }
 @keyframes curtain-load { from { transform: translateX(-110%); } to { transform: translateX(275%); } }

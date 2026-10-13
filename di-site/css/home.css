@@ -34,6 +34,9 @@
 .hero__mark { width: clamp(104px, min(11vw, 17vh), 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
 .hero__mark__spin { width: 100%; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); will-change: transform; }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
+/* The logo's star is drawn white, for a dark ground. On this one (light only since 2026-10-13) a white star is not
+   there at all, so it takes the ink: every other path keeps the brand's own colour. The curtain's logo too. */
+.logo path[fill="white"] { fill: var(--ink); }
 .logo--hero .logo__glare { transform: translateX(calc(var(--glare, 0) * 1px)); }
 .logo--hero .logo__shine { opacity: .85; transform: translateX(-460px); animation: mark-glint 6s var(--ease-in-out) 1.2s infinite; }
 @keyframes mark-glint { 0% { transform: translateX(-460px); } 26% { transform: translateX(1180px); } 100% { transform: translateX(1180px); } }

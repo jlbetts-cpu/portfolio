@@ -19,9 +19,9 @@
      page — the buttons' scale, the photographs' — never showed on an iPhone. Passive and empty: it changes nothing else. */
   document.addEventListener('touchstart', () => {}, { passive: true });
 
-  /* ---- Dark only (2026-10-13: "remove the switch"). The page is dark for everyone: data-di-theme="dark" is written
-     on the <html> element in the markup itself, so not even the head script decides it, and a page with scripts off
-     is dark too. The light token block in tokens.css is the unused base. ---- */
+  /* ---- Light only (2026-10-13: "should we just do light mode … not dark mode?", then "Light only"). The page is light
+     for everyone: data-di-theme="light" is written on the <html> element in the markup itself, so no script decides
+     it and a host's own data-theme is never read. The dark token block in tokens.css is kept, unused. ---- */
 
   /* ---- The curtain: the first load of a session. It waits for the fonts and the hero's first photographs, then parts.
      Three things guarantee the site is never stuck behind it: a hard timeout, a floor on how long it can show, and
