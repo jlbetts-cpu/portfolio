@@ -1,5 +1,20 @@
 # Build log — Developmental Improvisation, home page
 
+## v40 (2026-10-13) — the header is a pill; the gallery is at the foot, full bleed and thinner
+*"can you experiement with the header i dont much like it right now"*, *"the glyph though can we just use the black and white di logo"*, *"can the horizontal carousel be on the bottom under th efooter and thinner"*, *"i meant a vertical carousel like it was before but thinner"*, *"the carousel should be full margin to margin"*, *"since its at the bottom make it so you can scroll down and it will just animate down and lets make it more clean remove the blur remove the bring to your own school."*
+
+**Six headers, rendered on the page.** The bar as it was; the bar with the logo's "di" beside the name; the "di" alone, like his portfolio's "jb"; a floating pill; bare at the top with everything on the right (frosted once scrolled); the logo in the middle with links either side. The last broke on a phone and was dropped before he saw it; the bare one put type straight onto the photographs once scrolled until it had a ground. Each was looked at at the top and scrolled over the photographs, where a header is actually tested. His pick: **the pill** (*"D"*).
+
+**The pill.** One capsule centred at the top, 56px, solid white with the same 1px ring as an outlined control; it was frosted (an 18px blur) for its first hour, until *"remove the blur"*. The brand is **the black-and-white DI logo**, 28px, in the ink, and the name; the colour stays in the hero's mark. On a phone the pill runs the column's width, the name left and the menu right. It still leaves going down and comes back going up; the strip around it takes no pointer, so it never blocks a click.
+
+**The gallery moved to the foot of the page.** Its four columns rising, now **six, full bleed** (five at 1024, four on a tablet, two on a phone, so a photograph is never taller than the gallery), and **half the height**: 378px at 1440 against 756 under the hero, 338 on a phone. It is the last thing on the page, under the footer. For a few minutes it was one sideways row, a misreading of "horizontal carousel"; *"i meant a vertical carousel like it was before"* put the columns back. The first section now starts at the hero's peek.
+
+**Past the foot the scroll keeps going.** There is no page left to move at the foot, so a downward wheel or an upward swipe there turns the flow by what the scroll would have: measured, a 1200px wheel turned it 70° in 0.7s against 2° of drift, and a 360px swipe on a phone 28°. Nothing is prevented, and above the foot a wheel scrolls the page as it always has.
+
+**The footer** lost "Bring this to your school"; Contact is Email and Call.
+
+**Gates.** The gallery gate wants six columns (5/4/2 by width), full bleed, at most 460px tall, the last thing on the page, and a wheel past the foot to turn the flow (it fails with the hook removed: 0.5°); its wheel goes up now, since there is no page under the foot to scroll into, and that was the gate's bug the first time it ran here. The nav gate wants the pill solid with its edge, and the logo in the brand in the ink. The layout gate's peek is the first section's photograph. **52 gate lines pass, 9 self-tests caught.**
+
 ## v39 (2026-10-13) — his portfolio's header and footer, the logo tuned, nothing dark
 *"okay the big thing for me is the logo can you find like optimal colors and the header can it match more my header in my portfolio and the footer with the clean lines and i feel like this brand the di is more light so having such a dark cta and text doesnt really fit the site"*, then *"take a lot of inspo from the hea tea site"* and *"make sure the star is also a color I dont like it black."*
 

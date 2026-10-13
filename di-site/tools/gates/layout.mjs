@@ -31,11 +31,11 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const inks = [...h1.querySelectorAll('*')].concat(h1).map(e => getComputedStyle(e).color);
     const oneInk = new Set(inks).size === 1;
     // LINES IN THREE PLACES ONLY. They all went on 2026-10-03 ("remove the lines … just use clean white space"), and
-    // on 2026-10-13 he asked for his portfolio's header and "the footer with the clean lines": so the header's
-    // hairline, the footer's (a pseudo-element, checked below), and the 1px ring inside an outlined control are drawn,
-    // and nothing else is. Focus and error rings only appear in those states, so a page at rest has no others.
-    const allowed = e => e.matches('#nav, .btn--primary, .btn--line');
-    const navLine = getComputedStyle(document.querySelector('#nav')).boxShadow !== 'none';
+    // on 2026-10-13 he asked for "the footer with the clean lines", and the header became a floating pill: so the
+    // pill's 1px edge, the footer's hairline (a pseudo-element, checked below), and the 1px ring inside an outlined
+    // control are drawn, and nothing else is. Focus and error rings only appear in those states.
+    const allowed = e => e.matches('.nav__bar, .btn--primary, .btn--line');
+    const navLine = getComputedStyle(document.querySelector('.nav__bar')).boxShadow !== 'none';
     const ft = document.querySelector('.foot__top'); const footLine = !!ft && parseFloat(getComputedStyle(ft, '::before').height) === 1;
     const drawn = [...document.querySelectorAll('body *')].filter(e => {
       if (!e.getClientRects().length || e.closest('dialog:not([open]), .curtain') || allowed(e)) return false;
@@ -43,10 +43,11 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
       const border = ['Top', 'Right', 'Bottom', 'Left'].some(k => parseFloat(cs['border' + k + 'Width']) > 0 && cs['border' + k + 'Style'] !== 'none' && !/rgba\([^)]*, 0\)|transparent/.test(cs['border' + k + 'Color']));
       return border || cs.boxShadow !== 'none';
     }).map(e => String(e.className || e.tagName).slice(0, 30));
-    // the hero is the first screen and the gallery only peeks under it (2026-10-03, "you should be able to barely see
+    // the hero is the first screen and what follows only peeks under it (2026-10-03, "you should be able to barely see
     // that it's under the hero"): never more than 80px of it on the first screen, and on a screen tall enough to hold
-    // the hero (700px up) never less than 32px — a peek nobody can see is no peek
-    const gTop = document.querySelector('.gallery').getBoundingClientRect().top + scrollY;
+    // the hero (700px up) never less than 32px — a peek nobody can see is no peek. It was the gallery; since the
+    // gallery went to the foot of the page (2026-10-13) it is the first section's photograph.
+    const gTop = document.querySelector('#about .tell__figure .photo').getBoundingClientRect().top + scrollY;
     const peek = Math.round(innerHeight - gTop);
     const peekOk = peek <= 80 && (innerHeight < 700 || peek >= 32);
     // Two weights on every visible word, his portfolio's Regular and Semibold since 2026-10-13 (Some Wins' Medium and

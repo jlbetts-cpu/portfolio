@@ -6,7 +6,7 @@
 //   no flash       the system tap highlight is off; every control has its own press
 //   the ring       all eight circles whole and inside the screen, at every turn of the slot
 //   the footer     no panel; the sign-up field runs the column's full width
-//   the gallery    a touch does not freeze it (a phone's scroll gestures start on it)
+//   the gallery    a touch does not freeze it (a scroll gesture can start on it)
 //   scroll lock    the page under an open modal does not scroll, and scrolls again once it closes
 //   the quotes     a stack on hairlines, no boxes, each the column's width, nothing scrolling sideways
 // --self-test: adds an ungated :hover rule, which the sticky-hover check must catch.

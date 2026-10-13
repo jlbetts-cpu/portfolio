@@ -46,7 +46,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 .btn--secondary[aria-busy="true"]::after { border-color: var(--ink); border-right-color: transparent; }
 
-/* Round arrow buttons (the gallery) */
+/* Round arrow buttons */
 .arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) var(--ease-out), background-color var(--t) var(--ease-out); }
 @media (hover: hover) { .arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); } }
 .arrow:active { transform: scale(.94); }
@@ -101,28 +101,31 @@
    gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top
    of the page it has no ground at all; anywhere else, once it is showing, it takes the least surface that can carry type
    over a photograph — the ground at 78%, blurred, with a hairline. Keyboard focus always brings it back. */
-/* THE HEADER IS HIS PORTFOLIO'S BAR (2026-10-13, "can it match more my header in my portfolio"). Measured from
-   jaydenbetts.design's own source: a white bar 72px tall across the whole page, one 1px hairline under it, the
-   column's 1200px inside; the brand on the left, the links in the middle, one outlined action on the right. It still
-   leaves going down and comes back going up. It used to be bare at the top and glass once scrolled, and the lock that
-   asked for that ("not in a container or anything") is the one this replaces. */
-.nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: calc((72px - var(--nav-h)) / 2) 0; background: var(--bg); box-shadow: 0 1px 0 var(--line);
-  transition: transform var(--dur-move) var(--ease-out); }
+.nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: var(--sp-4) 0; pointer-events: none; transition: transform var(--dur-move) var(--ease-out); }
 .nav.is-hidden { transform: translateY(-100%); }
-.nav__bar { height: var(--nav-h); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-5); }
+/* THE HEADER IS A FLOATING PILL (2026-10-13, his pick of five rendered on the page, after "can you experiement with
+   the header i dont much like it right now"). One capsule centred at the top, holding the black-and-white logo and the
+   name, the three links and Subscribe; no bar across the page and no hairline under it. It is solid white with the
+   same 1px ring of the ink as an outlined control, drawn inside. It was frosted for its first hour, the ground at 80%
+   behind an 18px blur, until "lets make it more clean remove the blur". It still leaves going down and comes back
+   going up. It replaced his portfolio's full-width bar, which lasted one round. The pill takes the pointer; the strip
+   around it does not, so it never blocks a click. */
+.nav__bar { pointer-events: auto; box-sizing: border-box; width: max-content; max-width: calc(100% - 2 * var(--gutter)); height: calc(var(--hit) + 12px); margin-inline: auto; padding: 0 6px 0 var(--sp-5); display: flex; align-items: center; gap: var(--sp-7);
+  background: var(--bg-overlay); border-radius: var(--r-full); box-shadow: inset 0 0 0 1px var(--line); }
 /* THE BRAND IS THE NAME, SET IN TYPE. Jayden: "the header looks off." The cause was the mark: a line drawing of a
    ring of figures, which at 26px came out as a spindly glyph beside a bold wordmark, a few hundred pixels above the
    same mark drawn at 160px. Every rendering of it was tried at 26, 32 and 48px and none of them held at nav size —
    it is a drawing, not an icon. So the header carries the name and the hero carries the mark, once, large. On a
    phone the name is now there too; it used to be the mark alone, and the name appeared nowhere above the fold. */
-.nav__brand { justify-self: start; display: inline-flex; align-items: center; height: var(--hit); color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__brand { display: inline-flex; align-items: center; gap: 9px; height: var(--hit); color: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__brand:hover { opacity: .72; } }
 .nav__brand:active { transform: scale(.97); }
-.nav__panel { justify-self: end; display: flex; align-items: center; gap: var(--sp-2); }
+.nav__panel { display: flex; align-items: center; gap: var(--sp-2); }
+.nav__glyph { width: 26px; height: 28px; flex: none; color: var(--ink); }   /* the logo's own proportion, 787 by 842 */
 /* one filled action in the bar, at the bar's own scale. It was an outlined box — the only bordered thing on the
    header, next to a moon — and read as a form control dropped into a line of type. */
 .nav__subscribe { padding: 0 var(--sp-5); font-size: var(--fs-small); }
-.nav__links { justify-self: center; display: flex; align-items: center; }
+.nav__links { display: flex; align-items: center; margin-inline: calc(-1 * var(--sp-3)); }
 .nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
@@ -132,11 +135,10 @@
 .nav__menu .icon--close, .nav__menu[aria-expanded="true"] .icon--open { display: none; }
 .nav__menu[aria-expanded="true"] .icon--close { display: block; }
 @media (max-width: 767px) {
-  /* the links are in the sheet on a phone, so the bar is two columns: the name, and the menu at the far edge. With
-     the middle column left in, the menu took it and sat on top of the name */
-  .nav__bar { gap: var(--sp-3); grid-template-columns: minmax(0, 1fr) auto; }
+  /* on a phone the links are in the sheet: the pill runs the column's width, the name on the left, the menu right */
+  .nav__bar { width: 100%; max-width: calc(100% - 2 * var(--sp-4)); justify-content: space-between; gap: var(--sp-3); padding: 0 4px 0 var(--sp-4); }
   .nav__links, .nav__subscribe { display: none; }
-  .nav__menu { margin-right: calc(-1 * var(--sp-3)); }   /* the icon's glyph, not its 44px box, sits on the gutter */
+  .nav__menu { margin-right: 0; }   /* inside the pill now: its 44px box sits 4px in from the pill's edge */
   .nav__menu { display: inline-flex; }
 }
 @media (max-width: 359px) { .nav__brand { font-size: 15px; } }   /* the name and the menu fit at 320 */

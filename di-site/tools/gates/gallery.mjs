@@ -2,7 +2,8 @@
 // visible column drifts, they do NOT all travel at one rate (that is what makes one-shape photographs read as
 // masonry), the pointer holds them so a photograph can be clicked, a wheel over them scrolls the PAGE and never the
 // columns, each column wraps inside its own loop length, the stage clips them, and the top and the bottom are masked
-// so the photographs fade rather than ending on a cut.
+// so the photographs fade rather than ending on a cut. Since 2026-10-13 it is the last thing on the page, under the
+// footer, and thin ("i meant a vertical carousel like it was before but thinner"): its stage is at most 460px.
 // --self-test: gives the gallery the wheel handler the scrubbable version had, which "pageMoved" must catch.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -32,10 +33,11 @@ for (const [w, h] of (selfTest ? [[1440, 900]] : [[1440, 900], [820, 1180], [390
   // scroll-coupled by design, so the columns legitimately move; what a scrub would add is an offset the flow does not
   // account for, and the self-test's preventDefault shows up as a page that did not move.
   const y0 = await pg.evaluate(() => scrollY);
-  await pg.mouse.wheel(0, 240); await pg.waitForTimeout(450);
+  // the gallery is the foot of the page since 2026-10-13, so there is no page under it to scroll into: the wheel goes UP
+  await pg.mouse.wheel(0, -240); await pg.waitForTimeout(450);
   const check = await pg.evaluate(() => {
     const px = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gallery-px')) || 11;
-    const SPEED = [1, 1.18, .9, 1.1], START = [.08, .52, .3, .78];
+    const SPEED = [1, 1.18, .9, 1.1, .95, 1.14], START = [.08, .52, .3, .78, .62, .18];
     let worst = 0;
     [...document.querySelectorAll('.gallery__col')].forEach((col, i) => {
       if (!col.offsetParent) return;
@@ -49,7 +51,16 @@ for (const [w, h] of (selfTest ? [[1440, 900]] : [[1440, 900], [820, 1180], [390
     return { off: +worst.toFixed(1), scrollY };
   });
   const noScrub = check.off < 6;
-  const pageMoved = check.scrollY > y0 + 100;
+  const pageMoved = check.scrollY < y0 - 100;
+  // past the foot a downward wheel keeps the columns moving: the flow turns by what the scroll would have, far more
+  // than its drift does in the same time. Held by the pointer over it, so only the wheel can be turning it.
+  await pg.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await pg.waitForTimeout(500);
+  await pg.mouse.move(mid[0], Math.min(mid[1], h - 40)); await pg.waitForTimeout(500);
+  const f0 = await pg.evaluate(() => window.__di.flow.angle);
+  for (let i = 0; i < 4; i++) { await pg.mouse.wheel(0, 150); await pg.waitForTimeout(40); }
+  await pg.waitForTimeout(700);
+  const f1 = await pg.evaluate(() => window.__di.flow.angle);
+  const pushes = f1 - f0 > 20;
   await pg.mouse.move(4, 4); await pg.waitForTimeout(400);
   const geom = await pg.evaluate(() => {
     const st = document.querySelector('.gallery__stage'), cs = getComputedStyle(st);
@@ -61,11 +72,13 @@ for (const [w, h] of (selfTest ? [[1440, 900]] : [[1440, 900], [820, 1180], [390
     const filled = cols.every(c => c.querySelector('.gallery__run').getBoundingClientRect().height >= st.getBoundingClientRect().height);
     const runs = cols.every(c => { const r = c.querySelectorAll('.gallery__run'); return r.length === 2 && r[1].getAttribute('aria-hidden') === 'true' && Math.abs(r[0].offsetHeight - r[1].offsetHeight) < 1; });
     const ratios = [...st.querySelectorAll('.photo')].every(p => p.classList.contains('photo--4x5'));
-    return { clips: cs.overflow === 'hidden', faded: /linear-gradient/.test(mask) && (mask.match(/transparent|rgba\(0, 0, 0, 0\)/g) || []).length >= 2, wrapped, filled, runs, ratios, columns: cols.length };
+    const sr = st.getBoundingClientRect();
+    return { bleed: Math.round(sr.left) === 0 && Math.round(sr.right) === innerWidth, thin: Math.round(sr.height), last: !!st.closest('footer') && Math.abs(Math.round(sr.bottom + scrollY) - document.documentElement.scrollHeight) <= 1, clips: cs.overflow === 'hidden', faded: /linear-gradient/.test(mask) && (mask.match(/transparent|rgba\(0, 0, 0, 0\)/g) || []).length >= 2, wrapped, filled, runs, ratios, columns: cols.length };
   });
-  const want = w >= 1024 ? 4 : w >= 768 ? 3 : 2;
-  const ok = drifts && uneven && holds && noScrub && pageMoved && geom.clips && geom.faded && geom.wrapped && geom.filled && geom.runs && geom.ratios && geom.columns === want;
-  report(`gallery ${w}×${h}`, ok, JSON.stringify({ drifts, uneven, holds, noScrub, offBy: check.off, pageMoved, ...geom, want }));
+  // full bleed since 2026-10-13 ("full margin to margin"): six columns at 1200 and up, five at 1024, four on a tablet
+  const want = w >= 1200 ? 6 : w >= 1024 ? 5 : w >= 768 ? 4 : 2;
+  const ok = drifts && uneven && holds && noScrub && pageMoved && geom.clips && geom.faded && geom.wrapped && geom.filled && geom.runs && geom.ratios && geom.columns === want && geom.thin <= 460 && geom.last && geom.bleed && pushes;
+  report(`gallery ${w}×${h}`, ok, JSON.stringify({ drifts, uneven, holds, noScrub, offBy: check.off, pageMoved, pushes, pushedBy: +(f1 - f0).toFixed(1), ...geom, want }));
   await pg.close();
 }
 await b.close();

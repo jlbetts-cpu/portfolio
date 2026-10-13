@@ -79,6 +79,10 @@ ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--ci
 
 
 # ---- The gallery ----
+# AT THE FOOT OF THE PAGE since 2026-10-13, under the footer, and thinner: "can the horizontal carousel be on the bottom
+# under the footer and thinner", then "i meant a vertical carousel like it was before but thinner". The same four
+# columns rising, half the height they were under the hero. (For a few minutes it was one sideways row; that was a
+# misreading of "horizontal".)
 # Jayden, a round after the strip: "the reference I liked was more of a vertical image scroll." So the row stood up.
 # Four columns of photographs rising on their own, faded out at the top and the bottom, and still nothing you can
 # scrub — the flow drives them, the pointer only holds them. Each column is two copies of one run, so its loop length
@@ -87,13 +91,18 @@ ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--ci
 # comes from the columns sitting at different heights and travelling at different speeds, not from mixed ratios —
 # mixed ratios would reopen a locked decision and that is his call, not a side effect of this one.
 # Order matters: a phone shows the first two columns and a tablet the first three, so the strongest pictures lead.
+# FULL BLEED, edge to edge ("the carousel should be full margin to margin"), so six columns at 1200 and up, five at
+# 1024, four on a tablet and two on a phone: at the column's four across, a photograph spanning the screen would be
+# taller than the band it sits in. 2 or 3 to a column; a phone shows the first two, so the strongest lead.
 GALLERY=[
- ['linda-circle','kids-dancing','boy-fist','row-linked-arms'],
- ['blue-shirts','scene-handshake','three-teens','linda-portrait'],
- ['circle-hands','kids-running','yellow-trousers','kids-bw-small'],
- ['zoom-group','conga-line','bow-ties-wall'],
+ ['linda-circle','kids-dancing','row-linked-arms'],
+ ['blue-shirts','scene-handshake','linda-portrait'],
+ ['circle-hands','kids-running','kids-bw-small'],
+ ['zoom-group','boy-fist'],
+ ['three-teens','conga-line'],
+ ['yellow-trousers','bow-ties-wall'],
 ]
-GSIZES='(max-width: 767px) 46vw, (max-width: 1023px) 31vw, 23vw'
+GSIZES='(max-width: 767px) 50vw, (max-width: 1023px) 25vw, (max-width: 1199px) 20vw, 17vw'
 def gallery_col(names):
     run=lambda ghost: ''.join(f'<li class="gallery__item">{photo(n, "4x5", GSIZES, ghost=ghost)}</li>' for n in names)
     return (f'<div class="gallery__col"><ul class="gallery__run">{run(False)}</ul>'
@@ -116,6 +125,11 @@ def _tag(p):
 assert all(re.search(r'fill="([^"]*)"', p).group(1) in LOGO_PART for p in _paths), 'a logo colour with no name'
 _art = ''.join(_tag(p) for p in _paths)
 navlogo = re.sub(r'<path[^>]*/>', lambda m: _tag(m.group(0)), navlogo)
+# THE HEADER'S GLYPH is the whole DI logo in one colour, the ink: the black-and-white logo (dilogo.svg, the #mark
+# symbol), Jayden's call on 2026-10-13 ("the glyph though can we just use the black and white di logo") over the
+# coloured "di" monogram it replaced the same hour. The colour lives in the hero's mark; the header's is the ink,
+# the way his portfolio's "jb" is.
+navglyph = '<svg class="nav__glyph" viewBox="0 0 787 842" aria-hidden="true"><use href="#mark"/></svg>'
 _shape = ''.join(re.sub(r'fill="[^"]*"', 'fill="#fff"', p) for p in _paths)
 # the glint: a narrow white band with a soft shoulder either side, laid diagonally. One band, on a rect twice the
 # mark's width, so it crosses the mark and is then off it — a glint that comes and goes, not a shimmer that never stops.
@@ -199,7 +213,7 @@ page=f'''<!DOCTYPE html>
 
 <header class="nav" id="nav">
   <div class="container nav__bar">
-    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">Developmental Improvisation</a>
+    <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navglyph}Developmental Improvisation</a>
     <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#voices">Testimonials</a><a href="#contact">Contact</a></nav>
     <div class="nav__panel">
       <button class="btn btn--line btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
@@ -222,9 +236,6 @@ page=f'''<!DOCTYPE html>
   </section>
 
   <!-- the photographs sit right under the mark: four columns rising on their own, faded at the top and the bottom -->
-  <section class="gallery" aria-label="From the sessions">
-    <div class="container"><div class="gallery__stage" data-gallery>{gallery}</div></div>
-  </section>
 
 {tells}
 
@@ -272,8 +283,11 @@ page=f'''<!DOCTYPE html>
     </div>
     <nav class="foot__nav" aria-label="Footer">
       <div class="foot__col"><h2 class="foot__head">Menu</h2><a class="foot__link" href="#about">About</a><a class="foot__link" href="#voices">Testimonials</a><button class="foot__link" type="button" data-open-dialog>Newsletter</button></div>
-      <div class="foot__col"><h2 class="foot__head">Contact</h2><a class="foot__link" href="mailto:developmentalimprov@gmail.com">Email</a><a class="foot__link" href="tel:+18573523221">Call</a><a class="foot__link" href="mailto:developmentalimprov@gmail.com?subject=Bringing%20Developmental%20Improvisation%20to%20our%20school">Bring this to your school</a></div>
+      <div class="foot__col"><h2 class="foot__head">Contact</h2><a class="foot__link" href="mailto:developmentalimprov@gmail.com">Email</a><a class="foot__link" href="tel:+18573523221">Call</a></div>
     </nav>
+  </div>
+  <div class="gallery" role="region" aria-label="From the sessions">
+    <div class="gallery__stage" data-gallery>{gallery}</div>
   </div>
 </footer>
 

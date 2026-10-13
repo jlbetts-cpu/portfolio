@@ -10,9 +10,8 @@
    quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
 /* THE HERO IS THE FIRST SCREEN. Jayden: "make sure there is more space from the hero and the carousel — you should be
    able to barely see that it's under the hero." So the hero is the viewport's height less a peek, with its content
-   centred in it, and the gallery begins exactly at the peek: its first ~60px show at the foot of the screen, and with
-   the gallery's own fade at the top they show as a hint of photographs rather than as a row of them. It was 167px of
-   gallery at 1440×900, under a hero that stopped short at 669px.
+   centred in it. The gallery moved to the foot of the page on 2026-10-13, so what shows in the peek now is the first
+   section: its photograph and its heading start exactly there, a hint that the page goes on.
    svh, not vh, on a phone: the small viewport is the one with the address bar showing, which is the first screen a
    phone actually shows — and it sits behind @supports, because a var() declaration with a unit the browser does not
    know falls to unset at computed time rather than back to the vh line above it. */
@@ -47,34 +46,28 @@
 @media (prefers-reduced-motion: reduce) { .logo--hero .logo__shine { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
 
-/* ---------- The gallery ----------
-   The strip, stood up. Jayden: "the reference I liked was more of a vertical image scroll." Four columns on the page's
-   own grid, rising on their own and faded at the top and the bottom, so the photographs come up out of the page and
-   go back into it rather than starting and stopping at a cut. Still not scrubbable — the flow drives them and the
-   pointer only holds them — and still one shape: the masonry the reference has comes from columns that sit at
-   different heights and travel at different speeds, which js/main.js gives them, not from photographs of different
-   proportions. The gap between photographs IS the gap between columns, so the four read as one field.
-   The mask is a soft edge, not a wash. It was 12% at the top and 38% at the foot, so the lower third of every column
-   was half-dissolved; Jayden: "I don't think the fade needs to be that strong, tone it down." Now 6% at the top and
-   18% at the foot, each eased through a 65% stop so the edge has no visible start. Four columns, then three, then two. */
-.gallery { margin-top: 0; }   /* the hero's own height is the space above it now */
-/* A tight strip, drawn the way Some Wins draws photographs: 4px between them and a 4px corner, still 4:5 and still
-   inside the page's margins. Jayden's pick on 2026-10-13, from the strip, the camera roll (edge to edge, a 2px
-   hairline, no corner) and the 28px superellipse with 26px gaps that it replaced. Only here: a photograph on its own,
-   in the sections or the lightbox, keeps its large corner, because a corner is sized to its object and a 28px
-   corner on a 4px gap reads as a row of bubbles. The run's padding is the same 4px as its gap, or the loop jumps. */
-.gallery { --strip-gap: 4px; }
+/* the first section starts at the peek: the hero's own height is the space above it */
+.hero + .tell { margin-top: 0; }
+
+/* ---------- The gallery: at the foot of the page, thinner ----------
+   Four columns of photographs rising on their own, faded at the top and the bottom, under the footer as the page's
+   last thing (2026-10-13, "i meant a vertical carousel like it was before but thinner"). It was 84% of the screen's
+   height under the hero, 756px at 1440×900; it is about half that here, 42%, so it reads as a band of photographs
+   moving up out of the page rather than as a section. Still not scrubbable (the flow drives it, the pointer only holds
+   it) and still the tight strip he picked: 4px apart, 4px corners, every photograph 4:5. The fade is a soft edge, not a
+   wash ("tone it down"), and deeper at the foot, where the page ends. Full bleed ("full margin to margin"): six
+   columns, then five, four, and two on a phone. At the foot, a scroll past the page keeps it moving (js/main.js). */
+.gallery { --strip-gap: 4px; margin-top: clamp(48px, 5vw, 80px); }
 .gallery .photo { border-radius: 4px; }
-.gallery__stage { height: clamp(520px, 84vh, 920px); overflow: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--strip-gap); align-items: start;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 2.5%, #000 6%, #000 82%, rgba(0,0,0,.65) 93%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 2.5%, #000 6%, #000 82%, rgba(0,0,0,.65) 93%, transparent 100%); }
+.gallery__stage { height: clamp(300px, 42vh, 440px); overflow: hidden; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--strip-gap); align-items: start;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 4%, #000 10%, #000 74%, rgba(0,0,0,.65) 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.65) 4%, #000 10%, #000 74%, rgba(0,0,0,.65) 88%, transparent 100%); }
 .gallery__col { will-change: transform; }
-.gallery__run { display: grid; gap: var(--strip-gap); padding-bottom: var(--strip-gap); }
-/* a photograph here is a button, and on a desktop it now says so the way the sections' photographs do: the picture
-   leans in inside its own frame. The pointer is already holding the columns, so it cannot slide out from under it. */
+.gallery__run { display: grid; gap: var(--strip-gap); padding-bottom: var(--strip-gap); }   /* the padding is the gap, or the loop jumps by it */
 @media (hover: hover) { .gallery .photo:hover img { transform: scale(1.035); } }
-@media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gallery__col:nth-child(n+4) { display: none; } }
-@media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(480px, 78vh, 720px); } .gallery__col:nth-child(n+3) { display: none; } }
+@media (max-width: 1199px) { .gallery__stage { grid-template-columns: repeat(5, minmax(0, 1fr)); } .gallery__col:nth-child(n+6) { display: none; } }
+@media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(4, minmax(0, 1fr)); } .gallery__col:nth-child(n+5) { display: none; } }
+@media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(280px, 40vh, 360px); } .gallery__col:nth-child(n+3) { display: none; } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 /* ONE COLOUR. The second half of the claim was set a tier down (v24) and Jayden asked why: "why is emotional
    understanding greyed out." There was no good answer — the grey was a device borrowed from product headlines, and
@@ -184,7 +177,7 @@
    belongs to the edge of the surface it bounds), 64px of air under it, the identity on the left (the mark, one line
    in the ink at 18, the copyright) and two columns of plain links on the right, each a 44px row under a 15px heading.
    "the footer with the clean lines": the line is back, here and under the header, and nowhere else. */
-.foot { padding-bottom: var(--sp-16); }
+.foot { padding-bottom: 0; }   /* the gallery is the page's last edge */
 .foot__top { position: relative; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; padding-top: clamp(48px, 5vw, 80px); }
 .foot__top::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100vw; height: 1px; background: var(--line); pointer-events: none; }
 .foot__id { display: grid; justify-items: start; gap: var(--sp-2); }
@@ -203,5 +196,4 @@
 .foot__link:active { transform: scale(.98); }
 @media (max-width: 767px) {
   .foot__top { grid-template-columns: minmax(0, 1fr); gap: var(--sp-10); padding-top: var(--sp-12); }
-  .foot { padding-bottom: var(--sp-8); }
 }
