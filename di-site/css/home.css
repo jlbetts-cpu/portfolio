@@ -78,26 +78,24 @@
 .hero__act { margin-top: var(--sp-10); }   /* the claim and its one action; the caption that sat between them went on 2026-10-13 */
 
 /* ---------- The two sections ----------
-   What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
-   on one side, a label, a heading and the prose on the other. This replaced four clickable cards and the reader
+   What Developmental Improvisation is, and who Linda is. One shape used twice, the first on a grey band and the second
+   on white. This replaced four clickable cards and the reader
    dialog behind them — two sections of prose do not need a dialog to hold them, and a page trying to be taken
    seriously puts its case in the open rather than behind a click. */
-/* The copy reads from the top: the heading's capitals stand on the photograph's top edge and the air goes below, as
-   Some Wins' Add and Edit sheets do ("name, its controls, the block, air below"). Centred, the heading floated about
-   200px down beside the picture with nothing over it, and its reference board's rule is that a title cannot float
-   low with nothing above it. text-box trims the line box to the cap height so the two edges are one line. */
-.tell__row { align-items: start; row-gap: var(--sp-8); }
-.tell__figure { grid-column: 1 / -1; margin: 0; }
+/* A CENTRED STACK, as an Apple section is (2026-10-13, "Centred sections" from the rendered pass): the headline, the
+   words, then the photograph under them, all on the page's centre line. On a phone the paragraphs are long enough
+   that centred lines are hard to follow, so there the block reads from the left. It was photograph beside text, the
+   heading's capitals on the photograph's top edge (Some Wins' "read from the top"), for most of the day. */
+.tell__row { display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(40px, 4vw, 64px); }
+.tell__figure { margin: 0; width: min(560px, 100%); }
 .tell__figure .photo { width: 100%; }
-.tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: start; }
-.tell__title { text-box: trim-start cap alphabetic; margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
-.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
-@media (min-width: 768px) {
-  .tell__figure { grid-column: 1 / span 5; }
-  .tell__copy { grid-column: 7 / span 6; }
-  /* flipped, so the two sections do not read as one long list of the same row */
-  .tell--flip .tell__figure { grid-column: 8 / span 5; grid-row: 1; }
-  .tell--flip .tell__copy { grid-column: 1 / span 6; grid-row: 1; }
+.tell__copy { order: -1; display: grid; gap: var(--sp-4); justify-items: center; max-width: 40em; }
+.tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 14em; }
+.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: pretty; }
+@media (max-width: 767px) {
+  .tell__row { align-items: stretch; text-align: left; }
+  .tell__copy { justify-items: start; }
+  .tell__figure { width: 100%; }
 }
 
 /* ---------- The quote ring ----------
@@ -163,13 +161,13 @@
 .close { padding-bottom: var(--section-y); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: 16em; text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); max-width: 16em; text-wrap: balance; }
 .close__sign { grid-column: 1 / -1; }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); }
-@media (min-width: 1024px) {
-  .close__lead { grid-column: 1 / span 9; }
-  .close__sign { grid-column: 1 / span 6; }
-}
+/* centred, as the sections above it are: the line, then the newsletter under it, on the page's centre line */
+.close__grid { justify-items: center; text-align: center; }
+.close__lead { margin-inline: auto; }
+.close__sign { width: min(520px, 100%); }
 
 /* ---------- The footer: his portfolio's ----------
    jaydenbetts.design, measured from its own source on 2026-10-13: one hairline the full width of the page (a boundary

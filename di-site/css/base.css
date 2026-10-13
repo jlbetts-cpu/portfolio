@@ -54,10 +54,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* Layout */
 .container { max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto; }
-/* one rhythm: every section after the first is --section-y from the one above it. The ring takes half as much again,
-   because it is the page's one break and a break that is the same distance as everything else is not a break. */
-main > section + section, .close { margin-top: var(--section-y); }
-.section.ring { margin-block: calc(var(--section-y) * 1.4); }
+/* APPLE'S BANDS (2026-10-13, "lowkey want it to look more apple", "Grey bands" from the rendered pass): every section is
+   a band edge to edge with its own air inside, and every other one is Apple's #F5F5F7. No gaps between them: the
+   change of ground is the break. On a grey band a field or a soft control takes the white, or it would vanish. It was
+   one white page with --section-y between sections, the ring 1.4 times that as the page's one break. */
+main > section + section, .close { margin-top: 0; }
+.tell, .section.ring, .voices-sec, .close { padding-block: clamp(80px, 9vw, 140px); }
+.band { background: var(--band); --bg-raised: var(--bg-overlay); }
 /* the label: 12px caps, nothing else. It had a coloured dot; Jayden removed it. */
 .label { display: block; font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink); }
 /* the twelve-column grid every section lays out on */

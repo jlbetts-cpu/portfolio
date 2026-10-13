@@ -13,14 +13,13 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const lines = Math.round(h1.getBoundingClientRect().height / parseFloat(cs.lineHeight));
     const cont = [...document.querySelectorAll('.container')].filter(c => !c.closest('.nav')).map(c => { const cs = getComputedStyle(c); const b = c.getBoundingClientRect(); return [Math.round(b.left + parseFloat(cs.paddingLeft)), Math.round(b.right - parseFloat(cs.paddingRight))]; });
     const edges = new Set(cont.map(c => c.join('-')));
-    // the two sections: above 768 the photograph and the prose sit in their own columns and must never overlap,
-    // which is the one way a two-column row breaks when the copy grows
+    // the two sections are a centred stack (2026-10-13, Apple's): the words above the photograph and never over it,
+    // which is the one way a stack breaks when the copy grows
     let cross = 0;
     for (const row of document.querySelectorAll('.tell__row')) {
       const f = row.querySelector('.tell__figure').getBoundingClientRect();
       const c = row.querySelector('.tell__copy').getBoundingClientRect();
-      const side = innerWidth >= 768;
-      if (side && f.right > c.left + 1 && f.left < c.right - 1) cross++;
+      if (c.bottom > f.top + 1) cross++;
     }
     // the three quotes: equal width, and on a row (1024 up) the names on one line however uneven the quotes are —
     // each quote stands under a hairline and the name is pushed to the foot. Below 1024 they are one per row.
@@ -47,7 +46,7 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // that it's under the hero"): never more than 80px of it on the first screen, and on a screen tall enough to hold
     // the hero (700px up) never less than 32px — a peek nobody can see is no peek. It was the gallery; since the
     // gallery went to the foot of the page (2026-10-13) it is the first section's photograph.
-    const gTop = document.querySelector('#about .tell__figure .photo').getBoundingClientRect().top + scrollY;
+    const gTop = document.querySelector('#about').getBoundingClientRect().top + scrollY;   // the grey band's edge, since 2026-10-13
     const peek = Math.round(innerHeight - gTop);
     const peekOk = peek <= 80 && (innerHeight < 700 || peek >= 32);
     // Two weights on every visible word, his portfolio's Regular and Semibold since 2026-10-13 (Some Wins' Medium and
@@ -67,8 +66,10 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // page is filled with a ground darker than mid-grey. The main action is outlined.
     const lumOf = c => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return 1; return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
     const darks = [...document.querySelectorAll('button, a, input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open]), .curtain, .skip') && !e.matches('.skip') && lumOf(getComputedStyle(e).backgroundColor) < 0.5).map(e => (e.textContent || e.className).trim().slice(0, 20));
-    // the sections read from the top: above 768 the heading's capitals stand on the photograph's top edge
-    const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => Math.abs(row.querySelector('.tell__title').getBoundingClientRect().top - row.querySelector('.tell__figure .photo').getBoundingClientRect().top))) : 0;
+    // above 768 each section's headline and its photograph share the page's centre line (Apple's centred stack;
+    // until 2026-10-13 the heading's capitals stood on the photograph's top edge instead). On a phone it reads from
+    // the left, so there is nothing to measure.
+    const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const t = row.querySelector('.tell__title').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (f.left + f.right) / 2); })) : 0;
     // the gallery is a tight strip (his pick, 2026-10-13): 4px between photographs across and down, a 4px corner
     const cols = [...document.querySelectorAll('.gallery__col')].filter(c => c.offsetParent).map(c => c.getBoundingClientRect());
     const items = [...document.querySelector('.gallery__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
@@ -79,7 +80,7 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
     && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2
     && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4 && r.grey.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, heading off the photo's top ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();

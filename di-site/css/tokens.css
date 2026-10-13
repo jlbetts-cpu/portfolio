@@ -12,7 +12,8 @@
      cast and an ink that is a blue-black, not a brown one. These are those, held at the same contrast steps. The
      brand's colour lives in the photographs and in the mark's sweep; the page itself is ink and light, which is the
      rule in his own app: "saturated colour means a win or a photograph; chrome is ink and light." */
-  --bg:          #FAFAFB;
+  --bg:          #FFFFFF;   /* Apple's page white (2026-10-13); the bands between are --band */
+  --band:        #F5F5F7;   /* Apple's light grey, every other section edge to edge */
   --bg-raised:   #F2F2F5;
   --bg-sunken:   #E8E8EE;
   --bg-overlay:  #FFFFFF;
@@ -82,13 +83,13 @@
      type on dark reads thinner than it is. On white the same weights read heavy. */
   --font: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
-  /* THE SCALE IS HIS PORTFOLIO'S (2026-10-13, "making it professional is the key thing, also look at my portfolio").
-     jaydenbetts.design sets its claim at 44px (30 on a phone), a page title at 36, a section heading at 26 and prose
-     at 18/27, in the ink. This site's claim was 68px and its section headings 52: a poster's scale. Now the claim is
-     44 and the sections' headings 32, which is the step between his case study's title and his about page's heading,
-     because here the heading stands beside a 585px photograph rather than over a column of prose. */
-  --fs-display: clamp(1.875rem, 1.2rem + 2vw, 2.75rem);     --lh-display: 1.06; --ls-display: -0.026em;
-  --fs-h1:      clamp(1.625rem, 1.25rem + .9vw, 2rem);      --lh-h1: 1.1;       --ls-h1: -0.02em; 
+  /* THE SCALE IS APPLE'S (2026-10-13, "lowkey want it to look more apple", then picked from a rendered pass: "Apple-size
+     headlines"). apple.com sets a product's claim large, Semibold and tracked tight, and a section's headline a step
+     under it, centred over its picture. The claim is 72px at 1440 (40 on a phone) at -0.032em, the sections' headlines
+     56 at -0.03em: Inter's display cut is wider than SF's, so it takes a little more tightening than Apple's own
+     -0.015 to -0.025. It was his portfolio's scale for an afternoon (44 and 32), which read professional and small. */
+  --fs-display: clamp(2.5rem, 1rem + 4.2vw, 4.5rem);        --lh-display: 1.05; --ls-display: -0.032em;
+  --fs-h1:      clamp(2rem, 1rem + 2.6vw, 3.5rem);          --lh-h1: 1.07;      --ls-h1: -0.03em;
   --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.018em;
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
   --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.006em;
@@ -100,7 +101,7 @@
   /* reading sizes for the two places the page asks to be read rather than scanned: the prose of the two sections and
      the three quotes. Body size (16px at 1440) next to a photograph read as a caption to it. The prose is his
      portfolio's about page now, 18 on 27, in the ink and never a tier down; it was 20 on 32 in 72% ink. */
-  --fs-read:    clamp(1.0625rem, 1rem + .15vw, 1.125rem);     --lh-read: 1.5;
+  --fs-read:    clamp(1.125rem, 1rem + .4vw, 1.3125rem);      --lh-read: 1.45;   /* 21px at 1440: Apple's section copy, centred under its headline */
   --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.008em;
   /* Measures are in em, never ch */
   --measure-display: 15em;

@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v42 (2026-10-13) — more Apple
+*"lowkey want it to look more apple."* His own Apple reference (`docs/apple-design.md` in the portfolio) is about how Apple moves, springs, momentum, interruptibility, and the site already does most of it; what he was asking for is how apple.com looks. Two whole pages were rendered on the live site, one inside his locks and one with Apple's blue, beside the page as it was. He took three of four: *"Grey bands, Apple-size headlines, Centred sections."* Not the blue.
+
+**Apple's bands.** The page is pure white and every other section is a band of Apple's #F5F5F7, edge to edge, with no gap between: the first section, the ring, the closing section and the footer. Each band carries its own air (80 to 140px top and bottom). On a grey band a field or a soft control takes the white, or it would vanish into it.
+
+**Apple's scale.** The claim is 72px at 1440 (40 on a phone) at -0.032em, the sections' headlines 56 at -0.03em, Semibold. Inter's display cut is wider than SF's, so it takes a little more tightening than Apple's own. The sections' copy is 21 on 30, Apple's size for a paragraph under a headline.
+
+**Centred sections.** Each section is a stack on the page's centre line: the headline, the words, then the photograph (560px wide). On a phone the paragraphs are too long to read centred, so the block reads from the left there. The closing line and the newsletter are centred under it.
+
+**Gates.** The layout gate's two section checks turned: the words sit above the photograph and never over it, and above 768 the headline and the photograph share a centre line (750px off on the v41 files; 0 now). The peek under the hero is the grey band's edge. The theme gate's light ground is Apple's white. **52 gate lines pass, 9 self-tests caught.**
+
 ## v40 (2026-10-13) — the header is a pill; the gallery is at the foot, full bleed and thinner
 *"can you experiement with the header i dont much like it right now"*, *"the glyph though can we just use the black and white di logo"*, *"can the horizontal carousel be on the bottom under th efooter and thinner"*, *"i meant a vertical carousel like it was before but thinner"*, *"the carousel should be full margin to margin"*, *"since its at the bottom make it so you can scroll down and it will just animate down and lets make it more clean remove the blur remove the bring to your own school."*
 

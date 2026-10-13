@@ -102,3 +102,10 @@ and a **plain outlined** button. Its drawings are open line art in a big empty f
 Taken here: the outlined main action, the single hairline under the header, the lighter weight
 (his portfolio's 400/600 rather than one weight). Not taken: lowercase and the tracking, which
 are a brand's voice and were drawn for HEYTEA's own face, not Inter.
+
+## Apple, for "lowkey want it to look more apple" (2026-10-13)
+
+Rendered on the page, two ways, and he took three of four: Apple's white and #F5F5F7 bands
+edge to edge, Apple-size headlines (72 and 56, Semibold, tracked tight), and centred sections
+with the photograph under the words. Not taken: Apple's blue (#0071E3) filled pill and blue
+links, which would reopen ink as the only accent and the outlined main action.

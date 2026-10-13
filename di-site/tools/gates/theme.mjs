@@ -11,7 +11,7 @@
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
-const LIGHT = 'rgb(250, 250, 251)';
+const LIGHT = 'rgb(255, 255, 255)';   // the light ground: Apple's page white since 2026-10-13 (it was #FAFAFB)
 const page = async (scheme, stored) => {
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: scheme });
   const pg = await ctx.newPage();

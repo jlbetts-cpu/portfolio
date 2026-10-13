@@ -163,7 +163,7 @@ TELL=[
 ]
 def tell(idp, label, title, name, paras, flip):
     body=''.join(f'<p class="tell__p">{t}</p>' for t in paras)
-    return (f'<section class="tell{" tell--flip" if flip else ""}" id="{idp}" aria-labelledby="{idp}Title">'
+    return (f'<section class="tell{"" if flip else " band"}" id="{idp}" aria-labelledby="{idp}Title">'
             f'<div class="container grid tell__row">'
             f'<figure class="tell__figure reveal">{photo(name, "4x5", TSIZES, hover=True)}</figure>'
             f'<div class="tell__copy reveal">'
@@ -239,7 +239,7 @@ page=f'''<!DOCTYPE html>
 
 {tells}
 
-  <section class="section ring" id="quote" aria-label="Quote">
+  <section class="section ring band" id="quote" aria-label="Quote">
     <div class="container">
       <div class="ring__stage reveal--parts">
         <div class="ring__orbit">{ring}</div>
@@ -258,7 +258,7 @@ page=f'''<!DOCTYPE html>
   </section>
 </main>
 
-<section class="close" aria-labelledby="newsletterTitle">
+<section class="close band" aria-labelledby="newsletterTitle">
   <!-- The closing line and the newsletter: the last thing the page says. The ways to reach Linda moved into the footer
        below it (2026-10-13), which is drawn the way his portfolio's is. -->
   <div class="container"><div class="close__body reveal">
@@ -272,7 +272,7 @@ page=f'''<!DOCTYPE html>
   </div></div>
 </section>
 
-<footer class="foot" id="contact">
+<footer class="foot band" id="contact">
   <!-- His portfolio's footer (jaydenbetts.design, 2026-10-13): one hairline the full width of the page, the identity on
        the left, two columns of plain links on the right, 44px rows. -->
   <div class="container foot__top">
