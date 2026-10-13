@@ -43,6 +43,8 @@ on every number I had and was still wrong.
 | **The page answers to its own theme attribute only** (`data-di-theme`). A host's `data-theme` is never read | 2026-10-03 | the claude.ai preview writes `data-theme="dark"`, and keying the dark tokens on it is why dark mode "would not go away" |
 | **No cards on the testimonials or the footer.** Quotes stand under hairlines; the footer is three bands of type on the page | 2026-10-03 | "the footer and testimonials section looks outdated compared to the cleanness of the rest of the site" |
 | **The hero mark is the logo in its own colours, with a glint of white light** crossing it every six seconds, tied to the tilt. Not black, not a colour sweep | 2026-10-12 | "I want the logo to be like the normal colors maybe with a premium shine instead of being black" |
+| **No grey text.** Every word on the page is in the ink; hierarchy is size and weight. Only a field's placeholder and the skip link (inverted) differ | 2026-10-13 | "Im not a fan of the grey text"; the layout gate fails on any visible word in another colour |
+| **The hero carries no caption.** The mark, the claim and the one action | 2026-10-13 | "Im not a fan of … the small caption under the hero" ("Pre-wiring the brain & educating the heart") |
 | **The headline is one colour**, all ink. No half of the claim set a tier down | 2026-10-03 | "why is emotional understanding greyed out … I feel like that should all be black" |
 | **No lines.** No hairlines, dividers or outlined controls; space separates things, and a control that needs a shape gets a soft fill. Focus and error rings stay | 2026-10-03 | "remove the lines I want it more minimal just use clean white space design" |
 | **The hero is the first screen; the gallery only peeks under it** — 50 to 72px on a screen that holds the hero | 2026-10-03 | "make sure there is more space from the hero and the carousel, you should be able to barely see that its under the hero" |
@@ -68,10 +70,11 @@ on every number I had and was still wrong.
 | Controls | **a capsule**, drawn round | every button and field; a capsule on the superellipse corner is a lozenge | `base.css`, `layout.mjs` |
 | White on a screen | **one** filled white button | Some Wins' "nothing white in dark except the main filled button": the header's Subscribe is the soft capsule, the hero's is white | `build-html.py`, `layout.mjs` |
 | The sections | **read from the top**: the heading's capitals on the photograph's top edge, air below | within 2px, measured; Some Wins' "a title cannot float low with nothing above it" | `home.css`, `layout.mjs` |
-| Display scale | 4.25rem top, −0.022em | Inter's display design is already drawn tight; Geist's −0.035em on it read pinched | `--fs-display` |
-| Reading sizes | `--fs-read` 20px at 1440 for the sections' prose, `--fs-quote` 23px for the quotes | body size (16px) is for chrome; a paragraph the page wants read is never set at it beside a 680px photograph | `tokens.css` |
+| Display scale | **44px** top (30 on a phone), −0.026em; the sections' headings 32 | his portfolio's scale (2026-10-13): its claim is 44, a page title 36, a section heading 26. It was 68 and 52, a poster's scale | `--fs-display`, `--fs-h1` |
+| Reading sizes | `--fs-read` **18 on 27** for the sections' prose (his about page), `--fs-quote` 23px for the quotes | body size (16px) is for chrome; a paragraph the page wants read is never set at it beside a photograph | `tokens.css` |
 | Section rhythm | `clamp(80px, 8vw, 168px)`, ring at 1.4× | 115px at 1440 measured | `base.css` |
 | Gutter | `clamp(20px, 3.4vw, 64px)` | 49px at 1440; under 30 reads as a brochure | `--gutter` |
+| Column | **1200px** of content (120px in from each edge at 1440) | his portfolio's column (2026-10-13). It was 1720 wide, answering "small spacing from the outer edge" for cards that went in v21 | `--page-max` |
 | Contrast | 4.5:1, measured on the ground it sits on | — | `contrast.mjs` |
 | Targets | 44px, measured not declared | one exemption: inline prose links | `targets.mjs` |
 | Motion | 6 rungs: 100 / 160 / 240 / 280 / 360 / 500 | hover arrives in 160 and leaves in 240 | `--dur-*`, `--t` |

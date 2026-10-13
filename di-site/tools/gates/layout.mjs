@@ -48,7 +48,12 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // weight is how a ladder rots, and there were two stray 600s before this check existed.
     const weights = new Set();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let n; while ((n = walker.nextNode())) { const el = n.parentElement; if (!n.textContent.trim() || !el.getClientRects().length || el.closest('script, style, svg, dialog:not([open]), .curtain, .sr-only')) continue; weights.add(getComputedStyle(el).fontWeight); }
+    // and no grey text (2026-10-13, "I'm not a fan of the grey text"): every visible word is in the ink, or is the
+    // label on the one filled button, or the skip link, which is inverted (the page's colour on the ink) and only shows on
+    // focus. Hierarchy is size and weight. A field's placeholder is not a word on the page.
+    const ink = getComputedStyle(h1).color; const grey = [];
+    let n; while ((n = walker.nextNode())) { const el = n.parentElement; if (!n.textContent.trim() || !el.getClientRects().length || el.closest('script, style, svg, dialog:not([open]), .curtain, .sr-only')) continue; weights.add(getComputedStyle(el).fontWeight);
+      if (!el.closest('.btn--primary, .skip') && getComputedStyle(el).color !== ink) grey.push(n.textContent.trim().slice(0, 24)); }
     // every control is a capsule: a corner of at least half its height, drawn round rather than as a superellipse
     const notCapsule = [...document.querySelectorAll('.btn, .input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open])')).filter(e => { const cs = getComputedStyle(e); return parseFloat(cs.borderTopLeftRadius) < e.offsetHeight / 2 - 0.5 || (cs.cornerShape && !/^round/.test(cs.cornerShape)); }).map(e => String(e.className).slice(0, 30));
     // one white thing on the first screen: of the controls visible at the top of the page, one carries the primary fill
@@ -60,13 +65,13 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const cols = [...document.querySelectorAll('.gallery__col')].filter(c => c.offsetParent).map(c => c.getBoundingClientRect());
     const items = [...document.querySelector('.gallery__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
     const strip = { across: Math.round(cols[1].left - cols[0].right), down: Math.round(items[1].top - items[0].bottom), corner: parseFloat(getComputedStyle(document.querySelector('.gallery .photo')).borderTopLeftRadius) };
-    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, whites, capGap: Math.round(capGap), strip };
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, whites, capGap: Math.round(capGap), strip, grey };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
     && r.weights.join() === '500,700' && r.notCapsule.length === 0 && r.whites === 1 && r.capGap <= 2
-    && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, white buttons on the first screen ${r.whites}, heading off the photo's top ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner`);
+    && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4 && r.grey.length === 0;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, columns crossing ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, gallery peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, white buttons on the first screen ${r.whites}, heading off the photo's top ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();

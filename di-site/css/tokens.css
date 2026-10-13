@@ -72,8 +72,13 @@
      from Regular to Medium. Two stray 600s (the button and the quote's name) were a third weight; both are 700. */
   --font: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
-  --fs-display: clamp(2.25rem, 1rem + 3.8vw, 4.25rem);      --lh-display: 1.06; --ls-display: -0.022em;
-  --fs-h1:      clamp(2rem, 1.3rem + 3vw, 3.25rem);         --lh-h1: 1.08;      --ls-h1: -0.02em; 
+  /* THE SCALE IS HIS PORTFOLIO'S (2026-10-13, "making it professional is the key thing, also look at my portfolio").
+     jaydenbetts.design sets its claim at 44px (30 on a phone), a page title at 36, a section heading at 26 and prose
+     at 18/27, in the ink. This site's claim was 68px and its section headings 52: a poster's scale. Now the claim is
+     44 and the sections' headings 32, which is the step between his case study's title and his about page's heading,
+     because here the heading stands beside a 585px photograph rather than over a column of prose. */
+  --fs-display: clamp(1.875rem, 1.2rem + 2vw, 2.75rem);     --lh-display: 1.06; --ls-display: -0.026em;
+  --fs-h1:      clamp(1.625rem, 1.25rem + .9vw, 2rem);      --lh-h1: 1.1;       --ls-h1: -0.02em; 
   --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.018em;
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
   --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.006em;
@@ -83,9 +88,9 @@
   --fs-caption: 0.9375rem;                                  --lh-caption: 1.45; --ls-caption: 0;
   --fs-ui:      0.9375rem;
   /* reading sizes for the two places the page asks to be read rather than scanned: the prose of the two sections and
-     the three quotes. Body size (16px at 1440) next to a 680px photograph read as a caption to it; this is the size a
-     paragraph has on a page that wants it read. */
-  --fs-read:    clamp(1.0625rem, 1rem + .3vw, 1.25rem);       --lh-read: 1.6;
+     the three quotes. Body size (16px at 1440) next to a photograph read as a caption to it. The prose is his
+     portfolio's about page now, 18 on 27, in the ink and never a tier down; it was 20 on 32 in 72% ink. */
+  --fs-read:    clamp(1.0625rem, 1rem + .15vw, 1.125rem);     --lh-read: 1.5;
   --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.008em;
   /* Measures are in em, never ch */
   --measure-display: 15em;
@@ -100,9 +105,10 @@
      The gutter grew with it: 29px of air at the edge of a 1440 screen is a brochure, 49px is a page. */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px;
   --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px; --sp-32: 128px;
-  /* the column is wide enough that on a laptop the page IS the screen minus a small, even inset, which is what
-     puts the big surfaces "a small spacing from the outer edge" instead of inside a narrow centred strip */
-  --page-max: 1720px;
+  /* The column is his portfolio's: 1200px of content, so at 1440 the page sits 120px in from each edge. It was 1720
+     wide, which on a laptop made the page the screen minus a 49px inset; that answered "the cards should look like
+     this: with small spacing from the outer edge" in the eighth review, and the cards went in v21. */
+  --page-max: calc(1200px + 2 * var(--gutter));
   --gutter: clamp(20px, 3.4vw, 64px);
   --grid-gap: clamp(16px, 1.8vw, 32px);      /* between COLUMNS, which is all it means now */
   --section-y: clamp(80px, 8vw, 168px);      /* between SECTIONS */

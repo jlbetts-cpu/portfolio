@@ -76,8 +76,7 @@
    from 600px up, which is where the sentence turns, and on a phone a no-break space keeps the ampersand with it. */
 @media (min-width: 600px) { .hero__title__line { display: block; } }
 @media (min-width: 1100px) { .hero__title { max-width: 21em; } }
-.hero__sub { font-size: clamp(1.125rem, 1rem + .55vw, 1.4375rem); line-height: 1.45; letter-spacing: -0.008em; color: var(--ink-2); max-width: 30em; text-wrap: balance; }   /* at 320 it left "heart" alone on a line */
-.hero__act { margin-top: var(--sp-6); }
+.hero__act { margin-top: var(--sp-10); }   /* the claim and its one action; the caption that sat between them went on 2026-10-13 */
 
 /* ---------- The two sections ----------
    What Developmental Improvisation is, and who Linda is. One shape used twice, flipped the second time: a photograph
@@ -93,7 +92,7 @@
 .tell__figure .photo { width: 100%; }
 .tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: start; }
 .tell__title { text-box: trim-start cap alphabetic; margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
-.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink-2); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
+.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
   .tell__copy { grid-column: 7 / span 6; }
@@ -128,7 +127,7 @@
    breaks Jayden signed off on — Creativity / in motion / creates / knowledge! — were set against that narrower
    measure, so there the 40px stays, written down instead of inherited. */
 @media (min-width: 768px) { .ring__text { margin-inline: 40px; font-size: clamp(1.5rem, 3.9vw, 3.5rem); } }
-.ring__who { margin-top: var(--sp-4); font-size: var(--fs-small); color: var(--ink-3); }
+.ring__who { margin-top: var(--sp-4); font-size: var(--fs-small); color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) { .ring__item .photo:has(.photo__open:active) { transform: none; } .js .ring__stage .photo { opacity: 1; transform: none; } }
 @media (hover: hover) and (prefers-reduced-motion: reduce) { .ring__item .photo:hover { transform: none; } }
@@ -150,7 +149,7 @@
 .voice__quote::after { content: "\201D"; }
 .voice__who { margin-top: auto; padding-top: var(--sp-6); }
 .voice__name { font-size: var(--fs-small); font-weight: 700; color: var(--ink); line-height: 1.4; }
-.voice__role { font-size: var(--fs-caption); color: var(--ink-3); line-height: 1.4; }
+.voice__role { font-size: var(--fs-caption); color: var(--ink); line-height: 1.4; }
 @media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
 /* a tablet: one per row, the words across eight columns and the person beside them on the last four — three-up made
    each quote 244px wide at 820, four words a line */
@@ -169,7 +168,7 @@
 .close { padding-bottom: var(--sp-8); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: clamp(2rem, 1rem + 3.2vw, 3.75rem); line-height: 1.04; letter-spacing: -0.022em; font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
 .close__sign { grid-column: 1 / -1; }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); }
 .close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-1); align-content: start; justify-items: start; }
@@ -180,7 +179,7 @@
    same specificity — .close__reach a is (0,2,0) and this rule has to match it to win */
 .close__reach .close__ask { margin-top: var(--sp-4); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
 .close__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-24); }
-.close__copy { font-size: var(--fs-caption); color: var(--ink-3); }
+.close__copy { font-size: var(--fs-caption); color: var(--ink); }
 /* The address is 29 characters, and the <wbr> means the one place it can ever break is the @. */
 @media (max-width: 767px) {
   .close__reach a { font-size: var(--fs-lead); }

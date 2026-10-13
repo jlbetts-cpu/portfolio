@@ -1,4 +1,4 @@
-# How Jayden designs, read from Some Wins
+# How Jayden designs, read from Some Wins and his portfolio
 
 Written 2026-10-13, after he asked: *"do you have access to the some wins files and
 md files and see how I like my design?"* and then, of an earlier reading that used
@@ -70,3 +70,22 @@ screen with one action on it. Most of those came from his `design.md` in v24 to 
 - **The rounded type and the warm ground.** Some Wins sets SF Pro Rounded on a warm
   grey; this site's face (Inter) and its cool neutrals are both LOCKED.
 - **The ground gradient** on somewins.xyz. "No gradients on the page" is LOCKED here.
+
+## His portfolio, read for "professional" (2026-10-13)
+
+*"Im not a fan of the grey text and the small caption under the hero i think making it
+professional is the key thing also look at my portfolio for inspiration."* jaydenbetts.design
+is not reachable from the build machine (the network policy refuses it), so it was read from
+its own source, `main` of this repository, served locally and measured:
+
+| | His portfolio | This site before | Now |
+|---|---|---|---|
+| The claim | 44px, 600, −0.03em, no caption under it | 68px, with a caption in 72% ink | 44px, no caption |
+| A section heading | 26px (about), 36px (case study title) | 52px | 32px |
+| Prose | 18 on 27, **in the ink** | 20 on 32 in 72% ink | 18 on 27 in the ink |
+| Column | 1200px, 120px in at 1440 | 1342px, 49px in | 1200px |
+| Heading beside a photograph | its top on the photograph's top (119 against 120) | (already taken in v35) | 0px |
+
+What it does that is not taken: grey meta lines and 12px captions (he said no grey, and the
+floor here is 15); hairlines under the header and between sections (no lines, LOCKED here);
+the outlined Contact button (same).

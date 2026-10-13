@@ -1,6 +1,6 @@
 // Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM,
 // in the dark theme, the only one. The inverted sign-up card and the raised closing field are ordinary background-colours, so the same walk covers them.
-// --self-test: paints --ink-3 onto the ground colour and expects the walk to fail.
+// --self-test: paints the smallest type (a quote's role, the copyright) in the ground colour and expects the walk to fail.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
@@ -8,7 +8,10 @@ let worstAll = 99, failed = 0;
 // dark only since 2026-10-13: the page has no light theme to reach
 for (const theme of ['dark']) {
   const pg = await open(b, 1440, 900, { theme });
-  if (selfTest) await pg.evaluate(() => document.documentElement.style.setProperty('--ink-3', getComputedStyle(document.body).backgroundColor));
+  // it painted --ink-3 until 2026-10-13, when the page stopped setting any text in --ink-3 and the injection fell on
+  // nothing: "SELF-TEST FAILED: nothing was caught". It now paints the smallest type on the page, the quote's role and
+  // the copyright, in the ground colour, which no future token rename can route around.
+  if (selfTest) await pg.evaluate(() => { const st = document.createElement('style'); st.textContent = `.voice__role, .close__copy { color: ${getComputedStyle(document.body).backgroundColor} !important; }`; document.head.append(st); });
   await pg.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { scrollTo(0, y); await new Promise(r => setTimeout(r, 100)); } });
   const r = await pg.evaluate(() => {
     const cv = document.createElement('canvas'); cv.width = cv.height = 1; const cx = cv.getContext('2d', { willReadFrequently: true });

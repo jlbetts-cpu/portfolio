@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v37 (2026-10-13) — no grey, no caption, his portfolio's scale
+*"Im not a fan of the grey text and the small caption under the hero i think making it professional is the key thing also look at my portfolio for inspiration."*
+
+**The caption under the hero is gone.** The hero is the mark, the claim and the one action, 40px apart.
+
+**No grey text.** Every word is in the ink: the prose, the nav links, the quotes' roles, the ring's name, the copyright, the field's message. Hierarchy is size and weight, which is how his portfolio's about page does it. Worst contrast on the page went from 5.95:1 to 16.43:1. The layout gate fails on any visible word in another colour (only the placeholder and the inverted skip link differ), and it caught the v36 page on "About", "Contact", the caption and the prose.
+
+**His portfolio's scale.** jaydenbetts.design refuses this machine at the proxy, so it was read from its source on `main`, served on 127.0.0.1 and measured: the claim 44px, a section heading 26 and a page title 36, prose 18 on 27 in the ink, a 1200px column. The claim went 68 → 44 (30 on a phone), the sections' headings 52 → 32, the prose 20/32 → 18/27, the column 1342 → 1200 (120px in at 1440, as his is). The 1720 column answered "small spacing from the outer edge", which was said of the cards, and the cards went in v21. The closing line takes the claim's size. The ring's quote keeps its own: the ring is locked as it is.
+
+**A self-test that stopped failing.** `contrast.mjs --self-test` painted `--ink-3` onto the ground, and with nothing set in `--ink-3` any more it printed "SELF-TEST FAILED: nothing was caught". It now paints the smallest type on the page in the ground colour, and it catches it again.
+
+**52 gate lines pass, 9 self-tests caught.**
+
 ## v35 (2026-10-13) — Some Wins, read and applied
 *"no nothing with apollo the some wins design I want you to look at."* `docs/taste.md` is rewritten from Some Wins alone: its `design.md`, `brand.md`, `voice.md`, `ten.md`, `space.md`, the reference board, the illustration rules, somewins.xyz and its 33 screens. Apollo is out of it.
 

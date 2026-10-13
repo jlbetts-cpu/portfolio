@@ -77,7 +77,7 @@
 .input::placeholder { color: var(--ink-3); }
 @media (hover: hover) { .input:hover { background: var(--bg-sunken); } }
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
-.field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink-3); min-height: 1.4em; }
+.field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink); min-height: 1.4em; }
 .field__message[data-state="error"] { color: var(--ink); }
 @media (max-width: 599px) { .field { flex-direction: column; } .field .btn { width: 100%; } }
 /* iOS Safari zooms the page in when a field set under 16px takes focus, and leaves it zoomed. On a touch screen the
@@ -110,7 +110,7 @@
    header, next to a moon — and read as a form control dropped into a line of type. */
 .nav__subscribe { padding: 0 var(--sp-5); font-size: var(--fs-small); }
 .nav__links { display: flex; align-items: center; }
-.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
 /* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
