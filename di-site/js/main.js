@@ -19,22 +19,9 @@
      page — the buttons' scale, the photographs' — never showed on an iPhone. Passive and empty: it changes nothing else. */
   document.addEventListener('touchstart', () => {}, { passive: true });
 
-  /* ---- Theme: DARK, for everyone, unless the visitor picks light from the switch in the footer. Jayden, 2026-10-12:
-     "I think I also want to keep it in dark mode, I think it looks better for this specific site" — and the colour
-     logo needs a dark ground to hold together. The head script has already set data-di-theme before first paint, so
-     this only keeps the switch and the browser chrome in step. A host's own data-theme is never read. ---- */
-  const THEME = 'di:mode';   // renamed from di:theme when dark became the default for everyone (2026-10-12)
-  const paintTheme = (t, animate) => {
-    if (animate) { root.classList.add('is-theming'); setTimeout(() => root.classList.remove('is-theming'), 260); }
-    root.dataset.diTheme = t;
-    const meta = $('meta[name="theme-color"]'); if (meta) meta.content = t === 'dark' ? '#0B0B0F' : '#FAFAFB';
-    $$('[data-theme-set]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)));
-  };
-  paintTheme(root.dataset.diTheme === 'dark' ? 'dark' : 'light', false);
-  $$('[data-theme-set]').forEach(b => b.addEventListener('click', () => {
-    const t = b.dataset.themeSet; if (t === root.dataset.diTheme) return;
-    store.set(THEME, t); paintTheme(t, true);
-  }));
+  /* ---- Dark only (2026-10-13: "remove the switch"). The page is dark for everyone: data-di-theme="dark" is written
+     on the <html> element in the markup itself, so not even the head script decides it, and a page with scripts off
+     is dark too. The light token block in tokens.css is the unused base. ---- */
 
   /* ---- The curtain: the first load of a session. It waits for the fonts and the hero's first photographs, then parts.
      Three things guarantee the site is never stuck behind it: a hard timeout, a floor on how long it can show, and

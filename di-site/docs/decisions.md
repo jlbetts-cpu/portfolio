@@ -15,7 +15,7 @@ Everything in `design-system.md` and `BUILD-LOG.md` records WHY. Nothing recorde
   `<mark>` highlights once, a pleated curtain once. Each is in the log; none was
   marked as closed.
 
-This file is the index of what cannot be changed without asking.
+This file is the index of what cannot be changed without asking. `taste.md` is the evidence of how he designs, read from his own apps.
 
 | | What it means | What to do |
 |---|---|---|
@@ -38,7 +38,7 @@ on every number I had and was still wrong.
 | **One photograph shape**: a 4:5 rectangle on the superellipse corner, and the circle belongs to the ring | settled | a mixed set of four shapes was built and rejected |
 | **The curtain is flat**, not pleated, and shows once a session | settled | "it looked a lot cleaner when it wasnt like actually a curtain" |
 | **The header is clean**: no container, no bar, leaves going down and comes back going up | 2026-09-06 | "i would rather it be a clean header though not in a container or anything just minimal and clean" |
-| **Dark is the site's ground**, for every visitor, whatever their system; the footer switch can still pick light, and remembers it | 2026-10-12 | "I think I also want to keep it in dark mode I think it looks better for this specific site" (the switch itself: "the button to change it should be in the footer", 2026-10-03) |
+| **Dark only.** No light theme and no switch; `data-di-theme="dark"` is in the markup | 2026-10-13 | "remove the switch" (after "keep it in dark mode, it looks better for this specific site", 2026-10-12) |
 | **The page answers to its own theme attribute only** (`data-di-theme`). A host's `data-theme` is never read | 2026-10-03 | the claude.ai preview writes `data-theme="dark"`, and keying the dark tokens on it is why dark mode "would not go away" |
 | **No cards on the testimonials or the footer.** Quotes stand under hairlines; the footer is three bands of type on the page | 2026-10-03 | "the footer and testimonials section looks outdated compared to the cleanness of the rest of the site" |
 | **The hero mark is the logo in its own colours, with a glint of white light** crossing it every six seconds, tied to the tilt. Not black, not a colour sweep | 2026-10-12 | "I want the logo to be like the normal colors maybe with a premium shine instead of being black" |

@@ -6,7 +6,7 @@
 //               claude.ai is dark) changes nothing — that attribute is not ours, and keying the dark tokens on it is
 //               what kept the page dark after the toggle was taken away
 //   the switch  two options in the footer, aria-pressed on the chosen one, both 44px targets
-// --self-test: keys a dark ground on the host's attribute again, which "the host" must catch.
+// --self-test: keys a light ground on the host's attribute, which the check must catch.
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
@@ -24,26 +24,18 @@ const bg = (pg) => pg.evaluate(() => getComputedStyle(document.body).backgroundC
 let ok = true;
 const check = (name, pass, detail) => { if (!selfTest) report(`theme: ${name}`, pass, detail); ok = ok && pass; };
 
-let { ctx, pg } = await page('dark', null);
-const d0 = await bg(pg); await ctx.close();
-({ ctx, pg } = await page('light', null));
-const l0 = await bg(pg); await ctx.close();
-check('no choice made → dark, on a dark system and a light one', d0 === DARK && l0 === DARK, JSON.stringify({ darkSystem: d0, lightSystem: l0 }));
-
-({ ctx, pg } = await page('dark', null));
-await pg.evaluate(() => document.querySelector('#contact').scrollIntoView());
-const sw = await pg.evaluate(() => [...document.querySelectorAll('#contact [data-theme-set]')].map(b => { const r = b.getBoundingClientRect(); return { t: b.dataset.themeSet, pressed: b.getAttribute('aria-pressed'), h: Math.round(r.height) }; }));
-await pg.click('#contact [data-theme-set="light"]'); await pg.waitForTimeout(400);
-const afterClick = await bg(pg);
-const pressed = await pg.evaluate(() => document.querySelector('#contact [data-theme-set="light"]').getAttribute('aria-pressed'));
-await pg.reload(); await pg.waitForTimeout(400);
-const afterReload = await bg(pg);
-check('the footer switch beats the default and survives a reload', sw.length === 2 && sw.every(x => x.h >= 44) && sw.find(x => x.t === 'dark').pressed === 'true' && afterClick === LIGHT && pressed === 'true' && afterReload === LIGHT, JSON.stringify({ sw, afterClick, pressed, afterReload }));
-// the host: the visitor chose light; a dark host marks the page dark
-if (selfTest) await pg.addStyleTag({ content: ':root[data-theme="dark"] { --bg: #0B0B0F; }' });   // the bug, back
-await pg.evaluate(() => { document.documentElement.dataset.theme = 'dark'; document.documentElement.classList.add('dark'); }); await pg.waitForTimeout(200);
-const hosted = await pg.evaluate(() => ({ bg: getComputedStyle(document.body).backgroundColor, scheme: getComputedStyle(document.documentElement).colorScheme }));
-check('a host\'s data-theme="dark" changes nothing', hosted.bg === LIGHT && hosted.scheme === 'light', JSON.stringify(hosted));
-await ctx.close();
+// dark for everyone: a light system, a light choice stored by an older version, and a host writing data-theme="light"
+// all leave the page dark — and there is no switch anywhere to change it
+const results = [];
+for (const [scheme, stored] of [['light', null], ['dark', null], ['light', 'light']]) {
+  const { ctx, pg } = await page(scheme, stored);
+  await pg.evaluate(() => { localStorage.setItem('di:theme', 'light'); localStorage.setItem('di:mode', 'light'); });
+  await pg.reload(); await pg.waitForTimeout(300);
+  if (selfTest) await pg.addStyleTag({ content: ':root[data-theme="light"] { --bg: #FAFAFB; }' });   // the bug, back
+  await pg.evaluate(() => { document.documentElement.dataset.theme = 'light'; }); await pg.waitForTimeout(150);
+  results.push(await pg.evaluate(() => ({ bg: getComputedStyle(document.body).backgroundColor, scheme: getComputedStyle(document.documentElement).colorScheme, switches: document.querySelectorAll('[data-theme-set], [data-theme-toggle], .switch').length })));
+  await ctx.close();
+}
+check('dark for everyone, whatever the system, an old stored choice or the host says; no switch', results.every(r => r.bg === DARK && r.scheme === 'dark' && r.switches === 0), JSON.stringify(results));
 await b.close();
-if (selfTest) { const caught = !ok; console.log(caught ? 'SELF-TEST OK: the host-keyed dark ground was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }
+if (selfTest) { const caught = !ok; console.log(caught ? 'SELF-TEST OK: the host-keyed light ground was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }

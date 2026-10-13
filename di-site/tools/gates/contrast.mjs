@@ -1,11 +1,12 @@
 // Gate: every visible text node's computed colour against its effective background ≥ 4.5:1 (≥ 3:1 at ≥ 24px), from the DOM,
-// in BOTH themes. The inverted sign-up card and the raised closing field are ordinary background-colours, so the same walk covers them.
+// in the dark theme, the only one. The inverted sign-up card and the raised closing field are ordinary background-colours, so the same walk covers them.
 // --self-test: paints --ink-3 onto the ground colour and expects the walk to fail.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
 let worstAll = 99, failed = 0;
-for (const theme of ['light', 'dark']) {
+// dark only since 2026-10-13: the page has no light theme to reach
+for (const theme of ['dark']) {
   const pg = await open(b, 1440, 900, { theme });
   if (selfTest) await pg.evaluate(() => document.documentElement.style.setProperty('--ink-3', getComputedStyle(document.body).backgroundColor));
   await pg.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { scrollTo(0, y); await new Promise(r => setTimeout(r, 100)); } });

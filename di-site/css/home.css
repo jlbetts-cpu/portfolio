@@ -37,9 +37,6 @@
 .logo--hero .logo__glare { transform: translateX(calc(var(--glare, 0) * 1px)); }
 .logo--hero .logo__shine { opacity: .85; transform: translateX(-460px); animation: mark-glint 6s var(--ease-in-out) 1.2s infinite; }
 @keyframes mark-glint { 0% { transform: translateX(-460px); } 26% { transform: translateX(1180px); } 100% { transform: translateX(1180px); } }
-/* on the light page two of the logo's fills have nothing to stand on: the white star and the pale yellow arc */
-:root:not([data-di-theme="dark"]) .logo--hero .logo__star { fill: var(--ink); }
-:root:not([data-di-theme="dark"]) .logo--hero .logo__pale { fill: #F2C94C; }
 @media (prefers-reduced-motion: reduce) { .logo--hero .logo__shine { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
 
@@ -157,7 +154,7 @@
    footer "looks outdated compared to the cleanness of the rest of the site." It is three bands of type now, held apart
    by space and nothing else — the hairlines that divided them went the same day ("remove the lines"): the closing
    line; the newsletter and the ways to reach Linda side by side; and a bottom bar with the copyright and the theme
-   switch, which is where the switch moved to from the header. */
+   bar holds only the copyright. */
 .close { padding-bottom: var(--sp-8); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }

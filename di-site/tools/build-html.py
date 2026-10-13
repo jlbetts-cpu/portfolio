@@ -161,7 +161,7 @@ form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" metho
                   f'<button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form>')
 
 page=f'''<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-di-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -169,7 +169,7 @@ page=f'''<!DOCTYPE html>
 <meta name="description" content="{html.escape(META_DESC)}">
 <link rel="canonical" href="https://developmentalimprovisation.com/">
 <meta name="theme-color" content="#0B0B0F">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
@@ -185,7 +185,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={STAMP}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,c=1,t=null;try{{t=localStorage.getItem('di:mode');c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}if(t!=='light')t='dark';h.dataset.diTheme=t;h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -243,7 +243,7 @@ page=f'''<!DOCTYPE html>
 
 <footer class="close" id="contact">
   <!-- No panel and no ink box. The closing line, then the two ways in side by side — the newsletter on the left, Linda
-       on the right — then a bottom bar with the copyright and the theme switch. Everything sits on the page itself,
+       on the right — then a bottom bar with the copyright. Everything sits on the page itself,
        on the same hairlines the testimonials use. -->
   <div class="container"><div class="close__body reveal">
     <div class="grid close__grid">
@@ -263,10 +263,6 @@ page=f'''<!DOCTYPE html>
     </div>
     <div class="close__foot">
       <p class="close__copy">© 2026 Developmental Improvisation</p>
-      <div class="switch" role="group" aria-label="Colour theme">
-        <button class="switch__opt" type="button" data-theme-set="light" aria-pressed="false"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>Light</span></button>
-        <button class="switch__opt" type="button" data-theme-set="dark" aria-pressed="true"><span class="switch__in"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg>Dark</span></button>
-      </div>
     </div>
   </div></div>
 </footer>

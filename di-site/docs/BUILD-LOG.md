@@ -1,5 +1,12 @@
 # Build log — Developmental Improvisation, home page
 
+## v34 (2026-10-13) — dark only; and his own apps, read
+*"remove the switch. I feel like the website is lacking a lot, do you have access to the [app] files and md files and see how I like my design?"*
+
+**Dark only.** The footer switch, its CSS, its script and the cross-fade are gone. `data-di-theme="dark"` is written on the `<html>` element in the markup, so not even the head script decides the theme, and a page with scripts off is dark too. The light fixes for the logo went with the light theme. `theme.mjs` now checks that a light system, a light choice stored by an older version, and a host writing `data-theme="light"` all leave the page dark, and that there is no switch anywhere; its self-test keys a light ground on the host's attribute. `contrast.mjs` runs the dark theme, the only one: worst 5.95:1. 52 gate lines pass and 9 self-tests are caught.
+
+**His apps, read.** Apollo's SwiftUI, README and theme, plus the Strata `design.md`, are summarised in `docs/taste.md`. Both agree on what this site already does: dark, no dividers, ink as the only accent, colour only in photographs, short text. Apollo goes further in three ways that would each reopen a LOCKED item here: a display serif (Goudy Bookletter 1911) for the big lines, photographs as a tight tower with nearly square corners, and photographs captioned like posts. All three were rendered on the live page as injected CSS and put to him rather than built.
+
 ## v33 (2026-10-12) — the logo in its own colours, and dark by default
 *"I want the logo to be like the normal colors maybe with a premium shine instead of being black. I think I also want to keep it in dark mode, I think it looks better for this specific site."*
 
