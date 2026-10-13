@@ -89,3 +89,16 @@ its own source, `main` of this repository, served locally and measured:
 What it does that is not taken: grey meta lines and 12px captions (he said no grey, and the
 floor here is 15); hairlines under the header and between sections (no lines, LOCKED here);
 the outlined Contact button (same).
+
+## HEYTEA, for "clean modern" (2026-10-13)
+
+*"I also think we should take a lot of inspo from the hea tea site like these clean modern sites."*
+heytea.com does not resolve from the build machine, so this is Some Wins' own measurement of it
+(`reference-board.md` §9, read off heytea.com with `getComputedStyle`): a pure white ground; one
+weight everywhere; three inks; +0.10em tracking on everything; leading of exactly 1.5; lowercase;
+and for chrome, a mark top left, two glyphs top right, **one hairline**, **no fills, no shadows**,
+and a **plain outlined** button. Its drawings are open line art in a big empty field.
+
+Taken here: the outlined main action, the single hairline under the header, the lighter weight
+(his portfolio's 400/600 rather than one weight). Not taken: lowercase and the tracking, which
+are a brand's voice and were drawn for HEYTEA's own face, not Inter.

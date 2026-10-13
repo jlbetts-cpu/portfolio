@@ -34,9 +34,13 @@
 .hero__mark { width: clamp(104px, min(11vw, 17vh), 160px); display: grid; place-items: center; margin-bottom: var(--sp-8); perspective: 700px; }
 .hero__mark__spin { width: 100%; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); will-change: transform; }
 .hero__mark .logo { width: 100%; height: auto; overflow: visible; display: block; }
-/* The logo's star is drawn white, for a dark ground. On this one (light only since 2026-10-13) a white star is not
-   there at all, so it takes the ink: every other path keeps the brand's own colour. The curtain's logo too. */
-.logo path[fill="white"] { fill: var(--ink); }
+/* The logo's palette, from tokens.css: every path is named for its part, and the hero, the curtain and the footer all
+   draw from the same eight tokens. The star is drawn white in the file, for a dark ground; it was the ink for one
+   round on the light page and Jayden: "make sure the star is also a color I dont like it black." It is gold, the
+   colour the brand's own --c-gold token was named for ("the star"). */
+.logo__orange { fill: var(--logo-orange); } .logo__pink { fill: var(--logo-pink); } .logo__magenta { fill: var(--logo-magenta); }
+.logo__yellow { fill: var(--logo-yellow); } .logo__violet { fill: var(--logo-violet); } .logo__green { fill: var(--logo-green); }
+.logo__sky { fill: var(--logo-sky); } .logo__star { fill: var(--logo-star); }
 .logo--hero .logo__glare { transform: translateX(calc(var(--glare, 0) * 1px)); }
 .logo--hero .logo__shine { opacity: .85; transform: translateX(-460px); animation: mark-glint 6s var(--ease-in-out) 1.2s infinite; }
 @keyframes mark-glint { 0% { transform: translateX(-460px); } 26% { transform: translateX(1180px); } 100% { transform: translateX(1180px); } }
@@ -71,7 +75,7 @@
 @media (hover: hover) { .gallery .photo:hover img { transform: scale(1.035); } }
 @media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gallery__col:nth-child(n+4) { display: none; } }
 @media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(480px, 78vh, 720px); } .gallery__col:nth-child(n+3) { display: none; } }
-.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
+.hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 /* ONE COLOUR. The second half of the claim was set a tier down (v24) and Jayden asked why: "why is emotional
    understanding greyed out." There was no good answer — the grey was a device borrowed from product headlines, and
    here it said that half of Linda's claim mattered less, when emotional understanding is half of what the method is
@@ -94,7 +98,7 @@
 .tell__figure { grid-column: 1 / -1; margin: 0; }
 .tell__figure .photo { width: 100%; }
 .tell__copy { grid-column: 1 / -1; display: grid; gap: var(--sp-4); align-content: start; }
-.tell__title { text-box: trim-start cap alphabetic; margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 700; color: var(--ink); text-wrap: balance; max-width: 13em; }
+.tell__title { text-box: trim-start cap alphabetic; margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 13em; }
 .tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 29em; text-wrap: pretty; }   /* ~66 characters a line at 1440 */   /* no one-word last lines */
 @media (min-width: 768px) {
   .tell__figure { grid-column: 1 / span 5; }
@@ -124,7 +128,7 @@
 /* the clear space inside the necklace is 2r − item; the quote gets that minus a margin, so the two can never meet
    whatever the breakpoint does to either number */
 .ring__centre { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--r) * 2 - var(--ring-item) - 32px); text-align: center; z-index: 2; }
-.ring__text { margin: 0; font-family: var(--font-display); font-size: clamp(1.0625rem, 5.6vw, 1.375rem); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; color: var(--ink); text-wrap: balance; }
+.ring__text { margin: 0; font-family: var(--font-display); font-size: clamp(1.0625rem, 5.6vw, 1.375rem); line-height: 1.02; letter-spacing: -0.02em; font-weight: 600; color: var(--ink); text-wrap: balance; }
 /* A <blockquote> carries the UA's 40px side margins, and this one always had them: on a phone they took 80px out of a
    174px column and stacked the line five deep into the circles. They are gone on a phone. On a wide screen the line
    breaks Jayden signed off on — Creativity / in motion / creates / knowledge! — were set against that narrower
@@ -151,7 +155,7 @@
 .voice__quote::before { content: "\201C"; }
 .voice__quote::after { content: "\201D"; }
 .voice__who { margin-top: auto; padding-top: var(--sp-6); }
-.voice__name { font-size: var(--fs-small); font-weight: 700; color: var(--ink); line-height: 1.4; }
+.voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.4; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink); line-height: 1.4; }
 @media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
 /* a tablet: one per row, the words across eight columns and the person beside them on the last four — three-up made
@@ -161,37 +165,43 @@
   .voice__who { margin-top: 0; padding-top: 0; }
 }
 
-/* ---------- The closing field ----------
-   No panel and no ink box. It had both — a raised field with a border, and a black sign-up card inside it — and next
-   to sections that sit on the page those read as the template the rest of the site has left behind. Jayden: the
-   footer "looks outdated compared to the cleanness of the rest of the site." It is three bands of type now, held apart
-   by space and nothing else — the hairlines that divided them went the same day ("remove the lines"): the closing
-   line; the newsletter and the ways to reach Linda side by side; and a bottom bar with the copyright and the theme
-   bar holds only the copyright. */
-.close { padding-bottom: var(--sp-8); }
+/* ---------- The closing section ----------
+   The closing line and the newsletter: the last thing the page says, three bands of type with nothing round them. The
+   ways to reach Linda went down into the footer on 2026-10-13, when the footer became his portfolio's. */
+.close { padding-bottom: var(--section-y); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
-.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 700; color: var(--ink); max-width: 16em; text-wrap: balance; }
+.close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); max-width: 16em; text-wrap: balance; }
 .close__sign { grid-column: 1 / -1; }
-.close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); }
-.close__reach { grid-column: 1 / -1; display: grid; gap: var(--sp-1); align-content: start; justify-items: start; }
-.close__reach a { display: inline-flex; align-items: center; min-height: var(--hit); font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: var(--ls-h3); overflow-wrap: anywhere; }
-.close__reach a { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 5px; transition: text-decoration-color var(--t) var(--ease-out); }
-@media (hover: hover) { .close__reach a:hover { text-decoration-color: currentColor; } }
-/* the second way in is a control, not one of the big contact links above it, so it opts out of their type at the
-   same specificity — .close__reach a is (0,2,0) and this rule has to match it to win */
-.close__reach .close__ask { margin-top: var(--sp-4); font-family: inherit; font-size: var(--fs-ui); font-weight: 700; letter-spacing: normal; text-decoration: none; min-height: 0; }
-.close__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-24); }
-.close__copy { font-size: var(--fs-caption); color: var(--ink); }
-/* The address is 29 characters, and the <wbr> means the one place it can ever break is the @. */
-@media (max-width: 767px) {
-  .close__reach a { font-size: var(--fs-lead); }
-  .close__reach .close__ask { justify-self: stretch; }
-  .close__foot { flex-direction: column-reverse; align-items: flex-start; }
-}
+.close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); }
 @media (min-width: 1024px) {
-  .close__reach a { font-size: clamp(1.125rem, .25rem + 1.6vw, 1.5rem); }
   .close__lead { grid-column: 1 / span 9; }
   .close__sign { grid-column: 1 / span 6; }
-  .close__reach { grid-column: 8 / span 5; margin-top: -8px; }   /* a link's 44px box centres its text; this sets the address on the sign-up title's line */
+}
+
+/* ---------- The footer: his portfolio's ----------
+   jaydenbetts.design, measured from its own source on 2026-10-13: one hairline the full width of the page (a boundary
+   belongs to the edge of the surface it bounds), 64px of air under it, the identity on the left (the mark, one line
+   in the ink at 18, the copyright) and two columns of plain links on the right, each a 44px row under a 15px heading.
+   "the footer with the clean lines": the line is back, here and under the header, and nowhere else. */
+.foot { padding-bottom: var(--sp-16); }
+.foot__top { position: relative; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; padding-top: clamp(48px, 5vw, 80px); }
+.foot__top::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100vw; height: 1px; background: var(--line); pointer-events: none; }
+.foot__id { display: grid; justify-items: start; gap: var(--sp-2); }
+.foot__brand { display: inline-flex; align-items: center; min-width: var(--hit); min-height: var(--hit); margin-bottom: var(--sp-1); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.foot__brand .logo { width: 40px; height: auto; display: block; overflow: visible; }
+@media (hover: hover) { .foot__brand:hover { opacity: .72; } }
+.foot__brand:active { transform: scale(.94); }
+.foot__status { font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.011em; font-weight: 600; color: var(--ink); }
+.foot__copy, .close__copy { font-size: var(--fs-caption); color: var(--ink); }
+.foot__nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+.foot__col { display: grid; justify-items: stretch; align-content: start; }   /* each row is the column's width, as his are: "Call" alone was 27px across */
+.foot__head { font-size: var(--fs-small); line-height: 1.45; font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); }
+.foot__link { display: inline-flex; align-items: center; min-height: var(--hit); padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-small); color: var(--ink); cursor: pointer; text-align: left;
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
+@media (hover: hover) { .foot__link:hover { text-decoration-color: currentColor; } }
+.foot__link:active { transform: scale(.98); }
+@media (max-width: 767px) {
+  .foot__top { grid-template-columns: minmax(0, 1fr); gap: var(--sp-10); padding-top: var(--sp-12); }
+  .foot { padding-bottom: var(--sp-8); }
 }

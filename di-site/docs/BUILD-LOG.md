@@ -1,5 +1,20 @@
 # Build log — Developmental Improvisation, home page
 
+## v39 (2026-10-13) — his portfolio's header and footer, the logo tuned, nothing dark
+*"okay the big thing for me is the logo can you find like optimal colors and the header can it match more my header in my portfolio and the footer with the clean lines and i feel like this brand the di is more light so having such a dark cta and text doesnt really fit the site"*, then *"take a lot of inspo from the hea tea site"* and *"make sure the star is also a color I dont like it black."*
+
+**The logo, measured and tuned.** On the light ground the file's colours ran from **1.18:1** (the yellow arc, nearly gone) to **4.44:1** (the violet), a lightness spread of 0.58 to 0.93 in OKLCH. Five sets were rendered; equal lightness made the pink and the magenta, 21° apart, nearly one colour, so the pick (*"B tuned"*) keeps the logo's own light-to-dark order and presses it into 0.64–0.80, each hue at the most chroma it allows there, the yellow nudged 93° → 86° to read gold. Every part now **1.80 to 3.44:1**. The star is gold, the colour the brand's own `--c-gold` token was named for. Every path in all three logos (hero, curtain, footer) carries a class for its part, so the palette is eight tokens.
+
+**The header is his portfolio's bar**, measured from its source: white, 72px, one hairline under it, the 1200 column, the name on the left (the mark was tried at nav size in v27 and does not hold), About · Testimonials · Contact in the middle, Subscribe as the outlined pill on the right. It still leaves going down and comes back going up. A phone bug caught by looking: with the middle links hidden, the menu took the middle column and sat on top of the name; the phone bar is two columns.
+
+**The footer is his portfolio's**: a hairline the full width of the page, the mark, Linda's line "Pre-wiring the brain & educating the heart" (the caption that left the hero in v37, now where his portfolio keeps its own line) and the copyright on the left; Menu (About, Testimonials, Newsletter) and Contact (Email, Call, Bring this to your school) on the right, each a 44px row the column's width. The targets gate caught "Call" at 27px across before that. The closing line and the newsletter stay above it as the last section.
+
+**Nothing dark.** The near-black button is outlined now (*"A outlined"*): the page's white, a 1px inset ring of the ink, his portfolio's `.ctl--secondary` and HEYTEA's plain outline. The type is his portfolio's pair, **400 and 600** (*"2 portfolio pair"*), in the same ink. Controls are pills on the superellipse, as his are.
+
+**HEYTEA** (heytea.com does not resolve from the build machine, so from Some Wins' own measurement of it, `reference-board.md` §9): a white ground, one weight, a hairline, an outlined button, no fills, no shadows. Taken: the outline, the one hairline, the lighter weight. Not taken: lowercase and +0.10em tracking on everything (a brand decision, and Inter is not their face).
+
+**Gates.** The layout gate now fails on a third weight, a dark control, a missing header or footer hairline, or a line anywhere else; the nav gate wants the bar at the top; the mark gate wants the tuned sky and a gold star on all three logos. Each was shown failing on the v38 files (weights 500/700, two dark controls, hairlines false/false; a white star and the old sky; a bare header). **52 gate lines pass, 9 self-tests caught.**
+
 ## v38 (2026-10-13) — light only
 *"also should we just do light mode as well not dark mode?"* Rendered beside the dark page and put to him with a recommendation: his portfolio, the reference he had just given for "professional", is light; Linda's brief was a serious new tool for education; the people deciding are schools. *"Light only."*
 

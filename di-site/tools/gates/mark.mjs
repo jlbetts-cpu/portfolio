@@ -38,12 +38,14 @@ report('mark faces the pointer', turns && looks && held && returns, JSON.stringi
 const colour = await pg.evaluate(() => {
   const fills = [...document.querySelectorAll('.logo--hero .logo__art path')].map(p => getComputedStyle(p).fill);
   const shine = getComputedStyle(document.querySelector('.logo--hero .logo__shine'));
-  // the star is drawn white for a dark ground; on the light page (2026-10-13) it must take the ink or it is not there
+  // the palette is the tuned set (2026-10-13): the monogram in its sky, and the star, drawn white for a dark ground, in
+  // a colour of its own on every logo on the page: never white (not there on this ground) and never the ink ("I dont
+  // like it black")
   const ink = getComputedStyle(document.querySelector('.hero__title')).color;
   const stars = [...document.querySelectorAll('.logo path[fill="white"]')].map(p => getComputedStyle(p).fill);
-  return { hues: new Set(fills).size, sky: fills.includes('rgb(88, 205, 252)'), glint: shine.animationName, state: shine.animationPlayState, stars: stars.length, starsInk: stars.every(f => f === ink) };
+  return { hues: new Set(fills).size, sky: fills.includes('rgb(0, 187, 242)'), glint: shine.animationName, state: shine.animationPlayState, stars: stars.length, starsColour: stars.every(f => f !== ink && f !== 'rgb(255, 255, 255)' && f === 'rgb(232, 182, 49)') };
 });
-if (!selfTest) report('mark: in the brand\'s colours, the glint running, the star in the ink', colour.hues >= 7 && colour.sky && colour.glint === 'mark-glint' && colour.state === 'running' && colour.stars === 2 && colour.starsInk, JSON.stringify(colour));
+if (!selfTest) report('mark: in the brand\'s colours, the glint running, the star in gold', colour.hues >= 7 && colour.sky && colour.glint === 'mark-glint' && colour.state === 'running' && colour.stars === 3 && colour.starsColour, JSON.stringify(colour));
 await pg.close();
 if (!selfTest) {
   const rp = await open(b, 1440, 900, { reduced: true });

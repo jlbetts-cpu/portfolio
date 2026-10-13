@@ -8,7 +8,7 @@
    also caught the transform, and since a press only ever happens while hovered, the press rung was dead on every
    button on the page. */
 :where(.btn, .arrow, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
-  .input, .bento__col .photo, .ring__item .photo, .close__reach a):hover { --t: var(--dur-state); }
+  .input, .bento__col .photo, .ring__item .photo, .foot__link, .foot__brand):hover { --t: var(--dur-state); }
 
 /* EVERY HOVER EFFECT LIVES INSIDE @media (hover: hover). A phone has no hover, but it fakes one: a tap leaves the
    element in :hover until the next tap somewhere else, so a photograph opened from its section stayed scaled after the
@@ -17,10 +17,15 @@
    lightbox hands focus back to the photograph that opened it and a tap is not a keyboard. */
 
 /* Buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-full); font-size: var(--fs-ui); font-weight: 700; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-full); font-size: var(--fs-ui); font-weight: 600; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .btn:active { transform: scale(.97); }
-.btn--primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
-@media (hover: hover) { .btn--primary:hover { background: color-mix(in srgb, var(--btn-primary-bg) 90%, var(--btn-primary-ink)); } }
+/* THE MAIN ACTION IS OUTLINED (2026-10-13). It was the one near-black fill on the page, and Jayden: "this brand the
+   di is more light so having such a dark cta … doesnt really fit the site." Chosen from three renderings (outlined,
+   the logo's sky, a soft grey): the page's white, a 1px ring of the ink drawn inside the box, the ink's type, which is
+   his portfolio's .ctl--secondary and the plain outline HEYTEA uses for its one button. It is the same drawing as
+   .btn--line; the class says which action is the main one, not how it looks. */
+.btn--primary { background: var(--bg-overlay); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ring); }
+@media (hover: hover) { .btn--primary:hover { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--ring-strong); } }
 /* NO LINES ANYWHERE (2026-10-03): "remove the lines I want it more minimal, just use clean white space design." A
    control that used to be drawn as an outline is a soft fill now, so it still reads as something to press without a
    rule round it; dividers are gone and the space between things does their job. The focus ring and the error ring
@@ -28,12 +33,16 @@
 .btn--secondary { background: var(--bg-raised); color: var(--ink); border-color: transparent; }
 @media (hover: hover) { .btn--secondary:hover { background: var(--bg-sunken); } }
 .btn--ghost { background: transparent; color: var(--ink); }
+/* THE OUTLINED CONTROL, his portfolio's .ctl--secondary (2026-10-13): the page's white, a 1px ring of the ink at 12%
+   drawn inside the box, the ink's type. A ring, not a border, so it adds nothing to the box and the 44px holds. */
+.btn--line { background: var(--bg-overlay); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ring); }
+@media (hover: hover) { .btn--line:hover { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--ring-strong); } }
 .btn--compact { height: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); }
 /* the one large button: the hero's single action. 46px under a 68px headline read as a footnote to it. */
 .btn--lg { height: 54px; padding: 0 var(--sp-8); font-size: 1rem; }
 .btn .icon { width: 18px; height: 18px; }
 .btn[aria-busy="true"] { color: transparent; position: relative; }
-.btn[aria-busy="true"]::after { content: ""; position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--btn-primary-ink); border-right-color: transparent; animation: spin .8s linear infinite; }
+.btn[aria-busy="true"]::after { content: ""; position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--ink); border-right-color: transparent; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .btn--secondary[aria-busy="true"]::after { border-color: var(--ink); border-right-color: transparent; }
 
@@ -92,24 +101,28 @@
    gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top
    of the page it has no ground at all; anywhere else, once it is showing, it takes the least surface that can carry type
    over a photograph — the ground at 78%, blurred, with a hairline. Keyboard focus always brings it back. */
-.nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: var(--grid-gap) 0 var(--sp-2);
-  transition: transform var(--dur-move) var(--ease-out), background-color var(--dur-state) var(--ease-out), box-shadow var(--dur-state) var(--ease-out); }
-.nav.is-scrolled { background: var(--glass); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+/* THE HEADER IS HIS PORTFOLIO'S BAR (2026-10-13, "can it match more my header in my portfolio"). Measured from
+   jaydenbetts.design's own source: a white bar 72px tall across the whole page, one 1px hairline under it, the
+   column's 1200px inside; the brand on the left, the links in the middle, one outlined action on the right. It still
+   leaves going down and comes back going up. It used to be bare at the top and glass once scrolled, and the lock that
+   asked for that ("not in a container or anything") is the one this replaces. */
+.nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: calc((72px - var(--nav-h)) / 2) 0; background: var(--bg); box-shadow: 0 1px 0 var(--line);
+  transition: transform var(--dur-move) var(--ease-out); }
 .nav.is-hidden { transform: translateY(-100%); }
-.nav__bar { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
+.nav__bar { height: var(--nav-h); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-5); }
 /* THE BRAND IS THE NAME, SET IN TYPE. Jayden: "the header looks off." The cause was the mark: a line drawing of a
    ring of figures, which at 26px came out as a spindly glyph beside a bold wordmark, a few hundred pixels above the
    same mark drawn at 160px. Every rendering of it was tried at 26, 32 and 48px and none of them held at nav size —
    it is a drawing, not an icon. So the header carries the name and the hero carries the mark, once, large. On a
    phone the name is now there too; it used to be the mark alone, and the name appeared nowhere above the fold. */
-.nav__brand { display: inline-flex; align-items: center; height: var(--hit); margin-right: auto; color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__brand { justify-self: start; display: inline-flex; align-items: center; height: var(--hit); color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__brand:hover { opacity: .72; } }
 .nav__brand:active { transform: scale(.97); }
-.nav__panel { display: flex; align-items: center; gap: var(--sp-2); }
+.nav__panel { justify-self: end; display: flex; align-items: center; gap: var(--sp-2); }
 /* one filled action in the bar, at the bar's own scale. It was an outlined box — the only bordered thing on the
    header, next to a moon — and read as a form control dropped into a line of type. */
 .nav__subscribe { padding: 0 var(--sp-5); font-size: var(--fs-small); }
-.nav__links { display: flex; align-items: center; }
+.nav__links { justify-self: center; display: flex; align-items: center; }
 .nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
@@ -119,7 +132,9 @@
 .nav__menu .icon--close, .nav__menu[aria-expanded="true"] .icon--open { display: none; }
 .nav__menu[aria-expanded="true"] .icon--close { display: block; }
 @media (max-width: 767px) {
-  .nav__bar { gap: var(--sp-3); }
+  /* the links are in the sheet on a phone, so the bar is two columns: the name, and the menu at the far edge. With
+     the middle column left in, the menu took it and sat on top of the name */
+  .nav__bar { gap: var(--sp-3); grid-template-columns: minmax(0, 1fr) auto; }
   .nav__links, .nav__subscribe { display: none; }
   .nav__menu { margin-right: calc(-1 * var(--sp-3)); }   /* the icon's glyph, not its 44px box, sits on the gutter */
   .nav__menu { display: inline-flex; }
@@ -136,7 +151,7 @@
 .sheet__close { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .sheet__close:hover { color: var(--ink); } }
 .sheet__close:active { transform: scale(.92); }
-.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 700; color: var(--ink); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
+.sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--ink); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
 @media (hover: hover) { .sheet__links a:hover { opacity: .68; } }
 .sheet__links a:active { transform: scale(.98); }
 .sheet .btn--primary { width: 100%; margin-top: var(--sp-8); }
@@ -152,7 +167,7 @@
 @media (hover: hover) { .dialog__close:hover { color: var(--ink); background: var(--bg-raised); } }
 .dialog__close:active { transform: scale(.92); }
 .dialog .mark { width: 30px; height: 32px; color: var(--ink); margin-bottom: var(--sp-4); }
-.dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
+.dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
 /* the UA gives a modal dialog max-width: calc(100% - 6px - 2em), which left the phone sheet ending 36px short of the
    right edge of the screen; the sheet is the screen's width, so that limit goes */
 @media (max-width: 767px) {

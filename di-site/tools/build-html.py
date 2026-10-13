@@ -105,13 +105,17 @@ gallery=''.join(gallery_col(c) for c in GALLERY)
 # file draws them — sky monogram, gold star, the six arcs — and the geometry is emitted a second time, solid white,
 # inside a mask, so a narrow band of white light can travel across the mark and only ever touch the mark itself.
 _paths = re.findall(r'<path[^>]*/>', logo)
-# the two fills that need a different ink when the page is light: the white star (it vanishes on a light ground) and
-# the pale yellow arc. A class on each, so CSS can reach them without a second copy of the logo.
+# EVERY PATH IS NAMED FOR ITS COLOUR, so the logo's palette is eight tokens in tokens.css (--logo-*) and one change
+# recolours the hero's mark, the curtain's and the footer's together. The fill attribute stays as the file drew it, as
+# the fallback. The star is white in the file, drawn for a dark ground; on this light page it has a colour of its own.
+LOGO_PART = {'#F0895B': 'orange', '#FB9BC9': 'pink', '#E744E2': 'magenta', '#FEE79B': 'yellow', '#7358FC': 'violet',
+             '#51E596': 'green', '#58CDFC': 'sky', 'white': 'star'}
 def _tag(p):
-    if 'fill="white"' in p: return p.replace('<path ', '<path class="logo__star" ', 1)
-    if 'fill="#FEE79B"' in p: return p.replace('<path ', '<path class="logo__pale" ', 1)
-    return p
+    f = re.search(r'fill="([^"]*)"', p).group(1)
+    return p.replace('<path ', f'<path class="logo__{LOGO_PART[f]}" ', 1)
+assert all(re.search(r'fill="([^"]*)"', p).group(1) in LOGO_PART for p in _paths), 'a logo colour with no name'
 _art = ''.join(_tag(p) for p in _paths)
+navlogo = re.sub(r'<path[^>]*/>', lambda m: _tag(m.group(0)), navlogo)
 _shape = ''.join(re.sub(r'fill="[^"]*"', 'fill="#fff"', p) for p in _paths)
 # the glint: a narrow white band with a soft shoulder either side, laid diagonally. One band, on a rect twice the
 # mark's width, so it crosses the mark and is then off it — a glint that comes and goes, not a shimmer that never stops.
@@ -196,9 +200,9 @@ page=f'''<!DOCTYPE html>
 <header class="nav" id="nav">
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">Developmental Improvisation</a>
+    <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#voices">Testimonials</a><a href="#contact">Contact</a></nav>
     <div class="nav__panel">
-      <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
-      <button class="btn btn--secondary btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <button class="btn btn--line btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   </div>
 </header>
 
@@ -243,10 +247,9 @@ page=f'''<!DOCTYPE html>
   </section>
 </main>
 
-<footer class="close" id="contact">
-  <!-- No panel and no ink box. The closing line, then the two ways in side by side — the newsletter on the left, Linda
-       on the right — then a bottom bar with the copyright. Everything sits on the page itself,
-       on the same hairlines the testimonials use. -->
+<section class="close" aria-labelledby="newsletterTitle">
+  <!-- The closing line and the newsletter: the last thing the page says. The ways to reach Linda moved into the footer
+       below it (2026-10-13), which is drawn the way his portfolio's is. -->
   <div class="container"><div class="close__body reveal">
     <div class="grid close__grid">
       <p class="close__lead">Prepared for anything life has to offer.</p>
@@ -254,19 +257,24 @@ page=f'''<!DOCTYPE html>
         <h2 class="close__title" id="newsletterTitle">Sign Up for our Newsletter!</h2>
         {form('nl')}
       </div>
-      <div class="close__reach">
-        <a href="mailto:developmentalimprov@gmail.com">developmentalimprov<wbr>@gmail.com</a>
-        <a href="tel:+18573523221">(857) 352-3221</a>
-        <!-- the page's second way in. Everything else here points at a newsletter; a teacher who wants this in their
-             classroom had nowhere to go. No new address and no form to build — the one already on the page, with the
-             subject written for them. -->
-        <a class="btn btn--secondary close__ask" href="mailto:developmentalimprov@gmail.com?subject=Bringing%20Developmental%20Improvisation%20to%20our%20school">Bring this to your school</a>
-      </div>
-    </div>
-    <div class="close__foot">
-      <p class="close__copy">© 2026 Developmental Improvisation</p>
     </div>
   </div></div>
+</section>
+
+<footer class="foot" id="contact">
+  <!-- His portfolio's footer (jaydenbetts.design, 2026-10-13): one hairline the full width of the page, the identity on
+       the left, two columns of plain links on the right, 44px rows. -->
+  <div class="container foot__top">
+    <div class="foot__id">
+      <a class="foot__brand" href="#top" aria-label="Developmental Improvisation, back to the top">{navlogo}</a>
+      <p class="foot__status">Pre-wiring the brain &amp; educating the heart</p>
+      <p class="foot__copy">© 2026 Developmental Improvisation</p>
+    </div>
+    <nav class="foot__nav" aria-label="Footer">
+      <div class="foot__col"><h2 class="foot__head">Menu</h2><a class="foot__link" href="#about">About</a><a class="foot__link" href="#voices">Testimonials</a><button class="foot__link" type="button" data-open-dialog>Newsletter</button></div>
+      <div class="foot__col"><h2 class="foot__head">Contact</h2><a class="foot__link" href="mailto:developmentalimprov@gmail.com">Email</a><a class="foot__link" href="tel:+18573523221">Call</a><a class="foot__link" href="mailto:developmentalimprov@gmail.com?subject=Bringing%20Developmental%20Improvisation%20to%20our%20school">Bring this to your school</a></div>
+    </nav>
+  </div>
 </footer>
 
 <dialog class="lightbox" id="lightbox" aria-label="Photograph">
@@ -294,7 +302,7 @@ page=f'''<!DOCTYPE html>
 
 <dialog class="sheet" id="menuSheet" aria-label="Menu">
   <div class="sheet__head"><button class="sheet__close" type="button" data-close-menu aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
-  <nav class="sheet__links" aria-label="Primary"><a href="#about">About</a><a href="#contact">Contact</a></nav>
+  <nav class="sheet__links" aria-label="Primary"><a href="#about">About</a><a href="#voices">Testimonials</a><a href="#contact">Contact</a></nav>
   <button class="btn btn--primary" type="button" data-open-dialog data-close-menu>Subscribe</button>
 </dialog>
 </body>

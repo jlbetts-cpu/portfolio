@@ -17,6 +17,8 @@
   --bg-sunken:   #E8E8EE;
   --bg-overlay:  #FFFFFF;
   --line:        rgba(21,20,29,.10);
+  --ring:        rgba(21,20,29,.12);    /* the outlined control's inset ring: his portfolio's rgba(17,18,20,.12) */
+  --ring-strong: rgba(21,20,29,.22);
   --line-strong: rgba(21,20,29,.20);
   --scrim:       rgba(21,20,29,.48);
   --glass:       rgba(250,250,251,.8);
@@ -31,6 +33,16 @@
      a colour read as a tint of the brand against an off-white ground instead of a signal flare on it; the dark theme
      puts them back at full strength, where a saturated hue has a near-black ground to sit on. Every one of these
      carries the warm black at better than 11.9:1, violet included. */
+  /* THE LOGO'S OWN PALETTE, one token per part (build-html.py names every path). Until 2026-10-13 these were the file's
+     fills as drawn, for a dark ground: on white they ran from 1.18:1 (the yellow arc, nearly gone) to 4.44:1 (the
+     violet), and the star, drawn white, was not there at all.
+     NOW THE TUNED SET (his pick, 2026-10-13, from five rendered): the same eight hue angles, the yellow nudged 93° → 86°
+     so it reads gold rather than cream, and the lightness of the whole set pressed from 0.58–0.93 into 0.64–0.80 in
+     OKLCH while keeping its order, so the pink stays lighter than the magenta and the two stay apart. Each takes the
+     most chroma its hue allows there, at least its own. On #FAFAFB every part is 1.80 to 3.44:1, where it was 1.18 to
+     4.44. The star is the gold: "make sure the star is also a color I dont like it black". */
+  --logo-orange: #EC7F4C; --logo-pink: #F080B8; --logo-magenta: #E550DF; --logo-yellow: #E8B631;
+  --logo-violet: #8273FF; --logo-green: #30CD80; --logo-sky: #00BBF2;  --logo-star: #E8B631;
   --c-sky:     #A8E3FE;                   /* the mark, 227.9° */
   --c-gold:    #ECDA87;                   /* the star, 97.0° */
   --c-magenta: #FEC2F9;                   /* 329.3° */
@@ -47,8 +59,6 @@
   --accent:    var(--c-sky);
   --on-accent: #15141D;
   --focus:    var(--ink);
-  --btn-primary-bg:  var(--ink);
-  --btn-primary-ink: var(--bg);
 
   /* Corners. Apple's continuous curvature, not a circular arc: corner-shape draws a superellipse, so the radius
      enters and leaves the straight edge without a visible seam. Chrome 139+; elsewhere it falls back to a plain arc. */
@@ -61,15 +71,15 @@
   --r-xl:  36px;   /* the stacked cards, the dialog, the closing field */
   --r-full: 999px;
 
-  /* Type — ONE face, Inter (see base.css for why this file). Two weights, 500 and 700; leading and tracking are the
+  /* Type — ONE face, Inter (see base.css for why this file). Two weights, 400 and 600; leading and tracking are the
      levers, not the family. The tracking came OUT when Geist went: Geist wanted closing up at display size (−0.035em),
      and Inter at 32px and up is already its display design, whose spacing is drawn tight — the same −0.035em on it
      read pinched. So the display steps sit at −0.022 to −0.012em, and reading sizes stay close to the font's own.
      THE FLOOR IS 15px, from Jayden's own app: "nothing below 15pt, no tiny thin font anywhere." And the two weights
-     are Some Wins' own pair, Medium (500) for anything read and Bold (700) for anything that is a heading or a label.
-     It was 400 and 700 until 2026-10-13: 400 is the right Regular on paper, but light type on this ground reads
-     thinner than it is, and beside a 680px photograph the prose looked dull, which is the word that took his app
-     from Regular to Medium. Two stray 600s (the button and the quote's name) were a third weight; both are 700. */
+     are his portfolio's pair, Regular (400) for anything read and Semibold (600) for anything that is a heading or a
+     label (2026-10-13, chosen from three renderings once the page went light: "such a dark cta and text doesnt
+     really fit"). For one day they were Some Wins' Medium and Bold, 500 and 700, which suited the dark ground: light
+     type on dark reads thinner than it is. On white the same weights read heavy. */
   --font: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font);
   /* THE SCALE IS HIS PORTFOLIO'S (2026-10-13, "making it professional is the key thing, also look at my portfolio").
@@ -116,7 +126,7 @@
   --slip: 20px;           /* how far a photograph rises out of the panel it sits in */
 
   /* the header is two tiles in the field, so its height is a tile's height: 5px of panel padding either side of a 44px target */
-  --nav-h: 54px;
+  --nav-h: 52px;   /* the bar's row; the bar itself is 72px, his portfolio's */
   --field-top: calc(var(--nav-h) + clamp(48px, 6vw, 120px));   /* the header, and real air under it */
   --hit: 44px;
   --z-nav: 50; --z-dialog: 100; --z-skip: 200; --z-curtain: 300;
@@ -178,8 +188,6 @@
   --c-yellow:  #FEE79B;
   --on-violet: #FFFFFF;                   /* 4.6:1 — the only hue in the set dark enough to need it */
   --focus:  var(--ink);
-  --btn-primary-bg:  var(--ink);
-  --btn-primary-ink: #0B0B0F;
 }
 
 /* Accents — set once, on the surface that takes the hue. The page spends the six arcs in the logo's own order.
