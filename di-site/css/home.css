@@ -48,17 +48,27 @@
 
 
 
-/* ---------- The reel ----------
-   One thin row of photographs between the hero and the first section, sliding sideways on the flow (2026-10-13: "a
-   horizonatal band spliting up the hero and the next section"). Full bleed, 154px at 1440 and 104 on a phone; it
-   starts at the hero's peek, so its top shows at the foot of the first screen. js/main.js moves it, the pointer holds
-   it, nothing scrubs it and a wheel over it scrolls the page. The tight strip he picked: 4px apart, 4px corners, every
-   photograph 4:5. No fade at either end ("remove the blur"): the screen's own edge is the row's edge. */
-.reel { --strip-gap: 4px; --reel-h: clamp(104px, 10.7vw, 168px); overflow: hidden; }
+/* ---------- The reel: a film strip ----------
+   One thin strip of photographs between the hero and the first section, sliding sideways on the flow (2026-10-13: "a
+   horizonatal band spliting up the hero and the next section"; 2026-10-14: "make the band a little thicker", "I would
+   love if it was designed kinda like a film strip"). It is drawn as 35mm film: the frames sit on a near-black base,
+   6px of base between them, with a row of sprocket holes along the top edge and the bottom, eight to a frame as on real
+   film. The holes are the page's own white showing through, and they belong to each frame, so they travel with the
+   strip and the loop has no seam in them. Full bleed, 217px at 1440 and 142 on a phone; it starts at the
+   hero's peek. js/main.js moves it, the pointer holds it, nothing scrubs it, and a wheel over it scrolls the page.
+   The film base is the one dark thing on the page, and it is a photograph's material, not chrome. Every frame 4:5. */
+.reel { --strip-gap: 6px; --pitch: 16px; --edge: calc(var(--pitch) * 1.25); --film: #141414; overflow: hidden; }
+/* THE HOLE PITCH IS A WHOLE PIXEL and a frame is exactly eight of it, gap included, so every frame's row of holes ends
+   where the next begins. With a fractional pitch (a frame's width over eight) each frame rounded its own last hole and
+   they doubled up at the joins, worst on a phone. round() keeps the pitch whole as it scales; behind @supports,
+   because a var() the browser cannot compute falls to unset rather than back to the 16px above. 18px at 1440 (a
+   138px frame on a 217px strip), 12px on a phone (90px, 142px). */
+@supports (width: round(1.5px, 1px)) { .reel { --pitch: round(clamp(12px, 1.25vw, 21px), 1px); } }
 .reel__track { display: flex; width: max-content; will-change: transform; }
-.reel__run { display: flex; gap: var(--strip-gap); padding-right: var(--strip-gap); }   /* the padding is the gap, or the loop jumps by it */
-.reel__item { flex: none; width: calc(var(--reel-h) * .8); }
-.reel .photo { border-radius: 4px; }
+.reel__run { display: flex; }
+.reel__item { flex: none; width: calc(var(--pitch) * 8); padding: var(--edge) calc(var(--strip-gap) / 2);   /* border-box: the width IS the eight pitches, the frame inside it is 6px less */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 22'%3E%3Crect x='4' y='7.5' width='10' height='7' rx='1.6' fill='%23fff'/%3E%3C/svg%3E") 0 0 / var(--pitch) var(--edge) repeat-x, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 22'%3E%3Crect x='4' y='7.5' width='10' height='7' rx='1.6' fill='%23fff'/%3E%3C/svg%3E") 0 100% / var(--pitch) var(--edge) repeat-x, var(--film); }
+.reel .photo { border-radius: 2px; }
 @media (hover: hover) { .reel .photo:hover img { transform: scale(1.035); } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 /* ONE COLOUR. The second half of the claim was set a tier down (v24) and Jayden asked why: "why is emotional

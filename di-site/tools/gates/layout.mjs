@@ -70,17 +70,18 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // until 2026-10-13 the heading's capitals stood on the photograph's top edge instead). On a phone it reads from
     // the left, so there is nothing to measure.
     const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const t = row.querySelector('.tell__title').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (f.left + f.right) / 2); })) : 0;
-    // the reel is the tight strip he picked (2026-10-13): 4px between photographs, a 4px corner, and the run's own
-    // trailing 4px, so the loop's seam is one more gap and not a jump
-    const items = [...document.querySelector('.reel__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
-    const strip = { across: Math.round(items[1].left - items[0].right), down: Math.round(parseFloat(getComputedStyle(document.querySelector('.reel__run')).paddingRight)), corner: parseFloat(getComputedStyle(document.querySelector('.reel .photo')).borderTopLeftRadius) };
+    // the reel is a film strip (2026-10-14, "kinda like a film strip"): frames 6px apart on the film base, 2px corners,
+    // and the frames meet with no gap of their own, so the loop's seam is one more frame boundary and not a jump
+    const ph = [...document.querySelectorAll('.reel__run:first-child .photo')].slice(0, 2).map(p => p.getBoundingClientRect());
+    const its = [...document.querySelector('.reel__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
+    const strip = { across: Math.round(ph[1].left - ph[0].right), down: Math.round(its[1].left - its[0].right), corner: parseFloat(getComputedStyle(document.querySelector('.reel .photo')).borderTopLeftRadius) };
     return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, darks, navLine, footLine, capGap: Math.round(capGap), strip, grey };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
     && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2
-    && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4 && r.grey.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, reel strip ${r.strip.across}px apart, ${r.strip.down}px at the seam, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
+    && r.strip.across === 6 && r.strip.down === 0 && r.strip.corner === 2 && r.grey.length === 0;
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, film frames ${r.strip.across}px apart, ${r.strip.down}px between cells, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();

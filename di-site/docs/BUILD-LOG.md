@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v44 (2026-10-14) — thicker, and a film strip
+*"make the band a little thicker"*, then *"I would love if it was designed kinda like a film strip."*
+
+**35mm film.** The reel is a strip of film now: the frames on a near-black base (#141414) 6px apart, and a row of sprocket holes along the top edge and the bottom, eight to a frame as on real film, the page's own white showing through them. The holes belong to each frame, so they travel with the strip. 218px at 1440 (138 by 173 frames) and 143 on a phone, up from 154 and 104. The film base is the one dark thing on the page, and it is a photograph's material, not chrome.
+
+**A bug caught by looking.** The first draft set the hole pitch to a frame's width over eight, a fractional pixel, and every frame rounded its own last hole, so they doubled up where two frames met, worst on a phone. The pitch is a whole pixel now (`round()`, behind `@supports`) and a frame is exactly eight of it; the page's border-box sizing meant "exactly" had to include the frame's own padding, which the second draft missed (138px frames, 7.67 holes).
+
+**Gates.** The reel gate wants sprocket holes at both edges, a base darker than mid-grey, and a frame exactly eight whole-pixel holes wide; it fails on a fractional pitch. The layout gate wants frames 6px apart with 2px corners and nothing between the cells. **52 gate lines pass, 9 self-tests caught.**
+
 ## v43 (2026-10-14) — the photographs are a reel between the hero and the first section
 *"not a big fan of the carousel at the bottom actually maybe a horizonatal band spliting up the hero and the next section."*
 

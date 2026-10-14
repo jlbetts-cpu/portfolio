@@ -94,7 +94,7 @@ COLUMNS=[
  ['yellow-trousers','bow-ties-wall'],
 ]
 REEL=[n for row in zip(*[c+[None]*(3-len(c)) for c in COLUMNS]) for n in row if n]
-RSZ='(max-width: 767px) 96px, 140px'
+RSZ='(max-width: 767px) 90px, (max-width: 1679px) 138px, 162px'
 _reel_run=lambda ghost: ''.join(f'<li class="reel__item">{photo(n, "4x5", RSZ, ghost=ghost)}</li>' for n in REEL)
 reel=(f'<div class="reel" data-reel role="region" aria-label="From the sessions"><div class="reel__track">'
       f'<ul class="reel__run">{_reel_run(False)}</ul><ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul>'
