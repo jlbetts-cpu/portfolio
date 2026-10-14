@@ -10,7 +10,6 @@ const selfTest = process.argv.includes('--self-test');
 const b = await browser();
 const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
 const pg = await ctx.newPage();
-await pg.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); } catch {} });
 // the injected bug is the only one that matters: the curtain never leaves. Both of its exits are broken —
 // the halves cannot travel and the node cannot be removed — and the gate must notice.
 if (selfTest) await pg.addInitScript(() => {

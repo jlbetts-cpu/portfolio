@@ -130,8 +130,18 @@
 /* one filled action in the bar, at the bar's own scale. It was an outlined box — the only bordered thing on the
    header, next to a moon — and read as a form control dropped into a line of type. */
 .nav__subscribe { padding: 0 var(--sp-5); font-size: var(--fs-small); }
+/* a visitor who has subscribed has no Subscribe (2026-10-14, home.css): above the phone the panel holding it goes too,
+   or the bar's 28px gap stays open after Contact, and the pill's right edge is padded so Contact's last letter sits as
+   far in as the logo does on the left (20px; 38 before) */
+@media (min-width: 768px) { .subscribed .nav__panel { display: none; } .subscribed .nav__bar { padding-right: 16px; } }
 .nav__links { display: flex; align-items: center; margin-inline: calc(-1 * var(--sp-3)); }
-.nav__links a { display: inline-flex; align-items: center; justify-content: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__links a { display: inline-grid; place-content: center; place-items: center; height: var(--hit); min-width: var(--hit); padding: 0 var(--sp-4); font-size: var(--fs-small); color: var(--ink); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out), font-weight var(--dur-state) var(--ease-out); }
+/* THE HEADER SHOWS WHERE YOU ARE (2026-10-14, his pick): the link for the section being read is the page's second weight,
+   set by js/main.js with aria-current. No line, no dot, no colour. Each link holds the width of its own label in 600,
+   drawn invisibly in the same cell, so the weight can change (and, Inter being variable, ease between the two) without
+   a letter of the header moving. */
+.nav__links a::after { content: attr(data-label); grid-area: 1 / 1; height: 0; overflow: hidden; visibility: hidden; font-weight: 600; }
+.nav__links a[aria-current] { font-weight: 600; }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
 .nav__links a:active { transform: scale(.94); }
 /* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
@@ -189,6 +199,15 @@
 .lightbox[open] { opacity: 1; transition-duration: var(--dur-enter); }
 @starting-style { .lightbox[open] { opacity: 0; } }
 .lightbox::backdrop { background: rgba(11,11,15,.94); }
+/* The photograph opening out of its frame (js/main.js, 2026-10-14). One box travels between the frame and the viewer,
+   clipped, with the large image covering it at the page's own crop point, so its first frame is the page's crop and its
+   last is the whole photograph; only one of the two images is ever drawn. The page around it cross-fades to the scrim in
+   the same time. The lightbox's own fade and scale stand down while it runs. */
+::view-transition-group(lb-photo) { overflow: clip; animation-duration: var(--lb-dur, 500ms); animation-timing-function: var(--ease-out); }
+::view-transition-old(lb-photo), ::view-transition-new(lb-photo) { animation: none; width: 100%; height: 100%; object-fit: cover; object-position: var(--lb-pos, 50% 50%); }
+:root:not(.lb-closing)::view-transition-old(lb-photo), :root.lb-closing::view-transition-new(lb-photo) { opacity: 0; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--lb-dur, 500ms); }
+.lightbox.is-morphing, .lightbox.is-morphing .lightbox__figure { transition: none; }
 .lightbox__stage { position: absolute; inset: 0; display: grid; place-items: center; padding: calc(var(--nav-h) + var(--sp-4)) var(--sp-20) var(--sp-16); }
 .lightbox__figure { margin: 0; max-width: 100%; max-height: 100%; display: grid; place-items: center; transform: scale(.97); transition: transform var(--dur-enter) var(--ease-out); }
 .lightbox[open] .lightbox__figure { transform: none; }

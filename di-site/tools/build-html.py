@@ -212,7 +212,7 @@ page=f'''<!DOCTYPE html>
 <script src="js/main.js?v={V('js/main.js')}" defer></script>
 </head>
 <body>
-<script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.classList.add('js');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
+<script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.classList.add('js');var n;try{{n=localStorage.getItem('di:newsletter')}}catch(e){{try{{n=sessionStorage.getItem('di:newsletter')}}catch(f){{}}}}if(n==='subscribed')h.classList.add('subscribed');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
 <a class="skip" href="#main">Skip to content</a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
@@ -220,7 +220,7 @@ page=f'''<!DOCTYPE html>
 <header class="nav" id="nav">
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navglyph}Developmental Improvisation</a>
-    <nav class="nav__links" aria-label="Primary"><a href="#about">About</a><a href="#voices">Testimonials</a><a href="#contact">Contact</a></nav>
+    <nav class="nav__links" aria-label="Primary"><a href="#about" data-label="About">About</a><a href="#voices" data-label="Testimonials">Testimonials</a><a href="#contact" data-label="Contact">Contact</a></nav>
     <div class="nav__panel">
       <button class="btn btn--line btn--compact nav__subscribe" type="button" data-open-dialog>Subscribe</button><button class="nav__menu" type="button" data-open-menu aria-expanded="false" aria-controls="menuSheet" aria-label="Menu"><svg class="icon icon--open" aria-hidden="true"><use href="#i-list"/></svg><svg class="icon icon--close" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   </div>
@@ -274,6 +274,9 @@ page=f'''<!DOCTYPE html>
         <h2 class="close__title" id="newsletterTitle">Sign Up for our Newsletter!</h2>
         {form('nl')}
       </div>
+      <!-- a visitor who has already subscribed is not asked again (2026-10-14): the sign-up gives way to this, and every
+           Subscribe button on the page goes. The class is set by the head script, before the first paint -->
+      <p class="close__done"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Subscribed</p>
     </div>
   </div></div>
 </section>

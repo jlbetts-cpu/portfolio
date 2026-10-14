@@ -83,7 +83,7 @@ for (const [w, h, bug] of runs) {
   if (w < 768) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
     const tp = await ctx.newPage();
-    await tp.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); sessionStorage.setItem('di:curtain', '1'); } catch {} });
+    await tp.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
     await tp.goto(URL); await tp.waitForTimeout(800);
     if (bug === 'pinned') await tp.evaluate(INJECT.pinned);
     await tp.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.reel').scrollIntoView({ block: 'center' }); });

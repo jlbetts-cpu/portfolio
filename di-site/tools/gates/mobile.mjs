@@ -16,7 +16,7 @@ const b = await browser();
 for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 640]])) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   const pg = await ctx.newPage();
-  await pg.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); sessionStorage.setItem('di:curtain', '1'); } catch {} });
+  await pg.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
   await pg.goto(URL); await pg.evaluate(() => document.fonts.ready);
   await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
   if (selfTest) await pg.addStyleTag({ content: '.btn--primary:hover { background: red; }' });

@@ -32,7 +32,10 @@ await pg.evaluate(() => { const s = document.querySelector('.ring__stage'); scro
 const rb = await pg.locator('.ring__item .photo__open').nth(1).boundingBox(); await pg.mouse.move(rb.x + rb.width / 2, rb.y + rb.height / 2); await pg.waitForTimeout(900);
 const rb2 = await pg.locator('.ring__item .photo__open').nth(1).boundingBox(); await pg.mouse.click(rb2.x + rb2.width / 2, rb2.y + rb2.height / 2); await pg.waitForTimeout(600);
 const ringOpen = await pg.evaluate(() => document.querySelector('#lightbox').open);
-await pg.mouse.click(20, 120); await pg.waitForTimeout(400);   // the scrim, clear of the arrows
+// the photograph opens out of its frame over half a second (since 2026-10-14) and a click during that is dropped, so
+// the scrim is clicked once it has opened
+await pg.waitForTimeout(600);
+await pg.mouse.click(20, 120); await pg.waitForTimeout(600);   // the scrim, clear of the arrows
 const scrimClosed = await pg.evaluate(() => !document.querySelector('#lightbox').open);
 report('lightbox: a ring photograph opens; the scrim closes', ringOpen && scrimClosed, `${count} buttons over ${names} photographs`);
 await pg.close(); await b.close();

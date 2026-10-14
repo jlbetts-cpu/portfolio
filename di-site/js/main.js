@@ -5,7 +5,6 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const root = document.documentElement;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const mobile = matchMedia('(max-width: 767px)');
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { try { return sessionStorage.getItem(k); } catch { return null; } } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { try { sessionStorage.setItem(k, v); } catch {} } },
@@ -66,6 +65,30 @@
     addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(upd); } }, { passive: true });
     nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
     upd();
+  }
+
+  /* ---- The header shows where you are (2026-10-14) ----
+     The section crossing a line 45% of the way down the screen names its link: either About section is About, the
+     testimonials are Testimonials. The footer is too short ever to reach that line, so Contact is the footer whole on
+     screen, which is the foot of the page. The hero, the strip, the ring and the sign-up name nothing. ---- */
+  const navLinks = $$('.nav__links a, .sheet__links a');
+  if (navLinks.length && 'IntersectionObserver' in window) {
+    const ZONE = { about: '#about', founder: '#about', voices: '#voices' };
+    let onLine = null, footWhole = false;
+    const mark = () => {
+      const at = footWhole ? '#contact' : onLine;
+      navLinks.forEach(a => { if (a.getAttribute('href') === at) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    };
+    const crossing = new Set();
+    const line = new IntersectionObserver((entries) => {
+      for (const en of entries) { if (en.isIntersecting) crossing.add(en.target); else crossing.delete(en.target); }
+      const el = [...crossing][0];
+      onLine = (el && ZONE[el.id]) || null;
+      mark();
+    }, { rootMargin: '-45% 0px -54% 0px' });
+    $$('#top, #about, #founder, #quote, #voices, .close').forEach(el => line.observe(el));
+    const foot = $('#contact');
+    if (foot) new IntersectionObserver(([en]) => { footWhole = en.intersectionRatio > .95; mark(); }, { threshold: [0, .95, 1] }).observe(foot);
   }
 
   /* ---- The flow: one angle for everything that turns. A slow drift, plus what the visitor scrolls, eased. ----
@@ -304,12 +327,61 @@
       // warm the neighbours
       for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
     };
-    const open = (name, from) => { opener = from; show(Math.max(0, names.indexOf(name))); lb.showModal(); $('.lightbox__close', lb).focus({ preventScroll: true }); flow.hold('lightbox', true); };
+    /* THE PHOTOGRAPH OPENS OUT OF ITS FRAME (2026-10-14, his pick): it grows from exactly where it sat on the page into
+       the viewer, un-cropping as it goes, and closes back into the frame of whatever photograph is showing, if that
+       frame is on screen. A view transition with one shared name: the page's crop is hidden at once and the large
+       image is drawn covering a box that travels from the frame to its own size, so there is never a double image;
+       the box's corner travels too, from the frame's (2px in the strip, 20 in a section, a circle in the ring) to the
+       viewer's. Without view transitions, or under reduced motion, it opens and closes as it always did. */
+    const VT = 'lb-photo';
+    const canMorph = () => 'startViewTransition' in document && !reduced.matches;
+    let morphing = false, closeAfter = false;
+    const onScreen = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; };
+    // the frame to close into: the one that opened it if it shows this photograph, else this photograph's frame on screen, a real one before a copy in the strip
+    const frameFor = (name) => (opener && opener.dataset.photo === name && onScreen(opener) ? opener : null)
+      || buttons.filter(b => b.dataset.photo === name && onScreen(b)).sort((p, q) => !!p.closest('[aria-hidden="true"]') - !!q.closest('[aria-hidden="true"]'))[0] || null;
+    const cornerOf = (btn) => { const ph = btn.closest('.photo') || btn, r = ph.getBoundingClientRect(), c = getComputedStyle(ph).borderTopLeftRadius; return c.endsWith('%') ? Math.min(r.width, r.height) * parseFloat(c) / 100 : parseFloat(c) || 0; };
+    const morph = (from, to, closing, change) => {
+      morphing = true;
+      const cs = getComputedStyle(root), dur = num(cs, closing ? '--dur-reveal' : '--dur-enter', closing ? 360 : 500);
+      root.style.setProperty('--lb-dur', dur + 'ms');
+      root.style.setProperty('--lb-pos', getComputedStyle(closing ? to.img : from.img).objectPosition);
+      root.classList.toggle('lb-closing', closing);
+      lb.classList.add('is-morphing');
+      from.img.style.viewTransitionName = VT;
+      const vt = document.startViewTransition(() => { from.img.style.viewTransitionName = ''; change(); to.img.style.viewTransitionName = VT; });
+      vt.ready.then(() => root.animate({ borderRadius: [from.corner + 'px', to.corner + 'px'] }, { duration: dur, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both', pseudoElement: `::view-transition-group(${VT})` })).catch(() => {});
+      vt.finished.finally(() => { to.img.style.viewTransitionName = ''; lb.classList.remove('is-morphing'); root.classList.remove('lb-closing'); morphing = false; if (closeAfter) { closeAfter = false; close(); } });
+    };
+    const big = () => $('img', figure);
+    const bigCorner = () => parseFloat(getComputedStyle(big()).borderTopLeftRadius) || 0;
+    const settle = () => { $('.lightbox__close', lb).focus({ preventScroll: true }); flow.hold('lightbox', true); };
+    const open = async (name, from) => {
+      if (morphing || lb.open) return;
+      opener = from; show(Math.max(0, names.indexOf(name)));
+      const img = from && $('img', from);
+      if (!canMorph() || !img) { lb.showModal(); settle(); return; }
+      morphing = true;
+      // the large file is decoded before the frame starts to grow, or the first frames would grow its placeholder
+      try { await Promise.race([big().decode(), new Promise(r => setTimeout(r, 400))]); } catch {}
+      morph({ img, corner: cornerOf(from) }, { img: big(), corner: bigCorner() }, false, () => { lb.showModal(); settle(); });
+    };
+    // a click while it opens lands on the transition, not the page, and is dropped (a double-click must not open and
+    // shut it); Esc is kept, and closes it the moment it has opened
+    const close = () => {
+      if (morphing) { closeAfter = lb.open || closeAfter; return; }
+      if (!lb.open) return;
+      const to = canMorph() && big() && frameFor(names[index]);
+      const img = to && $('img', to);
+      if (!img) { lb.close(); return; }
+      morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, () => lb.close());
+    };
     buttons.forEach(b => b.addEventListener('click', () => open(b.dataset.photo, b)));
     $('.lightbox__prev', lb).addEventListener('click', () => show(index - 1));
     $('.lightbox__next', lb).addEventListener('click', () => show(index + 1));
-    $('.lightbox__close', lb).addEventListener('click', () => lb.close());
-    lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) lb.close(); });
+    $('.lightbox__close', lb).addEventListener('click', close);
+    lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } });   // Esc
+    lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
     lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); } });
     lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
     // swipe on touch
@@ -352,40 +424,22 @@
   }
 
   /* ---- Newsletter dialog ---- */
+  /* ---- The newsletter dialog: it opens when a visitor asks for it, from a Subscribe button, and never by itself ----
+     Until 2026-10-14 it also opened on its own after 40% of the page and ten seconds. Asked for "simple elegant
+     things", the research behind the recommendation found Nielsen Norman Group ranking modal popups the most disliked
+     kind and the closing section already asking; he picked dropping it. With it went the stored dismissal, which
+     existed only to keep the automatic one from coming back, and the non-modal phone sheet it opened as. ---- */
   const dialog = $('#newsletterDialog');
   const KEY = 'di:newsletter';
-  const state = store.get(KEY) || '';
-  const dismissedRecently = state.startsWith('dismissed:') && (Date.now() - Date.parse(state.slice(10)) < 30 * 864e5);
-  const subscribed = state === 'subscribed';
-  let lastClick = 0;
-  addEventListener('pointerdown', () => { lastClick = Date.now(); }, { capture: true, passive: true });
-  const openDialog = (opener) => {
+  const openDialog = () => {
     if (!dialog || dialog.open) return;
-    dialog.dataset.opener = opener ? 'button' : 'auto';
-    if (mobile.matches && !opener) dialog.show(); else dialog.showModal();
+    dialog.showModal();
     $('h2', dialog).focus({ preventScroll: true });
   };
   if (dialog) {
-    $$('[data-open-dialog]').forEach(b => b.addEventListener('click', () => openDialog(b)));
+    $$('[data-open-dialog]').forEach(b => b.addEventListener('click', openDialog));
     $('.dialog__close', dialog).addEventListener('click', () => dialog.close('dismiss'));
     dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close('dismiss'); });
-    dialog.addEventListener('close', () => {
-      if (dialog.returnValue !== 'subscribed' && !subscribed) store.set(KEY, 'dismissed:' + new Date().toISOString());
-    });
-    // automatic: both ≥40% scroll and ≥10s, not within 2s of a click, no field focused, no sheet open, once per session
-    if (!subscribed && !dismissedRecently && !store.sget('di:nl-shown')) {
-      const t0 = Date.now();
-      let armed = true;
-      const check = () => {
-        if (!armed) return;
-        const depth = (scrollY + innerHeight) / document.documentElement.scrollHeight;
-        const ok = depth >= 0.4 && Date.now() - t0 >= 10000 && Date.now() - lastClick > 2000
-          && !(document.activeElement && document.activeElement.matches('input, textarea')) && !(sheet && sheet.open) && !dialog.open;
-        if (ok) { armed = false; store.sset('di:nl-shown', '1'); openDialog(null); }
-      };
-      addEventListener('scroll', check, { passive: true });
-      const iv = setInterval(() => { check(); if (!armed) clearInterval(iv); }, 1000);
-    }
   }
 
   /* ---- Newsletter forms (dialog + inline): one handler ---- */

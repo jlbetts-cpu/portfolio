@@ -4,8 +4,6 @@ export const VIEWPORTS = [[1440, 900], [1512, 850], [1280, 720], [1024, 768], [1
 export async function browser() { return chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }); }
 export async function open(b, w, h, opts = {}) {
   const pg = await b.newPage({ viewport: { width: w, height: h }, reducedMotion: opts.reduced ? 'reduce' : 'no-preference' });
-  // the newsletter popup opens by itself after 40% scroll and ten seconds, once a session, and sits over the page; every gate but the dialog gate starts with it already shown
-  if (!opts.popup) await pg.addInitScript(() => { try { sessionStorage.setItem('di:nl-shown', '1'); } catch {} });
   // a stored theme is set before the page loads; the page reads none since 2026-10-13 (light only), and the theme gate uses this to prove it
   if (opts.theme) await pg.addInitScript((t) => { try { localStorage.setItem('di:mode', t); } catch {} }, opts.theme);
   // the curtain covers the page for the first second and locks scrolling while it is up; every gate but its own starts past it

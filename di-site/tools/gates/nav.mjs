@@ -3,7 +3,14 @@
 // of the page and wherever it shows; past the fold a
 // downward scroll takes it off screen and any upward scroll brings it straight back;
 // keyboard focus reveals it wherever it is, so a tab stop can never sit off screen. Both viewports.
-// --self-test: raises the hide threshold past the scroll the gate makes, and expects the "leaves going down" check to fail.
+// Since 2026-10-14 it also shows where you are (his pick): the link for the section being read is the second weight,
+// with aria-current, and nothing else. Read at six places down the page at 1440: nothing on the hero, About on either
+// About section, nothing on the ring, Testimonials on the testimonials, Contact at the foot. No link changes width by
+// as much as 0.1px between any of them (each holds its 600 width invisibly), and the labels stay on the name's centre
+// line (it slipped 4.85px below it once, the first time the width was held).
+// --self-test: raises the hide threshold past the scroll the gate makes, and expects the "leaves going down" check to
+// fail; then strips aria-current as it is set ("unmarked") and drops the held width ("shifts"), and expects "where" to
+// fail on each.
 import { browser, open, report } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
@@ -56,5 +63,28 @@ if (!selfTest) {
   report('nav: the brand is the black-and-white logo and the name; no theme switch anywhere (light only)', loOk, JSON.stringify(lo));
   await lp.close();
 }
+// where you are
+const where = async (bug) => {
+  const wp = await open(b, 1440, 900);
+  if (bug === 'unmarked') await wp.evaluate(() => { new MutationObserver(() => document.querySelectorAll('[aria-current]').forEach(a => a.removeAttribute('aria-current'))).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-current'] }); });
+  if (bug === 'shifts') await wp.addStyleTag({ content: '.nav__links a::after { content: none !important; }' });
+  const sec = await wp.evaluate(() => Object.fromEntries(['#about', '#founder', '#quote', '#voices'].map(s => [s, document.querySelector(s).getBoundingClientRect().top + scrollY])));
+  const H = await wp.evaluate(() => document.documentElement.scrollHeight);
+  const want = [['top', 0, ''], ['about', sec['#about'] + 100, 'About'], ['founder', sec['#founder'] + 300, 'About'], ['ring', sec['#quote'] + 200, ''], ['voices', sec['#voices'] - 200, 'Testimonials'], ['foot', H, 'Contact']];
+  const seen = [], widths = [];
+  for (const [n, y, cur] of want) {
+    await wp.evaluate(v => scrollTo(0, v), y); await wp.waitForTimeout(450);
+    const r = await wp.evaluate(() => { const ls = [...document.querySelectorAll('.nav__links a')]; return { cur: ls.filter(a => a.hasAttribute('aria-current')).map(a => a.textContent).join(','), bold: ls.filter(a => getComputedStyle(a).fontWeight === '600').map(a => a.textContent).join(','), w: ls.map(a => a.getBoundingClientRect().width) }; });
+    seen.push([n, r.cur, r.cur === cur && r.bold === cur]); widths.push(r.w);
+  }
+  const still = widths.every(ws => ws.every((x, i) => Math.abs(x - widths[0][i]) < 0.1));
+  const level = await wp.evaluate(() => { const c = (n) => { const rg = document.createRange(); rg.selectNodeContents(n); const r = rg.getBoundingClientRect(); return r.top + r.height / 2; }; const t = [...document.querySelector('.nav__brand').childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); return Math.max(...[...document.querySelectorAll('.nav__links a')].map(a => Math.abs(c(a) - c(t)))); });
+  const ok = seen.every(x => x[2]) && still && level < 0.5;
+  report(`nav: shows where you are${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ seen: seen.map(x => x[0] + ':' + (x[1] || '-')).join(' '), still, level: +level.toFixed(2) }));
+  await wp.close();
+  return ok;
+};
+if (!selfTest) allOk = (await where()) && allOk;
+const whereCaught = selfTest ? !(await where('unmarked')) && !(await where('shifts')) : true;
 await b.close();
-if (selfTest) { const caught = !allOk; console.log(caught ? 'SELF-TEST OK: the frozen header was caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }
+if (selfTest) { const caught = !allOk && whereCaught; console.log(caught ? 'SELF-TEST OK: the frozen header, the unmarked link and the shifting width were each caught' : 'SELF-TEST FAILED: gate cannot fail'); process.exitCode = caught ? 0 : 1; }

@@ -17,7 +17,7 @@ const page = async (scheme, stored) => {
   const pg = await ctx.newPage();
   // the stored choice is seeded on the FIRST load only — an init script runs again on reload, and clearing the choice
   // there would test the seed, not the page's memory
-  await pg.addInitScript((t) => { try { sessionStorage.setItem('di:nl-shown', '1'); sessionStorage.setItem('di:curtain', '1'); if (!sessionStorage.getItem('gate:seeded')) { if (t) localStorage.setItem('di:mode', t); else localStorage.removeItem('di:mode'); sessionStorage.setItem('gate:seeded', '1'); } } catch {} }, stored);
+  await pg.addInitScript((t) => { try { sessionStorage.setItem('di:curtain', '1'); if (!sessionStorage.getItem('gate:seeded')) { if (t) localStorage.setItem('di:mode', t); else localStorage.removeItem('di:mode'); sessionStorage.setItem('gate:seeded', '1'); } } catch {} }, stored);
   await pg.goto(URL); await pg.waitForTimeout(400);
   return { ctx, pg };
 };
