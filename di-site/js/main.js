@@ -130,24 +130,92 @@
 
   /* ---- The reel: one row of photographs between the hero and the first section, sliding on its own ----
      Three copies of one run; the loop length is the first run's width, so the translate wraps without a seam. The flow
-     drives it, the pointer HOLDS it rather than steering it, and there is no wheel handler: a wheel over the reel
-     scrolls the page. It was four columns rising (under the hero, then for an evening at the page's foot). ---- */
+     drives it and the pointer HOLDS it. Since 2026-10-14 it can also be moved by hand ("make it so you are able to
+     horizonatal scroll on the film strip carousel if you want"): a sideways swipe on a trackpad (or shift and the wheel)
+     and a drag, by mouse or by finger, move it one to one, and a drag let go with speed glides on at Apple's scroll
+     deceleration (0.998 a millisecond) until it stops, then the drift takes it back. A VERTICAL wheel still scrolls the
+     page and never the row, a finger moving up the strip scrolls the page (touch-action: pan-y), a drag never opens the
+     lightbox, and a touch that stops a glide opens nothing either, as on a phone. ---- */
   const reel = $('[data-reel]');
   if (reel) {
     const track = $('.reel__track', reel), run = $('.reel__run', reel);
-    let px = 11, len = 0;
-    const measure = () => { px = num(getComputedStyle(root), '--reel-px', 11); len = run.getBoundingClientRect().width; };
-    measure(); addEventListener('resize', measure); addEventListener('load', measure);
-    flow.on((a) => {
+    let px = 11, len = 0, a = 0, by = 0;      // a: the flow's angle, by: how far the hand has moved it, in px
+    const measure = () => { px = num(getComputedStyle(root), '--reel-px', 11); len = run.getBoundingClientRect().width; render(); };
+    const render = () => {
       if (!len) return;
-      const x = (((a * px) % len) + len) % len;
+      const x = (((a * px + by) % len) + len) % len;
       track.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
-    });
+    };
+    measure(); addEventListener('resize', measure); addEventListener('load', measure);
+    flow.on((ang) => { a = ang; render(); });
     flow.watch(reel);
     reel.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') flow.hold(reel, true); });
     reel.addEventListener('pointerleave', () => flow.hold(reel, false));
-    // no hold on touch: a scroll gesture that starts on the reel would freeze it. A tap opens the lightbox, which
-    // holds the flow itself.
+    // no hold on a touch until it moves sideways: a scroll gesture that starts on the reel would freeze it. A tap opens
+    // the lightbox, which holds the flow itself.
+
+    // a sideways wheel. The axis is decided at the start of a gesture and kept until it pauses, as a browser does, so a
+    // trackpad's cross-axis noise never flips a page scroll into a scrub or the other way round
+    let axis = '', axisT = 0, wheelOff = 0;
+    reel.addEventListener('wheel', (e) => {
+      const t = e.timeStamp;
+      if (t - axisT > 220) axis = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? 'x' : 'y';
+      axisT = t;
+      if (axis !== 'x') return;
+      e.preventDefault();                       // also keeps a sideways swipe from turning into the browser's back
+      stopGlide();
+      by += e.deltaX * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerWidth : 1); render();
+      flow.hold('reel-hand', true); clearTimeout(wheelOff);
+      wheelOff = setTimeout(() => { if (!drag) flow.hold('reel-hand', false); }, 400);
+    }, { passive: false });
+
+    // a drag. It becomes one after 8px sideways; until then a press is a press, and a tap still opens the photograph
+    let drag = null, glide = 0, gv = 0, eat = false;
+    const stopGlide = () => { if (!glide) return; cancelAnimationFrame(glide); glide = 0; };
+    reel.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      eat = !!glide && Math.abs(gv) > .15;       // a touch that catches a glide stops it and opens nothing; at a crawl it is a tap
+      stopGlide();
+      drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, on: false, s: [[e.timeStamp, e.clientX]] };
+      if (eat) flow.hold('reel-hand', true);
+    });
+    reel.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (!drag.on) {
+        const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+        if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+        drag.on = true; drag.x = e.clientX; eat = true;
+        try { reel.setPointerCapture(e.pointerId); } catch {}
+        reel.classList.add('is-dragging'); flow.hold('reel-hand', true);
+      }
+      by -= e.clientX - drag.x; drag.x = e.clientX; render();
+      drag.s.push([e.timeStamp, e.clientX]);
+      while (drag.s.length > 2 && e.timeStamp - drag.s[0][0] > 100) drag.s.shift();
+    });
+    const release = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const d = drag; drag = null;
+      reel.classList.remove('is-dragging');
+      if (!d.on) { if (!glide) flow.hold('reel-hand', false); return; }
+      // the speed of the last tenth of a second, in px a millisecond; a finger that stopped before letting go throws nothing
+      const [t0, x0] = d.s[0], [t1, x1] = d.s[d.s.length - 1];
+      let v = e.type === 'pointerup' && e.timeStamp - t1 < 60 && t1 > t0 ? (x1 - x0) / (t1 - t0) : 0;
+      if (Math.abs(v) < .05) { flow.hold('reel-hand', false); return; }
+      let last = 0;
+      const step = (t) => {
+        const dt = last ? Math.min(50, t - last) : 16; last = t;
+        v *= Math.pow(.998, dt); gv = v; by -= v * dt; render();
+        if (Math.abs(v) < .02) { glide = 0; flow.hold('reel-hand', false); return; }
+        glide = requestAnimationFrame(step);
+      };
+      glide = requestAnimationFrame(step);
+    };
+    reel.addEventListener('pointerup', release);
+    reel.addEventListener('pointercancel', release);
+    // the click that ends a drag (or catches a glide) is eaten before it reaches the photograph's button
+    reel.addEventListener('click', (e) => { if (eat && e.detail) { eat = false; e.stopPropagation(); e.preventDefault(); } }, true);   // detail 0 is a key, never eaten
+    reel.addEventListener('dragstart', (e) => e.preventDefault());
+    window.__di_reel = { get by() { return by; }, get len() { return len; }, get px() { return px; } };   // test hook
   }
 
   /* ---- The mark: black, with the palette sweeping over it, and it turns to face the pointer ----
@@ -352,5 +420,6 @@
     });
   });
 
-  window.__di = { flow, lightbox: lb };   // hooks for tools/gates
+  window.__di = { flow, lightbox: lb, reel: window.__di_reel };   // hooks for tools/gates
+  delete window.__di_reel;
 })();

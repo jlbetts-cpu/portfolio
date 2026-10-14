@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v46 (2026-10-14) — the film strip moves by hand
+*"make it so you are able to horizonatal scroll on the film strip carousel if you want."* It still drifts on its own; now it can also be moved by hand. This reopens the 2026-10-02 lock "the reel cannot be scrubbed by hand", on his own words.
+
+**Three ways in, one to one.** A sideways swipe on a trackpad, or shift and the wheel, moves the strip by exactly the wheel's distance (300 asked, 299.2 measured; the 0.8 is the drift still easing out under the pointer). A mouse drag and a finger moving sideways move it under the hand, after 8px, so a press that wobbles is still a press. The axis is decided at the start of a wheel gesture and kept until it pauses, so a trackpad's cross-axis noise never flips a page scroll into a scrub.
+
+**What it does not do.** An up-and-down wheel over it scrolls the page and the row stays put (200px of page, 0 of row). A finger moving up it scrolls the page (`touch-action: pan-y`; 225px of page, 0 of row). A drag opens nothing; a click or tap on a frame still opens the lightbox; Enter on a focused frame is never eaten.
+
+**Let go with speed and it glides**, at Apple's scroll deceleration (0.998 a millisecond, `docs/apple-design.md` §6): a quick flick of about 1.5px/ms carries on about 700px and settles in two seconds, then the drift takes it back over 180ms. A finger stopped before letting go throws nothing. A touch that catches a fast glide stops it and opens nothing, as a phone does; at a crawl (under 150px/s) the touch is a tap. While it is dragged the pressed frame lets go of its press and the cursor is the closed hand; nothing is selected and no image ghost-drags.
+
+**The reel gate** now drives it with real input: the sideways wheel (moved 300, page still), a 200px drag (190 moved, the 8px slop and the first step, lightbox shut), a click on a frame (lightbox open), and on a phone-sized page a finger through the browser's own touch pipeline, sideways (146.7 moved, page still) and up (225 of page, 0 of row). Its self-test now injects three bugs on three pages and each was caught: a wheel handler that eats every wheel (pageMoved), the hand never reaching the reel (swipes, drags), and `touch-action: none` (fingerUp). One full run read the click false; it was the gate clicking the 6px of film between two frames, confirmed by clicking a gap on purpose, so the gate now clicks the middle of the nearest frame. 53 lines, nine self-tests.
+
 ## v45 (2026-10-14) — a premium pass
 *"make everything feel more premium."* Every section looked at, at 1440, 1024 and 390, for what read as less than finished; five things changed, nothing added.
 

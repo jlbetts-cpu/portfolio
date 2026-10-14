@@ -55,9 +55,14 @@
    6px of base between them, with a row of sprocket holes along the top edge and the bottom, eight to a frame as on real
    film. The holes are the page's own white showing through, and they belong to each frame, so they travel with the
    strip and the loop has no seam in them. Full bleed, 217px at 1440 and 142 on a phone; it starts at the
-   hero's peek. js/main.js moves it, the pointer holds it, nothing scrubs it, and a wheel over it scrolls the page.
+   hero's peek. js/main.js moves it and the pointer holds it; since 2026-10-14 a sideways swipe or a drag moves it by
+   hand, and an up-and-down wheel or finger over it still scrolls the page (pan-y below).
    The film base is the one dark thing on the page, and it is a photograph's material, not chrome. Every frame 4:5. */
-.reel { --strip-gap: 6px; --pitch: 16px; --edge: calc(var(--pitch) * 1.25); --film: #141414; overflow: hidden; }
+.reel { --strip-gap: 6px; --pitch: 16px; --edge: calc(var(--pitch) * 1.25); --film: #141414; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.reel img { -webkit-user-drag: none; }
+/* while it is being dragged: the hand's cursor, and the frame that was pressed does not stay pressed */
+.reel.is-dragging, .reel.is-dragging .photo__open { cursor: grabbing; }
+.reel.is-dragging .photo { transform: none; }
 /* THE HOLE PITCH IS A WHOLE PIXEL and a frame is exactly eight of it, gap included, so every frame's row of holes ends
    where the next begins. With a fractional pitch (a frame's width over eight) each frame rounded its own last hole and
    they doubled up at the joins, worst on a phone. round() keeps the pitch whole as it scales; behind @supports,
