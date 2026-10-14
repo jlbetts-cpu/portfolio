@@ -317,12 +317,60 @@
     const names = [...new Set(buttons.filter(b => !b.closest('[aria-hidden="true"]')).map(b => b.dataset.photo))];
     const figure = $('.lightbox__figure', lb);
     const live = $('.lightbox__live', lb);
-    let index = 0, opener = null;
-    const show = (i) => {
+    const stage = $('.lightbox__stage', lb), rail = $('.lightbox__rail', lb);
+    let index = 0, opener = null, thumbs = [];
+    const current = () => $('picture.is-current', figure);
+    /* THE ROW OF PREVIEWS, Apple Photos' scrubber (2026-10-14). Built the first time the viewer opens: one button per
+       photograph, its 160px file at the page's own crop point. Only the current one takes a tab stop; the arrow keys
+       move along the row from there. Its centre is worked out from the row's final geometry rather than read while the
+       previews are still opening out, so the scroll and the widening arrive together. */
+    const buildRail = () => {
+      if (thumbs.length) return;
+      rail.innerHTML = names.map((n, i) => { const d = lbData[n]; return `<button class="lightbox__thumb" type="button" tabindex="-1" style="--w:${Math.max(44, Math.round(55 * d.w / d.h))}px;--pos:${d.pos}" aria-label="Photograph ${i + 1} of ${names.length}"><picture><source type="image/avif" srcset="${d.t[0]}"><img src="${d.t[1]}" alt="" decoding="async"></picture></button>`; }).join('');
+      thumbs = $$('.lightbox__thumb', rail);
+      thumbs.forEach((t, i) => t.addEventListener('click', () => { if (i !== index) show(i, i > index ? 1 : -1); }));
+    };
+    // a mouse's wheel turns the row too: a row that only a trackpad or shift could move would be half a control
+    rail.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); rail.scrollLeft += e.deltaY; } }, { passive: false });
+    const centreRail = (smooth) => {
+      const t = thumbs[index]; if (!t) return;
+      const pad = parseFloat(getComputedStyle(rail).paddingLeft), w = parseFloat(t.style.getPropertyValue('--w'));
+      const mid = pad + index * (44 + 2) + 6 + w / 2;
+      rail.scrollTo({ left: mid - rail.clientWidth / 2, behavior: smooth && !reduced.matches ? 'smooth' : 'instant' });
+    };
+    // the photograph's box from its own proportions, so it has its size before the file arrives and the preview can
+    // stand in for it, drawn large, without anything moving when the photograph lands
+    const fit = (img, d) => {
+      const cs = getComputedStyle(stage), W = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), H = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const k = Math.min(W / d.w, H / d.h, 1440 / d.w);
+      img.style.width = Math.round(d.w * k) + 'px'; img.style.height = Math.round(d.h * k) + 'px';
+    };
+    addEventListener('resize', () => { const pic = current(); if (lb.open && pic) fit($('img', pic), lbData[names[index]]); });
+    // dir: 1 forward, -1 back, 0 no movement (the first photograph, or a jump with nothing to give way). from: where a
+    // finger let go of the old one, so it carries on from there rather than starting again from the middle
+    const show = (i, dir = 0, from = 0) => {
       index = (i + names.length) % names.length;
       const d = lbData[names[index]];
       const av = d.avif.map(([w, u]) => `${u} ${w}w`).join(', '), wp = d.webp.map(([w, u]) => `${u} ${w}w`).join(', ');
-      figure.innerHTML = `<picture><source type="image/avif" srcset="${av}" sizes="90vw"><source type="image/webp" srcset="${wp}" sizes="90vw"><img src="${d.jpeg}" width="${d.w}" height="${d.h}" alt="${d.alt}" decoding="async"></picture>`;
+      const pic = document.createElement('picture');
+      pic.className = 'is-current';
+      pic.innerHTML = `<source type="image/avif" srcset="${av}" sizes="90vw"><source type="image/webp" srcset="${wp}" sizes="90vw"><img src="${d.jpeg}" width="${d.w}" height="${d.h}" alt="${d.alt}" decoding="async">`;
+      fit($('img', pic), d);
+      $('img', pic).style.backgroundImage = `url(${d.t[1]})`;
+      $('img', pic).addEventListener('load', (e) => { e.target.style.backgroundImage = ''; }, { once: true });
+      const old = current();
+      figure.appendChild(pic);
+      if (old) {
+        old.classList.remove('is-current');
+        if (lb.open && dir && !reduced.matches) {
+          // the old one carries on the way it was going and fades; the new one comes in after it, a short way, on the same ease
+          const w = stage.clientWidth, dx = dir * Math.min(64, w * .06), ms = num(getComputedStyle(root), '--dur-move', 280);
+          old.animate([{ transform: `translateX(${from}px)`, opacity: 1 }, { transform: `translateX(${from - dir * Math.max(dx, Math.abs(from) * .5)}px)`, opacity: 0 }], { duration: ms, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
+          pic.animate([{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: ms, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        } else old.remove();
+      }
+      thumbs.forEach((t, k) => { if (k === index) { t.setAttribute('aria-current', 'true'); t.tabIndex = 0; } else { t.removeAttribute('aria-current'); t.tabIndex = -1; } });
+      if (lb.open) { centreRail(true); if (rail.contains(document.activeElement)) thumbs[index].focus({ preventScroll: true }); }
       live.textContent = `Photograph ${index + 1} of ${names.length}. ${d.alt}`;
       // warm the neighbours
       for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
@@ -353,12 +401,12 @@
       vt.ready.then(() => root.animate({ borderRadius: [from.corner + 'px', to.corner + 'px'] }, { duration: dur, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both', pseudoElement: `::view-transition-group(${VT})` })).catch(() => {});
       vt.finished.finally(() => { to.img.style.viewTransitionName = ''; lb.classList.remove('is-morphing'); root.classList.remove('lb-closing'); morphing = false; if (closeAfter) { closeAfter = false; close(); } });
     };
-    const big = () => $('img', figure);
+    const big = () => $('picture.is-current img', figure);
     const bigCorner = () => parseFloat(getComputedStyle(big()).borderTopLeftRadius) || 0;
-    const settle = () => { $('.lightbox__close', lb).focus({ preventScroll: true }); flow.hold('lightbox', true); };
+    const settle = () => { fit(big(), lbData[names[index]]); centreRail(false); $('.lightbox__close', lb).focus({ preventScroll: true }); flow.hold('lightbox', true); };
     const open = async (name, from) => {
       if (morphing || lb.open) return;
-      opener = from; show(Math.max(0, names.indexOf(name)));
+      opener = from; buildRail(); show(Math.max(0, names.indexOf(name)));
       const img = from && $('img', from);
       if (!canMorph() || !img) { lb.showModal(); settle(); return; }
       morphing = true;
@@ -377,17 +425,37 @@
       morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, () => lb.close());
     };
     buttons.forEach(b => b.addEventListener('click', () => open(b.dataset.photo, b)));
-    $('.lightbox__prev', lb).addEventListener('click', () => show(index - 1));
-    $('.lightbox__next', lb).addEventListener('click', () => show(index + 1));
+    $('.lightbox__prev', lb).addEventListener('click', () => show(index - 1, -1));
+    $('.lightbox__next', lb).addEventListener('click', () => show(index + 1, 1));
     $('.lightbox__close', lb).addEventListener('click', close);
     lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } });   // Esc
     lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
-    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); } });
+    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1, 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1, -1); } });
     lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
-    // swipe on touch
-    let sx = null;
-    lb.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
-    lb.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 48) show(index + (dx < 0 ? 1 : -1)); }, { passive: true });
+    /* A FINGER MOVES THE PHOTOGRAPH ITSELF, as in Photos: it follows one to one once it has gone 8px sideways, and let go
+       past a fifth of the screen, or thrown, it carries on into the next; short of that it springs back. A swipe never
+       closes the viewer, though it ends on the scrim. */
+    let sw = null, eatClick = false;
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch' || morphing || !current()) return; sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, on: false, s: [[e.timeStamp, e.clientX]] }; eatClick = false; });
+    stage.addEventListener('pointermove', (e) => {
+      if (!sw || e.pointerId !== sw.id) return;
+      const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+      if (!sw.on) { if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return; sw.on = true; eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {} }
+      sw.dx = dx; current().style.transform = `translateX(${dx}px)`;
+      sw.s.push([e.timeStamp, e.clientX]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift();
+    });
+    const letGo = (e) => {
+      if (!sw || e.pointerId !== sw.id) return;
+      const g = sw; sw = null;
+      if (!g.on) return;
+      const [t0, x0] = g.s[0], [t1, x1] = g.s[g.s.length - 1], v = t1 > t0 ? (x1 - x0) / (t1 - t0) : 0;
+      const pic = current();
+      if (Math.abs(g.dx) > stage.clientWidth * .2 || (Math.abs(v) > .4 && Math.sign(v) === Math.sign(g.dx))) { pic.style.transform = ''; show(index + (g.dx < 0 ? 1 : -1), g.dx < 0 ? 1 : -1, g.dx); }
+      else { pic.style.transform = ''; pic.animate([{ transform: `translateX(${g.dx}px)` }, { transform: 'none' }], { duration: num(getComputedStyle(root), '--dur-move', 280), easing: getComputedStyle(root).getPropertyValue('--ease-pop').trim() || 'ease-out' }); }
+    };
+    stage.addEventListener('pointerup', letGo);
+    stage.addEventListener('pointercancel', letGo);
+    lb.addEventListener('click', (e) => { if (eatClick) { eatClick = false; e.stopPropagation(); } }, true);
   }
 
   /* ---- Reveal on scroll, once ----

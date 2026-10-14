@@ -198,7 +198,6 @@
 .lightbox { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--bg); z-index: var(--z-dialog); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out), display var(--dur-state-out) allow-discrete, overlay var(--dur-state-out) allow-discrete; }
 .lightbox[open] { opacity: 1; transition-duration: var(--dur-enter); }
 @starting-style { .lightbox[open] { opacity: 0; } }
-.lightbox::backdrop { background: rgba(11,11,15,.94); }
 /* The photograph opening out of its frame (js/main.js, 2026-10-14). One box travels between the frame and the viewer,
    clipped, with the large image covering it at the page's own crop point, so its first frame is the page's crop and its
    last is the whole photograph; only one of the two images is ever drawn. The page around it cross-fades to the scrim in
@@ -208,24 +207,47 @@
 :root:not(.lb-closing)::view-transition-old(lb-photo), :root.lb-closing::view-transition-new(lb-photo) { opacity: 0; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--lb-dur, 500ms); }
 .lightbox.is-morphing, .lightbox.is-morphing .lightbox__figure { transition: none; }
-.lightbox__stage { position: absolute; inset: 0; display: grid; place-items: center; padding: calc(var(--nav-h) + var(--sp-4)) var(--sp-20) var(--sp-16); }
+.lightbox::backdrop { background: #0A0A0C; }   /* solid, as Photos is: at 97% the page's own photograph showed through as a ghost of its frame */
+/* THE VIEWER IS APPLE PHOTOS' (2026-10-14: "make sure like the expanded photo display casusel actually looks sleek and
+   premium and it should be like apples photos where you can see the previews"). Near-black, the photograph as large as
+   the room above the previews allows, quiet controls, and along the foot a row of every photograph: 4:5 previews 2px
+   apart at the page's own crop points, the one showing opened out to its own shape with a little room either side and
+   held at the centre, the way Photos' scrubber holds it. The row scrolls natively, so a trackpad or a finger throws it
+   with the system's own momentum; a preview opens its photograph. The previews are 44 wide, the tap floor. */
+.lightbox { --thumb-w: 44px; --thumb-h: 55px; --rail-h: calc(var(--thumb-h) + 2 * var(--sp-5) + env(safe-area-inset-bottom)); --top-h: calc(var(--hit) + 2 * var(--sp-4)); }
+.lightbox__stage { position: absolute; inset: 0 0 var(--rail-h) 0; display: grid; place-items: center; padding: var(--top-h) var(--sp-20) 0; touch-action: pinch-zoom; }
 .lightbox__figure { margin: 0; max-width: 100%; max-height: 100%; display: grid; place-items: center; transform: scale(.97); transition: transform var(--dur-enter) var(--ease-out); }
 .lightbox[open] .lightbox__figure { transform: none; }
 @starting-style { .lightbox[open] .lightbox__figure { transform: scale(.97); } }
-.lightbox__figure picture, .lightbox__figure img { max-width: 100%; max-height: calc(100dvh - var(--nav-h) - var(--sp-4) - var(--sp-16)); width: auto; height: auto; object-fit: contain; border-radius: var(--r-lg); }
+/* two photographs share the one cell while one gives way to the next */
+.lightbox__figure picture { grid-area: 1 / 1; }
+.lightbox__figure picture, .lightbox__figure img { max-width: 100%; max-height: calc(100dvh - var(--top-h) - var(--rail-h)); width: auto; height: auto; object-fit: contain; border-radius: var(--r-lg); }
+.lightbox__figure img { background: center / cover no-repeat; }   /* the preview, drawn large under the photograph until it arrives */
 .lightbox__close { position: absolute; top: var(--sp-4); right: var(--sp-4); }
-.lightbox__prev { position: absolute; left: var(--sp-4); top: 50%; transform: translateY(-50%); }
-.lightbox__next { position: absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); }
-.lightbox .arrow, .lightbox .dialog__close { background: var(--bg); color: var(--ink); }
-@media (hover: hover) { .lightbox .arrow:hover { background: #fff; } }
-.lightbox .dialog__close { width: var(--hit); height: var(--hit); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
-@media (hover: hover) { .lightbox .dialog__close:hover { background: #fff; color: var(--ink); } }
+.lightbox__prev, .lightbox__next { position: absolute; top: calc((100dvh - var(--rail-h) + var(--top-h)) / 2); transform: translateY(-50%); }
+.lightbox__prev { left: var(--sp-4); }
+.lightbox__next { right: var(--sp-4); }
+.lightbox .arrow, .lightbox .dialog__close { background: rgba(255,255,255,.12); color: #fff; }
+@media (hover: hover) { .lightbox .arrow:hover, .lightbox .dialog__close:hover { background: rgba(255,255,255,.22); color: #fff; } }
+.lightbox .arrow:focus-visible, .lightbox .dialog__close:focus-visible, .lightbox__thumb:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.lightbox__rail { position: absolute; inset: auto 0 0 0; height: var(--rail-h); padding: 0 calc(50% - var(--thumb-w) / 2) env(safe-area-inset-bottom); display: flex; align-items: center; gap: 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x; }
+.lightbox__rail::-webkit-scrollbar { display: none; }
+.lightbox__thumb { flex: none; width: var(--thumb-w); height: var(--thumb-h); padding: 0; border: 0; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.08); opacity: .5; transition: width var(--dur-move) var(--ease-out), margin var(--dur-move) var(--ease-out), opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.lightbox__thumb picture, .lightbox__thumb img { display: block; width: 100%; height: 100%; }
+.lightbox__thumb img { object-fit: cover; object-position: var(--pos, 50% 50%); }
+/* the one showing is whole and opened out to its own shape; the rest wait at half, and come up under the pointer. A
+   portrait photograph is already 4:5, so without the half its preview could not be told from its neighbours */
+.lightbox__thumb[aria-current] { width: var(--w); margin-inline: 6px; opacity: 1; }
+@media (hover: hover) { .lightbox__thumb:hover { opacity: 1; } }
+.lightbox__thumb:active { transform: scale(.94); }
+/* on a phone the photograph runs the screen's width, as it does in Photos, and the arrows give way to the swipe */
 @media (max-width: 767px) {
-  .lightbox__stage { padding: calc(var(--nav-h) + var(--sp-2)) var(--sp-4) calc(var(--hit) + var(--sp-8)); }
-  .lightbox__prev { left: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; }
-  .lightbox__next { right: var(--sp-4); top: auto; bottom: var(--sp-4); transform: none; }
-  .lightbox__figure picture, .lightbox__figure img { max-height: calc(100dvh - var(--nav-h) - var(--sp-2) - var(--hit) - var(--sp-8)); }
+  .lightbox__stage { padding-inline: 0; }
+  .lightbox__figure picture, .lightbox__figure img { border-radius: 0; }
 }
+@media (hover: none) { .lightbox__prev, .lightbox__next { display: none; } }
+@media (prefers-reduced-motion: reduce) { .lightbox__thumb { transition: none; } }
+.lightbox .dialog__close { width: var(--hit); height: var(--hit); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 
 /* The curtain — the first load of a session only. Two flat panels of the page's own ground part to reveal it.

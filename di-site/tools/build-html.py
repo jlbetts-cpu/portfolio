@@ -59,7 +59,9 @@ def lb_data():
     out={}
     for n in USED:
         m=man[n]; big=[w for w in m['sizes'] if w>=960] or [m['sizes'][-1]]
-        out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n]}
+        # t: the 160px files for the viewer's row of previews, pos: the page's own crop point, which the previews keep
+        out[n]={'avif':[[w,f'images/{n}-{w}.avif'] for w in big],'webp':[[w,f'images/{n}-{w}.webp'] for w in big],'jpeg':f'images/{m["jpeg"]}','w':m['width'],'h':m['height'],'alt':ALT[n],
+                't':[f'images/{n}-160.avif',f'images/{n}-160.webp'],'pos':POS[n]}
     return json.dumps(out,separators=(',',':'))
 
 def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, button=True, ghost=False):
@@ -302,6 +304,7 @@ page=f'''<!DOCTYPE html>
   <button class="dialog__close lightbox__close" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
   <button class="arrow lightbox__prev" type="button" aria-label="Previous photograph"><svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>
   <button class="arrow lightbox__next" type="button" aria-label="Next photograph"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+  <div class="lightbox__rail" role="group" aria-label="All photographs"></div>
   <p class="sr-only lightbox__live" aria-live="polite"></p>
 </dialog>
 <script type="application/json" id="lbData">{{LBDATA}}</script>

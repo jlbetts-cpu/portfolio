@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v49 (2026-10-14) — the viewer is Apple Photos'
+*"make sure like the expanded photo display casusel actually looks sleek and premium and it should be like apples photos where you can see the previews."*
+
+**A row of previews along the foot**, Photos' scrubber: every photograph, 4:5 at the page's own crop point, 2px apart, from its 160px file. The one showing is opened out to its own shape (a landscape 3:2 is 83 wide, a 4:5 portrait stays 44) with 6px either side, whole, and held at the centre of the screen (0.5px off, measured after a burst of five key presses and after a jump); the rest wait at half and come up under the pointer, because a 4:5 portrait's preview is the same shape as its neighbours and could not otherwise be told from them. The row is a native scroller, so a trackpad or a finger throws it with the system's own momentum, and a mouse's wheel turns it too. A preview opens its photograph. Only the current preview takes a tab stop. Each preview is 44 by 55, the tap floor.
+
+**The stage is solid** #0A0A0C, as Photos' is: at 97% the page's own photograph showed through as a ghost of its frame behind the one in the viewer. The controls are quiet: white at 12% under a white glyph, 22% under the pointer (two leftover rules turned them solid white on hover, with a white glyph on white; gone).
+
+**Photographs give way to each other** in the direction you went: the old one carries on a short way and fades as the new one comes in after it, 280ms on the ease-out; a jump along the row goes the same way. Each photograph is given its box from its own proportions before its file arrives, and its preview is drawn large in that box until it does, so nothing moves when it lands.
+
+**On a phone the photograph runs the screen's width** with no corner, the arrows give way to the swipe, and a finger moves the photograph itself: it follows one to one after 8px sideways, and let go past a fifth of the screen or thrown it carries on into the next; short of that it springs back on the page's spring. A swipe never closes the viewer, though it ends on the scrim (the click it leaves is eaten). The old phone rules that put the arrows at the foot were removed.
+
+**Opening from the frame still holds**: the morph gate passes unchanged on all three kinds of frame. The lightbox gate now also checks the row (one preview per photograph, none under 44), the current preview's shape (within 1px) and centre (within 2px), a preview opening its photograph, no two photographs ever stacked, a solid stage, and on a phone the full width, no arrows, a swipe that moves on and stays open and a short one that springs back. Its self-test keeps every old photograph and stops the row following; both caught. 63 lines, thirteen self-tests.
+
 ## v48 (2026-10-14) — four quiet things: the photograph opens from its frame, the header shows where you are, no popup, no second ask
 Asked *"what other simple elegant things can we add to the site like the strip"*, then *"can you research into it more please to see and reccomend some"*. The research (Apple, Linear, Stripe, Things, Headspace, Mailchimp, NN/g; the live sites were not reachable, so write-ups and recreations) found the page already moving in three places (the strip, the ring, the mark's tilt and glint), so the strongest additions were quiet or were subtractions. Two were prototyped on the page and shown; he took all four recommendations.
 
