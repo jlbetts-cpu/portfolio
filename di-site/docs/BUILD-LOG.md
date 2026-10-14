@@ -1,5 +1,12 @@
 # Build log — Developmental Improvisation, home page
 
+## v50 (2026-10-14) — a fresh-eyes pass, while he was away
+*"okay going to eat please keep iderating and improving the design."* Every section at 1440, 1024 and 390, the newsletter dialog, the phone's menu and the new viewer at 1024 and 320, looked at for anything unfinished. Two things were, and nothing that needed his call.
+
+**The footer's line** hung "heart" alone on a phone; it is balanced now: "Pre-wiring the brain / & educating the heart".
+
+**The dialog's heading** takes focus when the dialog opens, so a screen reader starts there, and a keyboard drew a 2px black box round its words. It is not a control, so the ring is gone from it alone; every control keeps its ring. (Opened by a mouse or a finger it never showed: the first screenshots that seemed to show one, and one round the menu's close button, came from a scripted click, which the browser treats as a keyboard. Checked with real input before anything was changed.)
+
 ## v49 (2026-10-14) — the viewer is Apple Photos'
 *"make sure like the expanded photo display casusel actually looks sleek and premium and it should be like apples photos where you can see the previews."*
 

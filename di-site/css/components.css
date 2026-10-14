@@ -185,6 +185,9 @@
 .dialog__close:active { transform: scale(.92); }
 .dialog .mark { width: 30px; height: 32px; color: var(--ink); margin-bottom: var(--sp-4); }
 .dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
+/* the heading takes focus when the dialog opens, so a screen reader starts there; it is not a control, and a keyboard's
+   ring around it was a black box round the words */
+.dialog h2:focus-visible { outline: none; }
 /* the UA gives a modal dialog max-width: calc(100% - 6px - 2em), which left the phone sheet ending 36px short of the
    right edge of the screen; the sheet is the screen's width, so that limit goes */
 @media (max-width: 767px) {

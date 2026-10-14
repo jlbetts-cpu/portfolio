@@ -202,7 +202,7 @@
 .foot__brand .logo { width: 40px; height: auto; display: block; overflow: visible; }
 @media (hover: hover) { .foot__brand:hover { opacity: .72; } }
 .foot__brand:active { transform: scale(.94); }
-.foot__status { font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.011em; font-weight: 600; color: var(--ink); }
+.foot__status { font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.011em; font-weight: 600; color: var(--ink); text-wrap: balance; }   /* "heart" hung alone on a phone */
 .foot__copy, .close__copy { font-size: var(--fs-caption); color: var(--ink); }
 .foot__nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
 .foot__col { display: grid; justify-items: stretch; align-content: start; }   /* each row is the column's width, as his are: "Call" alone was 27px across */
