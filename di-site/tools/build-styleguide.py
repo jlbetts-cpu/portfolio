@@ -35,7 +35,7 @@ motion=''.join(f'<div class="mo" data-dur="{k}"><button class="btn btn--secondar
 
 page=f'''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>DI Style Guide</title><meta name="color-scheme" content="light dark">
-<link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/logo/favicon.svg?v={V('assets/logo/favicon.svg')}" type="image/svg+xml">
 <link rel="stylesheet" href="css/tokens.css?v={V('css/tokens.css')}"><link rel="stylesheet" href="css/base.css?v={V('css/base.css')}"><link rel="stylesheet" href="css/components.css?v={V('css/components.css')}"><link rel="stylesheet" href="css/home.css?v={V('css/home.css')}">
 <style>
 .sg {{ display:grid; grid-template-columns: 220px minmax(0,1fr); gap: var(--sp-12); padding-top: var(--sp-12); padding-bottom: var(--sp-24); }}

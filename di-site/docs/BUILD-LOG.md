@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v47 (2026-10-14) — the share card and the icons go light
+Asked *"what other simple elegant things can we add"*, four were offered and he picked this one: what the site is seen by before anyone opens it.
+
+**What was wrong.** The page went light only on 2026-10-13 and took the tuned palette and the gold star; nothing it is shared by followed. The share card was the first palette with a white star on the old near-black #1B1916. The home-screen icon was the white monogram on the same dark. The tab's icon was a **white monogram on nothing**, so on every light tab strip it was invisible. The browser bar's colour was #FAFAFB, a ground the page no longer has, and the manifest still said #1B1916 and a cream #F7F5F0. And **og:image was relative** ("assets/og.png"): a link preview is fetched by a server with no page to resolve it against, so iMessage and Slack showed no picture at all.
+
+**Now.** The share card is the hero's mark, whole, in the tuned palette, on white, 1200×630, with its size and an alt declared, `og:url`, and a large-image card for X. The home-screen and manifest icons are the "di" monogram, sky with the gold star, on white. The tab's icon is the same monogram on nothing; rendered at 16 and 32px on a white tab, a grey tab strip and a dark one, sky and gold read on all three, where the ink monogram vanished on dark and the full mark was mush. The bar and the manifest are #FFFFFF. `tools/build-icons.mjs` reads the colours from `--logo-*` in tokens.css, so one change there reaches all of them on the next run.
+
+**Every one of these addresses is stamped with its content**, as the CSS is: `vercel.json` serves `/assets/` immutable for a year, so replacing og.png under its old name would never have reached a cache that had it. `site.webmanifest` is now written by `build-html.py` so its icon addresses carry their stamps too.
+
+**A new gate, `share.mjs`**: the bar and the manifest are the page's ground; the card is absolute, stamped, 1200×630 as declared, white at the corner, holds the tuned sky and the gold, and under 1 in 100 of its sky pixels near the old sky (a few are the new sky's antialiased edge on white); the three icons likewise; the favicon's fills are exactly `--logo-sky` and `--logo-star`; every stamp is the file's own sha1. With the old files put back it failed card and icons; its self-test puts back the relative card, the old bar colour and a dark icon, and each was caught. 58 lines, ten self-tests.
+
 ## v46 (2026-10-14) — the film strip moves by hand
 *"make it so you are able to horizonatal scroll on the film strip carousel if you want."* It still drifts on its own; now it can also be moved by hand. This reopens the 2026-10-02 lock "the reel cannot be scrubbed by hand", on his own words.
 

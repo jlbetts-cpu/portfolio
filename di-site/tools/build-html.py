@@ -172,6 +172,16 @@ form=lambda idp: (f'<form data-newsletter action="[NEWSLETTER_ACTION_URL]" metho
                   f'<input class="input" id="{idp}-email" type="email" name="email" placeholder="Email" autocomplete="email" required>'
                   f'<button class="btn btn--primary" type="submit">Subscribe</button></div><p class="field__message" aria-live="polite"></p></form>')
 
+# THE SHARE CARD AND THE ICONS (tools/build-icons.mjs draws them). A link preview is fetched by a server that has no
+# page to resolve a relative address against, so og:image is absolute or iMessage and Slack show no picture: it was
+# "assets/og.png" until 2026-10-14. Every one of these files is stamped with its content, like the CSS, because
+# vercel.json serves /assets/ immutable for a year and the old dark icon would otherwise stay in every cache that has it.
+SITE = 'https://developmentalimprovisation.com'
+manifest = {'name': 'Developmental Improvisation', 'short_name': 'DI',
+            'icons': [{'src': f'assets/icon-{n}.png?v={V(f"assets/icon-{n}.png")}', 'sizes': f'{n}x{n}', 'type': 'image/png'} for n in (192, 512)],
+            'theme_color': '#FFFFFF', 'background_color': '#FFFFFF', 'display': 'browser'}
+open(f'{root}/site.webmanifest', 'w').write(json.dumps(manifest, separators=(', ', ': ')) + '\n')
+
 page=f'''<!DOCTYPE html>
 <html lang="en" data-di-theme="light">
 <head>
@@ -179,16 +189,21 @@ page=f'''<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Developmental Improvisation — New Tools for Cognitive Development &amp; Emotional Understanding</title>
 <meta name="description" content="{html.escape(META_DESC)}">
-<link rel="canonical" href="https://developmentalimprovisation.com/">
-<meta name="theme-color" content="#FAFAFB">
+<link rel="canonical" href="{SITE}/">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="color-scheme" content="light">
 <meta property="og:title" content="Developmental Improvisation">
 <meta property="og:description" content="{html.escape(META_DESC)}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="assets/og.png">
-<link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
+<meta property="og:url" content="{SITE}/">
+<meta property="og:image" content="{SITE}/assets/og.png?v={V('assets/og.png')}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Developmental Improvisation logo: a circle of children holding hands around the letters di">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo/favicon.svg?v={V('assets/logo/favicon.svg')}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v={V('assets/apple-touch-icon.png')}">
+<link rel="manifest" href="site.webmanifest?v={V('site.webmanifest')}">
 <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v={V('css/tokens.css')}">
 <link rel="stylesheet" href="css/base.css?v={V('css/base.css')}">
