@@ -1,5 +1,20 @@
 # Build log — Developmental Improvisation, home page
 
+## v45 (2026-10-14) — a premium pass
+*"make everything feel more premium."* Every section looked at, at 1440, 1024 and 390, for what read as less than finished; five things changed, nothing added.
+
+**The testimonials are centred**, the one left-aligned block left on a centred page: each quote balanced on its own centre line with its marks inline (a hung mark belongs to a left edge, and there is none), the person under it, the names still level along the bottom. A tablet shows one per row; a phone reads from the left, as the sections' paragraphs do.
+
+**Centred paragraphs are balanced** into lines of even length (`text-wrap: balance`); "est laborum." no longer stood alone under three long lines. Pretty again on a phone.
+
+**Photographs resolve rather than pop.** Each one fades in over its own blurred placeholder once it has decoded (700ms). Because that means every photograph starts at opacity 0, the images gate now fails if any loaded photograph is left unmarked, and it did when the mark was broken.
+
+**Reveals are slower and softer**: 900ms of fade and 1100ms of rise from 28px on the long ease-out, a section's words first and its photograph 180ms after, where it was a 360ms blink from 12px. The motion gate caught the first draft running a 900ms reveal under reduced motion; reduced, a reveal is the ladder's short fade again.
+
+**Selected text** is the logo's sky, softly, under the ink, where it was an inverted black block.
+
+**53 gate lines pass, 9 self-tests caught.**
+
 ## v44 (2026-10-14) — thicker, and a film strip
 *"make the band a little thicker"*, then *"I would love if it was designed kinda like a film strip."*
 

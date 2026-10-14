@@ -120,6 +120,14 @@
     }
   }
 
+  /* ---- Photographs resolve: each fades in over its own blurred placeholder once it has decoded (2026-10-14) ----
+     A cached file is marked at once; a broken one is marked too, so nothing is left invisible. ---- */
+  $$('.photo img').forEach((img) => {
+    const done = () => img.classList.add('is-loaded');
+    if (img.complete && img.naturalWidth) done();
+    else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
+  });
+
   /* ---- The reel: one row of photographs between the hero and the first section, sliding on its own ----
      Three copies of one run; the loop length is the first run's width, so the translate wraps without a seam. The flow
      drives it, the pointer HOLDS it rather than steering it, and there is no wheel handler: a wheel over the reel

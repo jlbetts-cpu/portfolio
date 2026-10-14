@@ -66,6 +66,11 @@
 /* Photo. ONE shape: a rectangle with the same superellipse corner as everything else, at one ratio per section.
    The circle is the single exception, and it belongs to the quote ring. Every photograph is a button that opens the lightbox. */
 .photo { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-sunken) center / cover no-repeat; }
+/* A PHOTOGRAPH RESOLVES, IT DOES NOT POP (2026-10-14, "more premium"): the blurred placeholder is the photograph's
+   own ground, and the file fades in over it once it has decoded. js/main.js marks it; without scripts it simply shows. */
+.js .photo img { opacity: 0; transition: opacity 700ms var(--ease-out), transform var(--dur-move) var(--ease-out); }
+.js .photo img.is-loaded { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .js .photo img { transition-duration: 1ms; } }
 .photo__open { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: inherit; }
 .photo__open:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
 .photo__open picture { width: 100%; height: 100%; }

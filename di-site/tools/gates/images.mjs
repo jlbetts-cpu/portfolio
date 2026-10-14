@@ -18,4 +18,14 @@ const r = await pg.evaluate(() => {
   return { count: imgs.length, missing, oversized, dupes };
 });
 report('images', r.missing === 0 && r.oversized.length === 0 && r.dupes.length === 0, `${r.count} images; missing attrs ${r.missing}; oversized ${r.oversized.length ? r.oversized.join(', ') : 0}; dupes ${r.dupes.length}`);
+// every photograph fades in over its placeholder once it has decoded (2026-10-14), which means each one starts at
+// opacity 0: a photograph that never gets its mark is a photograph nobody sees. After a walk down the page, every one
+// that has loaded is marked and fully opaque, on each of the sections, the ring and the reel.
+const fade = await pg.evaluate(async () => {
+  for (const sel of ['#about', '#founder', '#quote', '.reel']) { document.querySelector(sel).scrollIntoView({ block: 'center' }); await new Promise(r => setTimeout(r, 900)); }
+  const imgs = [...document.querySelectorAll('.tell .photo img, .ring .photo img, .reel__run:not([aria-hidden]) .photo img')].filter(i => i.complete && i.naturalWidth);
+  const hidden = imgs.filter(i => !i.classList.contains('is-loaded') || parseFloat(getComputedStyle(i).opacity) < 0.99).map(i => i.currentSrc.split('/').pop());
+  return { loaded: imgs.length, hidden };
+});
+report('images: every loaded photograph is shown, none left at the fade\'s opacity 0', fade.loaded >= 10 && fade.hidden.length === 0, JSON.stringify(fade));
 await b.close();

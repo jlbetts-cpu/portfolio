@@ -39,7 +39,7 @@ input { font: inherit; }
 h1, h2, h3, p, figure, blockquote { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-::selection { background: var(--ink); color: var(--bg); }
+::selection { background: color-mix(in srgb, var(--logo-sky) 26%, transparent); color: var(--ink); }   /* the logo's sky, softly: an inverted black block was the one harsh thing left */
 
 /* Type roles */
 .t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); }
@@ -73,7 +73,11 @@ main > section + section, .close { margin-top: 0; }
 .skip:focus-visible { transform: none; }
 
 /* Reveal on scroll */
-.js .reveal { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+/* PREMIUM IS SLOWER (2026-10-14): a reveal is a 900ms arrival on Apple's long ease-out from 28px below, not a 360ms
+   blink from 12. Hand-tuned, not a rung of the motion ladder, the way the About dissolve's values are. */
+.js .reveal { opacity: 0; transform: translateY(28px); transition: opacity 900ms var(--ease-out), transform 1100ms var(--ease-out); transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .js .reveal.is-in { opacity: 1; transform: none; }
 /* .js .reveal outranks a bare .reveal, so the reset has to carry the same class to win inside the query */
-@media (prefers-reduced-motion: reduce) { .js .reveal, .js .reveal.is-in, .reveal { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .js .reveal, .js .reveal.is-in, .reveal { transform: none; transition-duration: var(--dur-reveal); } }   /* the 900ms arrival is a motion; reduced, it is the ladder's short fade */
+/* a section's words arrive first and its photograph a beat after, as Apple's sections do */
+@media (prefers-reduced-motion: no-preference) { .js .tell__figure.reveal { transition-delay: 180ms; } }

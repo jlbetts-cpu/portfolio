@@ -94,9 +94,10 @@
 .tell__figure .photo { width: 100%; }
 .tell__copy { order: -1; display: grid; gap: var(--sp-4); justify-items: center; max-width: 40em; }
 .tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 14em; }
-.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: pretty; }
+.tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: balance; }   /* centred lines of even length, Apple's; pretty again on a phone, where it reads from the left */
 @media (max-width: 767px) {
   .tell__row { align-items: stretch; text-align: left; }
+  .tell__p { text-wrap: pretty; }
   .tell__copy { justify-items: start; }
   .tell__figure { width: 100%; }
 }
@@ -151,12 +152,16 @@
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.4; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink); line-height: 1.4; }
 @media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
-/* a tablet: one per row, the words across eight columns and the person beside them on the last four — three-up made
-   each quote 244px wide at 820, four words a line */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .voices > .voice { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); column-gap: var(--sp-8); align-items: start; }
-  .voice__who { margin-top: 0; padding-top: 0; }
+/* CENTRED, as every other section is since the Apple pass (2026-10-14, "make everything feel more premium"): the
+   testimonials were the one left-aligned block on a centred page and read as another site. Each quote is balanced on
+   its own centre line with its marks set inline (a hung mark belongs to a left edge, and there is none), the person
+   centred under it; on a row the names still line up along the bottom. A tablet shows one per row, 36em at most. On a
+   phone the quotes read from the left, as the sections' paragraphs do. */
+@media (min-width: 768px) {
+  .voice { align-items: center; text-align: center; }
+  .voice__quote { text-indent: 0; text-wrap: balance; }
 }
+@media (min-width: 768px) and (max-width: 1023px) { .voices > .voice { max-width: 36em; margin-inline: auto; } }
 
 /* ---------- The closing section ----------
    The closing line and the newsletter: the last thing the page says, three bands of type with nothing round them. The
