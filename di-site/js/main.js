@@ -348,32 +348,42 @@
     addEventListener('resize', () => { const pic = current(); if (lb.open && pic) fit($('img', pic), lbData[names[index]]); });
     // dir: 1 forward, -1 back, 0 no movement (the first photograph, or a jump with nothing to give way). from: where a
     // finger let go of the old one, so it carries on from there rather than starting again from the middle
-    const show = (i, dir = 0, from = 0) => {
-      index = (i + names.length) % names.length;
-      const d = lbData[names[index]];
+    // one photograph's picture, sized from its own proportions and with its preview drawn large under it until it arrives
+    const build = (i) => {
+      const d = lbData[names[(i + names.length) % names.length]];
       const av = d.avif.map(([w, u]) => `${u} ${w}w`).join(', '), wp = d.webp.map(([w, u]) => `${u} ${w}w`).join(', ');
       const pic = document.createElement('picture');
-      pic.className = 'is-current';
       pic.innerHTML = `<source type="image/avif" srcset="${av}" sizes="90vw"><source type="image/webp" srcset="${wp}" sizes="90vw"><img src="${d.jpeg}" width="${d.w}" height="${d.h}" alt="${d.alt}" decoding="async">`;
-      fit($('img', pic), d);
-      $('img', pic).style.backgroundImage = `url(${d.t[1]})`;
-      $('img', pic).addEventListener('load', (e) => { e.target.style.backgroundImage = ''; }, { once: true });
+      const img = $('img', pic);
+      fit(img, d);
+      img.style.backgroundImage = `url(${d.t[1]})`;
+      img.addEventListener('load', () => { img.style.backgroundImage = ''; }, { once: true });
+      return pic;
+    };
+    // everything else that follows the photograph showing: the row, its focus, the live line, the neighbours warmed
+    const mark = () => {
+      const d = lbData[names[index]];
+      thumbs.forEach((t, k) => { if (k === index) { t.setAttribute('aria-current', 'true'); t.tabIndex = 0; } else { t.removeAttribute('aria-current'); t.tabIndex = -1; } });
+      if (lb.open) { centreRail(true); if (rail.contains(document.activeElement)) thumbs[index].focus({ preventScroll: true }); }
+      live.textContent = `Photograph ${index + 1} of ${names.length}. ${d.alt}`;
+      for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
+    };
+    const show = (i, dir = 0) => {
+      index = (i + names.length) % names.length;
+      const pic = build(index);
+      pic.className = 'is-current';
       const old = current();
       figure.appendChild(pic);
       if (old) {
         old.classList.remove('is-current');
         if (lb.open && dir && !reduced.matches) {
           // the old one carries on the way it was going and fades; the new one comes in after it, a short way, on the same ease
-          const w = stage.clientWidth, dx = dir * Math.min(64, w * .06), ms = num(getComputedStyle(root), '--dur-move', 280);
-          old.animate([{ transform: `translateX(${from}px)`, opacity: 1 }, { transform: `translateX(${from - dir * Math.max(dx, Math.abs(from) * .5)}px)`, opacity: 0 }], { duration: ms, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
+          const dx = dir * Math.min(64, stage.clientWidth * .06), ms = num(getComputedStyle(root), '--dur-move', 280);
+          old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-dx}px)`, opacity: 0 }], { duration: ms, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
           pic.animate([{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: ms, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
         } else old.remove();
       }
-      thumbs.forEach((t, k) => { if (k === index) { t.setAttribute('aria-current', 'true'); t.tabIndex = 0; } else { t.removeAttribute('aria-current'); t.tabIndex = -1; } });
-      if (lb.open) { centreRail(true); if (rail.contains(document.activeElement)) thumbs[index].focus({ preventScroll: true }); }
-      live.textContent = `Photograph ${index + 1} of ${names.length}. ${d.alt}`;
-      // warm the neighbours
-      for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
+      mark();
     };
     /* THE PHOTOGRAPH OPENS OUT OF ITS FRAME (2026-10-14, his pick): it grows from exactly where it sat on the page into
        the viewer, un-cropping as it goes, and closes back into the frame of whatever photograph is showing, if that
@@ -432,16 +442,23 @@
     lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
     lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1, 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1, -1); } });
     lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
-    /* A FINGER MOVES THE PHOTOGRAPH ITSELF, as in Photos: it follows one to one once it has gone 8px sideways, and let go
-       past a fifth of the screen, or thrown, it carries on into the next; short of that it springs back. A swipe never
-       closes the viewer, though it ends on the scrim. */
-    let sw = null, eatClick = false;
-    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch' || morphing || !current()) return; sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, on: false, s: [[e.timeStamp, e.clientX]] }; eatClick = false; });
+    /* A FINGER PAGES THROUGH THEM, as in Photos: once it has gone 8px sideways the photograph follows it one to one and
+       the next one rides in beside it, 24px apart; let go past a fifth of the screen, or thrown, and the pair carries on
+       until the next one is home; short of that both go back. A swipe never closes the viewer, though it ends on the
+       scrim (the click it leaves is eaten). */
+    const GAP = 24;
+    let sw = null, eatClick = false, paging = false;
+    const place = (el, x) => { el.style.transform = x ? `translateX(${x}px)` : ''; };
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch' || morphing || paging || sw || !current()) return; sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, on: false, side: 0, peek: null, s: [[e.timeStamp, e.clientX]] }; eatClick = false; });
     stage.addEventListener('pointermove', (e) => {
       if (!sw || e.pointerId !== sw.id) return;
       const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
       if (!sw.on) { if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return; sw.on = true; eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {} }
-      sw.dx = dx; current().style.transform = `translateX(${dx}px)`;
+      // the neighbour on the side the finger is uncovering: the next one when it moves left, the one before when right
+      const side = dx < 0 ? 1 : -1;
+      if (side !== sw.side) { if (sw.peek) sw.peek.remove(); sw.peek = build(index + side); figure.appendChild(sw.peek); sw.side = side; }
+      const W = stage.clientWidth + GAP;
+      sw.dx = dx; place(current(), dx); place(sw.peek, dx + side * W);
       sw.s.push([e.timeStamp, e.clientX]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift();
     });
     const letGo = (e) => {
@@ -449,9 +466,19 @@
       const g = sw; sw = null;
       if (!g.on) return;
       const [t0, x0] = g.s[0], [t1, x1] = g.s[g.s.length - 1], v = t1 > t0 ? (x1 - x0) / (t1 - t0) : 0;
-      const pic = current();
-      if (Math.abs(g.dx) > stage.clientWidth * .2 || (Math.abs(v) > .4 && Math.sign(v) === Math.sign(g.dx))) { pic.style.transform = ''; show(index + (g.dx < 0 ? 1 : -1), g.dx < 0 ? 1 : -1, g.dx); }
-      else { pic.style.transform = ''; pic.animate([{ transform: `translateX(${g.dx}px)` }, { transform: 'none' }], { duration: num(getComputedStyle(root), '--dur-move', 280), easing: getComputedStyle(root).getPropertyValue('--ease-pop').trim() || 'ease-out' }); }
+      const pic = current(), peek = g.peek, W = stage.clientWidth + GAP, ms = num(getComputedStyle(root), '--dur-move', 280), ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      paging = true;
+      const go = Math.abs(g.dx) > stage.clientWidth * .2 || (Math.abs(v) > .4 && Math.sign(v) === Math.sign(g.dx));
+      const to = go ? -g.side * W : 0;   // where the one that was showing ends: off the far side, or home
+      place(pic, 0); place(peek, 0);
+      pic.animate([{ transform: `translateX(${g.dx}px)` }, { transform: `translateX(${to}px)` }], { duration: ms, easing: ease, fill: 'forwards' });
+      const a = peek.animate([{ transform: `translateX(${g.dx + g.side * W}px)` }, { transform: `translateX(${to + g.side * W}px)` }], { duration: ms, easing: ease, fill: 'forwards' });
+      const done = () => {
+        if (go) { pic.remove(); peek.getAnimations().forEach(x => x.cancel()); peek.className = 'is-current'; index = (index + g.side + names.length) % names.length; mark(); }
+        else { peek.remove(); pic.getAnimations().forEach(x => x.cancel()); }
+        paging = false;
+      };
+      a.finished.then(done, done);
     };
     stage.addEventListener('pointerup', letGo);
     stage.addEventListener('pointercancel', letGo);

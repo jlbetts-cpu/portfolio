@@ -4,7 +4,8 @@
 // also holds: a row of previews, one per photograph and each at least 44px; the one showing is opened out to its own
 // shape and held at the centre (within 2px); a preview opens its photograph; a burst of key presses never leaves two
 // photographs stacked; the stage is solid. On a phone: the photograph runs the screen's width, the arrows give way to the
-// swipe, a finger thrown sideways goes to the next photograph without closing the viewer, and a short one springs back.
+// swipe, a finger thrown sideways goes to the next photograph without closing the viewer, and a short one springs back;
+// held halfway, the next photograph rides in beside the one being dragged, 24px behind its edge, as Photos pages.
 // --self-test: "stacked" keeps every old photograph, "adrift" stops the row from following; each must fail.
 import { browser, open, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
@@ -76,12 +77,19 @@ await viewer();
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(900);
   };
   const m0 = await tp.evaluate(() => ({ w: Math.round(document.querySelector('.lightbox__figure picture.is-current img').getBoundingClientRect().width), vw: innerWidth, arrows: getComputedStyle(document.querySelector('.lightbox__next')).display }));
+  // halfway and held: the next photograph rides in beside the one being dragged, 24px behind its edge
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 300, y: 420 }] });
+  for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 300 - i * 16, y: 420 }] }); await tp.waitForTimeout(30); }
+  await tp.waitForTimeout(150);
+  const ride = await tp.evaluate(() => { const ps = [...document.querySelectorAll('.lightbox__figure picture')], cur = ps.find(p => p.classList.contains('is-current')), peek = ps.find(p => p !== cur); if (!cur || !peek) return null; const s = document.querySelector('.lightbox__stage'); return { curL: cur.getBoundingClientRect().left, peekL: peek.getBoundingClientRect().left, gap: peek.getBoundingClientRect().left - (cur.getBoundingClientRect().left + s.clientWidth) }; });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(900);
+  const paged = await tp.evaluate(() => document.querySelectorAll('.lightbox__figure picture').length);
   const n0 = await name(); await swipe(-40, 8, 40); const n1 = await name();
   const back = await tp.evaluate(() => getComputedStyle(document.querySelector('.lightbox__figure picture.is-current')).transform);
   await swipe(-160, 8, 12); const n2 = await name();
   const still = await tp.evaluate(() => document.querySelector('#lightbox').open);
   await ctx.close();
-  const r = { fullWidth: m0.w === m0.vw, noArrows: m0.arrows === 'none', springsBack: n1 === n0 && (back === 'none' || back === 'matrix(1, 0, 0, 1, 0, 0)'), swipes: n2 !== n0, staysOpen: still };
+  const r = { rides: !!ride && ride.curL < -100 && Math.abs(ride.gap - 24) <= 2 && paged === 1, fullWidth: m0.w === m0.vw, noArrows: m0.arrows === 'none', springsBack: n1 === n0 && (back === 'none' || back === 'matrix(1, 0, 0, 1, 0, 0)'), swipes: n2 !== n0, staysOpen: still };
   report('lightbox: the viewer on a phone', Object.values(r).every(Boolean), JSON.stringify({ ...r, names: [n0, n1, n2] }));
 }
 const pg = await open(b, 1440, 900);

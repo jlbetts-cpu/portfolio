@@ -1,5 +1,8 @@
 # Build log — Developmental Improvisation, home page
 
+## v51 (2026-10-14) — on a phone the viewer pages, as Photos does
+Still in the away pass. Measured against Photos, the one real gap left in the viewer was on a phone: a dragged photograph left black behind it until the finger let go, and only then did the next one fade in. Now the next one rides in beside it, 24px behind its edge, one to one with the finger (the one before, when the finger goes right); let go past a fifth of the screen, or thrown, and the pair carries on until the next is home; short of that both go back. One photograph is left in the viewer either way, with no transform on it, and a touch that lands while a page is still settling is ignored rather than allowed to start a second. The keys, the arrows and the row keep their cross-fade. The lightbox gate now holds a drag halfway and reads the neighbour 24px behind the dragged photograph's edge (within 2px), then one photograph after it lands. 63 lines, thirteen self-tests.
+
 ## v50 (2026-10-14) — a fresh-eyes pass, while he was away
 *"okay going to eat please keep iderating and improving the design."* Every section at 1440, 1024 and 390, the newsletter dialog, the phone's menu and the new viewer at 1024 and 320, looked at for anything unfinished. Two things were, and nothing that needed his call.
 
