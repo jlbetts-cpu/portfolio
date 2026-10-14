@@ -148,11 +148,11 @@
   --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);
   --ease-settle: linear(0, 0.094, 0.284, 0.483, 0.653, 0.783, 0.875, 0.934, 0.971, 0.991, 1.001, 1.005, 1.006, 1.006, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1, 1, 1);
   --stagger: 60ms;
-  /* The flow: one angular velocity shared by the gallery and the ring. Read by js/main.js. */
+  /* The flow: one angular velocity shared by the reel and the ring. Read by js/main.js. */
   --flow-drift: 3.75;
   --flow-scroll: 0.06;
   --flow-settle: 0.32;
-  --gallery-px: 11;        /* the gallery rises this many px per degree of the flow: 41px a second at rest */
+  --reel-px: 11;           /* the reel slides this many px per degree of the flow: 41px a second at rest */
   --ring-r: 330;          /* eight circles this far out sit 0.765r apart, so an item near that wide reads as a necklace, not as dots */
   --ring-item: 220px;
   --ring-n: 8;

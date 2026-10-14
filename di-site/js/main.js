@@ -91,19 +91,8 @@
       requestAnimationFrame(frame);
     };
     const wake = () => { if (running) return; running = true; lastT = 0; requestAnimationFrame(frame); };
-    // the scroll feeds the flow only while the gallery or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
+    // the scroll feeds the flow only while the reel or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
     addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; if (holds.has('offscreen')) return; target += d; sTarget += d; wake(); }, { passive: true });
-    // PAST THE FOOT THE SCROLL KEEPS GOING (2026-10-13, "since its at the bottom make it so you can scroll down and it
-    // will just animate down"). The gallery is the page's last thing, so at the foot there is no page left to move:
-    // a downward wheel or an upward swipe there turns the flow by what the scroll would have, and the columns carry
-    // on as if the page did. Nothing is prevented, and anywhere above the foot a wheel scrolls the page as it always has.
-    const atFoot = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
-    const push = (px) => { if (px <= 0 || holds.has('offscreen') || !atFoot()) return; const d = Math.min(px, 400) * perPx; target += d; sTarget += d; wake(); };
-    addEventListener('wheel', (e) => push(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY), { passive: true });
-    let touchY = null;
-    addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
-    addEventListener('touchmove', (e) => { if (touchY === null) return; const y = e.touches[0].clientY; push(touchY - y); touchY = y; }, { passive: true });
-    addEventListener('touchend', () => { touchY = null; }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
     const stages = new Map();
@@ -131,31 +120,26 @@
     }
   }
 
-  /* ---- The gallery: four columns of photographs rising on their own, and nothing you can scrub ----
-     The strip, stood up. Every column is two copies of one run; its loop length is the first run's height, so the
-     translate wraps without a seam. The columns share the flow but not its rate — each has its own speed and its own
-     starting height, which is what gives one-shape photographs the uneven, masonry edge of the reference. The pointer
-     HOLDS them rather than steering them, and there is no wheel handler: a wheel over the gallery scrolls the page. ---- */
-  const gallery = $('[data-gallery]');
-  if (gallery) {
-    const SPEED = [1, 1.18, .9, 1.1, .95, 1.14], START = [.08, .52, .3, .78, .62, .18];   // per column: rate against the flow, and phase in item heights
-    const cols = $$('.gallery__col', gallery).map((el, i) => ({ el, run: $('.gallery__run', el), n: $$('.gallery__item', el).length / 2, len: 0, speed: SPEED[i % 6], start: START[i % 6] }));
-    let px = 11;
-    const measure = () => { px = num(getComputedStyle(root), '--gallery-px', 11); for (const c of cols) c.len = c.run.getBoundingClientRect().height; };
+  /* ---- The reel: one row of photographs between the hero and the first section, sliding on its own ----
+     Three copies of one run; the loop length is the first run's width, so the translate wraps without a seam. The flow
+     drives it, the pointer HOLDS it rather than steering it, and there is no wheel handler: a wheel over the reel
+     scrolls the page. It was four columns rising (under the hero, then for an evening at the page's foot). ---- */
+  const reel = $('[data-reel]');
+  if (reel) {
+    const track = $('.reel__track', reel), run = $('.reel__run', reel);
+    let px = 11, len = 0;
+    const measure = () => { px = num(getComputedStyle(root), '--reel-px', 11); len = run.getBoundingClientRect().width; };
     measure(); addEventListener('resize', measure); addEventListener('load', measure);
     flow.on((a) => {
-      for (const c of cols) {
-        if (!c.len) continue;                    // a column the breakpoint hides has no height and no motion
-        const y = (((a * px * c.speed + c.start * c.len / c.n) % c.len) + c.len) % c.len;
-        c.el.style.transform = `translate3d(0, ${(-y).toFixed(2)}px, 0)`;
-      }
+      if (!len) return;
+      const x = (((a * px) % len) + len) % len;
+      track.style.transform = `translate3d(${(-x).toFixed(2)}px, 0, 0)`;
     });
-    flow.watch(gallery);
-    gallery.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') flow.hold(gallery, true); });
-    gallery.addEventListener('pointerleave', () => flow.hold(gallery, false));
-    // no hold on touch. The gallery is 78% of a phone's height, so most scroll gestures start on it, and a hold on
-    // touchstart froze it for four seconds after nearly every scroll. A tap opens the lightbox, which holds the flow
-    // itself, and a photograph rising at 41px a second does not escape a finger.
+    flow.watch(reel);
+    reel.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') flow.hold(reel, true); });
+    reel.addEventListener('pointerleave', () => flow.hold(reel, false));
+    // no hold on touch: a scroll gesture that starts on the reel would freeze it. A tap opens the lightbox, which
+    // holds the flow itself.
   }
 
   /* ---- The mark: black, with the palette sweeping over it, and it turns to face the pointer ----

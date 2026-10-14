@@ -6,7 +6,7 @@
 //   no flash       the system tap highlight is off; every control has its own press
 //   the ring       all eight circles whole and inside the screen, at every turn of the slot
 //   the footer     no panel; the sign-up field runs the column's full width
-//   the gallery    a touch does not freeze it (a scroll gesture can start on it)
+//   the reel       a touch does not freeze it (a scroll gesture can start on it)
 //   scroll lock    the page under an open modal does not scroll, and scrolls again once it closes
 //   the quotes     a stack on hairlines, no boxes, each the column's width, nothing scrolling sideways
 // --self-test: adds an ungated :hover rule, which the sticky-hover check must catch.
@@ -58,9 +58,9 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
     const pad = parseFloat(getComputedStyle(col).paddingLeft) + parseFloat(getComputedStyle(col).paddingRight);
     return { panel: cs.backgroundColor !== 'rgba(0, 0, 0, 0)', card: Math.round(document.querySelector('#nl-email').getBoundingClientRect().width), column: Math.round(col.getBoundingClientRect().width - pad) };
   });
-  // a touch on the gallery must not hold the flow
+  // a touch on the reel must not hold the flow
   const held = await pg.evaluate(async () => {
-    const g = document.querySelector('[data-gallery]'); g.scrollIntoView({ block: 'center' });
+    const g = document.querySelector('[data-reel]'); g.scrollIntoView({ block: 'center' });
     await new Promise(r => setTimeout(r, 200));
     const rc = g.getBoundingClientRect();
     return { x: rc.left + rc.width / 2, y: rc.top + rc.height / 2 };

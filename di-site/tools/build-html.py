@@ -78,23 +78,14 @@ RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
 ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
 
 
-# ---- The gallery ----
-# AT THE FOOT OF THE PAGE since 2026-10-13, under the footer, and thinner: "can the horizontal carousel be on the bottom
-# under the footer and thinner", then "i meant a vertical carousel like it was before but thinner". The same four
-# columns rising, half the height they were under the hero. (For a few minutes it was one sideways row; that was a
-# misreading of "horizontal".)
-# Jayden, a round after the strip: "the reference I liked was more of a vertical image scroll." So the row stood up.
-# Four columns of photographs rising on their own, faded out at the top and the bottom, and still nothing you can
-# scrub — the flow drives them, the pointer only holds them. Each column is two copies of one run, so its loop length
-# is the first run's height and the translate wraps without a seam.
-# ONE SHAPE STILL: every photograph here is 4:5, like every other one on the page. The masonry look the reference has
-# comes from the columns sitting at different heights and travelling at different speeds, not from mixed ratios —
-# mixed ratios would reopen a locked decision and that is his call, not a side effect of this one.
-# Order matters: a phone shows the first two columns and a tablet the first three, so the strongest pictures lead.
-# FULL BLEED, edge to edge ("the carousel should be full margin to margin"), so six columns at 1200 and up, five at
-# 1024, four on a tablet and two on a phone: at the column's four across, a photograph spanning the screen would be
-# taller than the band it sits in. 2 or 3 to a column; a phone shows the first two, so the strongest lead.
-GALLERY=[
+# ---- The reel ----
+# A THIN BAND OF PHOTOGRAPHS BETWEEN THE HERO AND THE FIRST SECTION, sliding sideways (2026-10-13: "not a big fan of the
+# carousel at the bottom actually maybe a horizonatal band spliting up the hero and the next section"). One row, full
+# bleed, drifting on the flow, held by a pointer, never scrubbed; the tight strip he picked (4px apart, 4px corners),
+# every photograph 4:5, and no fade at either end. It was four-to-six columns rising, under the hero (2026-10-02) and
+# then at the foot (for the evening of 2026-10-13). The row is three copies of one run, so a screen up to twice the
+# run's width never sees the loop's seam; the order interleaves the old columns so no two neighbours are one session.
+COLUMNS=[
  ['linda-circle','kids-dancing','row-linked-arms'],
  ['blue-shirts','scene-handshake','linda-portrait'],
  ['circle-hands','kids-running','kids-bw-small'],
@@ -102,12 +93,12 @@ GALLERY=[
  ['three-teens','conga-line'],
  ['yellow-trousers','bow-ties-wall'],
 ]
-GSIZES='(max-width: 767px) 50vw, (max-width: 1023px) 25vw, (max-width: 1199px) 20vw, 17vw'
-def gallery_col(names):
-    run=lambda ghost: ''.join(f'<li class="gallery__item">{photo(n, "4x5", GSIZES, ghost=ghost)}</li>' for n in names)
-    return (f'<div class="gallery__col"><ul class="gallery__run">{run(False)}</ul>'
-            f'<ul class="gallery__run" aria-hidden="true">{run(True)}</ul></div>')
-gallery=''.join(gallery_col(c) for c in GALLERY)
+REEL=[n for row in zip(*[c+[None]*(3-len(c)) for c in COLUMNS]) for n in row if n]
+RSZ='(max-width: 767px) 96px, 140px'
+_reel_run=lambda ghost: ''.join(f'<li class="reel__item">{photo(n, "4x5", RSZ, ghost=ghost)}</li>' for n in REEL)
+reel=(f'<div class="reel" data-reel role="region" aria-label="From the sessions"><div class="reel__track">'
+      f'<ul class="reel__run">{_reel_run(False)}</ul><ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul>'
+      f'<ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul></div></div>')
 
 # the hero's mark: THE BRAND'S OWN COLOURS, with a glint of light passing over them. Jayden, 2026-10-12: "I want the
 # logo to be like the normal colors maybe with a premium shine instead of being black." So the paths go in as the logo
@@ -235,8 +226,8 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <!-- the photographs sit right under the mark: four columns rising on their own, faded at the top and the bottom -->
-
+  <!-- the photographs: one thin row sliding sideways, between the hero and the first section -->
+  {reel}
 {tells}
 
   <section class="section ring band" id="quote" aria-label="Quote">
@@ -285,9 +276,6 @@ page=f'''<!DOCTYPE html>
       <div class="foot__col"><h2 class="foot__head">Menu</h2><a class="foot__link" href="#about">About</a><a class="foot__link" href="#voices">Testimonials</a><button class="foot__link" type="button" data-open-dialog>Newsletter</button></div>
       <div class="foot__col"><h2 class="foot__head">Contact</h2><a class="foot__link" href="mailto:developmentalimprov@gmail.com">Email</a><a class="foot__link" href="tel:+18573523221">Call</a></div>
     </nav>
-  </div>
-  <div class="gallery" role="region" aria-label="From the sessions">
-    <div class="gallery__stage" data-gallery>{gallery}</div>
   </div>
 </footer>
 

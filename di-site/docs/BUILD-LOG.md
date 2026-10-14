@@ -1,5 +1,14 @@
 # Build log — Developmental Improvisation, home page
 
+## v43 (2026-10-14) — the photographs are a reel between the hero and the first section
+*"not a big fan of the carousel at the bottom actually maybe a horizonatal band spliting up the hero and the next section."*
+
+**The reel.** One thin row of photographs, full bleed, sliding left on the same flow the ring uses (42px/s measured), between the white hero and the first grey band. 154px tall at 1440 and 104 on a phone; it begins at the hero's peek, so its top 63px show at the foot of the first screen, which is what "barely see that it's under the hero" asked of the carousel in the first place. The tight strip holds (4px apart, 4px corners, every photograph 4:5) and there is no fade at either end: the screen's edge is the row's. A pointer holds it, a wheel over it scrolls the page, and it is three copies of one run so a screen up to twice the run's width never sees the seam.
+
+**Out with the bottom gallery:** the columns, their script, and the scroll-past-the-foot push that existed for them. The footer has its own bottom air again.
+
+**Gates.** `gallery.mjs` is gone and `reel.mjs` checks the reel: it drifts, holds, does not scrub (its self-test's wheel handler is caught), wraps, three runs, 4:5, at most 180px, full bleed, uncut, straight after the hero. It fails on a frozen reel. The layout gate's peek is the reel again and its strip is the reel's. **52 gate lines pass, 9 self-tests caught.**
+
 ## v42 (2026-10-13) — more Apple
 *"lowkey want it to look more apple."* His own Apple reference (`docs/apple-design.md` in the portfolio) is about how Apple moves, springs, momentum, interruptibility, and the site already does most of it; what he was asking for is how apple.com looks. Two whole pages were rendered on the live site, one inside his locks and one with Apple's blue, beside the page as it was. He took three of four: *"Grey bands, Apple-size headlines, Centred sections."* Not the blue.
 

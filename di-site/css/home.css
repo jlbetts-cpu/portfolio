@@ -10,8 +10,8 @@
    quote cards, the sign-up — and that is a cleaner rule than the field it replaced. */
 /* THE HERO IS THE FIRST SCREEN. Jayden: "make sure there is more space from the hero and the carousel — you should be
    able to barely see that it's under the hero." So the hero is the viewport's height less a peek, with its content
-   centred in it. The gallery moved to the foot of the page on 2026-10-13, so what shows in the peek now is the first
-   section: its photograph and its heading start exactly there, a hint that the page goes on.
+   centred in it, and the reel of photographs begins exactly at the peek: its top shows at the foot of the first
+   screen, a hint of photographs rather than a row of them.
    svh, not vh, on a phone: the small viewport is the one with the address bar showing, which is the first screen a
    phone actually shows — and it sits behind @supports, because a var() declaration with a unit the browser does not
    know falls to unset at computed time rather than back to the vh line above it. */
@@ -46,27 +46,20 @@
 @media (prefers-reduced-motion: reduce) { .logo--hero .logo__shine { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .hero__mark__spin { transform: none; } }
 
-/* the first section starts at the peek: the hero's own height is the space above it */
-.hero + .tell { margin-top: 0; }
 
-/* ---------- The gallery: at the foot of the page, thinner ----------
-   Four columns of photographs rising on their own, faded at the top and the bottom, under the footer as the page's
-   last thing (2026-10-13, "i meant a vertical carousel like it was before but thinner"). It was 84% of the screen's
-   height under the hero, 756px at 1440×900; it is about half that here, 42%, so it reads as a band of photographs
-   moving up out of the page rather than as a section. Still not scrubbable (the flow drives it, the pointer only holds
-   it) and still the tight strip he picked: 4px apart, 4px corners, every photograph 4:5. NO FADE: its top and bottom
-   are cut clean (2026-10-13, "lets make it more clean remove the blur", asked: "the carousel fade too"). It faded
-   into the page from 2026-10-02 ("I like how it fades", then "tone it down"). Full bleed ("full margin to margin"): six
-   columns, then five, four, and two on a phone. At the foot, a scroll past the page keeps it moving (js/main.js). */
-.gallery { --strip-gap: 4px; margin-top: clamp(48px, 5vw, 80px); }
-.gallery .photo { border-radius: 4px; }
-.gallery__stage { height: clamp(300px, 42vh, 440px); overflow: hidden; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--strip-gap); align-items: start; }
-.gallery__col { will-change: transform; }
-.gallery__run { display: grid; gap: var(--strip-gap); padding-bottom: var(--strip-gap); }   /* the padding is the gap, or the loop jumps by it */
-@media (hover: hover) { .gallery .photo:hover img { transform: scale(1.035); } }
-@media (max-width: 1199px) { .gallery__stage { grid-template-columns: repeat(5, minmax(0, 1fr)); } .gallery__col:nth-child(n+6) { display: none; } }
-@media (max-width: 1023px) { .gallery__stage { grid-template-columns: repeat(4, minmax(0, 1fr)); } .gallery__col:nth-child(n+5) { display: none; } }
-@media (max-width: 767px)  { .gallery__stage { grid-template-columns: repeat(2, minmax(0, 1fr)); height: clamp(280px, 40vh, 360px); } .gallery__col:nth-child(n+3) { display: none; } }
+
+/* ---------- The reel ----------
+   One thin row of photographs between the hero and the first section, sliding sideways on the flow (2026-10-13: "a
+   horizonatal band spliting up the hero and the next section"). Full bleed, 154px at 1440 and 104 on a phone; it
+   starts at the hero's peek, so its top shows at the foot of the first screen. js/main.js moves it, the pointer holds
+   it, nothing scrubs it and a wheel over it scrolls the page. The tight strip he picked: 4px apart, 4px corners, every
+   photograph 4:5. No fade at either end ("remove the blur"): the screen's own edge is the row's edge. */
+.reel { --strip-gap: 4px; --reel-h: clamp(104px, 10.7vw, 168px); overflow: hidden; }
+.reel__track { display: flex; width: max-content; will-change: transform; }
+.reel__run { display: flex; gap: var(--strip-gap); padding-right: var(--strip-gap); }   /* the padding is the gap, or the loop jumps by it */
+.reel__item { flex: none; width: calc(var(--reel-h) * .8); }
+.reel .photo { border-radius: 4px; }
+@media (hover: hover) { .reel .photo:hover img { transform: scale(1.035); } }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: var(--hero-col); }
 /* ONE COLOUR. The second half of the claim was set a tier down (v24) and Jayden asked why: "why is emotional
    understanding greyed out." There was no good answer — the grey was a device borrowed from product headlines, and
@@ -174,7 +167,7 @@
    belongs to the edge of the surface it bounds), 64px of air under it, the identity on the left (the mark, one line
    in the ink at 18, the copyright) and two columns of plain links on the right, each a 44px row under a 15px heading.
    "the footer with the clean lines": the line is back, here and under the header, and nowhere else. */
-.foot { padding-bottom: 0; }   /* the gallery is the page's last edge */
+.foot { padding-bottom: var(--sp-16); }
 .foot__top { position: relative; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; padding-top: clamp(48px, 5vw, 80px); }
 .foot__top::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100vw; height: 1px; background: var(--line); pointer-events: none; }
 .foot__id { display: grid; justify-items: start; gap: var(--sp-2); }
@@ -193,4 +186,5 @@
 .foot__link:active { transform: scale(.98); }
 @media (max-width: 767px) {
   .foot__top { grid-template-columns: minmax(0, 1fr); gap: var(--sp-10); padding-top: var(--sp-12); }
+  .foot { padding-bottom: var(--sp-8); }
 }

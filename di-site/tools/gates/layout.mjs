@@ -44,9 +44,9 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     }).map(e => String(e.className || e.tagName).slice(0, 30));
     // the hero is the first screen and what follows only peeks under it (2026-10-03, "you should be able to barely see
     // that it's under the hero"): never more than 80px of it on the first screen, and on a screen tall enough to hold
-    // the hero (700px up) never less than 32px — a peek nobody can see is no peek. It was the gallery; since the
-    // gallery went to the foot of the page (2026-10-13) it is the first section's photograph.
-    const gTop = document.querySelector('#about').getBoundingClientRect().top + scrollY;   // the grey band's edge, since 2026-10-13
+    // the hero (700px up) never less than 32px — a peek nobody can see is no peek. It was the gallery's columns; since
+    // 2026-10-13 it is the reel of photographs between the hero and the first section.
+    const gTop = document.querySelector('.reel').getBoundingClientRect().top + scrollY;   // the reel of photographs, since 2026-10-13
     const peek = Math.round(innerHeight - gTop);
     const peekOk = peek <= 80 && (innerHeight < 700 || peek >= 32);
     // Two weights on every visible word, his portfolio's Regular and Semibold since 2026-10-13 (Some Wins' Medium and
@@ -70,17 +70,17 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // until 2026-10-13 the heading's capitals stood on the photograph's top edge instead). On a phone it reads from
     // the left, so there is nothing to measure.
     const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const t = row.querySelector('.tell__title').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (f.left + f.right) / 2); })) : 0;
-    // the gallery is a tight strip (his pick, 2026-10-13): 4px between photographs across and down, a 4px corner
-    const cols = [...document.querySelectorAll('.gallery__col')].filter(c => c.offsetParent).map(c => c.getBoundingClientRect());
-    const items = [...document.querySelector('.gallery__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
-    const strip = { across: Math.round(cols[1].left - cols[0].right), down: Math.round(items[1].top - items[0].bottom), corner: parseFloat(getComputedStyle(document.querySelector('.gallery .photo')).borderTopLeftRadius) };
+    // the reel is the tight strip he picked (2026-10-13): 4px between photographs, a 4px corner, and the run's own
+    // trailing 4px, so the loop's seam is one more gap and not a jump
+    const items = [...document.querySelector('.reel__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
+    const strip = { across: Math.round(items[1].left - items[0].right), down: Math.round(parseFloat(getComputedStyle(document.querySelector('.reel__run')).paddingRight)), corner: parseFloat(getComputedStyle(document.querySelector('.reel .photo')).borderTopLeftRadius) };
     return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, darks, navLine, footLine, capGap: Math.round(capGap), strip, grey };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
     && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2
     && r.strip.across === 4 && r.strip.down === 4 && r.strip.corner === 4 && r.grey.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, gallery strip ${r.strip.across}/${r.strip.down}px gaps, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, reel strip ${r.strip.across}px apart, ${r.strip.down}px at the seam, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();
