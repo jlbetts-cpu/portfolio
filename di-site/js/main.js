@@ -111,7 +111,14 @@
     };
     const wake = () => { if (running) return; running = true; lastT = 0; requestAnimationFrame(frame); };
     // the scroll feeds the flow only while the reel or the ring is on screen; otherwise the delta is dropped, so nothing whooshes on arrival
-    addEventListener('scroll', () => { const y = scrollY; const d = (y - lastY) * perPx; lastY = y; if (holds.has('offscreen')) return; target += d; sTarget += d; wake(); }, { passive: true });
+    // a keyboard's hold ('key:' + what has focus) stills the scroll's push too: Tab scrolls the page to what it focuses,
+    // and that scroll carried the focused frame back off the screen (2026-10-16)
+    // A JUMP IS NOT A SCROLL (2026-10-16). Tab, an anchor, find-in-page and Home move the page in one event of hundreds
+    // of pixels, and each of them was pushing the strip and the ring as if it had been scrolled by hand: one 900px jump
+    // spun the ring 81°, and a keyboard arriving at the ring watched it swing half a turn. A hand's scroll arrives a
+    // frame at a time, well under 160px; past that, an event pushes no more than a brisk scroll would.
+    const PUSH_MAX = 160;
+    addEventListener('scroll', () => { const y = scrollY; const d = Math.max(-PUSH_MAX, Math.min(PUSH_MAX, y - lastY)) * perPx; lastY = y; if (holds.has('offscreen') || [...holds].some(h => typeof h === 'string' && h.startsWith('key:'))) return; target += d; sTarget += d; wake(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
     const stages = new Map();
@@ -121,6 +128,7 @@
       on(fn) { listeners.add(fn); fn(angle, sAngle); wake(); },
       hold(key, on) { if (on) holds.add(key); else holds.delete(key); wake(); },
       get angle() { return angle; },
+      get settled() { return target + drift * hold * .18; },   // where the angle will come to rest if nothing else pushes it
       get scrollAngle() { return sAngle; },
       get held() { return holds.size > 0; },
       set(a) { angle = target = a; emit(); },   // test hook
@@ -146,6 +154,10 @@
     if (img.complete && img.naturalWidth) done();
     else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
   });
+
+  // set while the viewer hands focus back to a photograph it was opened from by a pointer: that focus is the browser's
+  // bookkeeping, not a keyboard arriving, so the strip and the ring do not hold for it (they did, after an Esc)
+  let quietFocus = false;
 
   /* ---- The reel: one row of photographs between the hero and the first section, sliding on its own ----
      Three copies of one run; the loop length is the first run's width, so the translate wraps without a seam. The flow
@@ -234,6 +246,59 @@
     // the click that ends a drag (or catches a glide) is eaten before it reaches the photograph's button
     reel.addEventListener('click', (e) => { if (eat && e.detail) { eat = false; e.stopPropagation(); e.preventDefault(); } }, true);   // detail 0 is a key, never eaten
     reel.addEventListener('dragstart', (e) => e.preventDefault());
+    /* THE KEYBOARD (2026-10-16). The strip was fifteen tab stops, and a frame could take focus off the screen (one at
+       x -152) while the strip drifted on under it. Now it is one stop, as the ARIA carousel pattern has it: Tab lands on
+       the frame most on screen, the arrow keys move along it (Home and End to its ends), the strip stands still while a
+       key has it, and a frame given focus slides fully onto the screen first, 16px in from the edge (WCAG 2.4.11, focus
+       not obscured). Only a keyboard's focus counts: a click's, or the focus the viewer hands back when it closes,
+       neither holds nor slides. The frames are the first run's; the copies never take focus. */
+    const frames = $$('.photo__open', run);
+    const setRove = (i) => frames.forEach((f, k) => { f.tabIndex = k === i ? 0 : -1; });
+    setRove(0);
+    const onScreen = (el) => { const r = el.getBoundingClientRect(); return Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)); };
+    let slideRaf = 0;
+    const bring = (i) => {
+      const item = frames[i].closest('.reel__item'), w = item.offsetWidth;
+      const p = item.getBoundingClientRect().left - run.getBoundingClientRect().left;
+      // planned against where the strip will come to rest, not where it is while the hold eases it to a stop
+      const x = (((flow.settled * px + by) % len) + len) % len, m = 16, W = document.documentElement.clientWidth;
+      let xn = x;
+      if (p - x < m) xn = p - m; else if (p + w - x > W - m) xn = p + w - (W - m);
+      // the first frame of the run can come no further right than the screen's edge; a pixel inside the loop, because
+      // aimed at exactly 0 the last of the settle dipped below it and the wrap sent the frame a whole loop away
+      xn = Math.min(len - 2, Math.max(2, xn));
+      const d = xn - x;
+      if (Math.abs(d) < .5) return;
+      stopGlide(); cancelAnimationFrame(slideRaf);
+      if (reduced.matches) { by += d; render(); return; }
+      // a frame's step at the motion ladder's move, a long way (Home, End) a little longer, so it reads as travel, not a cut
+      const by0 = by, t0 = performance.now(), ms = Math.min(560, num(getComputedStyle(root), '--dur-move', 280) * (1 + Math.abs(d) / W / 2));
+      const tick = (t) => { const k = Math.min(1, (t - t0) / ms); by = by0 + d * (1 - Math.pow(1 - k, 3)); render(); if (k < 1) slideRaf = requestAnimationFrame(tick); };
+      slideRaf = requestAnimationFrame(tick);
+    };
+    reel.addEventListener('focusin', (e) => {
+      const i = frames.indexOf(e.target);
+      if (i < 0 || !e.target.matches(':focus-visible')) return;
+      if (quietFocus) { setRove(i); return; }   // Tab carries on from here, but nothing holds or slides
+      reel.scrollLeft = 0;   // a browser may scroll even an overflow:hidden box to show what took focus; the transform does that here
+      flow.hold('key:reel', true);
+      if (!reel.contains(e.relatedTarget)) {   // arriving from outside: the frame most on screen, not the first in the list
+        let best = i, most = onScreen(frames[i]);
+        frames.forEach((f, k) => { const s = onScreen(f); if (s > most + 1) { best = k; most = s; } });
+        if (best !== i) { setRove(best); frames[best].focus({ preventScroll: true }); return; }
+      }
+      setRove(i); bring(i);
+    });
+    reel.addEventListener('focusout', (e) => { if (!reel.contains(e.relatedTarget)) flow.hold('key:reel', false); });
+    reel.addEventListener('keydown', (e) => {
+      const i = frames.indexOf(document.activeElement);
+      if (i < 0) return;
+      const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: frames.length - 1 }[e.key];
+      if (to === undefined) return;
+      e.preventDefault();
+      const j = Math.max(0, Math.min(frames.length - 1, to));
+      if (j !== i) { setRove(j); frames[j].focus({ preventScroll: true }); }
+    });
     window.__di_reel = { get by() { return by; }, get len() { return len; }, get px() { return px; } };   // test hook
   }
 
@@ -303,6 +368,9 @@
     orbit.addEventListener('pointerout', (e) => { if (e.target.closest('.photo') && !(e.relatedTarget && e.relatedTarget.closest('.photo') && orbit.contains(e.relatedTarget))) flow.hold(orbit, false); });
     let touchTimer;
     orbit.addEventListener('touchstart', (e) => { if (!e.target.closest('.photo')) return; flow.hold(orbit, true); clearTimeout(touchTimer); touchTimer = setTimeout(() => flow.hold(orbit, false), 4000); }, { passive: true });
+    // a keyboard's focus holds it too (2026-10-16): a photograph that has focus does not travel on under it
+    orbit.addEventListener('focusin', (e) => { if (e.target.matches(':focus-visible') && !quietFocus) flow.hold('key:ring', true); });
+    orbit.addEventListener('focusout', (e) => { if (!orbit.contains(e.relatedTarget)) flow.hold('key:ring', false); });
     flow.watch(orbit.closest('.ring') || orbit);
   });
   /* ---- Lightbox: every photograph opens large; arrows and keys move through all of them in page order ---- */
@@ -314,7 +382,7 @@
     const figure = $('.lightbox__figure', lb);
     const live = $('.lightbox__live', lb);
     const stage = $('.lightbox__stage', lb), rail = $('.lightbox__rail', lb);
-    let index = 0, opener = null, thumbs = [];
+    let index = 0, opener = null, thumbs = [], openedByKey = false;
     const current = () => $('picture.is-current', figure);
     /* THE ROW OF PREVIEWS, Apple Photos' scrubber (2026-10-14). Built the first time the viewer opens: one button per
        photograph, its 160px file at the page's own crop point. Only the current one takes a tab stop; the arrow keys
@@ -421,6 +489,9 @@
       try { await Promise.race([big().decode(), new Promise(r => setTimeout(r, 400))]); } catch {}
       morph({ img, corner: cornerOf(from) }, { img: big(), corner: bigCorner() }, false, () => { lb.showModal(); settle(); });
     };
+    // a modal dialog hands focus back to what opened it inside close() itself, before its close event, so the flag that
+    // keeps that hand-back quiet goes up around the call
+    const shut = () => { quietFocus = !openedByKey; lb.close(); quietFocus = false; };
     // a click while it opens lands on the transition, not the page, and is dropped (a double-click must not open and
     // shut it); Esc is kept, and closes it the moment it has opened
     const close = () => {
@@ -428,17 +499,18 @@
       if (!lb.open) return;
       const to = canMorph() && big() && frameFor(names[index]);
       const img = to && $('img', to);
-      if (!img) { lb.close(); return; }
-      morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, () => lb.close());
+      if (!img) { shut(); return; }
+      morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, shut);
     };
-    buttons.forEach(b => b.addEventListener('click', () => open(b.dataset.photo, b)));
+    buttons.forEach(b => b.addEventListener('click', (e) => { openedByKey = e.detail === 0; open(b.dataset.photo, b); }));   // detail 0: Enter or Space
     $('.lightbox__prev', lb).addEventListener('click', () => step(-1));
     $('.lightbox__next', lb).addEventListener('click', () => step(1));
     $('.lightbox__close', lb).addEventListener('click', close);
-    lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } });   // Esc
+    // Esc. Without a view transition the browser closes it after this, so the flag stays up until the close event
+    lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } else quietFocus = !openedByKey; });
     lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
     lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } });
-    lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
+    lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) { quietFocus = !openedByKey; opener.focus({ preventScroll: true }); } quietFocus = false; });
     /* A FINGER PAGES THROUGH THEM, as in Photos, and to the three rules of docs/apple-design.md that a gesture lives by.
        Once it has gone 8px sideways the photograph follows it one to one and the next one rides in beside it, 24px apart.
        Let go, and where it goes is decided by where the throw would land (§6: the finger's speed carried on at Apple's

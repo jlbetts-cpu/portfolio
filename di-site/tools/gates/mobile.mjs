@@ -67,7 +67,8 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
   });
   await pg.touchscreen.tap(held.x, held.y); await pg.waitForTimeout(300);
   const lbOpen = await pg.evaluate(() => document.querySelector('#lightbox').open);
-  if (lbOpen) { await pg.tap('.lightbox__close'); await pg.waitForTimeout(500); }
+  // it closes back into its frame over 360ms (since 2026-10-14), so wait for it to have closed rather than a fixed 500ms
+  if (lbOpen) { await pg.tap('.lightbox__close'); await pg.waitForFunction(() => !document.querySelector('#lightbox').open, null, { timeout: 2000 }).catch(() => {}); await pg.waitForTimeout(250); }
   const keys = await pg.evaluate(() => window.__di.flow.holdKeys.filter(k => k !== 'offscreen'));
   // the quotes on a phone: a stack on hairlines, each the column's width, nothing scrolling sideways
   const row = await pg.evaluate(() => {

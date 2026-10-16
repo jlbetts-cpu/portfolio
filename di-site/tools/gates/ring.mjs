@@ -61,11 +61,18 @@ for (const [w, h] of VP) {
   await pg.mouse.move(away[0], away[1]); await pg.waitForTimeout(900);
   const r0 = await angle(); await pg.waitForTimeout(400); const r1 = await angle();
   const resumes = r1 - r0 > 0.5;
-  const s0 = await angle(); await pg.evaluate(() => scrollBy(0, -300)); await pg.waitForTimeout(700); const s1 = await angle();
+  // a hand's scroll arrives a frame at a time: five 60px steps, 300px in all, turn it well past the drift. It was one
+  // 300px scrollBy until 2026-10-16, when single jumps of more than 160px stopped pushing the flow as a scroll (Tab, an
+  // anchor or find-in-page had spun the ring 81° at a jump): the old check would now be measuring a jump
+  const s0 = await angle(); await pg.evaluate(async () => { for (let i = 0; i < 5; i++) { scrollBy(0, -60); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); } }); await pg.waitForTimeout(700); const s1 = await angle();
   const scrollTurns = Math.abs(s1 - s0) > 12;
-  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns;
+  // and a jump is not a scroll: 900px in one event turns it no more than a brisk scroll would (160px, 14.4°) plus drift
+  await pg.evaluate(() => { const s = document.querySelector('.ring__stage'); scrollTo(0, scrollY + s.getBoundingClientRect().top + s.offsetHeight / 2 - innerHeight / 2); }); await pg.waitForTimeout(1200);
+  const j0 = await angle(); await pg.evaluate(() => scrollBy(0, 900)); await pg.waitForTimeout(900); const j1 = await angle();   // one way: a jump down and back would cancel itself out and could never fail
+  const jumpDamped = Math.abs(j1 - j0) < 20;
+  const ok = res.copyHits === 0 && res.photoHits === 0 && res.outside === 0 && drifts && hoverStops && resumes && scrollTurns && jumpDamped;
   allOk = allOk && ok;
-  report(`ring ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1) }));
+  report(`ring ${w}×${h}`, ok, JSON.stringify({ ...res, drifts, hoverStops, resumes, scrollTurn: +(Math.abs(s1 - s0)).toFixed(1), jumpTurn: +(Math.abs(j1 - j0)).toFixed(1) }));
   await pg.close();
 }
 await b.close();

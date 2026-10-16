@@ -133,5 +133,36 @@ for (const [w, h, bug] of runs) {
   if (bug) caught[bug] = !ok;
   await pg.close();
 }
+// the keyboard (2026-10-16): the strip is one tab stop; Tab lands on the frame most on screen and it is fully on the
+// screen once it settles; the arrow keys, End and Home move along and each lands on the screen (the run's first frame
+// can come no further than the edge); the strip holds still while a key has it (it may settle by a few pixels); one
+// Tab leaves it; and a mouse's click and the viewer's close leave it drifting, not frozen.
+const keys = async (w, h, bug) => {
+  const pg = await open(b, w, h);
+  await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
+  if (bug === 'tabby') await pg.evaluate(() => document.querySelectorAll('.reel__run:not([aria-hidden]) .photo__open').forEach(f => { f.tabIndex = 0; new MutationObserver(() => { if (f.tabIndex !== 0) f.tabIndex = 0; }).observe(f, { attributes: true, attributeFilter: ['tabindex'] }); }));
+  if (bug === 'unheld') await pg.evaluate(() => { window.__di.flow.hold = () => {}; });
+  const st = () => pg.evaluate(() => { const a = document.activeElement, item = a.closest('.reel__item') || a, r = item.getBoundingClientRect(); return { inReel: !!a.closest('.reel'), i: [...document.querySelectorAll('.reel__run:not([aria-hidden]) .photo__open')].indexOf(a), l: r.left, r: r.right, W: document.documentElement.clientWidth, tx: new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.reel__track')).transform).m41, stops: [...document.querySelectorAll('.reel .photo__open')].filter(f => f.tabIndex >= 0).length }; });
+  const on = (s) => s.l >= (s.i === 0 ? -3 : 14) && s.r <= s.W - 14;
+  let s = null; for (let i = 0; i < 14; i++) { await pg.keyboard.press('Tab'); s = await st(); if (s.inReel) break; }
+  await pg.waitForTimeout(800); const s0 = await st(); await pg.waitForTimeout(600); const s1 = await st();
+  await pg.keyboard.press('ArrowRight'); await pg.waitForTimeout(700); const s2 = await st();
+  await pg.keyboard.press('End'); await pg.waitForTimeout(1200); const s3 = await st();
+  await pg.keyboard.press('Home'); await pg.waitForTimeout(1200); const s4 = await st();
+  await pg.keyboard.press('Tab'); await pg.waitForTimeout(300); const out = await st();
+  // once focus has left, the keyboard's hold is gone (the strip may now be off the screen, where it rests by design)
+  const released = await pg.evaluate(() => !window.__di.flow.holdKeys.some(k => /^key:/.test(k)));
+  await pg.evaluate(() => document.querySelector('.reel').scrollIntoView({ block: 'center' })); await pg.waitForTimeout(400);
+  const c = await pg.evaluate(() => { const r = document.querySelector('.reel__run .reel__item:nth-child(4) .photo__open').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  await pg.mouse.click(c[0], c[1]); await pg.waitForTimeout(1300); await pg.keyboard.press('Escape'); await pg.waitForTimeout(900); await pg.mouse.move(4, 4); await pg.waitForTimeout(900);
+  const u0 = (await st()).tx; await pg.waitForTimeout(800); const u1 = (await st()).tx;
+  await pg.close();
+  const r = { oneStop: s0.stops === 1, lands: !!s && s.inReel && on(s0), steps: s2.i === s0.i + 1 && on(s2), ends: s3.i >= 13 && on(s3) && s4.i === 0 && on(s4), holds: Math.abs(s1.tx - s0.tx) <= 4, leaves: !out.inReel, freesAgain: released && Math.abs(u1 - u0) > 2 };
+  const ok = Object.values(r).every(Boolean);
+  report(`reel ${w}×${h}: the keyboard${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, at: [s0, s2, s3, s4].map(x => [x.i, Math.round(x.l), Math.round(x.r)]) }));
+  return ok;
+};
+if (selfTest) { caught.tabby = !(await keys(1440, 900, 'tabby')); caught.unheld = !(await keys(1440, 900, 'unheld')); }
+else { await keys(1440, 900); await keys(390, 844); }
 await b.close();
-if (selfTest) { const all = Object.keys(INJECT).every(k => caught[k]); console.log(all ? 'SELF-TEST OK: all three injected bugs were caught' : 'SELF-TEST FAILED: not caught: ' + Object.keys(INJECT).filter(k => !caught[k]).join(', ')); process.exitCode = all ? 0 : 1; }
+if (selfTest) { const all = ['block', 'deaf', 'pinned', 'tabby', 'unheld'].every(k => caught[k]); console.log(all ? 'SELF-TEST OK: all five injected bugs were caught' : 'SELF-TEST FAILED: not caught: ' + ['block', 'deaf', 'pinned', 'tabby', 'unheld'].filter(k => !caught[k]).join(', ')); process.exitCode = all ? 0 : 1; }
