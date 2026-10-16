@@ -154,6 +154,15 @@
     };
     set(store.get('di:motion') === 'paused', false);
     pauser.addEventListener('pointerdown', (e) => e.stopPropagation());   // the strip's own drag must not start under it
+    // a phone has no hover: a touch anywhere on the strip shows the control for three seconds (capture, so a touch on the
+    // control itself, which stops its own pointerdown, still keeps it up)
+    const strip = pauser.closest('.reel');
+    let shown = 0;
+    if (strip) strip.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      strip.classList.add('is-touched'); clearTimeout(shown);
+      shown = setTimeout(() => strip.classList.remove('is-touched'), 3000);
+    }, true);
     pauser.addEventListener('click', (e) => { e.stopPropagation(); set(!root.classList.contains('motion-paused'), true); });
   }
 
@@ -265,7 +274,7 @@
     reel.addEventListener('pointerup', release);
     reel.addEventListener('pointercancel', release);
     // the click that ends a drag (or catches a glide) is eaten before it reaches the photograph's button
-    reel.addEventListener('click', (e) => { if (eat && e.detail) { eat = false; e.stopPropagation(); e.preventDefault(); } }, true);   // detail 0 is a key, never eaten
+    reel.addEventListener('click', (e) => { if (eat && e.detail && e.target.closest('.photo__open')) { eat = false; e.stopPropagation(); e.preventDefault(); } }, true);   // a photograph's click only, never a key's (detail 0) nor the pause control's
     reel.addEventListener('dragstart', (e) => e.preventDefault());
     /* THE KEYBOARD (2026-10-16). The strip was fifteen tab stops, and a frame could take focus off the screen (one at
        x -152) while the strip drifted on under it. Now it is one stop, as the ARIA carousel pattern has it: Tab lands on

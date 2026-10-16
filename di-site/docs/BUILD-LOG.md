@@ -1,5 +1,12 @@
 # Build log — Developmental Improvisation, home page
 
+## v55 (2026-10-16) — the pause, only when it is wanted
+*"I dont think i like how visible the pause and play button are its a little alarming should be close to invisible"*, then *"maybe only on hover"*. It is not there until a pointer is over the strip (it fades in over 160ms, out over 240). A phone has no hover, so a touch on the strip shows it for three seconds, as a video's controls come up on a tap; a keyboard reaching it shows it; a reader who has asked for more contrast always sees it. Hidden, it takes no taps, so the photograph under it is never shadowed by an invisible button.
+
+**A bug the phone check found**: after a finger dragged the strip, a tap on the pause did nothing. A drag leaves a flag that eats the click it would otherwise end in, so it cannot open a photograph; a finger's drag ends in no click, the pause stops its own pointerdown so the strip never cleared the flag, and the pause's tap was eaten. The flag now eats a photograph's click only.
+
+The reel gate checks it hidden and untouchable at rest and shown over the strip, and on a phone that a touch shows it, a tap on it pauses, and three seconds later it is gone. 73 lines.
+
 ## v54 (2026-10-16) — a pause for what moves by itself
 WCAG 2.2.2 (level A) asks that motion which starts by itself, runs past five seconds and sits beside other content can be paused. The strip and the ring never stop, and hover, a keyboard's focus and reduced motion still them but are not a control. Asked, he picked one quiet pause button from three.
 

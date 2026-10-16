@@ -63,13 +63,18 @@
 /* while it is being dragged: the hand's cursor, and the frame that was pressed does not stay pressed */
 .reel.is-dragging, .reel.is-dragging .photo__open { cursor: grabbing; }
 .reel.is-dragging .photo { transform: none; }
-/* THE PAUSE (2026-10-16, his pick; WCAG 2.2.2). One quiet control over the strip's right end, Apple's for an auto-playing
-   video, drawn in the page's own light: a white circle at 82% with a solid ink glyph (no control here is filled darker
-   than mid-grey, his rule, and the layout gate's; the dark circle Apple uses was built first and failed it). It stops the
-   strip, the ring and the mark's glint together (main.js), the strip can still be moved by hand, and under reduced
-   motion it is not there, because nothing moves. */
+/* THE PAUSE (2026-10-16, his pick; WCAG 2.2.2), SHOWN ONLY WHEN IT IS WANTED. One control over the strip's right end,
+   Apple's for an auto-playing video, in the page's own light: a white circle at 82% with a solid ink glyph (no control
+   here is filled darker than mid-grey; the dark circle was built first and failed that). Visible all the time it read
+   as "a little alarming"; he asked for it "close to invisible", then "maybe only on hover". So it is not there until a
+   pointer is over the strip; on a phone, which has no hover, a touch on the strip shows it for three seconds, as a
+   video's controls appear on a tap; a keyboard reaching it shows it; and a reader who has asked for more contrast always
+   sees it. Hidden, it takes no taps, so it never stands in for the photograph under it. It stills the strip, the ring
+   and the mark's glint together (main.js); under reduced motion it is not there at all, because nothing moves. */
 .reel { position: relative; }
-.reel__pause { position: absolute; right: 12px; top: 50%; z-index: 1; width: var(--hit); height: var(--hit); padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transform: translateY(-50%); transition: background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.reel__pause { position: absolute; right: 12px; top: 50%; z-index: 1; width: var(--hit); height: var(--hit); padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transform: translateY(-50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+@media (hover: hover) { .reel:hover .reel__pause { opacity: 1; pointer-events: auto; transition-duration: var(--dur-state), var(--dur-state), var(--dur-press); } }
+.reel.is-touched .reel__pause, .reel__pause:focus-visible { opacity: 1; pointer-events: auto; }
 .reel__pause .icon { width: 16px; height: 16px; }
 .reel__pause .icon--play, .motion-paused .reel__pause .icon--pause { display: none; }
 .motion-paused .reel__pause .icon--play { display: block; }
@@ -79,7 +84,7 @@
 .motion-paused .logo--hero .logo__shine { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .reel__pause { display: none; } }
 @media (prefers-reduced-transparency: reduce) { .reel__pause { background: #fff; } }
-@media (prefers-contrast: more) { .reel__pause { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); } }
+@media (prefers-contrast: more) { .reel__pause { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); opacity: 1; pointer-events: auto; } }
 /* THE HOLE PITCH IS A WHOLE PIXEL and a frame is exactly eight of it, gap included, so every frame's row of holes ends
    where the next begins. With a fractional pitch (a frame's width over eight) each frame rounded its own last hole and
    they doubled up at the joins, worst on a phone. round() keeps the pitch whole as it scales; behind @supports,

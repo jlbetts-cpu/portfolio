@@ -179,6 +179,11 @@ const pause = async (w, h, bug) => {
   const tx = () => pg.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.reel__track')).transform).m41);
   const ringA = () => pg.evaluate(() => window.__di.flow.angle);
   const glint = () => pg.evaluate(() => getComputedStyle(document.querySelector('.logo__shine')).transform);
+  // shown only when wanted (2026-10-16, "maybe only on hover"): with the pointer away it is not there and takes no
+  // click; over the strip it is
+  const vis = () => pg.evaluate(() => { const c = document.querySelector('.reel__pause'), r = c.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return +getComputedStyle(c).opacity === 1 && !!(hit && hit.closest('.reel__pause')); });
+  await pg.mouse.move(4, 4); await pg.waitForTimeout(500); const atRest = await vis();
+  await pg.mouse.move(ctl.x - 200, ctl.y); await pg.waitForTimeout(400); const onHover = await vis();
   await pg.mouse.click(ctl.x, ctl.y); await pg.mouse.move(4, 4); await pg.waitForTimeout(900);
   const a0 = [await tx(), await ringA(), await glint()]; await pg.waitForTimeout(1200); const a1 = [await tx(), await ringA(), await glint()];
   const still = Math.abs(a1[0] - a0[0]) < 1 && Math.abs(a1[1] - a0[1]) < .1 && a1[2] === a0[2];
@@ -198,12 +203,34 @@ const pause = async (w, h, bug) => {
   const rp = await rctx.newPage(); await rp.goto(URL); await rp.waitForTimeout(600);
   const hiddenReduced = await rp.evaluate(() => getComputedStyle(document.querySelector('.reel__pause')).display === 'none');
   await rctx.close();
-  const r = { control: ctl.w >= 44 && ctl.h >= 44 && ctl.label === 'Pause motion', still, handMoves, kept, resumes, hiddenReduced };
+  const r = { control: ctl.w >= 44 && ctl.h >= 44 && ctl.label === 'Pause motion', hiddenAtRest: !atRest, shownOnHover: onHover, still, handMoves, kept, resumes, hiddenReduced };
   const ok = Object.values(r).every(Boolean);
   report(`reel ${w}×${h}: the pause${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify(r));
   return ok;
 };
+// on a phone, which has no hover: a touch that drags the strip shows the pause, a tap on it pauses (a drag's click-eater
+// once swallowed that tap), and three seconds later it is gone again and takes no taps
+const touchPause = async () => {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  const pg = await ctx.newPage(); await pg.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
+  await pg.goto(URL); await pg.waitForTimeout(900);
+  await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.reel').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(400);
+  const vis = () => pg.evaluate(() => { const c = document.querySelector('.reel__pause'), r = c.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return +getComputedStyle(c).opacity === 1 && !!(hit && hit.closest('.reel__pause')); });
+  const rest = await vis();
+  const cdp = await ctx.newCDPSession(pg); const y = await pg.evaluate(() => { const r = document.querySelector('.reel').getBoundingClientRect(); return r.y + r.height / 2; });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 150, y }] }); for (let i = 1; i <= 5; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 150 - i * 6, y }] }); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await pg.waitForTimeout(400); const shown = await vis();
+  const c = await pg.evaluate(() => { const r = document.querySelector('.reel__pause').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  await pg.touchscreen.tap(c[0], c[1]); await pg.waitForTimeout(300);
+  const paused = await pg.evaluate(() => document.documentElement.classList.contains('motion-paused'));
+  await pg.waitForTimeout(3300); const gone = !(await vis());
+  await ctx.close();
+  const r = { hiddenAtRest: !rest, shownByTouch: shown, tapPauses: paused, hidesAgain: gone };
+  const ok = Object.values(r).every(Boolean);
+  report('reel 390×844: the pause on a phone', ok, JSON.stringify(r));
+  return ok;
+};
 if (selfTest) { caught.tabby = !(await keys(1440, 900, 'tabby')); caught.unheld = !(await keys(1440, 900, 'unheld')); caught.stuck = !(await pause(1440, 900, 'stuck')); caught.forgetful = !(await pause(1440, 900, 'forgetful')); }
-else { await keys(1440, 900); await keys(390, 844); await pause(1440, 900); await pause(390, 844); }
+else { await keys(1440, 900); await keys(390, 844); await pause(1440, 900); await pause(390, 844); await touchPause(); }
 await b.close();
 if (selfTest) { const all = ['block', 'deaf', 'pinned', 'tabby', 'unheld', 'stuck', 'forgetful'].every(k => caught[k]); console.log(all ? 'SELF-TEST OK: all seven injected bugs were caught' : 'SELF-TEST FAILED: not caught: ' + ['block', 'deaf', 'pinned', 'tabby', 'unheld', 'stuck', 'forgetful'].filter(k => !caught[k]).join(', ')); process.exitCode = all ? 0 : 1; }
