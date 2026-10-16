@@ -149,6 +149,8 @@ const keys = async (w, h, bug) => {
   await pg.keyboard.press('ArrowRight'); await pg.waitForTimeout(700); const s2 = await st();
   await pg.keyboard.press('End'); await pg.waitForTimeout(1200); const s3 = await st();
   await pg.keyboard.press('Home'); await pg.waitForTimeout(1200); const s4 = await st();
+  // one Tab leaves the frames (for the strip's pause control, since 2026-10-16), a second leaves the strip
+  await pg.keyboard.press('Tab'); await pg.waitForTimeout(300); const offFrames = (await st()).i < 0;
   await pg.keyboard.press('Tab'); await pg.waitForTimeout(300); const out = await st();
   // once focus has left, the keyboard's hold is gone (the strip may now be off the screen, where it rests by design)
   const released = await pg.evaluate(() => !window.__di.flow.holdKeys.some(k => /^key:/.test(k)));
@@ -157,12 +159,51 @@ const keys = async (w, h, bug) => {
   await pg.mouse.click(c[0], c[1]); await pg.waitForTimeout(1300); await pg.keyboard.press('Escape'); await pg.waitForTimeout(900); await pg.mouse.move(4, 4); await pg.waitForTimeout(900);
   const u0 = (await st()).tx; await pg.waitForTimeout(800); const u1 = (await st()).tx;
   await pg.close();
-  const r = { oneStop: s0.stops === 1, lands: !!s && s.inReel && on(s0), steps: s2.i === s0.i + 1 && on(s2), ends: s3.i >= 13 && on(s3) && s4.i === 0 && on(s4), holds: Math.abs(s1.tx - s0.tx) <= 4, leaves: !out.inReel, freesAgain: released && Math.abs(u1 - u0) > 2 };
+  const r = { oneStop: s0.stops === 1, lands: !!s && s.inReel && on(s0), steps: s2.i === s0.i + 1 && on(s2), ends: s3.i >= 13 && on(s3) && s4.i === 0 && on(s4), holds: Math.abs(s1.tx - s0.tx) <= 4, leaves: offFrames && !out.inReel, freesAgain: released && Math.abs(u1 - u0) > 2 };
   const ok = Object.values(r).every(Boolean);
   report(`reel ${w}×${h}: the keyboard${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, at: [s0, s2, s3, s4].map(x => [x.i, Math.round(x.l), Math.round(x.r)]) }));
   return ok;
 };
-if (selfTest) { caught.tabby = !(await keys(1440, 900, 'tabby')); caught.unheld = !(await keys(1440, 900, 'unheld')); }
-else { await keys(1440, 900); await keys(390, 844); }
+// the pause (2026-10-16, his pick; WCAG 2.2.2): a labelled 44px control on the strip stills the strip, the ring and the
+// mark's glint; a hand can still drag the strip; the choice survives a reload; play sets it all moving again; and under
+// reduced motion, where nothing moves, the control is not there
+const pause = async (w, h, bug) => {
+  const ctx = await b.newContext({ viewport: { width: w, height: h } });
+  const pg = await ctx.newPage();
+  await pg.addInitScript((forget) => { try { sessionStorage.setItem('di:curtain', '1'); if (forget && sessionStorage.getItem('gate:loaded')) localStorage.removeItem('di:motion'); sessionStorage.setItem('gate:loaded', '1'); } catch {} }, bug === 'forgetful');
+  await pg.goto(URL); await pg.waitForTimeout(900);
+  if (bug === 'stuck') await pg.evaluate(() => { window.__di.flow.hold = () => {}; });
+  const toView = () => pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.reel').scrollIntoView({ block: 'center' }); });
+  await toView(); await pg.waitForTimeout(400);
+  const ctl = await pg.evaluate(() => { const q = document.querySelector('.reel__pause').getBoundingClientRect(); return { x: q.x + q.width / 2, y: q.y + q.height / 2, w: q.width, h: q.height, label: document.querySelector('.reel__pause').getAttribute('aria-label') }; });
+  const tx = () => pg.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.reel__track')).transform).m41);
+  const ringA = () => pg.evaluate(() => window.__di.flow.angle);
+  const glint = () => pg.evaluate(() => getComputedStyle(document.querySelector('.logo__shine')).transform);
+  await pg.mouse.click(ctl.x, ctl.y); await pg.mouse.move(4, 4); await pg.waitForTimeout(900);
+  const a0 = [await tx(), await ringA(), await glint()]; await pg.waitForTimeout(1200); const a1 = [await tx(), await ringA(), await glint()];
+  const still = Math.abs(a1[0] - a0[0]) < 1 && Math.abs(a1[1] - a0[1]) < .1 && a1[2] === a0[2];
+  // a hand still moves it
+  const mid = await pg.evaluate(() => { const r = document.querySelector('.reel').getBoundingClientRect(); return [r.x + r.width / 2 - 150, r.y + r.height / 2]; });
+  const by0 = await pg.evaluate(() => window.__di.reel.by);
+  await pg.mouse.move(mid[0], mid[1]); await pg.mouse.down(); for (let i = 1; i <= 10; i++) { await pg.mouse.move(mid[0] + i * 15, mid[1]); await pg.waitForTimeout(16); } await pg.waitForTimeout(120); await pg.mouse.up(); await pg.mouse.move(4, 4);
+  const handMoves = Math.abs((await pg.evaluate(() => window.__di.reel.by)) - by0) > 100;
+  await pg.reload(); await pg.waitForTimeout(1200); await toView(); await pg.waitForTimeout(600);
+  const k = await pg.evaluate(() => [document.documentElement.classList.contains('motion-paused'), document.querySelector('.reel__pause').getAttribute('aria-label')]);
+  const k0 = await tx(); await pg.waitForTimeout(1000); const kept = k[0] && k[1] === 'Play motion' && Math.abs((await tx()) - k0) < 1;
+  const c2 = await pg.evaluate(() => { const q = document.querySelector('.reel__pause').getBoundingClientRect(); return [q.x + q.width / 2, q.y + q.height / 2]; });
+  await pg.mouse.click(c2[0], c2[1]); await pg.mouse.move(4, 4); await pg.waitForTimeout(900);
+  const r0 = await tx(); await pg.waitForTimeout(800); const resumes = Math.abs((await tx()) - r0) > 2;
+  await ctx.close();
+  const rctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' });
+  const rp = await rctx.newPage(); await rp.goto(URL); await rp.waitForTimeout(600);
+  const hiddenReduced = await rp.evaluate(() => getComputedStyle(document.querySelector('.reel__pause')).display === 'none');
+  await rctx.close();
+  const r = { control: ctl.w >= 44 && ctl.h >= 44 && ctl.label === 'Pause motion', still, handMoves, kept, resumes, hiddenReduced };
+  const ok = Object.values(r).every(Boolean);
+  report(`reel ${w}×${h}: the pause${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify(r));
+  return ok;
+};
+if (selfTest) { caught.tabby = !(await keys(1440, 900, 'tabby')); caught.unheld = !(await keys(1440, 900, 'unheld')); caught.stuck = !(await pause(1440, 900, 'stuck')); caught.forgetful = !(await pause(1440, 900, 'forgetful')); }
+else { await keys(1440, 900); await keys(390, 844); await pause(1440, 900); await pause(390, 844); }
 await b.close();
-if (selfTest) { const all = ['block', 'deaf', 'pinned', 'tabby', 'unheld'].every(k => caught[k]); console.log(all ? 'SELF-TEST OK: all five injected bugs were caught' : 'SELF-TEST FAILED: not caught: ' + ['block', 'deaf', 'pinned', 'tabby', 'unheld'].filter(k => !caught[k]).join(', ')); process.exitCode = all ? 0 : 1; }
+if (selfTest) { const all = ['block', 'deaf', 'pinned', 'tabby', 'unheld', 'stuck', 'forgetful'].every(k => caught[k]); console.log(all ? 'SELF-TEST OK: all seven injected bugs were caught' : 'SELF-TEST FAILED: not caught: ' + ['block', 'deaf', 'pinned', 'tabby', 'unheld', 'stuck', 'forgetful'].filter(k => !caught[k]).join(', ')); process.exitCode = all ? 0 : 1; }

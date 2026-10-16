@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v54 (2026-10-16) — a pause for what moves by itself
+WCAG 2.2.2 (level A) asks that motion which starts by itself, runs past five seconds and sits beside other content can be paused. The strip and the ring never stop, and hover, a keyboard's focus and reduced motion still them but are not a control. Asked, he picked one quiet pause button from three.
+
+**One control over the strip's right end**, 44px, Apple's for an auto-playing video but in the page's own light: a white circle at 82% with a solid ink glyph (pause, then play), so it reads on the darkest and the brightest photograph beneath it. The dark translucent circle Apple uses was built first and the layout gate failed it, rightly: no control on this page is filled darker than mid-grey, his rule. Its glyphs are Phosphor's solid weight, the first two in the sprite (the outlined weight thinned to two hairlines at 16px). It is a true circle (it was drawn with the page's superellipse corner first, a rounded square).
+
+**What it stills**: the strip, the ring, the mark's sway and the glint (frozen where it is), and the scroll's push. It stops within a pixel: pausing also drops the angle still to catch up, which had let the strip coast about 10px over a second and a half. A hand can still drag the strip while paused, the choice is kept for the next visit, and play sets it all moving again. Under reduced motion, where nothing moves, it is not there.
+
+**A latent bug it found in the flow**: after any long hold, the loop that drives the strip and the ring could stop for good on release. Its idle test saw the hold eased to 0 on the release's first frame (no time had passed yet) and called that still; it now counts as idle only when nothing holds it and nothing will move. **And the keyboard's hold belongs to the frames**, so focus moving on to the pause control lets it go.
+
+The reel gate gained the pause (control, stills all three, a hand still moves it, kept on reload, resumes, absent under reduced motion), with two planted bugs: a hold that holds nothing, and a page that forgets. Its keyboard check now Tabs off the frames and then out of the strip. 72 lines, fourteen self-tests.
+
 ## v53 (2026-10-16) — the keyboard, and a jump is not a scroll
 *"keep iderating and polishing design."* A keyboard was walked through the whole page at 1440, Tab by Tab, measuring where every focus landed. Everything was on screen but the film strip.
 

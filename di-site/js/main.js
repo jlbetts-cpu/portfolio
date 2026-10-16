@@ -105,7 +105,9 @@
       const k = 1 - Math.exp(-dt / settle);
       angle += (target - angle) * k; sAngle += (sTarget - sAngle) * k;
       emit();
-      const idle = Math.abs(target - angle) < .002 && Math.abs(sTarget - sAngle) < .002 && drift * hold < .01;
+      // idle only when it will stay still: with nothing holding it, a hold that has eased to 0 is about to grow again, and
+      // calling that idle stopped the loop on the first frame after a long pause, for good (2026-10-16)
+      const idle = Math.abs(target - angle) < .002 && Math.abs(sTarget - sAngle) < .002 && drift * (holds.size ? hold : 1) < .01;
       if (idle || document.hidden) { running = false; lastT = 0; return; }
       requestAnimationFrame(frame);
     };
@@ -118,7 +120,7 @@
     // spun the ring 81°, and a keyboard arriving at the ring watched it swing half a turn. A hand's scroll arrives a
     // frame at a time, well under 160px; past that, an event pushes no more than a brisk scroll would.
     const PUSH_MAX = 160;
-    addEventListener('scroll', () => { const y = scrollY; const d = Math.max(-PUSH_MAX, Math.min(PUSH_MAX, y - lastY)) * perPx; lastY = y; if (holds.has('offscreen') || [...holds].some(h => typeof h === 'string' && h.startsWith('key:'))) return; target += d; sTarget += d; wake(); }, { passive: true });
+    addEventListener('scroll', () => { const y = scrollY; const d = Math.max(-PUSH_MAX, Math.min(PUSH_MAX, y - lastY)) * perPx; lastY = y; if (holds.has('offscreen') || holds.has('paused') || [...holds].some(h => typeof h === 'string' && h.startsWith('key:'))) return; target += d; sTarget += d; wake(); }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
     reduced.addEventListener('change', () => { readTokens(); wake(); });
     const stages = new Map();
@@ -132,9 +134,28 @@
       get scrollAngle() { return sAngle; },
       get held() { return holds.size > 0; },
       set(a) { angle = target = a; emit(); },   // test hook
+      halt() { target = angle; sTarget = sAngle; },   // drop what is still to catch up, so a pause stops it now, not in a second and a half
       get holdKeys() { return [...holds].map(h => typeof h === 'string' ? h : (h.className || h.tagName)); },   // test hook
     };
   })();
+
+  /* ---- The pause (2026-10-16): one control stills everything that moves by itself, and is remembered ----
+     WCAG 2.2.2: the strip and the ring start by themselves and never end, beside the rest of the page, so a reader must
+     be able to stop them. It holds the flow (which also stills the mark's sway), the scroll no longer pushes it, the
+     glint stops where it is, and the choice is kept for the next visit. The strip still moves under a hand. */
+  const pauser = $('[data-motion-toggle]');
+  if (pauser) {
+    const set = (paused, keep) => {
+      root.classList.toggle('motion-paused', paused);
+      if (paused) flow.halt();
+      flow.hold('paused', paused);
+      pauser.setAttribute('aria-label', paused ? 'Play motion' : 'Pause motion');
+      if (keep) store.set('di:motion', paused ? 'paused' : 'moving');
+    };
+    set(store.get('di:motion') === 'paused', false);
+    pauser.addEventListener('pointerdown', (e) => e.stopPropagation());   // the strip's own drag must not start under it
+    pauser.addEventListener('click', (e) => { e.stopPropagation(); set(!root.classList.contains('motion-paused'), true); });
+  }
 
   /* ---- Hero: first paint once per session ---- */
   const hero = $('#top');
@@ -282,14 +303,15 @@
       if (quietFocus) { setRove(i); return; }   // Tab carries on from here, but nothing holds or slides
       reel.scrollLeft = 0;   // a browser may scroll even an overflow:hidden box to show what took focus; the transform does that here
       flow.hold('key:reel', true);
-      if (!reel.contains(e.relatedTarget)) {   // arriving from outside: the frame most on screen, not the first in the list
+      if (!frames.includes(e.relatedTarget)) {   // arriving from outside the frames: the one most on screen, not the first in the list
         let best = i, most = onScreen(frames[i]);
         frames.forEach((f, k) => { const s = onScreen(f); if (s > most + 1) { best = k; most = s; } });
         if (best !== i) { setRove(best); frames[best].focus({ preventScroll: true }); return; }
       }
       setRove(i); bring(i);
     });
-    reel.addEventListener('focusout', (e) => { if (!reel.contains(e.relatedTarget)) flow.hold('key:reel', false); });
+    // the hold belongs to the frames: focus moving on to the pause control, inside the strip, lets it go too
+    reel.addEventListener('focusout', (e) => { if (!frames.includes(e.relatedTarget)) flow.hold('key:reel', false); });
     reel.addEventListener('keydown', (e) => {
       const i = frames.indexOf(document.activeElement);
       if (i < 0) return;

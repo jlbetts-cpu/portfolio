@@ -100,7 +100,13 @@ RSZ='(max-width: 767px) 90px, (max-width: 1679px) 138px, 162px'
 _reel_run=lambda ghost: ''.join(f'<li class="reel__item">{photo(n, "4x5", RSZ, ghost=ghost)}</li>' for n in REEL)
 reel=(f'<div class="reel" data-reel role="region" aria-label="From the sessions"><div class="reel__track">'
       f'<ul class="reel__run">{_reel_run(False)}</ul><ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul>'
-      f'<ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul></div></div>')
+      f'<ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul></div>'
+      # THE PAUSE (2026-10-16, his pick of three: WCAG 2.2.2 asks that motion which starts by itself and runs past five
+      # seconds can be paused). One quiet control for everything that moves on its own: the strip, the ring, the
+      # mark's glint. It stays outside the track, so it does not travel; main.js wires it and remembers the choice.
+      f'<button class="reel__pause" type="button" data-motion-toggle aria-label="Pause motion">'
+      f'<svg class="icon icon--pause" aria-hidden="true"><use href="#i-pause"/></svg>'
+      f'<svg class="icon icon--play" aria-hidden="true"><use href="#i-play"/></svg></button></div>')
 
 # the hero's mark: THE BRAND'S OWN COLOURS, with a glint of light passing over them. Jayden, 2026-10-12: "I want the
 # logo to be like the normal colors maybe with a premium shine instead of being black." So the paths go in as the logo

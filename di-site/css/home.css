@@ -63,6 +63,23 @@
 /* while it is being dragged: the hand's cursor, and the frame that was pressed does not stay pressed */
 .reel.is-dragging, .reel.is-dragging .photo__open { cursor: grabbing; }
 .reel.is-dragging .photo { transform: none; }
+/* THE PAUSE (2026-10-16, his pick; WCAG 2.2.2). One quiet control over the strip's right end, Apple's for an auto-playing
+   video, drawn in the page's own light: a white circle at 82% with a solid ink glyph (no control here is filled darker
+   than mid-grey, his rule, and the layout gate's; the dark circle Apple uses was built first and failed it). It stops the
+   strip, the ring and the mark's glint together (main.js), the strip can still be moved by hand, and under reduced
+   motion it is not there, because nothing moves. */
+.reel { position: relative; }
+.reel__pause { position: absolute; right: 12px; top: 50%; z-index: 1; width: var(--hit); height: var(--hit); padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transform: translateY(-50%); transition: background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.reel__pause .icon { width: 16px; height: 16px; }
+.reel__pause .icon--play, .motion-paused .reel__pause .icon--pause { display: none; }
+.motion-paused .reel__pause .icon--play { display: block; }
+@media (hover: hover) { .reel__pause:hover { background: #fff; } }
+.reel__pause:active { transform: translateY(-50%) scale(.92); }
+.reel__pause:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.motion-paused .logo--hero .logo__shine { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .reel__pause { display: none; } }
+@media (prefers-reduced-transparency: reduce) { .reel__pause { background: #fff; } }
+@media (prefers-contrast: more) { .reel__pause { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); } }
 /* THE HOLE PITCH IS A WHOLE PIXEL and a frame is exactly eight of it, gap included, so every frame's row of holes ends
    where the next begins. With a fractional pitch (a frame's width over eight) each frame rounded its own last hole and
    they doubled up at the joins, worst on a phone. round() keeps the pitch whole as it scales; behind @supports,
