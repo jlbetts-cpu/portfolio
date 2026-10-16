@@ -212,7 +212,10 @@
 :root:not(.lb-closing)::view-transition-old(lb-photo), :root.lb-closing::view-transition-new(lb-photo) { opacity: 0; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--lb-dur, 500ms); }
 .lightbox.is-morphing, .lightbox.is-morphing .lightbox__figure { transition: none; }
-.lightbox::backdrop { background: #0A0A0C; }   /* solid, as Photos is: at 97% the page's own photograph showed through as a ghost of its frame */
+@property --dismiss { syntax: '<number>'; inherits: true; initial-value: 0; }
+.lightbox::backdrop { background: #0A0A0C; opacity: calc(1 - var(--dismiss, 0) * .85); }
+/* pulled down to close (main.js): the row of previews and the controls go first, the stage after */
+.lightbox__rail, .lightbox__close, .lightbox .arrow { opacity: calc(1 - var(--dismiss, 0) * 2.5); }   /* solid, as Photos is: at 97% the page's own photograph showed through as a ghost of its frame */
 /* THE VIEWER IS APPLE PHOTOS' (2026-10-14: "make sure like the expanded photo display casusel actually looks sleek and
    premium and it should be like apples photos where you can see the previews"). Near-black, the photograph as large as
    the room above the previews allows, quiet controls, and along the foot a row of every photograph: 4:5 previews 2px
@@ -249,6 +252,8 @@
 @media (max-width: 767px) {
   .lightbox__stage { padding-inline: 0; }
   .lightbox__figure picture, .lightbox__figure img { border-radius: 0; }
+  /* edge to edge it has no corner; pulled down to close, it takes one as it shrinks, up to the page's photograph's */
+  .lightbox__figure picture.is-current img { border-radius: calc(var(--dismiss, 0) * 40px); }
 }
 @media (hover: none) { .lightbox__prev, .lightbox__next { display: none; } }
 @media (prefers-reduced-motion: reduce) { .lightbox__thumb { transition: none; } }

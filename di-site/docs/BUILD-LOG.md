@@ -1,5 +1,12 @@
 # Build log — Developmental Improvisation, home page
 
+## v56 (2026-10-16) — pull down to close, as Photos does
+*"im going out so just keep improving and iderating do the recommended."* Of the viewer ideas recommended and not yet built, the one that finishes it as Photos: on a phone, a photograph pulled down closes.
+
+**Drawn down, the photograph follows the finger** (half as much sideways), shrinking to 70% and taking a corner as it goes (edge to edge it has none; up to 40px), while the stage fades to show the page behind and the row of previews and the controls go first. **Its own frame on the page is empty while it is pulled**, the whole frame and its blurred placeholder, as Photos empties the slot: the first build left the page's copy showing through the fading stage, so the photograph was seen twice, then a blurred ghost of it. **Let go, and where the throw would land decides** (§6 again): past 30% of the stage it closes, flying back into its frame from where the finger left it, because the view transition captures it there, and the frame is filled again inside the transition so the old picture has the empty slot and the new one the photograph; short of that it springs back on the page's spring, the stage brought up over the same time. Drawn up, it resists and nothing happens. The first 8px decide the gesture: sideways pages, downwards dismisses.
+
+The lightbox gate's phone checks gained the pull (a short one springs back with the frame whole, halfway the frame is empty and the stage fading, thrown it closes with the frame whole, upward stays open), with a planted bug, a frame that is never emptied. 73 lines, fourteen self-tests.
+
 ## v55 (2026-10-16) — the pause, only when it is wanted
 *"I dont think i like how visible the pause and play button are its a little alarming should be close to invisible"*, then *"maybe only on hover"*. It is not there until a pointer is over the strip (it fades in over 160ms, out over 240). A phone has no hover, so a touch on the strip shows it for three seconds, as a video's controls come up on a tap; a keyboard reaching it shows it; a reader who has asked for more contrast always sees it. Hidden, it takes no taps, so the photograph under it is never shadowed by an invisible button.
 

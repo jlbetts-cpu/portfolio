@@ -530,8 +530,8 @@
       if (!lb.open) return;
       const to = canMorph() && big() && frameFor(names[index]);
       const img = to && $('img', to);
-      if (!img) { shut(); return; }
-      morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, shut);
+      if (!img) { unempty(); shut(); return; }
+      morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, () => { unempty(); shut(); });
     };
     buttons.forEach(b => b.addEventListener('click', (e) => { openedByKey = e.detail === 0; open(b.dataset.photo, b); }));   // detail 0: Enter or Space
     $('.lightbox__prev', lb).addEventListener('click', () => step(-1));
@@ -541,7 +541,7 @@
     lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } else quietFocus = !openedByKey; });
     lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
     lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } });
-    lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) { quietFocus = !openedByKey; opener.focus({ preventScroll: true }); } quietFocus = false; });
+    lb.addEventListener('close', () => { unempty(); lb.style.removeProperty('--dismiss'); const p = current(); if (p) p.style.transform = ''; flow.hold('lightbox', false); if (opener && opener.isConnected) { quietFocus = !openedByKey; opener.focus({ preventScroll: true }); } quietFocus = false; });
     /* A FINGER PAGES THROUGH THEM, as in Photos, and to the three rules of docs/apple-design.md that a gesture lives by.
        Once it has gone 8px sideways the photograph follows it one to one and the next one rides in beside it, 24px apart.
        Let go, and where it goes is decided by where the throw would land (§6: the finger's speed carried on at Apple's
@@ -552,6 +552,38 @@
        the finger carries on from there. A swipe never closes the viewer, though it ends on the scrim (the click it
        leaves is eaten), and neither does a catch. */
     const GAP = 24, DECEL = .998;
+    /* PULL DOWN TO CLOSE, as in Photos (2026-10-16). Drawn down, the photograph follows the finger (half as much sideways),
+       shrinking a little, and the stage, the row of previews and the controls fade with it (--dismiss, 0 to 1 over 60% of
+       the stage's height); drawn up, it resists. Let go, and where the throw would land decides (§6): past 30% of the
+       stage it closes, flying back into its frame on the page from where the finger left it, since the view transition
+       captures it there; short of that, it springs back. */
+    // its own frame on the page is emptied while it is pulled, as Photos empties the slot, so the photograph is never
+    // seen twice (the page shows through the fading stage); the frame comes back as it lands or springs back
+    let emptied = null;
+    const unempty = () => { if (emptied) { emptied.style.visibility = ''; emptied = null; } };
+    const pull = (mx, dy) => {
+      if (!emptied) { const f = frameFor(names[index]), ph = f && (f.closest('.photo') || f); if (ph) { ph.style.visibility = 'hidden'; emptied = ph; } }   // the whole frame, its blurred placeholder too
+      const H = stage.clientHeight, y = dy < 0 ? dy * .25 : dy, k = Math.min(1, Math.max(0, y) / (H * .6));
+      current().style.transform = `translate(${(mx * .5).toFixed(1)}px, ${y.toFixed(1)}px) scale(${(1 - .3 * k).toFixed(3)})`;
+      lb.style.setProperty('--dismiss', k.toFixed(3));
+      sw.dy = y;
+    };
+    let dismissRaf = 0;
+    const release = (g, e) => {
+      const [t0, , y0] = g.s[0], [t1, , y1] = g.s[g.s.length - 1];
+      const vy = t1 > t0 && e.timeStamp - t1 < 60 ? (y1 - y0) / (t1 - t0) : 0;
+      const landing = (g.dy || 0) + vy * DECEL / (1 - DECEL);
+      if (landing > stage.clientHeight * .3 && vy > -.1) { close(); return; }   // close() fills the frame again as it lands
+      unempty();
+      // back: the photograph on the page's spring, the stage brought up again over the same time
+      const pic = current(), from = pic.style.transform, k0 = parseFloat(lb.style.getPropertyValue('--dismiss')) || 0;
+      const ms = num(getComputedStyle(root), '--dur-move', 280), t = performance.now();
+      pic.style.transform = '';
+      pic.animate([{ transform: from || 'none' }, { transform: 'none' }], { duration: ms, easing: getComputedStyle(root).getPropertyValue('--ease-pop').trim() || 'ease-out' });
+      cancelAnimationFrame(dismissRaf);
+      const tick = (now) => { const k = Math.min(1, (now - t) / ms); lb.style.setProperty('--dismiss', (k0 * Math.pow(1 - k, 3)).toFixed(3)); if (k < 1) dismissRaf = requestAnimationFrame(tick); else lb.style.removeProperty('--dismiss'); };
+      dismissRaf = requestAnimationFrame(tick);
+    };
     let sw = null, eatClick = false, flight = null;
     const place = (el, x) => { el.style.transform = x ? `translateX(${x}px)` : ''; };
     const liveX = (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41;
@@ -570,24 +602,32 @@
         } else { base = px; peek = f.peek; side = f.side; }
         place(current(), base); place(peek, base + side * (stage.clientWidth + GAP));
       }
-      sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, base, dx: base, on: caught, side, peek, s: [[e.timeStamp, e.clientX]] };
+      sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, base, dx: base, on: caught, down: false, side, peek, s: [[e.timeStamp, e.clientX, e.clientY]] };
       eatClick = caught;
       if (caught) try { stage.setPointerCapture(e.pointerId); } catch {}
     });
     stage.addEventListener('pointermove', (e) => {
       if (!sw || e.pointerId !== sw.id) return;
       const mx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
-      if (!sw.on) { if (Math.abs(mx) < 8 || Math.abs(mx) < Math.abs(dy)) return; sw.on = true; eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {} }
+      if (!sw.on) {
+        // the first 8px decide it: sideways pages, downwards dismisses (as Photos'), anything else is left alone
+        if (Math.abs(mx) >= 8 && Math.abs(mx) >= Math.abs(dy)) sw.on = true;
+        else if (dy >= 8 && dy > Math.abs(mx)) { sw.on = true; sw.down = true; }
+        else return;
+        eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {}
+      }
+      if (sw.down) { pull(mx, dy); sw.s.push([e.timeStamp, e.clientX, e.clientY]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift(); return; }
       const dx = sw.base + mx;
       // the neighbour on the side the finger is uncovering: the next one when it moves left, the one before when right
       const side = dx < 0 ? 1 : -1;
       if (side !== sw.side) { if (sw.peek) sw.peek.remove(); sw.peek = build(index + side); figure.appendChild(sw.peek); sw.side = side; }
       sw.dx = dx; place(current(), dx); place(sw.peek, dx + side * (stage.clientWidth + GAP));
-      sw.s.push([e.timeStamp, e.clientX]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift();
+      sw.s.push([e.timeStamp, e.clientX, e.clientY]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift();
     });
     const letGo = (e) => {
       if (!sw || e.pointerId !== sw.id) return;
       const g = sw; sw = null;
+      if (g.on && g.down) { release(g, e); return; }
       if (!g.on || !g.peek) return;
       // the speed of the last tenth of a second; a finger that stopped before letting go throws nothing
       const [t0, x0] = g.s[0], [t1, x1] = g.s[g.s.length - 1], v = t1 > t0 && e.timeStamp - t1 < 60 ? (x1 - x0) / (t1 - t0) : 0;

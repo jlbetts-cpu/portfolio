@@ -65,6 +65,8 @@ const phone = async (bug) => {
   await tp.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
   // the bug: a page in flight that a finger cannot catch, which is what "paging" locked out until 2026-10-16
   if (bug === 'uncatchable') await tp.addInitScript(() => { Animation.prototype.cancel = function () {}; });
+  // the bug: a frame that is never emptied, so a pulled photograph is seen twice
+  if (bug === 'ghost') await tp.addInitScript(() => { addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '.photo { visibility: visible !important; }'; document.head.appendChild(st); }); });
   await tp.goto(URL); await tp.waitForTimeout(700);
   await tp.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.tell__figure .photo').scrollIntoView({ block: 'center' }); }); await tp.waitForTimeout(700);
   const c = await tp.evaluate(() => { const r = document.querySelector('.tell__figure .photo__open').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
@@ -97,6 +99,27 @@ const phone = async (bug) => {
   const h0 = await pics(); await tp.waitForTimeout(120); const h1 = await pics();
   await T('touchEnd'); await tp.waitForTimeout(900);
   const settled = await pics(), still = await tp.evaluate(() => document.querySelector('#lightbox').open);
+  // pull down to close (2026-10-16), as Photos does. A short pull that stops springs back; held halfway, the stage
+  // fades and the photograph's own frame on the page is empty, so it is never seen twice; thrown on, it closes and its
+  // frame is whole again; an upward drag does nothing
+  const frameShown = () => tp.evaluate(() => { const f = [...document.querySelectorAll('.tell__figure .photo')][0]; return getComputedStyle(f).visibility !== 'hidden'; });
+  // back to the first photograph, so its frame is the section's, on screen behind
+  await tp.evaluate(() => { const d = document.querySelector('#lightbox'); if (d.open) d.close(); }); await tp.waitForTimeout(500);
+  await tp.evaluate(() => document.querySelector('.tell__figure').scrollIntoView({ block: 'center' })); await tp.waitForTimeout(400);
+  const c2 = await tp.evaluate(() => { const r = document.querySelector('.tell__figure .photo__open').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  await tp.touchscreen.tap(c2[0], c2[1]); await tp.waitForTimeout(1300);
+  const Ty = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: x === undefined ? [] : [{ x, y }] });
+  await Ty('touchStart', 195, 380); for (let i = 1; i <= 7; i++) { await Ty('touchMove', 195, 380 + i * 10); await tp.waitForTimeout(30); } await tp.waitForTimeout(150); await Ty('touchEnd'); await tp.waitForTimeout(600);
+  const shortPull = await tp.evaluate(() => ({ open: document.querySelector('#lightbox').open, tf: getComputedStyle(document.querySelector('.lightbox__figure picture.is-current')).transform }));
+  const shortFrame = await frameShown();
+  await Ty('touchStart', 195, 380); for (let i = 1; i <= 10; i++) { await Ty('touchMove', 195 + i * 3, 380 + i * 22); await tp.waitForTimeout(30); } await tp.waitForTimeout(100);
+  const midPull = await tp.evaluate(() => ({ k: parseFloat(document.querySelector('#lightbox').style.getPropertyValue('--dismiss')) || 0 }));
+  midPull.frameEmpty = !(await frameShown());
+  for (let i = 11; i <= 14; i++) { await Ty('touchMove', 195 + i * 3, 380 + i * 22); await tp.waitForTimeout(10); } await Ty('touchEnd'); await tp.waitForTimeout(1200);
+  const thrown = { open: await tp.evaluate(() => document.querySelector('#lightbox').open), frame: await frameShown() };
+  await tp.touchscreen.tap(c2[0], c2[1]); await tp.waitForTimeout(1300);
+  await Ty('touchStart', 195, 500); for (let i = 1; i <= 8; i++) { await Ty('touchMove', 195, 500 - i * 20); await tp.waitForTimeout(16); } await Ty('touchEnd'); await tp.waitForTimeout(800);
+  const upward = await tp.evaluate(() => document.querySelector('#lightbox').open);
   await ctx.close();
   const r = {
     rides: !!ride && ride.curL < -100 && Math.abs(ride.gap - 24) <= 2 && paged === 1,
@@ -105,14 +128,18 @@ const phone = async (bug) => {
     flickGoesOn: flick.n1 !== flick.n0,
     caught: h0.length === 2 && h0.every((x, i) => Math.abs(x - h1[i]) <= 1) && h0.some(x => Math.abs(x) > 20),
     settles: settled.length === 1 && settled[0] === 0 && still,
+    pullSpringsBack: shortPull.open && (shortPull.tf === 'none' || shortPull.tf === 'matrix(1, 0, 0, 1, 0, 0)') && shortFrame,
+    pullEmptiesFrame: midPull.k > .3 && midPull.frameEmpty,
+    pullCloses: !thrown.open && thrown.frame,
+    upwardStays: upward,
   };
   const ok = Object.values(r).every(Boolean);
   report(`lightbox: the viewer on a phone${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, held: [h0, h1], settled }));
   return ok;
 };
 if (selfTest) {
-  const caught = !(await viewer('stacked')) && !(await viewer('adrift')) && !(await phone('uncatchable'));
-  console.log(caught ? 'SELF-TEST OK: the stacked photographs, the drifting row and the page a finger cannot catch were each caught' : 'SELF-TEST FAILED: gate cannot fail');
+  const caught = !(await viewer('stacked')) && !(await viewer('adrift')) && !(await phone('uncatchable')) && !(await phone('ghost'));
+  console.log(caught ? 'SELF-TEST OK: the stacked photographs, the drifting row, the page a finger cannot catch and the photograph seen twice were each caught' : 'SELF-TEST FAILED: gate cannot fail');
   await b.close(); process.exit(caught ? 0 : 1);
 }
 await viewer();
