@@ -34,16 +34,12 @@
       curtain.classList.add('is-open');
       setTimeout(() => { root.classList.remove('curtaining'); curtain.remove(); }, 1000);
     };
-    // the curtain waits on the first photographs the page will actually show — the bento it used to watch is gone
-    const shot = $$('.tell__figure img, .ring__item img').slice(0, 4);
-    const loaded = new Promise(res => {
-      let n = shot.filter(i => !i.complete).length;
-      if (!n) return res();
-      shot.forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (!--n) res(); }, { once: true }); });
-      setTimeout(res, 1600);
-    });
+    // THE CURTAIN WAITS FOR THE TYPE, NOT THE PHOTOGRAPHS (2026-10-16). It waited on the About section's and the ring's
+    // first four photographs, a screen and more below the fold, so on a phone over Lighthouse's slow 4G it held the whole
+    // page until 2.27s for pictures nobody could see yet, and the claim painted at 2.36s; the font was there at 1.02s.
+    // Every photograph fades in over its own placeholder as it arrives (v45), so there is nothing for the curtain to hide.
     const floor = new Promise(res => setTimeout(res, 620));
-    Promise.all([document.fonts ? document.fonts.ready : Promise.resolve(), loaded, floor]).then(open);
+    Promise.all([document.fonts ? document.fonts.ready : Promise.resolve(), floor]).then(open);
     setTimeout(open, 2600);
   }
 
@@ -369,6 +365,7 @@
       for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
     };
     const show = (i, dir = 0) => {
+      land();
       index = (i + names.length) % names.length;
       const pic = build(index);
       pic.className = 'is-current';
@@ -435,53 +432,87 @@
       morph({ img: big(), corner: bigCorner() }, { img, corner: cornerOf(to) }, true, () => lb.close());
     };
     buttons.forEach(b => b.addEventListener('click', () => open(b.dataset.photo, b)));
-    $('.lightbox__prev', lb).addEventListener('click', () => show(index - 1, -1));
-    $('.lightbox__next', lb).addEventListener('click', () => show(index + 1, 1));
+    $('.lightbox__prev', lb).addEventListener('click', () => step(-1));
+    $('.lightbox__next', lb).addEventListener('click', () => step(1));
     $('.lightbox__close', lb).addEventListener('click', close);
     lb.addEventListener('cancel', (e) => { if (canMorph()) { e.preventDefault(); close(); } });   // Esc
     lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lightbox__stage')) close(); });
-    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1, 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1, -1); } });
+    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } });
     lb.addEventListener('close', () => { flow.hold('lightbox', false); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); });
-    /* A FINGER PAGES THROUGH THEM, as in Photos: once it has gone 8px sideways the photograph follows it one to one and
-       the next one rides in beside it, 24px apart; let go past a fifth of the screen, or thrown, and the pair carries on
-       until the next one is home; short of that both go back. A swipe never closes the viewer, though it ends on the
-       scrim (the click it leaves is eaten). */
-    const GAP = 24;
-    let sw = null, eatClick = false, paging = false;
+    /* A FINGER PAGES THROUGH THEM, as in Photos, and to the three rules of docs/apple-design.md that a gesture lives by.
+       Once it has gone 8px sideways the photograph follows it one to one and the next one rides in beside it, 24px apart.
+       Let go, and where it goes is decided by where the throw would land (§6: the finger's speed carried on at Apple's
+       scroll deceleration, 0.998 a millisecond), not by how far it was dragged: past the middle, the pair carries on to
+       the next; short of it, both go back. The settle leaves at the finger's own speed (§5): the ease-out's first frame
+       moves at 1/0.22 of its average, so its length is chosen to match. And a touch while they are still moving catches
+       them where they are (§3, never lock out input): whichever of the two is nearer home becomes the one showing, and
+       the finger carries on from there. A swipe never closes the viewer, though it ends on the scrim (the click it
+       leaves is eaten), and neither does a catch. */
+    const GAP = 24, DECEL = .998;
+    let sw = null, eatClick = false, flight = null;
     const place = (el, x) => { el.style.transform = x ? `translateX(${x}px)` : ''; };
-    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch' || morphing || paging || sw || !current()) return; sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, on: false, side: 0, peek: null, s: [[e.timeStamp, e.clientX]] }; eatClick = false; });
+    const liveX = (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41;
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || morphing || sw || !current()) return;
+      let base = 0, peek = null, side = 0;
+      const caught = !!flight;
+      if (flight) {
+        const f = flight; flight = null;
+        const px = liveX(f.pic), kx = liveX(f.peek);
+        f.pic.getAnimations().forEach(a => a.cancel()); f.peek.getAnimations().forEach(a => a.cancel());
+        if (Math.abs(kx) < Math.abs(px)) {   // the incoming one is nearer home, so it is the one showing now
+          f.pic.classList.remove('is-current'); f.peek.className = 'is-current';
+          index = (index + f.side + names.length) % names.length; mark();
+          base = kx; peek = f.pic; side = -f.side;
+        } else { base = px; peek = f.peek; side = f.side; }
+        place(current(), base); place(peek, base + side * (stage.clientWidth + GAP));
+      }
+      sw = { id: e.pointerId, x0: e.clientX, y0: e.clientY, base, dx: base, on: caught, side, peek, s: [[e.timeStamp, e.clientX]] };
+      eatClick = caught;
+      if (caught) try { stage.setPointerCapture(e.pointerId); } catch {}
+    });
     stage.addEventListener('pointermove', (e) => {
       if (!sw || e.pointerId !== sw.id) return;
-      const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
-      if (!sw.on) { if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return; sw.on = true; eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {} }
+      const mx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+      if (!sw.on) { if (Math.abs(mx) < 8 || Math.abs(mx) < Math.abs(dy)) return; sw.on = true; eatClick = true; try { stage.setPointerCapture(e.pointerId); } catch {} }
+      const dx = sw.base + mx;
       // the neighbour on the side the finger is uncovering: the next one when it moves left, the one before when right
       const side = dx < 0 ? 1 : -1;
       if (side !== sw.side) { if (sw.peek) sw.peek.remove(); sw.peek = build(index + side); figure.appendChild(sw.peek); sw.side = side; }
-      const W = stage.clientWidth + GAP;
-      sw.dx = dx; place(current(), dx); place(sw.peek, dx + side * W);
+      sw.dx = dx; place(current(), dx); place(sw.peek, dx + side * (stage.clientWidth + GAP));
       sw.s.push([e.timeStamp, e.clientX]); while (sw.s.length > 2 && e.timeStamp - sw.s[0][0] > 100) sw.s.shift();
     });
     const letGo = (e) => {
       if (!sw || e.pointerId !== sw.id) return;
       const g = sw; sw = null;
-      if (!g.on) return;
-      const [t0, x0] = g.s[0], [t1, x1] = g.s[g.s.length - 1], v = t1 > t0 ? (x1 - x0) / (t1 - t0) : 0;
-      const pic = current(), peek = g.peek, W = stage.clientWidth + GAP, ms = num(getComputedStyle(root), '--dur-move', 280), ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
-      paging = true;
-      const go = Math.abs(g.dx) > stage.clientWidth * .2 || (Math.abs(v) > .4 && Math.sign(v) === Math.sign(g.dx));
+      if (!g.on || !g.peek) return;
+      // the speed of the last tenth of a second; a finger that stopped before letting go throws nothing
+      const [t0, x0] = g.s[0], [t1, x1] = g.s[g.s.length - 1], v = t1 > t0 && e.timeStamp - t1 < 60 ? (x1 - x0) / (t1 - t0) : 0;
+      const pic = current(), peek = g.peek, W = stage.clientWidth + GAP;
+      const landing = g.dx + v * DECEL / (1 - DECEL);
+      const go = Math.abs(landing) > stage.clientWidth / 2 && Math.sign(landing) === -g.side;
       const to = go ? -g.side * W : 0;   // where the one that was showing ends: off the far side, or home
+      const dist = Math.abs(to - g.dx), toward = Math.sign(v) === Math.sign(to - g.dx) && Math.abs(v) > .05;
+      const ms = !dist ? 1 : toward ? Math.min(420, Math.max(180, dist / (.22 * Math.abs(v)))) : num(getComputedStyle(root), '--dur-move', 280);
+      const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
       place(pic, 0); place(peek, 0);
       pic.animate([{ transform: `translateX(${g.dx}px)` }, { transform: `translateX(${to}px)` }], { duration: ms, easing: ease, fill: 'forwards' });
       const a = peek.animate([{ transform: `translateX(${g.dx + g.side * W}px)` }, { transform: `translateX(${to + g.side * W}px)` }], { duration: ms, easing: ease, fill: 'forwards' });
-      const done = () => {
+      const f = flight = { pic, peek, side: g.side, go, ms };
+      const done = f.done = () => {
+        if (flight !== f) return;   // caught by a finger on the way, which has taken them over
+        flight = null;
         if (go) { pic.remove(); peek.getAnimations().forEach(x => x.cancel()); peek.className = 'is-current'; index = (index + g.side + names.length) % names.length; mark(); }
         else { peek.remove(); pic.getAnimations().forEach(x => x.cancel()); }
-        paging = false;
       };
       a.finished.then(done, done);
     };
     stage.addEventListener('pointerup', letGo);
     stage.addEventListener('pointercancel', letGo);
+    // the keys, the arrows and the row land any page still in flight before they move on
+    // synchronously, so the index they step from is the one that landed
+    const land = () => { if (flight) flight.done(); };
+    const step = (d) => { land(); show(index + d, d); };
     lb.addEventListener('click', (e) => { if (eatClick) { eatClick = false; e.stopPropagation(); } }, true);
   }
 

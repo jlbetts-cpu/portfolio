@@ -89,6 +89,7 @@
 .field { display: flex; gap: var(--sp-2); align-items: stretch; }
 .input { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-full); background: var(--bg-raised); box-shadow: none; border: 0; color: var(--ink); font-size: var(--fs-ui); transition: background-color var(--t) var(--ease-out); }
 .input::placeholder { color: var(--ink-3); }
+@media (prefers-contrast: more) { .input { box-shadow: inset 0 0 0 1px var(--ring); } }
 @media (hover: hover) { .input:hover { background: var(--bg-sunken); } }
 .field.is-error .input { box-shadow: inset 0 0 0 1px var(--ink); }
 .field__message { margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--ink); min-height: 1.4em; }
@@ -178,6 +179,7 @@
 .dialog[open] { opacity: 1; transform: none; transition-duration: var(--dur-enter); }
 @starting-style { .dialog[open] { opacity: 0; transform: scale(.96); } }
 .dialog::backdrop { background: var(--scrim); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); opacity: 0; transition: opacity var(--dur-state-out) var(--ease-out); }
+@media (prefers-reduced-transparency: reduce) { .dialog::backdrop { background: rgba(21,20,29,.72); backdrop-filter: none; -webkit-backdrop-filter: none; } }
 .dialog[open]::backdrop { opacity: 1; }
 @starting-style { .dialog[open]::backdrop { opacity: 0; } }
 .dialog__close { position: absolute; top: var(--sp-3); right: var(--sp-3); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
@@ -250,6 +252,14 @@
 }
 @media (hover: none) { .lightbox__prev, .lightbox__next { display: none; } }
 @media (prefers-reduced-motion: reduce) { .lightbox__thumb { transition: none; } }
+/* A reader who has asked for less transparency gets the viewer's controls solid, the same grey they read as; one who
+   has asked for more contrast gets them ringed in white and every preview whole (docs/apple-design.md §14) */
+@media (prefers-reduced-transparency: reduce) { .lightbox .arrow, .lightbox .dialog__close { background: #2A2A2E; } }
+@media (prefers-contrast: more) {
+  .lightbox .arrow, .lightbox .dialog__close { background: #2A2A2E; box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); }
+  .lightbox__thumb { opacity: 1; }
+  .lightbox__thumb[aria-current] { outline: 2px solid #fff; outline-offset: 2px; }
+}
 .lightbox .dialog__close { width: var(--hit); height: var(--hit); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
 @media (prefers-reduced-motion: reduce) { .lightbox__figure, .lightbox[open] .lightbox__figure { transform: none; transition: none; } }
 

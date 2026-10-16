@@ -38,6 +38,19 @@ const second = await pg.evaluate(() => ({ curtaining: document.documentElement.c
 second.covered = await covers();
 report('curtain: a second load in the same session shows none', !second.curtaining && !second.covered && second.stored, JSON.stringify(second));
 await ctx.close();
+// it waits for the type and never for the photographs (2026-10-16): with every image held back for five seconds the
+// curtain still opens within 1.2s. It waited on four photographs a screen and more below the fold until then, and on a
+// phone over slow 4G that held the whole page until 2.25s (median of twelve) for pictures nobody could yet see.
+if (!selfTest) {
+  const ctx3 = await b.newContext({ viewport: { width: 1440, height: 900 } });
+  const pg4 = await ctx3.newPage();
+  await pg4.route(/\.(avif|webp|jpg|png)(\?|$)/, async (route) => { await new Promise(r => setTimeout(r, 5000)); try { await route.continue(); } catch {} });
+  await pg4.addInitScript(() => { window.__opened = 0; new MutationObserver(() => { if (!window.__opened && document.querySelector('.curtain.is-open')) window.__opened = Math.round(performance.now()); }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] }); });
+  await pg4.goto(URL, { waitUntil: 'domcontentloaded' }); await pg4.waitForTimeout(2200);
+  const opened = await pg4.evaluate(() => window.__opened);
+  report('curtain: waits for the type, never for the photographs', opened > 0 && opened < 1200, `opened at ${opened}ms with every image held back`);
+  await ctx3.close();
+}
 // reduced motion: never
 const ctx2 = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
 const pg3 = await ctx2.newPage();

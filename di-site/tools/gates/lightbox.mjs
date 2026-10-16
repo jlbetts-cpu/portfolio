@@ -6,7 +6,11 @@
 // photographs stacked; the stage is solid. On a phone: the photograph runs the screen's width, the arrows give way to the
 // swipe, a finger thrown sideways goes to the next photograph without closing the viewer, and a short one springs back;
 // held halfway, the next photograph rides in beside the one being dragged, 24px behind its edge, as Photos pages.
-// --self-test: "stacked" keeps every old photograph, "adrift" stops the row from following; each must fail.
+// Since 2026-10-16 the phone's paging keeps docs/apple-design.md's rules: a slow drag to 35% that stops goes back and a
+// 60px throw goes on (where the throw lands decides, §6), and a touch while a page is settling catches both photographs
+// where they are, then settles the nearer one home (§3).
+// --self-test: "stacked" keeps every old photograph, "adrift" stops the row from following, "uncatchable" makes a page
+// in flight impossible to stop; each must fail.
 import { browser, open, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
@@ -54,44 +58,65 @@ const viewer = async (bug) => {
   report(`lightbox: the viewer is Photos' 1440${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, centreOff: [s0, s1, s2].map(s => +s.centre.toFixed(1)), pictures: [s0, s1, s2].map(s => s.pictures) }));
   return ok;
 };
-if (selfTest) {
-  const caught = !(await viewer('stacked')) && !(await viewer('adrift'));
-  console.log(caught ? 'SELF-TEST OK: the stacked photographs and the drifting row were each caught' : 'SELF-TEST FAILED: gate cannot fail');
-  await b.close(); process.exit(caught ? 0 : 1);
-}
-await viewer();
 // on a phone, with a finger through the browser's own touch input
-{
+const phone = async (bug) => {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const tp = await ctx.newPage();
   await tp.addInitScript(() => { try { sessionStorage.setItem('di:curtain', '1'); } catch {} });
+  // the bug: a page in flight that a finger cannot catch, which is what "paging" locked out until 2026-10-16
+  if (bug === 'uncatchable') await tp.addInitScript(() => { Animation.prototype.cancel = function () {}; });
   await tp.goto(URL); await tp.waitForTimeout(700);
   await tp.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.tell__figure .photo').scrollIntoView({ block: 'center' }); }); await tp.waitForTimeout(700);
   const c = await tp.evaluate(() => { const r = document.querySelector('.tell__figure .photo__open').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
   await tp.touchscreen.tap(c[0], c[1]); await tp.waitForTimeout(1300);
   const cdp = await ctx.newCDPSession(tp);
+  const T = (type, x) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: x === undefined ? [] : [{ x, y: 420 }] });
   const name = () => tp.evaluate(() => { const i = document.querySelector('.lightbox__figure picture.is-current img'); return (i.currentSrc || i.src).split('/').pop().replace(/-\d+\.\w+$/, ''); });
-  const swipe = async (dx, steps, gap) => {
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 195, y: 420 }] });
-    for (let i = 1; i <= steps; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 195 + dx * i / steps, y: 420 }] }); await tp.waitForTimeout(gap); }
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(900);
+  const pics = () => tp.evaluate(() => [...document.querySelectorAll('.lightbox__figure picture')].map(p => Math.round(new DOMMatrixReadOnly(getComputedStyle(p).transform).m41)));
+  const swipe = async (from, dx, steps, gap, pause = 0) => {
+    await T('touchStart', from);
+    for (let i = 1; i <= steps; i++) { await T('touchMove', from + dx * i / steps); await tp.waitForTimeout(gap); }
+    if (pause) await tp.waitForTimeout(pause);
+    await T('touchEnd'); await tp.waitForTimeout(900);
   };
   const m0 = await tp.evaluate(() => ({ w: Math.round(document.querySelector('.lightbox__figure picture.is-current img').getBoundingClientRect().width), vw: innerWidth, arrows: getComputedStyle(document.querySelector('.lightbox__next')).display }));
   // halfway and held: the next photograph rides in beside the one being dragged, 24px behind its edge
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 300, y: 420 }] });
-  for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 300 - i * 16, y: 420 }] }); await tp.waitForTimeout(30); }
+  await T('touchStart', 300);
+  for (let i = 1; i <= 10; i++) { await T('touchMove', 300 - i * 16); await tp.waitForTimeout(30); }
   await tp.waitForTimeout(150);
-  const ride = await tp.evaluate(() => { const ps = [...document.querySelectorAll('.lightbox__figure picture')], cur = ps.find(p => p.classList.contains('is-current')), peek = ps.find(p => p !== cur); if (!cur || !peek) return null; const s = document.querySelector('.lightbox__stage'); return { curL: cur.getBoundingClientRect().left, peekL: peek.getBoundingClientRect().left, gap: peek.getBoundingClientRect().left - (cur.getBoundingClientRect().left + s.clientWidth) }; });
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await tp.waitForTimeout(900);
-  const paged = await tp.evaluate(() => document.querySelectorAll('.lightbox__figure picture').length);
-  const n0 = await name(); await swipe(-40, 8, 40); const n1 = await name();
-  const back = await tp.evaluate(() => getComputedStyle(document.querySelector('.lightbox__figure picture.is-current')).transform);
-  await swipe(-160, 8, 12); const n2 = await name();
-  const still = await tp.evaluate(() => document.querySelector('#lightbox').open);
+  const ride = await tp.evaluate(() => { const ps = [...document.querySelectorAll('.lightbox__figure picture')], cur = ps.find(p => p.classList.contains('is-current')), peek = ps.find(p => p !== cur); if (!cur || !peek) return null; const s = document.querySelector('.lightbox__stage'); return { curL: cur.getBoundingClientRect().left, gap: peek.getBoundingClientRect().left - (cur.getBoundingClientRect().left + s.clientWidth) }; });
+  await T('touchEnd'); await tp.waitForTimeout(900);
+  const paged = (await pics()).length;
+  // where a throw lands decides it (docs/apple-design.md §6): 35% dragged slowly and stopped goes back; 60px thrown goes on
+  let n = await name(); await swipe(300, -136, 14, 40, 200); const slow = { n0: n, n1: await name(), xs: await pics() };
+  n = await name(); await swipe(300, -60, 5, 10); const flick = { n0: n, n1: await name() };
+  // a touch while a page is still settling catches it where it is (§3): both hold still under the finger, then the
+  // nearer one settles home when it lets go
+  await T('touchStart', 330); for (let i = 1; i <= 12; i++) { await T('touchMove', 330 - i * 19.5); await tp.waitForTimeout(30); } await tp.waitForTimeout(120); await T('touchEnd');
+  await tp.waitForTimeout(60); await T('touchStart', 200); await tp.waitForTimeout(40);
+  const h0 = await pics(); await tp.waitForTimeout(120); const h1 = await pics();
+  await T('touchEnd'); await tp.waitForTimeout(900);
+  const settled = await pics(), still = await tp.evaluate(() => document.querySelector('#lightbox').open);
   await ctx.close();
-  const r = { rides: !!ride && ride.curL < -100 && Math.abs(ride.gap - 24) <= 2 && paged === 1, fullWidth: m0.w === m0.vw, noArrows: m0.arrows === 'none', springsBack: n1 === n0 && (back === 'none' || back === 'matrix(1, 0, 0, 1, 0, 0)'), swipes: n2 !== n0, staysOpen: still };
-  report('lightbox: the viewer on a phone', Object.values(r).every(Boolean), JSON.stringify({ ...r, names: [n0, n1, n2] }));
+  const r = {
+    rides: !!ride && ride.curL < -100 && Math.abs(ride.gap - 24) <= 2 && paged === 1,
+    fullWidth: m0.w === m0.vw, noArrows: m0.arrows === 'none',
+    slowGoesBack: slow.n1 === slow.n0 && slow.xs.length === 1 && slow.xs[0] === 0,
+    flickGoesOn: flick.n1 !== flick.n0,
+    caught: h0.length === 2 && h0.every((x, i) => Math.abs(x - h1[i]) <= 1) && h0.some(x => Math.abs(x) > 20),
+    settles: settled.length === 1 && settled[0] === 0 && still,
+  };
+  const ok = Object.values(r).every(Boolean);
+  report(`lightbox: the viewer on a phone${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, held: [h0, h1], settled }));
+  return ok;
+};
+if (selfTest) {
+  const caught = !(await viewer('stacked')) && !(await viewer('adrift')) && !(await phone('uncatchable'));
+  console.log(caught ? 'SELF-TEST OK: the stacked photographs, the drifting row and the page a finger cannot catch were each caught' : 'SELF-TEST FAILED: gate cannot fail');
+  await b.close(); process.exit(caught ? 0 : 1);
 }
+await viewer();
+await phone();
 const pg = await open(b, 1440, 900);
 const count = await pg.evaluate(() => document.querySelectorAll('[data-photo]').length);
 const names = await pg.evaluate(() => new Set([...document.querySelectorAll('[data-photo]')].map(b => b.dataset.photo)).size);
