@@ -22,10 +22,10 @@
 <link rel="manifest" href="site.webmanifest?v=55e079c2a2">
 <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/tokens.css?v=edc1de774a">
-<link rel="stylesheet" href="css/base.css?v=c6cb8530d7">
+<link rel="stylesheet" href="css/base.css?v=e35207d817">
 <link rel="stylesheet" href="css/components.css?v=ee30c8a069">
-<link rel="stylesheet" href="css/home.css?v=6db7a86c1a">
-<script src="js/main.js?v=37bf675b34" defer></script>
+<link rel="stylesheet" href="css/home.css?v=acfcdbf410">
+<script src="js/main.js?v=8c71fdc79e" defer></script>
 </head>
 <body>
 <script>(function(){var h=document.documentElement,c=1;try{c=/[?&#]curtain\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}catch(e){}h.classList.add('js');var n;try{n=localStorage.getItem('di:newsletter')}catch(e){try{n=sessionStorage.getItem('di:newsletter')}catch(f){}}if(n==='subscribed')h.classList.add('subscribed');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')})()</script>
@@ -73,14 +73,17 @@
     </div>
   </section>
 
-  <section class="voices-sec" id="voices" aria-label="Testimonials">
+<section class="tell watch" id="china" aria-labelledby="chinaTitle"><div class="container grid tell__row"><figure class="tell__figure reveal"><div class="film" data-film style="background-image:url(data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAABwBgCdASoYACsAPu1oqE8ppiOiKqwBMB2JaQAAPZCOZZ1K9PyhCfdDeiaT4bZwB5XmA/fhTxP1F5QpQMQA/u5/fo+c7PWR9VTouaQLhLoLXXkk0LJIBnd43L4zmmsunKh06gHsJYEZ/7RJsQGgkz6cWX27fi7ls2cvG3Vr3KJ2NDZ/WRcijjpe1v9zpQnhYcOEA/rg6Sz+WRmQoAA=)"><video class="film__video" controls playsinline preload="none" width="540" height="960" aria-label="Film: From a Student My Teachers Gave Up On to an Educator: How Improv Changed My Life"><source src="assets/video/linda-china.mp4?v=5f524b2be0" type="video/mp4"></video><picture class="film__poster"><source type="image/avif" srcset="assets/video/linda-china-poster.avif?v=52b232d7fa"><source type="image/webp" srcset="assets/video/linda-china-poster.webp?v=5239c4a528"><img src="assets/video/linda-china-poster.jpg?v=6c319d763b" width="540" height="960" alt="" loading="lazy" decoding="async"></picture><button class="film__play" type="button" aria-label="Play the film, 1 minute 57 seconds: From a Student My Teachers Gave Up On to an Educator: How Improv Changed My Life"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div></figure><div class="tell__copy reveal"><h2 class="tell__title" id="chinaTitle">Her work in China</h2><p class="tell__p">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p></div></div></section>
+
+  <!-- the grounds alternate (Apple's bands): the film's section is white, so from here the grey moves down one -->
+  <section class="voices-sec band" id="voices" aria-label="Testimonials">
     <div class="container">
       <ul class="voices grid reveal--stagger" aria-label="Testimonials"><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li></ul>
     </div>
   </section>
 </main>
 
-<section class="close band" aria-labelledby="newsletterTitle">
+<section class="close" aria-labelledby="newsletterTitle">
   <!-- The closing line and the newsletter: the last thing the page says. The ways to reach Linda moved into the footer
        below it (2026-10-13), which is drawn the way his portfolio's is. -->
   <div class="container"><div class="close__body reveal">

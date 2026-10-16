@@ -129,6 +129,30 @@
   .tell__figure { width: 100%; }
 }
 
+/* ---------- Her work in China: the film (2026-10-16) ----------
+   The section above's shape, with the film under the words at its own 9:16: 405 wide is 720 tall, which sits whole on
+   a 900px screen under the header. Its poster is its own first frame, so play hands over without a jump; until the
+   film is asked for, nothing of it loads. One quiet button, the pause control's light at 56px, then the browser's own
+   controls, which know fullscreen, captions and the keyboard better than anything built here. The button sits in the
+   corner, not the centre: the centre is the poster's own title, and a button there sat on "Changed". */
+.watch .tell__figure { width: min(100%, 405px); }
+.film { position: relative; aspect-ratio: 9 / 16; border-radius: var(--r-lg); overflow: hidden; background: #141414 center / cover no-repeat; isolation: isolate; }
+.film__video, .film__poster, .film__poster img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.film__video { object-fit: cover; }
+.film__poster img { object-fit: cover; }
+.film__poster { transition: opacity var(--dur-state-out) var(--ease-out); }
+.film__play { position: absolute; right: 16px; bottom: 16px; z-index: 1; width: 56px; height: 56px; padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.film__play .icon { width: 22px; height: 22px; margin-left: 3px; }   /* a triangle's weight sits left of its box: nudged to the optical centre */
+@media (hover: hover) { .film__play:hover { background: #fff; } }
+.film__play:active { transform: scale(.94); }
+.film__play:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* started: the button goes at once, the poster once the film is drawing its own first frame under it */
+.film.is-started .film__play, .film.is-playing .film__poster { opacity: 0; pointer-events: none; }
+/* without the script there is no button: the browser's controls are there from the start, over the film's own frame */
+html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
+@media (prefers-reduced-transparency: reduce) { .film__play { background: #fff; } }
+@media (prefers-contrast: more) { .film__play { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); } }
+
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
    The geometry is one relationship: eight items on a circle of radius r sit 2r·sin(22.5°) = 0.765r apart, so an item

@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v59 (2026-10-16) — her work in China: the film
+*"my aunt was given a video to add to the site where should we put it I told her we can put it in its own section about her work in china."* The film is 1:57, portrait (540×960), from an iPhone: an interview, Linda telling how a student her teachers gave up on became an educator, beside a Chinese interviewer, then a workshop in China, with English and Chinese subtitles burned in, opening on its own title card and closing on "Play. Discover. Grow."
+
+**Where: straight after the quote ring.** Her line, "Creativity in motion creates knowledge!", and then the work in motion. Straight after "Who Linda is" reads best on paper, but every section alternates white and grey, and a section there would have pushed the ring, which stays as it is, onto white. After the ring only the testimonials (now grey) and the closing section (now white) change ground, and the closing section and the footer, which were both grey, alternate now too. The email field takes the ground it sits on, so on white it is the light grey field the dialog has.
+
+**How it sits**: the shape of the two sections above, the headline and the words, then the film under them at its own 9:16: 405px wide on a desktop, 720 tall, whole on a 900px screen under the header; the column's width on a phone (350×622 at 390). Its poster is its own first frame, the title card, so play hands over without a jump; the card's 12px black bars are cropped from the poster, which is what sits on the page. One quiet button, the pause control's light at 56px, in the bottom-right corner: in the centre it sat on "Changed" in the poster's title. Play turns the sound on (it is a woman telling her own story) and hands over to the browser's own controls and focus, which know fullscreen and the keyboard better than anything built here.
+
+**What it weighs**: nothing until it is asked for. `preload="none"`, and the poster is lazy, so a walk down the whole page fetches none of the film and the poster once it is near (28 KB). The iPhone's HEVC is not played by Chrome or Firefox on many machines, so the film is re-encoded to H.264 at CRF 26 with its AAC sound copied as it was: 11.5 MB, laid out to start playing before it has all arrived. CRF 23 was 16.1 MB and 28 was 9.3; the subtitles read the same at all three, and 26 keeps more of the floor's texture than 28. Decoded end to end with no errors.
+
+**A bug the gate found before anyone could**: a browser that cannot play H.264 (this test Chromium, which has no decoder of its own) left a dead poster with no button, because when every `<source>` fails the spec has the video wait for another, and play()'s promise never settles. The last source's own error now gives the button back, with focus.
+
+The copy is placeholder like the two sections above; the title is his phrase. New gate `film.mjs`: the place and the grounds, nothing fetched, the poster at 1440 and on a phone, play (answered, since this browser cannot decode it), the refusal, and the file (H.264/AAC, fast-start, stamped, the browser's controls without the script); its self-test preloads the film, puts its section on grey and plays it muted. 82 lines, sixteen self-tests.
+
 ## v58 (2026-10-16) — the photographs, sharp
 A walk down the page at 1440 found the ring's circles soft, softer than their size allowed. Measured on every photograph at eight screens: on a 2x screen at 1440 the files were stretched a median **1.83x in the ring, 1.94x in the two sections and 1.61x in the strip** (2.1x at worst), and at 1x the strip and the ring were 1.6x and 1.8x.
 

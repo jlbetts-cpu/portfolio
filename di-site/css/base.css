@@ -17,7 +17,7 @@
    That includes every control: a button and a field are capsules, as Some Wins' are (its PrimaryCapsule, its glass
    capsule; docs/taste.md). A capsule drawn with a superellipse corner is a lozenge, not a pill. */
 .arrow, .photo--circle, .voice__avatar, .btn[aria-busy="true"]::after, .lightbox .dialog__close,
-.nav__menu, .sheet__close, .dialog__close, .reel__pause { corner-shape: round; }
+.nav__menu, .sheet__close, .dialog__close, .reel__pause, .film__play { corner-shape: round; }
 /* A BUTTON AND A FIELD ARE A PILL ON THE SUPERELLIPSE, as every control on his portfolio is (2026-10-13): its .ctl is
    border-radius 999px with corner-shape: var(--corner), which draws a soft rounded box, not a round-ended capsule. For
    a day (v35) they opted out of the superellipse to be Some Wins' round capsules; the header now matches his site. */

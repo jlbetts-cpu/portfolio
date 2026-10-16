@@ -677,6 +677,30 @@
     lb.addEventListener('pointerdown', () => { eatClick = false; }, true);
   }
 
+  /* ---- The film (2026-10-16): her work in China ----
+     Nothing of it loads until it is asked for (preload none), only its poster. The button plays it with the sound on,
+     since it is a woman telling her own story, and goes at once; the poster stays until the film is drawing its own
+     first frame under it, which is the poster's frame, so nothing jumps. From then on the browser's own controls have
+     it, and the keyboard with them. Without the script the browser's controls are there from the start. */
+  $$('[data-film]').forEach((film) => {
+    const video = $('video', film), play = $('.film__play', film);
+    if (!video || !play) return;
+    video.controls = false;
+    video.addEventListener('playing', () => film.classList.add('is-playing'), { once: true });
+    // a browser that cannot play it gives the button back rather than leaving a dead poster. When every <source> fails
+    // the spec has the video wait for another, so play()'s promise never settles: the last source's own error says it
+    const refuse = () => { film.classList.remove('is-started'); video.controls = false; if (film.contains(document.activeElement)) play.focus({ preventScroll: true }); };
+    const last = $$('source', video).pop();
+    if (last) last.addEventListener('error', refuse);
+    play.addEventListener('click', () => {
+      if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) return;   // it has failed already: nothing to start
+      film.classList.add('is-started'); video.controls = true; video.muted = false;
+      video.focus({ preventScroll: true });
+      const p = video.play();
+      if (p && p.catch) p.catch(refuse);
+    });
+  });
+
   /* ---- Reveal on scroll, once ----
      ONCE means the class comes off. `.js .reveal` declares `transition: opacity/transform var(--dur-reveal)` plus the
      stagger's transition-delay, and it outranks a component's own rule — so every card kept the arrival's timing for

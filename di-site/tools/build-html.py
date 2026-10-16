@@ -193,6 +193,31 @@ def tell(idp, label, title, name, paras, flip):
             f'<h2 class="tell__title" id="{idp}Title">{title}</h2>'
             f'{body}</div></div></section>')
 tells=''.join(tell(*t) for t in TELL)
+
+# ---- Her work in China: the film (2026-10-16) ----
+# Linda was given a film of her work in China (an interview and a workshop, English and Chinese subtitles burned in) and
+# Jayden told her it would have a section of its own. It comes after the quote ring: her line, "Creativity in motion
+# creates knowledge!", and then the work in motion. Directly after "Who Linda is" read best on paper, but every section
+# alternates white and grey, so a section there pushed the ring, which stays as it is, onto white; here only the
+# testimonials and the closing section change ground. The same centred stack as the two sections above, the film
+# under the words at its own 9:16. Nothing of the film loads until it is asked for, only its poster (its own first
+# frame, the title card), and one quiet button plays it with the sound on and hands over to the browser's controls.
+# THE COPY HERE IS PLACEHOLDER, like the two sections above, until Linda writes it.
+FILM=json.load(open(f'{root}/assets/video/linda-china.json'))
+FILM_TITLE='From a Student My Teachers Gave Up On to an Educator: How Improv Changed My Life'
+_fv='assets/video/linda-china'
+china=(f'<section class="tell watch" id="china" aria-labelledby="chinaTitle">'
+       f'<div class="container grid tell__row">'
+       f'<figure class="tell__figure reveal"><div class="film" data-film style="background-image:url({FILM["placeholder"]})">'
+       f'<video class="film__video" controls playsinline preload="none" width="{FILM["width"]}" height="{FILM["height"]}" aria-label="Film: {html.escape(FILM_TITLE)}">'
+       f'<source src="{_fv}.mp4?v={V(_fv+".mp4")}" type="video/mp4"></video>'
+       f'<picture class="film__poster"><source type="image/avif" srcset="{_fv}-poster.avif?v={V(_fv+"-poster.avif")}"><source type="image/webp" srcset="{_fv}-poster.webp?v={V(_fv+"-poster.webp")}">'
+       f'<img src="{_fv}-poster.jpg?v={V(_fv+"-poster.jpg")}" width="{FILM["width"]}" height="{FILM["height"]}" alt="" loading="lazy" decoding="async"></picture>'
+       f'<button class="film__play" type="button" aria-label="Play the film, {FILM["duration"].replace(":", " minute ")} seconds: {html.escape(FILM_TITLE)}">'
+       f'<svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button>'
+       f'</div></figure>'
+       f'<div class="tell__copy reveal"><h2 class="tell__title" id="chinaTitle">Her work in China</h2>'
+       f'<p class="tell__p">{LOREM[0]}</p></div></div></section>')
 LOREM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 quotes=[LOREM+" Ut enim ad minim veniam, quis nostrud.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."]
 # three tiles; the middle one carries the last of the six arcs, the other two are the raised ground
@@ -289,14 +314,17 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
-  <section class="voices-sec" id="voices" aria-label="Testimonials">
+{china}
+
+  <!-- the grounds alternate (Apple's bands): the film's section is white, so from here the grey moves down one -->
+  <section class="voices-sec band" id="voices" aria-label="Testimonials">
     <div class="container">
       <ul class="voices grid reveal--stagger" aria-label="Testimonials">{pile}</ul>
     </div>
   </section>
 </main>
 
-<section class="close band" aria-labelledby="newsletterTitle">
+<section class="close" aria-labelledby="newsletterTitle">
   <!-- The closing line and the newsletter: the last thing the page says. The ways to reach Linda moved into the footer
        below it (2026-10-13), which is drawn the way his portfolio's is. -->
   <div class="container"><div class="close__body reveal">
