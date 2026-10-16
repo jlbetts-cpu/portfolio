@@ -9,8 +9,13 @@
 // Since 2026-10-16 the phone's paging keeps docs/apple-design.md's rules: a slow drag to 35% that stops goes back and a
 // 60px throw goes on (where the throw lands decides, §6), and a touch while a page is settling catches both photographs
 // where they are, then settles the nearer one home (§3).
+// Also since 2026-10-16: the first tap after a swipe is heard. A swipe on a phone sends no click, so the eater it armed
+// for the click it might leave waited, and swallowed the next tap on a preview or the close button. And a sideways
+// drag begun while a pull is still springing back follows the finger: the spring held the photograph still under it
+// for the whole 120px until it finished.
 // --self-test: "stacked" keeps every old photograph, "adrift" stops the row from following, "uncatchable" makes a page
-// in flight impossible to stop; each must fail.
+// in flight impossible to stop, "ghost" never empties the frame, "deaf" keeps a tap's touch from reaching the viewer
+// (so the eater is never disarmed), "sticky" lets the spring run on under a new touch; each must fail.
 import { browser, open, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
@@ -66,6 +71,10 @@ const phone = async (bug) => {
   // the bug: a page in flight that a finger cannot catch, which is what "paging" locked out until 2026-10-16
   if (bug === 'uncatchable') await tp.addInitScript(() => { Animation.prototype.cancel = function () {}; });
   // the bug: a frame that is never emptied, so a pulled photograph is seen twice
+  // the bug: the viewer never hears a touch on its previews or its close button, which is what left a swipe's eater armed
+  if (bug === 'deaf') await tp.addInitScript(() => { addEventListener('pointerdown', (e) => { if (e.target.closest && e.target.closest('.lightbox__rail, .lightbox__close')) e.stopPropagation(); }, true); });
+  // the bug: a new touch that does not land what is still settling, so a running spring outranks the finger
+  if (bug === 'sticky') await tp.addInitScript(() => { const f = Animation.prototype.finish; Animation.prototype.finish = function () { if (this.effect && this.effect.target && this.effect.target.tagName === 'PICTURE') return; return f.call(this); }; });
   if (bug === 'ghost') await tp.addInitScript(() => { addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '.photo { visibility: visible !important; }'; document.head.appendChild(st); }); });
   await tp.goto(URL); await tp.waitForTimeout(700);
   await tp.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.tell__figure .photo').scrollIntoView({ block: 'center' }); }); await tp.waitForTimeout(700);
@@ -92,6 +101,11 @@ const phone = async (bug) => {
   // where a throw lands decides it (docs/apple-design.md §6): 35% dragged slowly and stopped goes back; 60px thrown goes on
   let n = await name(); await swipe(300, -136, 14, 40, 200); const slow = { n0: n, n1: await name(), xs: await pics() };
   n = await name(); await swipe(300, -60, 5, 10); const flick = { n0: n, n1: await name() };
+  // the first tap after a swipe: a preview two along opens its photograph
+  const at = () => tp.evaluate(() => [...document.querySelectorAll('.lightbox__thumb')].findIndex(t => t.hasAttribute('aria-current')));
+  const i0 = await at(), tb = await tp.evaluate((k) => { const r = document.querySelectorAll('.lightbox__thumb')[k].getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, i0 + 2);
+  await tp.touchscreen.tap(tb[0], tb[1]); await tp.waitForTimeout(900);
+  const tapAfter = { from: i0, to: await at() };
   // a touch while a page is still settling catches it where it is (§3): both hold still under the finger, then the
   // nearer one settles home when it lets go
   await T('touchStart', 330); for (let i = 1; i <= 12; i++) { await T('touchMove', 330 - i * 19.5); await tp.waitForTimeout(30); } await tp.waitForTimeout(120); await T('touchEnd');
@@ -112,6 +126,12 @@ const phone = async (bug) => {
   await Ty('touchStart', 195, 380); for (let i = 1; i <= 7; i++) { await Ty('touchMove', 195, 380 + i * 10); await tp.waitForTimeout(30); } await tp.waitForTimeout(150); await Ty('touchEnd'); await tp.waitForTimeout(600);
   const shortPull = await tp.evaluate(() => ({ open: document.querySelector('#lightbox').open, tf: getComputedStyle(document.querySelector('.lightbox__figure picture.is-current')).transform }));
   const shortFrame = await frameShown();
+  // the same short pull, and 30ms into its spring a sideways drag of 60px that stops and goes back: it follows the finger
+  const cx = () => tp.evaluate(() => Math.round(new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.lightbox__figure picture.is-current')).transform).m41));
+  await Ty('touchStart', 195, 380); for (let i = 1; i <= 7; i++) { await Ty('touchMove', 195, 380 + i * 10); await tp.waitForTimeout(30); } await tp.waitForTimeout(150); await Ty('touchEnd');
+  await tp.waitForTimeout(30); await Ty('touchStart', 300, 420); const follow = [];
+  for (let i = 1; i <= 3; i++) { await Ty('touchMove', 300 - i * 20, 420); await tp.waitForTimeout(16); follow.push(await cx()); }
+  await tp.waitForTimeout(200); await Ty('touchEnd'); await tp.waitForTimeout(700);
   await Ty('touchStart', 195, 380); for (let i = 1; i <= 10; i++) { await Ty('touchMove', 195 + i * 3, 380 + i * 22); await tp.waitForTimeout(30); } await tp.waitForTimeout(100);
   const midPull = await tp.evaluate(() => ({ k: parseFloat(document.querySelector('#lightbox').style.getPropertyValue('--dismiss')) || 0 }));
   midPull.frameEmpty = !(await frameShown());
@@ -126,20 +146,22 @@ const phone = async (bug) => {
     fullWidth: m0.w === m0.vw, noArrows: m0.arrows === 'none',
     slowGoesBack: slow.n1 === slow.n0 && slow.xs.length === 1 && slow.xs[0] === 0,
     flickGoesOn: flick.n1 !== flick.n0,
+    tapAfterSwipe: tapAfter.to === tapAfter.from + 2,
     caught: h0.length === 2 && h0.every((x, i) => Math.abs(x - h1[i]) <= 1) && h0.some(x => Math.abs(x) > 20),
     settles: settled.length === 1 && settled[0] === 0 && still,
     pullSpringsBack: shortPull.open && (shortPull.tf === 'none' || shortPull.tf === 'matrix(1, 0, 0, 1, 0, 0)') && shortFrame,
+    swipeAfterPull: follow.every((x, i) => Math.abs(x + (i + 1) * 20) <= 2),
     pullEmptiesFrame: midPull.k > .3 && midPull.frameEmpty,
     pullCloses: !thrown.open && thrown.frame,
     upwardStays: upward,
   };
   const ok = Object.values(r).every(Boolean);
-  report(`lightbox: the viewer on a phone${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, held: [h0, h1], settled }));
+  report(`lightbox: the viewer on a phone${bug ? ' [' + bug + ']' : ''}`, ok, JSON.stringify({ ...r, held: [h0, h1], settled, tapAfter, follow }));
   return ok;
 };
 if (selfTest) {
-  const caught = !(await viewer('stacked')) && !(await viewer('adrift')) && !(await phone('uncatchable')) && !(await phone('ghost'));
-  console.log(caught ? 'SELF-TEST OK: the stacked photographs, the drifting row, the page a finger cannot catch and the photograph seen twice were each caught' : 'SELF-TEST FAILED: gate cannot fail');
+  const caught = !(await viewer('stacked')) && !(await viewer('adrift')) && !(await phone('uncatchable')) && !(await phone('ghost')) && !(await phone('deaf')) && !(await phone('sticky'));
+  console.log(caught ? 'SELF-TEST OK: the stacked photographs, the drifting row, the page a finger cannot catch, the photograph seen twice, the swallowed tap and the sticky spring were each caught' : 'SELF-TEST FAILED: gate cannot fail');
   await b.close(); process.exit(caught ? 0 : 1);
 }
 await viewer();

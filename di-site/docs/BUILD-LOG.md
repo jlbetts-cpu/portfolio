@@ -1,5 +1,16 @@
 # Build log — Developmental Improvisation, home page
 
+## v57 (2026-10-16) — a careful read of the viewer's gestures
+*"keep improving and iderating do the recommended."* The viewer had gained a lot of gesture code in two days, so before anything new it was read line by line for bugs. Three were real, each now measured, fixed and gated.
+
+**The first tap after a swipe was swallowed.** On a phone, swipe to the next photograph, then tap the close button or a preview: nothing happened, and it took a second tap. A swipe arms a flag that eats the click it might end in, so a drag that ends on the scrim cannot close the viewer; but a finger's swipe ends in no click, and the flag was only cleared by a touch on the photograph itself, so it waited and ate the next tap anywhere else. Any new touch in the viewer now clears it, before the stage's own touch arms it again for one that catches a page in flight.
+
+**A swipe straight after a short pull was held still.** Pulled down a little and let go, the photograph springs back over 280ms; a sideways drag begun in that time did not move it at all for the whole 120px, because the running spring outranked the finger. A new touch now lands whatever is still settling (the spring, the stage coming back up, a photograph fading in) before it takes hold: the photograph now sits under the finger to the pixel (-20, -40 … -120).
+
+**The neighbours were warmed with a file nothing showed.** Opening a photograph fetched the two either side ahead of time, as the largest WebP (1440 or 1920px), while the viewer shows the AVIF its own `srcset` picks: over four steps on a phone, about 515 KB that was never shown, beside about 244 KB that was. They are now warmed with a preload that has the viewer's own `srcset`, `sizes` and type, so it fetches exactly the file the viewer then asks for. Measured at 390@2x, 390@3x, 1440@1x and 1440@2x: every photograph shown was fetched once, with no WebP and no file twice.
+
+The lightbox gate's phone checks gained the tap after a swipe and the swipe after a pull, with two planted bugs: a touch on the previews and the close button that never reaches the viewer, and a spring that runs on under a new touch. 73 lines, fourteen self-tests.
+
 ## v56 (2026-10-16) — pull down to close, as Photos does
 *"im going out so just keep improving and iderating do the recommended."* Of the viewer ideas recommended and not yet built, the one that finishes it as Photos: on a phone, a photograph pulled down closes.
 

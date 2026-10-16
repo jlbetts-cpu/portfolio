@@ -441,8 +441,6 @@
       img.style.width = Math.round(d.w * k) + 'px'; img.style.height = Math.round(d.h * k) + 'px';
     };
     addEventListener('resize', () => { const pic = current(); if (lb.open && pic) fit($('img', pic), lbData[names[index]]); });
-    // dir: 1 forward, -1 back, 0 no movement (the first photograph, or a jump with nothing to give way). from: where a
-    // finger let go of the old one, so it carries on from there rather than starting again from the middle
     // one photograph's picture, sized from its own proportions and with its preview drawn large under it until it arrives
     const build = (i) => {
       const d = lbData[names[(i + names.length) % names.length]];
@@ -455,14 +453,27 @@
       img.addEventListener('load', () => { img.style.backgroundImage = ''; }, { once: true });
       return pic;
     };
+    // THE NEIGHBOURS ARE WARMED WITH THE FILE THE VIEWER WILL SHOW (2026-10-16). They were fetched as the largest WebP
+    // (1440px), while the viewer shows the AVIF its srcset picks for the screen (960 on a phone): a second file, about
+    // as large again, that nothing then used. A preload with the same srcset, sizes and type fetches exactly what the
+    // <picture> will ask for, and a browser without AVIF skips it.
+    const warmed = new Set();
+    const warm = (name) => {
+      if (warmed.has(name)) return; warmed.add(name);
+      const d = lbData[name], l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.type = 'image/avif';
+      l.setAttribute('imagesrcset', d.avif.map(([w, u]) => `${u} ${w}w`).join(', ')); l.setAttribute('imagesizes', '90vw');
+      document.head.appendChild(l);
+    };
     // everything else that follows the photograph showing: the row, its focus, the live line, the neighbours warmed
     const mark = () => {
       const d = lbData[names[index]];
       thumbs.forEach((t, k) => { if (k === index) { t.setAttribute('aria-current', 'true'); t.tabIndex = 0; } else { t.removeAttribute('aria-current'); t.tabIndex = -1; } });
       if (lb.open) { centreRail(true); if (rail.contains(document.activeElement)) thumbs[index].focus({ preventScroll: true }); }
       live.textContent = `Photograph ${index + 1} of ${names.length}. ${d.alt}`;
-      for (const k of [index + 1, index - 1]) { const n = lbData[names[(k + names.length) % names.length]]; const im = new Image(); im.src = n.webp[n.webp.length - 1][1]; }
+      for (const k of [index + 1, index - 1]) warm(names[(k + names.length) % names.length]);
     };
+    // dir: 1 forward, -1 back, 0 no movement (the first photograph, or a jump with nothing to give way)
     const show = (i, dir = 0) => {
       land();
       index = (i + names.length) % names.length;
@@ -591,6 +602,9 @@
       if (e.pointerType !== 'touch' || morphing || sw || !current()) return;
       let base = 0, peek = null, side = 0;
       const caught = !!flight;
+      // a new gesture lands whatever else is still settling: a pull springing back, the stage coming up again, a
+      // photograph fading in, would otherwise hold the photograph against the finger until it finished
+      if (!flight) { current().getAnimations().forEach(a => a.finish()); cancelAnimationFrame(dismissRaf); lb.style.removeProperty('--dismiss'); }
       if (flight) {
         const f = flight; flight = null;
         const px = liveX(f.pic), kx = liveX(f.peek);
@@ -657,6 +671,10 @@
     const land = () => { if (flight) flight.done(); };
     const step = (d) => { land(); show(index + d, d); };
     lb.addEventListener('click', (e) => { if (eatClick) { eatClick = false; e.stopPropagation(); } }, true);
+    // and a new touch anywhere in the viewer disarms it (2026-10-16): a swipe on a phone sends no click of its own, so
+    // the eater it armed waited, and swallowed the next tap on the close button or a preview. Capture, so it runs
+    // before the stage's own pointerdown, which arms it again for a touch that catches a page in flight
+    lb.addEventListener('pointerdown', () => { eatClick = false; }, true);
   }
 
   /* ---- Reveal on scroll, once ----
