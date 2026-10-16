@@ -1,5 +1,5 @@
 # Generates index.html once from images/manifest.json + the copy. Dev tool; the output is committed and served static.
-import json, html, re, hashlib
+import json, html, re, hashlib, math
 root='/home/user/portfolio/di-site'
 man=json.load(open(f'{root}/images/manifest.json'))
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
@@ -64,6 +64,33 @@ def lb_data():
                 't':[f'images/{n}-160.avif',f'images/{n}-160.webp'],'pos':POS[n]}
     return json.dumps(out,separators=(',',':'))
 
+# SIZES COUNT THE CROP (2026-10-16). A frame fills with its photograph (object-fit: cover), so a photograph wider than
+# its frame is drawn wider than the frame: a 3:2 photograph in a 4:5 frame is drawn 1.875 times the frame's width, and
+# its file must be chosen for that width, not the frame's. Every sizes here said the frame's width (and the ring's and
+# the sections' said less than that), so on a 2x screen at 1440 the browser picked files stretched a median 1.83x in
+# the ring, 1.94x in the sections and 1.61x in the strip, and they were soft. Each photograph now gets its own sizes:
+# the frame's width at each breakpoint (measured, see the frames below) times its crop factor.
+# A PHONE AT 3x IS SERVED AS 2x: on a phone's screen a 3x photograph is not told from a 2x one at arm's length (Twitter
+# measured it, 2019, and capped theirs), and it is 2.25 times the pixels. So at 2.5dppx and over a phone's sizes are
+# said two-thirds as large, and the browser picks the file a 2x phone would. Desktops and tablets are never 3x.
+def crop(name, frame):   # frame: the frame's height over its width (1 for a circle, 1.25 for 4:5)
+    m=man[name]; return max(1.0, frame*m['width']/m['height'])
+def px(v): return f'{math.ceil(v)}px'
+HI='(min-resolution: 2.5dppx)'
+# the strip's frame: eight 12px pitches less its 6px gap up to 959px, 1.25vw pitches to 1679px, then 21px pitches
+def strip_sizes(n):
+    k=crop(n,1.25)
+    return f'(max-width: 959px) and {HI} {px(60*k)}, (max-width: 959px) {px(90*k)}, (max-width: 1679px) calc({10*k:.2f}vw - {px(6*k)}), {px(162*k)}'
+# the ring's circle: 19vw to 80px on a phone, then --ring-item's 150, 190 and 220
+def ring_sizes(n):
+    k=crop(n,1)
+    return (f'(max-width: 420px) and {HI} {19*k*2/3:.2f}vw, (max-width: 420px) {19*k:.2f}vw, (max-width: 767px) and {HI} {px(80*k*2/3)}, '
+            f'(max-width: 767px) {px(80*k)}, (max-width: 1023px) {px(150*k)}, (max-width: 1279px) {px(190*k)}, {px(220*k)}')
+# a section's photograph: the column less its two 20px gutters on a phone, then 560px
+def tell_sizes(n):
+    k=crop(n,1.25)
+    return f'(max-width: 767px) and {HI} calc({100*k*2/3:.2f}vw - {px(40*k*2/3)}), (max-width: 767px) calc({100*k:.2f}vw - {px(40*k)}), {px(560*k)}'
+
 def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, button=True, ghost=False):
     m=man[name]
     # a ghost copy needs no blurred placeholder: by the time the loop brings it on screen the first copy has fetched
@@ -76,8 +103,7 @@ def photo(name, ratio, sizes, lazy=True, hover=False, caption=None, big=False, b
 # the quote ring: eight shaped photographs. A tilted photograph is scaled 1.45 to fill the rotated square, so it must have
 # its subject at the centre and no dark ground: linda-portrait and kids-bw-small read as black shapes there and are out.
 RING=['bow-tie-chairs','linda-stage','cast-pose','floor-game','laugh-hat','cast-stage-small','three-men','duo-brick']
-RSIZES='(max-width: 767px) 76px, (max-width: 1023px) 116px, 148px'
-ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,RSIZES)}</figure></div>' for n in RING)
+ring=''.join(f'<div class="ring__item"><figure class="photo photo--1x1 photo--circle" style="--pos:{POS[n]};background-image:url({man[n]["placeholder"]})">{picture(n,ring_sizes(n))}</figure></div>' for n in RING)
 
 
 # ---- The reel ----
@@ -96,8 +122,7 @@ COLUMNS=[
  ['yellow-trousers','bow-ties-wall'],
 ]
 REEL=[n for row in zip(*[c+[None]*(3-len(c)) for c in COLUMNS]) for n in row if n]
-RSZ='(max-width: 767px) 90px, (max-width: 1679px) 138px, 162px'
-_reel_run=lambda ghost: ''.join(f'<li class="reel__item">{photo(n, "4x5", RSZ, ghost=ghost)}</li>' for n in REEL)
+_reel_run=lambda ghost: ''.join(f'<li class="reel__item">{photo(n, "4x5", strip_sizes(n), ghost=ghost)}</li>' for n in REEL)
 reel=(f'<div class="reel" data-reel role="region" aria-label="From the sessions"><div class="reel__track">'
       f'<ul class="reel__run">{_reel_run(False)}</ul><ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul>'
       f'<ul class="reel__run" aria-hidden="true">{_reel_run(True)}</ul></div>'
@@ -155,7 +180,6 @@ LOREM=[
  "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
  "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
 ]
-TSIZES='(max-width: 767px) 92vw, 44vw'
 TELL=[
  ('about','The method','What Developmental Improvisation is','two-lines',[LOREM[0],LOREM[1]],False),
  ('founder','The founder','Who Linda is','linda-laughing',[LOREM[2],LOREM[1]],True),
@@ -164,7 +188,7 @@ def tell(idp, label, title, name, paras, flip):
     body=''.join(f'<p class="tell__p">{t}</p>' for t in paras)
     return (f'<section class="tell{"" if flip else " band"}" id="{idp}" aria-labelledby="{idp}Title">'
             f'<div class="container grid tell__row">'
-            f'<figure class="tell__figure reveal">{photo(name, "4x5", TSIZES, hover=True)}</figure>'
+            f'<figure class="tell__figure reveal">{photo(name, "4x5", tell_sizes(name), hover=True, big=True)}</figure>'
             f'<div class="tell__copy reveal">'
             f'<h2 class="tell__title" id="{idp}Title">{title}</h2>'
             f'{body}</div></div></section>')

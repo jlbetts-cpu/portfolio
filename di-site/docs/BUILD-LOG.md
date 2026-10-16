@@ -1,5 +1,18 @@
 # Build log — Developmental Improvisation, home page
 
+## v58 (2026-10-16) — the photographs, sharp
+A walk down the page at 1440 found the ring's circles soft, softer than their size allowed. Measured on every photograph at eight screens: on a 2x screen at 1440 the files were stretched a median **1.83x in the ring, 1.94x in the two sections and 1.61x in the strip** (2.1x at worst), and at 1x the strip and the ring were 1.6x and 1.8x.
+
+**Why: `sizes` said the frame, not the photograph.** A frame fills with its photograph (`object-fit: cover`), so a photograph wider than its frame is drawn wider than the frame: a 3:2 one in the strip's 4:5 frame at 1.875 times the frame's width, a 4:3 one in a circle at 1.33 times. The browser chooses a file by `sizes`, and every `sizes` gave the frame's width; the ring's said 148px for a 220px circle and the sections' 44vw for a 560px column, and the sections' photographs were never offered a file past 960. Each photograph now has its own `sizes`, the frame's width at each breakpoint (measured at nineteen widths) times its own crop factor, and the sections' photographs are offered their 1440 and 1920.
+
+**A 640px step.** With nothing between 480 and 960, a strip photograph on a 2x screen, which needs about 520px, fetched the 960: four times the pixels for 8% more width. The image pipeline now writes 640 too. The sources are not on this machine, so the first 640s were made from the best file already there (the 960 JPEG at q82, or a larger AVIF), with the pipeline's own settings; set beside the 480 enlarged, the 640 is plainly sharper and shows nothing of being made that way. The next run from the sources replaces them.
+
+**A 3x phone is served as 2x**: at arm's length a 3x photograph is not told from a 2x one (Twitter measured it in 2019 and capped theirs), and it is 2.25 times the pixels, so at 2.5dppx and over a phone's `sizes` are said two-thirds as large.
+
+Now nothing is stretched past 1.05x except two photographs whose originals are small (linda-laughing, 960px wide, at 1.17x in its section on a 2x screen; cast-stage-small, 600px, at 1.22x in the ring). Looked at side by side on a 2x screen, the strip's faces, hands and the video call's screen are visibly crisper. **The price is bytes**: a visit's photographs on a 2x laptop go from 260 KB to 627 KB (the first screen 160 to 396 KB), on a 1x one from 141 to 251 KB, and on a 3x phone from 260 to 330 KB (508 KB without the cap). Nothing waits for them: the curtain waits only for the type, and each fades in over its blurred placeholder.
+
+**The images gate could not have caught it**: it measured against the frame and asked only that nothing be too large, so it passed the soft page, and against the frame it now called a 1.95:1 photograph in a 4:5 frame "oversized". Both sides are now measured against the width drawn, at 1440 on 1x and 2x and on a 3x phone: no file stretched past 1.25x unless it is the largest there is, none more than twice what is drawn unless it is the smallest. Its new self-test puts back the old `sizes` and fails with 21 soft photographs at 1x alone. 75 lines, fifteen self-tests.
+
 ## v57 (2026-10-16) — a careful read of the viewer's gestures
 *"keep improving and iderating do the recommended."* The viewer had gained a lot of gesture code in two days, so before anything new it was read line by line for bugs. Three were real, each now measured, fixed and gated.
 

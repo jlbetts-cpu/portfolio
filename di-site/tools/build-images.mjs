@@ -1,5 +1,5 @@
 // Developmental Improvisation — image pipeline.
-// Reads images/src/*, writes AVIF + WebP at 160/320/480/960/1440 (never upscaling), a JPEG fallback at 960,
+// Reads images/src/*, writes AVIF + WebP at 160/320/480/640/960/1440/1920 (never upscaling), a JPEG fallback at 960,
 // and a 24px blurred WebP placeholder as a data URI, into images/. Writes images/manifest.json.
 import sharp from 'sharp';
 import { readdir, mkdir, writeFile, stat } from 'node:fs/promises';
@@ -7,9 +7,13 @@ import path from 'node:path';
 
 const SRC = path.resolve(import.meta.dirname, '../images/src');
 const OUT = path.resolve(import.meta.dirname, '../images');
-const WIDTHS = [160, 320, 480, 960, 1440, 1920]; // 160 is for the hero shapes and the ring: a 74px circle should not
+const WIDTHS = [160, 320, 480, 640, 960, 1440, 1920]; // 160 is for the hero shapes and the ring: a 74px circle should not
 // pull a 320px file. 1920 exists for the one full-field photograph — a 1648px panel on a 2x screen wants more than 1440
 // — and is written only where the source can carry it, which is seven of the twenty-five.
+// 640 since 2026-10-16: a 3:2 photograph in the strip's 4:5 frame on a 2x screen needs about 520px, and with nothing
+// between 480 and 960 the browser fetched the 960, four times the pixels for 8% more width. The first 640s were made
+// from the best file already in images/ (the 960 JPEG or a larger AVIF), because the sources were not on that machine;
+// the next run of this script from the sources replaces them.
 const SKIP = /^(letters|\.)/;
 // Per-photograph grading, applied on the way out so images/src keeps the untouched original. Measured, not eyeballed:
 // linda-portrait is a studio portrait on a black backdrop and 87% of its pixels sat in the bottom sixteenth of the

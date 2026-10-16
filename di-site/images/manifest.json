@@ -7,6 +7,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -21,6 +22,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -35,6 +37,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
@@ -50,6 +53,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
@@ -65,6 +69,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -91,6 +96,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -105,6 +111,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
@@ -120,6 +127,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -134,6 +142,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -147,7 +156,8 @@
   "sizes": [
    160,
    320,
-   480
+   480,
+   640
   ],
   "placeholder": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAADwAwCdASoYAAwAPu1oqk6ppiQiMAgBMB2JaQAAWlxTl1FNEphUJI2AAP70KNuIEkdOYJ7vnxdxChXNcPD9ZpG7TLT4/yFg+mG1eQCpazLJLLVK604bJlnY9jcT3MgA",
   "jpeg": "kids-bw-small-960.jpg"
@@ -160,6 +170,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -174,6 +185,7 @@
    160,
    320,
    480,
+   640,
    960
   ],
   "placeholder": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoYABAAPu1iqk2ppaQiMAgBMB2JYwDE2BYnmTSSZ+QgAP5gvFcFcCn/Wtg0Dc3nJLZK9am1an1VkQUeW0LmqV/tJZcu3woJPSkEqM+vJJ2b2aFh+rMxzLkggE1cU82gAAA=",
@@ -187,6 +199,7 @@
    160,
    320,
    480,
+   640,
    960
   ],
   "placeholder": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAABQBgCdASoYACQAPu1orU+ppaQiKrgMATAdiUAXz3JwEbeiPZJcCSwsj00zxTjhOm8nhAu2mjx4pR0D0AD+dX0G+ijvpKwPwW94a2trLyHJ79l4ugWI/G0375TKW+w+TUIeJ8t+iHrIl5u96jKeTAhCHyz56LR/9tk1QwqsNdLTDBaoisjtr5oB9c9oVx1dQiQzphy7ojpxEe9cAAA=",
@@ -199,7 +212,8 @@
   "sizes": [
    160,
    320,
-   480
+   480,
+   640
   ],
   "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAQBQCdASoYABUAPu1or1CppaQiqAqpMB2JQBYjcnAaJYj4cgcfsBqSNXz1GtO0an+QAP7xbRnGkMWN6mpuS3I9+RGEuOoX2ViopCDaf2W1+RVR7KhsB86bKP2BLLYTbsgca4Xpl8yVZhrZC7YLgMQ+vngGpB66XGqH6/9ForSPGqPgt6MgkAAA",
   "jpeg": "linda-circle-960.jpg"
@@ -212,6 +226,7 @@
    160,
    320,
    480,
+   640,
    960
   ],
   "placeholder": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAADQBQCdASoYACQAPu1gqU4ppSOiMBVdUTAdiWkAAHG0YrPlpyaV7x5hDM7FLa6j/0FAnMAs3cdAAPP8AI4ztLCpXHrLeQb+mNx22/rQJoF+AxHbbDse6udVcE75ybn8rJIwLGQA1ndz28v/v2mZTp7AhQWLxbQiWHGFsfn+XSkFn7aqBjk3UwmrKTU356oAAAA=",
@@ -225,6 +240,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -239,6 +255,7 @@
    160,
    320,
    480,
+   640,
    960
   ],
   "placeholder": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAABwBgCdASoYACQAPu1sr1GppaQipWsxMB2JQBeUhc2vnrSErtaN/4yCvdIehiZyNd3A1OtIv4UoWBXlreAA/vhIz8n1x0KKBsL7uVpDtJqat1n+mDGiwd8EUeo7+QMIuXpx2ZgmjqDvqo4ygQbXlENigLslmJio1N2yYvoe9CTV2J6sVlEzvtNnk7EyyKgr9B9rf2UaiJlG/TIE4SgAAA==",
@@ -252,6 +269,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -266,6 +284,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -280,6 +299,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
@@ -295,6 +315,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440
   ],
@@ -309,6 +330,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
@@ -324,6 +346,7 @@
    160,
    320,
    480,
+   640,
    960
   ],
   "placeholder": "data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAADQBQCdASoYACAAPu1eqE6ppKOiMBgMATAdiWIAt9ja/AAyOiaT+1GWHDYfPY7ccUDqcIKSAJ4AAPh243YD2wJN3aPKs2xupYrOKvIN+7rrydMq6GFGbsXUin2zWALPKPYkjyNe2gYhYDPLqFxT0GuMWi3zjWcBbOlV7+efXFCiPhU3omoRostvQ0FpQIKz33enm+C2Gxt+AE2En4vndCC8Gklbks5W4S2+cU5pF5byX38Ng0aXAAAA",
@@ -337,6 +360,7 @@
    160,
    320,
    480,
+   640,
    960,
    1440,
    1920
