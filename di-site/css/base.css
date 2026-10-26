@@ -16,8 +16,8 @@
 /* A circle is a circle. corner-shape turns a 50% radius into a superellipse too, so anything meant to be round opts back out.
    That includes every control: a button and a field are capsules, as Some Wins' are (its PrimaryCapsule, its glass
    capsule; docs/taste.md). A capsule drawn with a superellipse corner is a lozenge, not a pill. */
-.arrow, .photo--circle, .voice__avatar, .btn[aria-busy="true"]::after, .lightbox .dialog__close,
-.nav__menu, .sheet__close, .dialog__close, .reel__pause, .film__play { corner-shape: round; }
+.arrow, .photo--circle, .btn[aria-busy="true"]::after, .lightbox .dialog__close,
+.nav__menu, .sheet__close, .dialog__close, .on-photo { corner-shape: round; }
 /* A BUTTON AND A FIELD ARE A PILL ON THE SUPERELLIPSE, as every control on his portfolio is (2026-10-13): its .ctl is
    border-radius 999px with corner-shape: var(--corner), which draws a soft rounded box, not a round-ended capsule. For
    a day (v35) they opted out of the superellipse to be Some Wins' round capsules; the header now matches his site. */
@@ -41,17 +41,6 @@ ul { margin: 0; padding: 0; list-style: none; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { background: color-mix(in srgb, var(--logo-sky) 26%, transparent); color: var(--ink); }   /* the logo's sky, softly: an inverted black block was the one harsh thing left */
 
-/* Type roles */
-.t-display { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600; color: var(--ink); }
-.t-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); }
-.t-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--ink); max-width: var(--measure-h2); }
-.t-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); }
-.t-lead { font-size: var(--fs-lead); line-height: var(--lh-lead); letter-spacing: var(--ls-lead); color: var(--ink); }
-.t-body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); max-width: var(--measure-body); }
-.t-small { font-size: var(--fs-small); line-height: var(--lh-small); }
-.t-caption { font-size: var(--fs-caption); line-height: var(--lh-caption); letter-spacing: var(--ls-caption); color: var(--ink); }
-.t-body + .t-body { margin-top: var(--sp-4); }
-
 /* Layout */
 .container { max-width: var(--page-max); padding-inline: var(--gutter); margin-inline: auto; }
 /* APPLE'S BANDS (2026-10-13, "lowkey want it to look more apple", "Grey bands" from the rendered pass): every section is
@@ -59,10 +48,8 @@ ul { margin: 0; padding: 0; list-style: none; }
    change of ground is the break. On a grey band a field or a soft control takes the white, or it would vanish. It was
    one white page with --section-y between sections, the ring 1.4 times that as the page's one break. */
 main > section + section, .close { margin-top: 0; }
-.tell, .section.ring, .voices-sec, .close { padding-block: clamp(80px, 9vw, 140px); }
+.tell, .section.ring, .voices-sec, .close { padding-block: var(--section-y); }
 .band { background: var(--band); --bg-raised: var(--bg-overlay); }
-/* the label: 12px caps, nothing else. It had a coloured dot; Jayden removed it. */
-.label { display: block; font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); font-weight: 600; text-transform: uppercase; color: var(--ink); }
 /* the twelve-column grid every section lays out on */
 .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--grid-gap); }
 @media (min-width: 768px) { .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } }

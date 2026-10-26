@@ -72,19 +72,25 @@
    sees it. Hidden, it takes no taps, so it never stands in for the photograph under it. It stills the strip, the ring
    and the mark's glint together (main.js); under reduced motion it is not there at all, because nothing moves. */
 .reel { position: relative; }
-.reel__pause { position: absolute; right: 12px; top: 50%; z-index: 1; width: var(--hit); height: var(--hit); padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transform: translateY(-50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+/* ONE LIGHT CONTROL OVER A PHOTOGRAPH (2026-10-26; the bible's §14 C1, one component per job, drawn once). The
+   strip's pause and the film's play are the same thing, a circle of light with an ink glyph that has to read on the
+   darkest and the brightest picture beneath it, and they were drawn twice, rule for rule, in two places that could
+   drift. Each keeps only its place, its size and how it comes and goes. */
+.on-photo { padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--on-photo); color: var(--ink); }
+@media (hover: hover) { .on-photo:hover { background: #fff; } }
+.on-photo:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-transparency: reduce) { .on-photo { background: #fff; } }
+@media (prefers-contrast: more) { .on-photo { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); } }
+.reel__pause { position: absolute; right: 12px; top: 50%; z-index: 1; width: var(--hit); height: var(--hit); transform: translateY(-50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .reel:hover .reel__pause { opacity: 1; pointer-events: auto; transition-duration: var(--dur-state), var(--dur-state), var(--dur-press); } }
 .reel.is-touched .reel__pause, .reel__pause:focus-visible { opacity: 1; pointer-events: auto; }
 .reel__pause .icon { width: 16px; height: 16px; }
 .reel__pause .icon--play, .motion-paused .reel__pause .icon--pause { display: none; }
 .motion-paused .reel__pause .icon--play { display: block; }
-@media (hover: hover) { .reel__pause:hover { background: #fff; } }
-.reel__pause:active { transform: translateY(-50%) scale(.92); }
-.reel__pause:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.reel__pause:active { transform: translateY(-50%) scale(var(--press-glyph)); }
 .motion-paused .logo--hero .logo__shine { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .reel__pause { display: none; } }
-@media (prefers-reduced-transparency: reduce) { .reel__pause { background: #fff; } }
-@media (prefers-contrast: more) { .reel__pause { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); opacity: 1; pointer-events: auto; } }
+@media (prefers-contrast: more) { .reel__pause { opacity: 1; pointer-events: auto; } }
 /* THE HOLE PITCH IS A WHOLE PIXEL and a frame is exactly eight of it, gap included, so every frame's row of holes ends
    where the next begins. With a fractional pitch (a frame's width over eight) each frame rounded its own last hole and
    they doubled up at the joins, worst on a phone. round() keeps the pitch whole as it scales; behind @supports,
@@ -141,17 +147,13 @@
 .film__video { object-fit: cover; }
 .film__poster img { object-fit: cover; }
 .film__poster { transition: opacity var(--dur-state-out) var(--ease-out); }
-.film__play { position: absolute; right: 16px; bottom: 16px; z-index: 1; width: 56px; height: 56px; padding: 0; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.82); color: var(--ink); transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.film__play { position: absolute; right: 16px; bottom: 16px; z-index: 1; width: 56px; height: 56px; transition: opacity var(--dur-state-out) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .film__play .icon { width: 22px; height: 22px; margin-left: 3px; }   /* a triangle's weight sits left of its box: nudged to the optical centre */
-@media (hover: hover) { .film__play:hover { background: #fff; } }
-.film__play:active { transform: scale(.94); }
-.film__play:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.film__play:active { transform: scale(var(--press-glyph)); }
 /* started: the button goes at once, the poster once the film is drawing its own first frame under it */
 .film.is-started .film__play, .film.is-playing .film__poster { opacity: 0; pointer-events: none; }
 /* without the script there is no button: the browser's controls are there from the start, over the film's own frame */
 html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
-@media (prefers-reduced-transparency: reduce) { .film__play { background: #fff; } }
-@media (prefers-contrast: more) { .film__play { background: #fff; box-shadow: inset 0 0 0 1px var(--ring); } }
 
 /* ---------- The quote ring ----------
    The one section Jayden kept. Eight circular photographs turning around the quote, upright, driven by the flow.
@@ -217,7 +219,6 @@ html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
 /* ---------- The closing section ----------
    The closing line and the newsletter: the last thing the page says, three bands of type with nothing round them. The
    ways to reach Linda went down into the footer on 2026-10-13, when the footer became his portfolio's. */
-.close { padding-bottom: var(--section-y); }
 .close__body { color: var(--ink); }
 .close__grid { align-items: start; row-gap: var(--sp-12); }
 .close__lead { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); max-width: 16em; text-wrap: balance; }
@@ -247,16 +248,16 @@ html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
 .foot__brand { display: inline-flex; align-items: center; min-width: var(--hit); min-height: var(--hit); margin-bottom: var(--sp-1); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 .foot__brand .logo { width: 40px; height: auto; display: block; overflow: visible; }
 @media (hover: hover) { .foot__brand:hover { opacity: .72; } }
-.foot__brand:active { transform: scale(.94); }
+.foot__brand:active { transform: scale(var(--press-glyph)); }
 .foot__status { font-size: 1.125rem; line-height: 1.25; letter-spacing: -0.011em; font-weight: 600; color: var(--ink); text-wrap: balance; }   /* "heart" hung alone on a phone */
-.foot__copy, .close__copy { font-size: var(--fs-caption); color: var(--ink); }
+.foot__copy { font-size: var(--fs-caption); color: var(--ink); }
 .foot__nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
 .foot__col { display: grid; justify-items: stretch; align-content: start; }   /* each row is the column's width, as his are: "Call" alone was 27px across */
 .foot__head { font-size: var(--fs-small); line-height: 1.45; font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); }
 .foot__link { display: inline-flex; align-items: center; min-height: var(--hit); padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-small); color: var(--ink); cursor: pointer; text-align: left;
   text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
 @media (hover: hover) { .foot__link:hover { text-decoration-color: currentColor; } }
-.foot__link:active { transform: scale(.98); }
+.foot__link:active { transform: scale(var(--press-text)); }
 @media (max-width: 767px) {
   .foot__top { grid-template-columns: minmax(0, 1fr); gap: var(--sp-10); padding-top: var(--sp-12); }
   .foot { padding-bottom: var(--sp-8); }

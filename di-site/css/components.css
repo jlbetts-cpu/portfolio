@@ -8,7 +8,7 @@
    also caught the transform, and since a press only ever happens while hovered, the press rung was dead on every
    button on the page. */
 :where(.btn, .arrow, .nav__brand, .nav__links a, .sheet__close, .sheet__links a, .dialog__close,
-  .input, .bento__col .photo, .ring__item .photo, .foot__link, .foot__brand):hover { --t: var(--dur-state); }
+  .input, .ring__item .photo, .foot__link, .foot__brand):hover { --t: var(--dur-state); }
 
 /* EVERY HOVER EFFECT LIVES INSIDE @media (hover: hover). A phone has no hover, but it fakes one: a tap leaves the
    element in :hover until the next tap somewhere else, so a photograph opened from its section stayed scaled after the
@@ -18,7 +18,7 @@
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 46px; padding: 0 var(--sp-5); border-radius: var(--r-full); font-size: var(--fs-ui); font-weight: 600; line-height: 1; white-space: nowrap; border: 1px solid transparent; transition: background-color var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
-.btn:active { transform: scale(.97); }
+.btn:active { transform: scale(var(--press-text)); }
 /* THE MAIN ACTION IS OUTLINED (2026-10-13). It was the one near-black fill on the page, and Jayden: "this brand the
    di is more light so having such a dark cta … doesnt really fit the site." Chosen from three renderings (outlined,
    the logo's sky, a soft grey): the page's white, a 1px ring of the ink drawn inside the box, the ink's type, which is
@@ -30,9 +30,6 @@
    control that used to be drawn as an outline is a soft fill now, so it still reads as something to press without a
    rule round it; dividers are gone and the space between things does their job. The focus ring and the error ring
    stay — those are states, not decoration. */
-.btn--secondary { background: var(--bg-raised); color: var(--ink); border-color: transparent; }
-@media (hover: hover) { .btn--secondary:hover { background: var(--bg-sunken); } }
-.btn--ghost { background: transparent; color: var(--ink); }
 /* THE OUTLINED CONTROL, his portfolio's .ctl--secondary (2026-10-13): the page's white, a 1px ring of the ink at 12%
    drawn inside the box, the ink's type. A ring, not a border, so it adds nothing to the box and the 44px holds. */
 .btn--line { background: var(--bg-overlay); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ring); }
@@ -44,24 +41,17 @@
 .btn[aria-busy="true"] { color: transparent; position: relative; }
 .btn[aria-busy="true"]::after { content: ""; position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--ink); border-right-color: transparent; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.btn--secondary[aria-busy="true"]::after { border-color: var(--ink); border-right-color: transparent; }
 
 /* Round arrow buttons */
 .arrow { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ink); color: var(--bg); transition: transform var(--dur-press) var(--ease-out), background-color var(--t) var(--ease-out); }
 @media (hover: hover) { .arrow:hover { background: color-mix(in srgb, var(--ink) 84%, var(--bg)); } }
-.arrow:active { transform: scale(.94); }
+.arrow:active { transform: scale(var(--press-glyph)); }
 .arrow .icon { width: 18px; height: 18px; }
 .arrows { display: flex; gap: var(--sp-2); }
 
 /* Icons */
 .icon { width: 22px; height: 22px; fill: currentColor; flex: none; }
 
-/* Cards. A card is the raised ground; a solid card is the hue itself, at full strength, with the ink that hue takes.
-   On a solid card every text tier goes to --on-accent: a translucent tier over a saturated hue reads as dirt, not as hierarchy. */
-.card { position: relative; background: var(--bg-raised); border-radius: var(--r-lg); padding: var(--card-pad); }
-.card--solid { background: var(--accent); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); color: var(--ink); }
-/* a tile of pure colour, no photograph: the only other place a hue appears */
-.tile { background: var(--accent); border-radius: var(--r-lg); }
 
 /* Photo. ONE shape: a rectangle with the same superellipse corner as everything else, at one ratio per section.
    The circle is the single exception, and it belongs to the quote ring. Every photograph is a button that opens the lightbox. */
@@ -75,9 +65,8 @@
 .photo__open:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
 .photo__open picture { width: 100%; height: 100%; }
 .photo { transition: transform var(--dur-press) var(--ease-out); }
-.photo:has(> .photo__open:active) { transform: scale(.985); }
+.photo:has(> .photo__open:active) { transform: scale(var(--press-photo)); }
 .photo--4x5 { aspect-ratio: 4 / 5; }
-.photo--3x2 { aspect-ratio: 3 / 2; }
 .photo--1x1 { aspect-ratio: 1 / 1; }
 .photo--circle { border-radius: 50%; }
 .photo picture { width: 100%; height: 100%; }
@@ -123,9 +112,9 @@
    same mark drawn at 160px. Every rendering of it was tried at 26, 32 and 48px and none of them held at nav size —
    it is a drawing, not an icon. So the header carries the name and the hero carries the mark, once, large. On a
    phone the name is now there too; it used to be the mark alone, and the name appeared nowhere above the fold. */
-.nav__brand { display: inline-flex; align-items: center; gap: 9px; height: var(--hit); color: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+.nav__brand { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--hit); color: var(--ink); font-family: var(--font-display); font-size: var(--fs-ui); font-weight: 600; letter-spacing: -0.014em; white-space: nowrap; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .nav__brand:hover { opacity: .72; } }
-.nav__brand:active { transform: scale(.97); }
+.nav__brand:active { transform: scale(var(--press-text)); }
 .nav__panel { display: flex; align-items: center; gap: var(--sp-2); }
 .nav__glyph { width: 26px; height: 28px; flex: none; color: var(--ink); }   /* the logo's own proportion, 787 by 842 */
 /* one filled action in the bar, at the bar's own scale. It was an outlined box — the only bordered thing on the
@@ -144,10 +133,10 @@
 .nav__links a::after { content: attr(data-label); grid-area: 1 / 1; height: 0; overflow: hidden; visibility: hidden; font-weight: 600; }
 .nav__links a[aria-current] { font-weight: 600; }
 @media (hover: hover) { .nav__links a:hover { color: var(--ink); } }
-.nav__links a:active { transform: scale(.94); }
+.nav__links a:active { transform: scale(var(--press-text)); }
 /* on a phone the menu is an icon, not a word: the list becomes an × while the sheet is open */
 .nav__menu { display: none; width: var(--hit); height: var(--hit); align-items: center; justify-content: center; color: var(--ink); border-radius: 50%; transition: transform var(--dur-press) var(--ease-out); }
-.nav__menu:active { transform: scale(.92); }
+.nav__menu:active { transform: scale(var(--press-glyph)); }
 .nav__menu .icon--close, .nav__menu[aria-expanded="true"] .icon--open { display: none; }
 .nav__menu[aria-expanded="true"] .icon--close { display: block; }
 @media (max-width: 767px) {
@@ -157,7 +146,6 @@
   .nav__menu { margin-right: 0; }   /* inside the pill now: its 44px box sits 4px in from the pill's edge */
   .nav__menu { display: inline-flex; }
 }
-@media (max-width: 359px) { .nav__brand { font-size: 15px; } }   /* the name and the menu fit at 320 */
 @media (prefers-reduced-motion: reduce) { .nav { transition: background-color var(--dur-state) linear; } .nav.is-hidden { transform: none; } }
 
 /* Menu sheet (mobile) */
@@ -168,10 +156,10 @@
 .sheet__head { display: flex; justify-content: flex-end; align-items: center; height: var(--hit); margin-bottom: var(--sp-8); }
 .sheet__close { width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-2); transition: color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .sheet__close:hover { color: var(--ink); } }
-.sheet__close:active { transform: scale(.92); }
+.sheet__close:active { transform: scale(var(--press-glyph)); }
 .sheet__links a { display: flex; align-items: center; min-height: var(--hit); padding: var(--sp-3) 0; font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--ink); transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); transform-origin: left center; }
 @media (hover: hover) { .sheet__links a:hover { opacity: .68; } }
-.sheet__links a:active { transform: scale(.98); }
+.sheet__links a:active { transform: scale(var(--press-text)); }
 .sheet .btn--primary { width: 100%; margin-top: var(--sp-8); }
 
 /* Dialog (newsletter) */
@@ -184,7 +172,7 @@
 @starting-style { .dialog[open]::backdrop { opacity: 0; } }
 .dialog__close { position: absolute; top: var(--sp-3); right: var(--sp-3); width: var(--hit); height: var(--hit); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-2); transition: color var(--t) var(--ease-out), background-color var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
 @media (hover: hover) { .dialog__close:hover { color: var(--ink); background: var(--bg-raised); } }
-.dialog__close:active { transform: scale(.92); }
+.dialog__close:active { transform: scale(var(--press-glyph)); }
 .dialog .mark { width: 30px; height: 32px; color: var(--ink); margin-bottom: var(--sp-4); }
 .dialog h2 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); max-width: 12em; }
 /* the heading takes focus when the dialog opens, so a screen reader starts there; it is not a control, and a keyboard's
@@ -247,7 +235,7 @@
    portrait photograph is already 4:5, so without the half its preview could not be told from its neighbours */
 .lightbox__thumb[aria-current] { width: var(--w); margin-inline: 6px; opacity: 1; }
 @media (hover: hover) { .lightbox__thumb:hover { opacity: 1; } }
-.lightbox__thumb:active { transform: scale(.94); }
+.lightbox__thumb:active { transform: scale(var(--press-glyph)); }
 /* on a phone the photograph runs the screen's width, as it does in Photos, and the arrows give way to the swipe */
 @media (max-width: 767px) {
   .lightbox__stage { padding-inline: 0; }

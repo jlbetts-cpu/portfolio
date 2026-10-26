@@ -76,6 +76,7 @@ on every number I had and was still wrong.
 | Rule | The number | The range | Where it lives |
 |---|---|---|---|
 | Type floor | **15px** | nothing under it but a glyph inside a shape; Strata says 15pt and the page now matches it | `--fs-caption`, `--fs-small` |
+| Press | **.92 / .97 / .985** | by size: a one-glyph circle or a logo, a word, a photograph (`--press-*`). One depth per size class, never per control | `tokens.css` |
 | Type weights | **400 / 600** | two, and no third: his portfolio's Regular and Semibold. The layout gate fails on any third weight | `tokens.css`, `layout.mjs` |
 | Controls | **a pill on the superellipse** | every button and field: radius at least half the height, `corner-shape` the page's, as his portfolio's `.ctl` | `base.css`, `layout.mjs` |
 | The main action | **outlined**: the page's white, a 1px inset ring of the ink at 12%, ink type | no control anywhere is filled darker than mid-grey ("such a dark cta … doesnt really fit"); the layout gate fails on one | `components.css`, `layout.mjs` |

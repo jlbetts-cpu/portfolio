@@ -20,9 +20,8 @@
   --line:        rgba(21,20,29,.10);
   --ring:        rgba(21,20,29,.12);    /* the outlined control's inset ring: his portfolio's rgba(17,18,20,.12) */
   --ring-strong: rgba(21,20,29,.22);
-  --line-strong: rgba(21,20,29,.20);
   --scrim:       rgba(21,20,29,.48);
-  --glass:       rgba(250,250,251,.8);
+  --on-photo:    rgba(255,255,255,.82);   /* a light control over a photograph: the strip's pause, the film's play */
 
   /* Ink — a blue-black and two tiers */
   --ink:    #15141D;
@@ -44,21 +43,6 @@
      4.44. The star is the gold: "make sure the star is also a color I dont like it black". */
   --logo-orange: #EC7F4C; --logo-pink: #F080B8; --logo-magenta: #E550DF; --logo-yellow: #E8B631;
   --logo-violet: #8273FF; --logo-green: #30CD80; --logo-sky: #00BBF2;  --logo-star: #E8B631;
-  --c-sky:     #A8E3FE;                   /* the mark, 227.9° */
-  --c-gold:    #ECDA87;                   /* the star, 97.0° */
-  --c-magenta: #FEC2F9;                   /* 329.3° */
-  --c-violet:  #D4D5FE;                   /* 284.1° */
-  --c-orange:  #FECDB8;                   /* 44.1° */
-  --c-green:   #9EEEBC;                   /* 156.0° */
-  --c-pink:    #FFC7E0;                   /* 350.2° */
-  --c-yellow:  #F1D886;                   /* 93.2° */
-  --on-violet: #15141D;                   /* the one hue whose ink changes with the theme */
-
-  /* A hue reaches the page ONE way: at full strength, on a surface, with the ink that hue takes. Mixing a hue into the
-     ground made a pastel that was no longer the brand colour and shifted again between the themes; there are no mixes now.
-     --on-accent is the only ink that clears 4.5:1 on that hue. */
-  --accent:    var(--c-sky);
-  --on-accent: #15141D;
   --focus:    var(--ink);
 
   /* Corners. Apple's continuous curvature, not a circular arc: corner-shape draws a superellipse, so the radius
@@ -90,23 +74,16 @@
      -0.015 to -0.025. It was his portfolio's scale for an afternoon (44 and 32), which read professional and small. */
   --fs-display: clamp(min(2.5rem, 12.5vw), 1rem + 4.2vw, 4.5rem);   --lh-display: 1.05; --ls-display: -0.032em;   /* the floor never wider than the screen allows: 40px at 320 as before, but a reader who has asked for larger text no longer pushes "understanding" past a phone's edge (392px in 358 at 24px) */
   --fs-h1:      clamp(2rem, 1rem + 2.6vw, 3.5rem);          --lh-h1: 1.07;      --ls-h1: -0.03em;
-  --fs-h2:      clamp(1.625rem, 1.15rem + 1.9vw, 2.375rem); --lh-h2: 1.12;      --ls-h2: -0.018em;
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
-  --fs-lead:    clamp(1.0625rem, .95rem + .45vw, 1.1875rem);--lh-lead: 1.52;    --ls-lead: -0.006em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
-  --fs-small:   0.9375rem;                                  --lh-small: 1.5;    --ls-small: 0;
-  --fs-label:   0.8125rem;                                  --lh-label: 1;      --ls-label: 0.09em;
-  --fs-caption: 0.9375rem;                                  --lh-caption: 1.45; --ls-caption: 0;
+  --fs-small:   0.9375rem;
+  --fs-caption: 0.9375rem;
   --fs-ui:      0.9375rem;
   /* reading sizes for the two places the page asks to be read rather than scanned: the prose of the two sections and
      the three quotes. Body size (16px at 1440) next to a photograph read as a caption to it. The prose is his
      portfolio's about page now, 18 on 27, in the ink and never a tier down; it was 20 on 32 in 72% ink. */
   --fs-read:    clamp(1.125rem, 1rem + .4vw, 1.3125rem);      --lh-read: 1.45;   /* 21px at 1440: Apple's section copy, centred under its headline */
   --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.008em;
-  /* Measures are in em, never ch */
-  --measure-display: 15em;
-  --measure-h2: 17em;
-  --measure-body: 34em;
 
   /* Space — 4px grid. Jayden, after Linda's round: "the spacing of the site feels so cramped, not premium — let
      sections breathe." He was right, and the cause was structural. The page used to be one bento field, where every
@@ -122,9 +99,11 @@
   --page-max: calc(1200px + 2 * var(--gutter));
   --gutter: clamp(20px, 3.4vw, 64px);
   --grid-gap: clamp(16px, 1.8vw, 32px);      /* between COLUMNS, which is all it means now */
-  --section-y: clamp(80px, 8vw, 168px);      /* between SECTIONS */
+  /* ONE RHYTHM BETWEEN SECTIONS (2026-10-26). The bands (2026-10-13) padded every section clamp(80px, 9vw, 140px) in
+     base.css while this token, which "Sections breathe" names, stayed at clamp(80px, 8vw, 168px) for the closing
+     section's foot alone: two rhythms, the close 15px short at 1440. The value the page shows is the value now. */
+  --section-y: clamp(80px, 9vw, 140px);      /* between SECTIONS: every band's top and bottom */
   --card-pad: clamp(20px, 2.2vw, 40px);
-  --slip: 20px;           /* how far a photograph rises out of the panel it sits in */
 
   /* the header is two tiles in the field, so its height is a tile's height: 5px of panel padding either side of a 44px target */
   --nav-h: 52px;   /* the bar's row; the bar itself is 72px, his portfolio's */
@@ -138,6 +117,12 @@
      `transition`, and a control that silently stops animating is invisible until someone looks. */
   --t: var(--dur-state-out);
   --dur-press: 100ms;
+  /* THE PRESS, BY SIZE (2026-10-26; Some Wins' design bible §14 C3, a state is defined once). Seven depths had grown
+     (.92 .94 .97 .98 .985) and the same job pressed three ways: a header link went to .94, a footer link and a menu
+     link to .98. A small thing needs a deeper press to be seen at all, so the depth follows the size: */
+  --press-glyph: .92;    /* a one-glyph circle or a logo, 40-56px: close, menu, arrows, pause, play, a preview */
+  --press-text: .97;     /* a word: a button, a link, the header's name (Emil Kowalski's .97, via Screenrove) */
+  --press-photo: .985;   /* a photograph, the largest thing pressed */
   --dur-state: 160ms;
   --dur-state-out: 240ms;
   --dur-move: 280ms;
@@ -158,56 +143,12 @@
   --ring-n: 8;
 }
 
-/* Dark — NOT IN USE since 2026-10-13. It was the only theme for one day ("remove the switch"); then, beside the
-   light page and his portfolio, "Light only". The <html> element carries data-di-theme="light", so the values above
-   are the page and this block is kept for the record and for the style guide. Keyed on a PRIVATE
-   attribute, written only by this page. It used to be data-theme, and that name is not ours:
-   the claude.ai preview writes data-theme="dark" onto the page for anyone whose claude.ai is dark, which is why dark
-   mode would not go away when the toggle was removed ("I still only see dark mode"). Now the page answers to its own
-   switch and nothing else. */
-:root[data-di-theme="dark"] {
-  color-scheme: dark;
-  --bg:          #0B0B0F;
-  --bg-raised:   #15151B;
-  --bg-sunken:   #070709;
-  --bg-overlay:  #17171D;
-  --line:        rgba(243,243,247,.10);
-  --line-strong: rgba(243,243,247,.20);
-  --scrim:       rgba(0,0,0,.6);
-  --glass:       rgba(11,11,15,.8);
-  --ink:    #F3F3F7;
-  --ink-2:  rgba(243,243,247,.72);
-  --ink-3:  rgba(243,243,247,.56);
-  /* full strength: the logo read literally, which is what a saturated hue needs a near-black ground for */
-  --c-sky:     #58CDFC;
-  --c-gold:    #FFE469;
-  --c-magenta: #E744E2;
-  --c-violet:  #7358FC;
-  --c-orange:  #F0895B;
-  --c-green:   #51E596;
-  --c-pink:    #FB9BC9;
-  --c-yellow:  #FEE79B;
-  --on-violet: #FFFFFF;                   /* 4.6:1 — the only hue in the set dark enough to need it */
-  --focus:  var(--ink);
-}
-
-/* Accents — set once, on the surface that takes the hue. The page spends the six arcs in the logo's own order.
-   Every hue carries the warm black; violet at full strength is the one exception and takes white in the dark theme. */
-[data-accent="sky"]     { --accent: var(--c-sky);     --on-accent: #15141D; }
-[data-accent="magenta"] { --accent: var(--c-magenta); --on-accent: #15141D; }
-[data-accent="violet"]  { --accent: var(--c-violet);  --on-accent: var(--on-violet); }
-[data-accent="orange"]  { --accent: var(--c-orange);  --on-accent: #15141D; }
-[data-accent="green"]   { --accent: var(--c-green);   --on-accent: #15141D; }
-[data-accent="pink"]    { --accent: var(--c-pink);    --on-accent: #15141D; }
-[data-accent="yellow"]  { --accent: var(--c-yellow);  --on-accent: #15141D; }
-[data-accent="gold"]    { --accent: var(--c-gold);    --on-accent: #15141D; }
-
 /* INCREASE CONTRAST (2026-10-16; docs/apple-design.md §14, WCAG 1.4.11). The page's quiet edges, the 12% ring of an
    outlined control and the 10% hairlines, sit near 1.3:1 on the white, which is the look; for a reader who has asked
    their system for more contrast they go to 3:1 and over, and components.css gives the email field the edge it
    otherwise lacks. Nothing changes for anyone else. */
 @media (prefers-contrast: more) {
-  :root { --line: rgba(21,20,29,.55); --line-strong: rgba(21,20,29,.7); --ring: rgba(21,20,29,.62); --ring-strong: rgba(21,20,29,.8); }
+  :root { --line: rgba(21,20,29,.55); --ring: rgba(21,20,29,.62); --ring-strong: rgba(21,20,29,.8); }
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }

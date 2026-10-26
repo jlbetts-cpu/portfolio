@@ -129,7 +129,7 @@ reel=(f'<div class="reel" data-reel role="region" aria-label="From the sessions"
       # THE PAUSE (2026-10-16, his pick of three: WCAG 2.2.2 asks that motion which starts by itself and runs past five
       # seconds can be paused). One quiet control for everything that moves on its own: the strip, the ring, the
       # mark's glint. It stays outside the track, so it does not travel; main.js wires it and remembers the choice.
-      f'<button class="reel__pause" type="button" data-motion-toggle aria-label="Pause motion">'
+      f'<button class="reel__pause on-photo" type="button" data-motion-toggle aria-label="Pause motion">'
       f'<svg class="icon icon--pause" aria-hidden="true"><use href="#i-pause"/></svg>'
       f'<svg class="icon icon--play" aria-hidden="true"><use href="#i-play"/></svg></button></div>')
 
@@ -213,7 +213,7 @@ china=(f'<section class="tell watch" id="china" aria-labelledby="chinaTitle">'
        f'<source src="{_fv}.mp4?v={V(_fv+".mp4")}" type="video/mp4"></video>'
        f'<picture class="film__poster"><source type="image/avif" srcset="{_fv}-poster.avif?v={V(_fv+"-poster.avif")}"><source type="image/webp" srcset="{_fv}-poster.webp?v={V(_fv+"-poster.webp")}">'
        f'<img src="{_fv}-poster.jpg?v={V(_fv+"-poster.jpg")}" width="{FILM["width"]}" height="{FILM["height"]}" alt="" loading="lazy" decoding="async"></picture>'
-       f'<button class="film__play" type="button" aria-label="Play the film, {FILM["duration"].replace(":", " minute ")} seconds: {html.escape(FILM_TITLE)}">'
+       f'<button class="film__play on-photo" type="button" aria-label="Play the film, {FILM["duration"].replace(":", " minute ")} seconds: {html.escape(FILM_TITLE)}">'
        f'<svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button>'
        f'</div></figure>'
        f'<div class="tell__copy reveal"><h2 class="tell__title" id="chinaTitle">Her work in China</h2>'

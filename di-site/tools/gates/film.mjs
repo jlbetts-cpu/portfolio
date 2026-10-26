@@ -88,8 +88,8 @@ const run = async (bug) => {
     const { ctx, pg } = await page(1440, 900, { bug });
     await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.film').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(900);
     await pg.focus('.film__play'); await pg.keyboard.press('Enter'); await pg.waitForTimeout(1500);
-    const r = await pg.evaluate(() => ({ started: document.querySelector('.film').classList.contains('is-started'), controls: document.querySelector('.film__video').controls, focus: document.activeElement && document.activeElement.className }));
-    check('refused: the button comes back, with focus', !r.started && !r.controls && r.focus === 'film__play', JSON.stringify(r));
+    const r = await pg.evaluate(() => ({ started: document.querySelector('.film').classList.contains('is-started'), controls: document.querySelector('.film__video').controls, focus: !!document.activeElement && document.activeElement.classList.contains('film__play') }));
+    check('refused: the button comes back, with focus', !r.started && !r.controls && r.focus, JSON.stringify(r));
     await ctx.close();
   }
 };

@@ -1,5 +1,23 @@
 # Build log — Developmental Improvisation, home page
 
+## v60 (2026-10-26) — a pass against the Some Wins design bible, with Screenrove
+*"use what applies to this one … the design bible … and use [Screenrove] as your reference library for this design pass … to make everything about this site feel intentional and premium."* The bible is written for Some Wins, an iOS app; its mechanisms and its checks carry over, its app-only rules (SF Pro, nothing animates on appearance, the warm paper) do not. Screenrove's measured design guides (Vercel, Linear, Stripe) were used the way the bible says to: as cross-checks on the tokens, never as layouts.
+
+**The audit first (Phase 0), measured at 1440 and 390.** Most of the room already holds: no section offers more than six things to press and each has one action (M1); no shadow anywhere; two weights; every word in the ink and no hue in the chrome (M3); one cool family of ink and grounds (M6); four corners, each with a job, and every nested corner concentric (M7); every step between two text tiers is a weight step or more than 4px (M4). What did not hold is below.
+
+**Changed, because they were rules, not taste (Phase 1):**
+- **One rhythm between sections.** "Sections breathe" names `--section-y`, but since the bands every section was padded by a second value in base.css, and the token survived only at the closing section's foot, which sat 15px short at 1440. One value now, the one the page shows.
+- **One press, by size** (§14 C3, a state defined once). Seven depths had grown, and the same job pressed three ways: a link in the header went to .94, one in the footer and the menu to .98. Now three tokens: a one-glyph circle or a logo .92, a word .97 (Screenrove's guidance, Emil Kowalski's number), a photograph .985.
+- **One light control over a photograph** (§14 C1, drawn once). The strip's pause and the film's play were the same control written twice, rule for rule, free to drift apart; both are `.on-photo` now, with its own token.
+- **The subtraction (§17 B3).** The pastel palette and its accent switch, the dark theme kept "for the record", cards, tiles, two button variants, the type utilities and a dozen tokens the page no longer read: about 90 lines of CSS that only the style guide used. Shot screen by screen before and after: the page is unchanged but for the header's name (a 9px gap onto the 8px grid) and the closing section's foot.
+- **The style guide, rebuilt.** It still documented three designs ago (Inter at 700, a dark switch, warm neutrals, a sky closing field, a bento hero, hover cards), so anyone building from it would have put them back. It is now generated from `tokens.css` and the page's own classes at build time, so it cannot describe something the page does not do.
+
+**Built as a pair, not shipped (Phase 3): display tracking.** The claim runs at −0.032em and the headlines at −0.03em (with the "Apple-size headlines" pick, 2026-10-13), the ring's quote at −0.02em, so 53px and 56px disagree. Inter's own size curve, which Linear (Inter, measured by Screenrove) uses, gives −0.022em at every display size; Stripe's is −0.02em and Apple's SF table −0.015 to −0.01. The pair is A, now, against B, −0.022em at every display size; his pick decides it.
+
+**Flagged, not changed, because they meet a settled decision:** the hero's one action is the only thing on the first screen that disappears at a 30px squint (§11), which the outlined button does by design ("no dark-filled controls"); the bible makes a field a rounded rectangle and a button a capsule, and here both are pills ("every button and field", GUIDED); the sections arrive over 900–1100ms against the bible's 300–400, hand-tuned on 2026-10-14 ("premium is slower").
+
+The film gate compared the play button's whole class name and now asks for the class. 82 lines, sixteen self-tests.
+
 ## v59 (2026-10-16) — her work in China: the film
 *"my aunt was given a video to add to the site where should we put it I told her we can put it in its own section about her work in china."* The film is 1:57, portrait (540×960), from an iPhone: an interview, Linda telling how a student her teachers gave up on became an educator, beside a Chinese interviewer, then a workshop in China, with English and Chinese subtitles burned in, opening on its own title card and closing on "Play. Discover. Grow."
 
