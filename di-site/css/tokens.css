@@ -69,11 +69,14 @@
   --font-display: var(--font);
   /* THE SCALE IS APPLE'S (2026-10-13, "lowkey want it to look more apple", then picked from a rendered pass: "Apple-size
      headlines"). apple.com sets a product's claim large, Semibold and tracked tight, and a section's headline a step
-     under it, centred over its picture. The claim is 72px at 1440 (40 on a phone) at -0.032em, the sections' headlines
-     56 at -0.03em: Inter's display cut is wider than SF's, so it takes a little more tightening than Apple's own
-     -0.015 to -0.025. It was his portfolio's scale for an afternoon (44 and 32), which read professional and small. */
-  --fs-display: clamp(min(2.5rem, 12.5vw), 1rem + 4.2vw, 4.5rem);   --lh-display: 1.05; --ls-display: -0.032em;   /* the floor never wider than the screen allows: 40px at 320 as before, but a reader who has asked for larger text no longer pushes "understanding" past a phone's edge (392px in 358 at 24px) */
-  --fs-h1:      clamp(2rem, 1rem + 2.6vw, 3.5rem);          --lh-h1: 1.07;      --ls-h1: -0.03em;
+     under it, centred over its picture. The claim is 72px at 1440 (40 on a phone), the sections' headlines 56. It was his
+     portfolio's scale for an afternoon (44 and 32), which read professional and small.
+     ONE TRACKING FOR EVERY DISPLAY SIZE, INTER'S OWN (his pick, 2026-10-26, from a rendered pair): -0.022em. It was
+     -0.032 on the claim, -0.03 on the headlines and -0.02 on the ring's quote, so 53px and 56px disagreed. -0.022em is
+     where Inter's own size curve settles for display sizes, and it is what Linear sets Inter at (Screenrove's
+     measurement); tracking is a function of size (Some Wins' design bible, M5), so every display size shares it. */
+  --fs-display: clamp(min(2.5rem, 12.5vw), 1rem + 4.2vw, 4.5rem);   --lh-display: 1.05; --ls-display: -0.022em;   /* the floor never wider than the screen allows: 40px at 320 as before, but a reader who has asked for larger text no longer pushes "understanding" past a phone's edge (392px in 358 at 24px) */
+  --fs-h1:      clamp(2rem, 1rem + 2.6vw, 3.5rem);          --lh-h1: 1.07;      --ls-h1: -0.022em;
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
   --fs-small:   0.9375rem;

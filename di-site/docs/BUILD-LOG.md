@@ -1,5 +1,8 @@
 # Build log — Developmental Improvisation, home page
 
+## v61 (2026-10-26) — one tracking for every display size
+His pick of the v60 pair: **B, Inter's own.** The claim, the sections' headlines and the closing line now run at −0.022em, and the ring's quote reads the same token instead of its own −0.02em, so tracking is a function of size again (the bible's M5): 53px and 56px no longer disagree. It was −0.032em on the claim and −0.03em on the headlines. The headline keeps its line count at every width the layout gate measures (2 at 1440, 3 at 1024, 5 on a phone), and with the browser's text at 24px a phone still does not scroll sideways.
+
 ## v60 (2026-10-26) — a pass against the Some Wins design bible, with Screenrove
 *"use what applies to this one … the design bible … and use [Screenrove] as your reference library for this design pass … to make everything about this site feel intentional and premium."* The bible is written for Some Wins, an iOS app; its mechanisms and its checks carry over, its app-only rules (SF Pro, nothing animates on appearance, the warm paper) do not. Screenrove's measured design guides (Vercel, Linear, Stripe) were used the way the bible says to: as cross-checks on the tokens, never as layouts.
 
