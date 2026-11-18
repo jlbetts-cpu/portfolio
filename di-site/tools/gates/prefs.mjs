@@ -28,7 +28,10 @@ const edges = (pg) => pg.evaluate(() => {
   const ring = (el) => { const m = getComputedStyle(el).boxShadow.match(/rgba?\([^)]*\)/); return m ? parse(m[0]) : null; };
   const ground = (el) => { let e = el.parentElement; while (e) { const c = parse(getComputedStyle(e).backgroundColor); if (c.length && (c[3] === undefined || c[3] > 0)) return c.slice(0, 3); e = e.parentElement; } return [255, 255, 255]; };
   const edge = (el) => { const r = ring(el), g = ground(el); return r ? ratio(over(r, g), g) : 0; };
-  return { button: edge(document.querySelector('.hero__act .btn')), field: edge(document.querySelector('#nl-email')) };
+  // the main action is filled since 2026-11-17 (Some Wins' liquid ink, picked by name): its edge is its own fill against
+  // the ground it stands on, so it is measured that way; an outlined control is still measured by its ring
+  const fill = (el) => { const c = parse(getComputedStyle(el).backgroundColor); return c.length && (c[3] === undefined || c[3] > 0) ? ratio(over(c, ground(el)), ground(el)) : 0; };
+  return { button: fill(document.querySelector('.hero__act .btn')), field: edge(document.querySelector('#nl-email')) };
 });
 
 // contrast
@@ -40,7 +43,7 @@ const edges = (pg) => pg.evaluate(() => {
 {
   const { ctx, pg } = await page({});
   const e = await edges(pg); await ctx.close();
-  check('by default the quiet edges are as they were', Math.abs(e.button - 1.28) < 0.05 && e.field === 0, JSON.stringify(e));
+  check('by default the quiet edges are as they were (the main action is filled ink, 3:1 or more)', e.button >= 3 && e.field === 0, JSON.stringify(e));
 }
 // transparency
 {

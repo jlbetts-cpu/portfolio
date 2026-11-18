@@ -24,8 +24,13 @@
    the logo's sky, a soft grey): the page's white, a 1px ring of the ink drawn inside the box, the ink's type, which is
    his portfolio's .ctl--secondary and the plain outline HEYTEA uses for its one button. It is the same drawing as
    .btn--line; the class says which action is the main one, not how it looks. */
-.btn--primary { background: var(--bg-overlay); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ring); }
-@media (hover: hover) { .btn--primary:hover { background: var(--bg-raised); box-shadow: inset 0 0 0 1px var(--ring-strong); } }
+/* THE MAIN ACTION IS SOME WINS' LIQUID INK (2026-11-17, Jayden picked "Liquid ink buttons"; it was outlined since
+   "such a dark cta ... doesnt really fit"). Filled in the ink, and js/somewins.js lays the app's `inkMesh` over it:
+   near-black, charcoal and graphite flowing through each other with grain in the colour. Without WebGL it is the flat ink. */
+.btn--primary { background: var(--ink) var(--liquid-ink, none) center / cover no-repeat; color: #fff; box-shadow: none; transition: opacity var(--t) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+@media (hover: hover) { .btn--primary:hover { opacity: .86; } }
+.btn--primary[aria-busy="true"]::after { border-color: #fff; border-right-color: transparent; }
+@media (prefers-contrast: more) { .btn--primary { background-image: none; } }
 /* NO LINES ANYWHERE (2026-10-03): "remove the lines I want it more minimal, just use clean white space design." A
    control that used to be drawn as an outline is a soft fill now, so it still reads as something to press without a
    rule round it; dividers are gone and the space between things does their job. The focus ring and the error ring
@@ -96,6 +101,17 @@
    gutter. It is fixed, and it behaves the way Jayden asked for: it leaves going down and comes back going up. At the top
    of the page it has no ground at all; anywhere else, once it is showing, it takes the least surface that can carry type
    over a photograph — the ground at 78%, blurred, with a hairline. Keyboard focus always brings it back. */
+/* SOME WINS' VEIL (2026-11-17, "Header fade"): what scrolls up under the pill softens by degrees, four light layers
+   each a little more blurred and reaching less far down. No band and no edge. The pill stays solid on it. It stays when the pill leaves, so the page's top edge is always soft. */
+.veil { position: fixed; inset: 0 0 auto 0; height: calc(var(--nav-h) + 2 * var(--sp-4) + 56px); z-index: calc(var(--z-nav) - 1); pointer-events: none; }
+.veil i { position: absolute; inset: 0; }
+.veil i:nth-child(1) { -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px); -webkit-mask: linear-gradient(to top, transparent 0%, #000 34%); mask: linear-gradient(to top, transparent 0%, #000 34%); }
+.veil i:nth-child(2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask: linear-gradient(to top, transparent 24%, #000 58%); mask: linear-gradient(to top, transparent 24%, #000 58%); }
+.veil i:nth-child(3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask: linear-gradient(to top, transparent 46%, #000 80%); mask: linear-gradient(to top, transparent 46%, #000 80%); }
+.veil i:nth-child(4) { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask: linear-gradient(to top, transparent 66%, #000 100%); mask: linear-gradient(to top, transparent 66%, #000 100%); }
+/* Some Wins lays a white wash over the blur; its page is all white. Here every other section is grey, and the wash
+   drew a pale strip across each grey band (seen 2026-11-17), so the blur alone does the softening. */
+@media (prefers-reduced-transparency: reduce) { .veil i:nth-child(-n+4) { display: none; } }
 .nav { position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav); padding: var(--sp-4) 0; pointer-events: none; transition: transform var(--dur-move) var(--ease-out); }
 .nav.is-hidden { transform: translateY(-100%); }
 /* THE HEADER IS A FLOATING PILL (2026-10-13, his pick of five rendered on the page, after "can you experiement with
@@ -223,7 +239,9 @@
 .lightbox__prev, .lightbox__next { position: absolute; top: calc((100dvh - var(--rail-h) + var(--top-h)) / 2); transform: translateY(-50%); }
 .lightbox__prev { left: var(--sp-4); }
 .lightbox__next { right: var(--sp-4); }
-.lightbox .arrow, .lightbox .dialog__close { background: rgba(255,255,255,.12); color: #fff; }
+/* Some Wins' glass, in the dark: clear, blurred, a little light caught on its top edge (2026-11-17, "Glass controls") */
+.lightbox .arrow, .lightbox .dialog__close { background: rgba(255,255,255,.12); color: #fff; -webkit-backdrop-filter: blur(16px) saturate(1.8); backdrop-filter: blur(16px) saturate(1.8); box-shadow: inset 0 1px 0 rgba(255,255,255,.22); }
+@media (prefers-reduced-transparency: reduce) { .lightbox .arrow, .lightbox .dialog__close { -webkit-backdrop-filter: none; backdrop-filter: none; background: #2A2A2E; } }
 @media (hover: hover) { .lightbox .arrow:hover, .lightbox .dialog__close:hover { background: rgba(255,255,255,.22); color: #fff; } }
 .lightbox .arrow:focus-visible, .lightbox .dialog__close:focus-visible, .lightbox__thumb:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .lightbox__rail { position: absolute; inset: auto 0 0 0; height: var(--rail-h); padding: 0 calc(50% - var(--thumb-w) / 2) env(safe-area-inset-bottom); display: flex; align-items: center; gap: 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x; }

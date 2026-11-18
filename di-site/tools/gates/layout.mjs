@@ -13,13 +13,14 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     const lines = Math.round(h1.getBoundingClientRect().height / parseFloat(cs.lineHeight));
     const cont = [...document.querySelectorAll('.container')].filter(c => !c.closest('.nav')).map(c => { const cs = getComputedStyle(c); const b = c.getBoundingClientRect(); return [Math.round(b.left + parseFloat(cs.paddingLeft)), Math.round(b.right - parseFloat(cs.paddingRight))]; });
     const edges = new Set(cont.map(c => c.join('-')));
-    // the two sections are a centred stack (2026-10-13, Apple's): the words above the photograph and never over it,
-    // which is the one way a stack breaks when the copy grows
+    // the sections are Some Wins' tiles since 2026-11-17 (they were Apple's centred stack from 2026-10-13): the words'
+    // tile and the photograph's never overlap, side by side or stacked, which is the one way they break when the copy
+    // grows. (The old check, words above the photograph, measured 3 crossings on the side-by-side tiles by design.)
     let cross = 0;
     for (const row of document.querySelectorAll('.tell__row')) {
       const f = row.querySelector('.tell__figure').getBoundingClientRect();
       const c = row.querySelector('.tell__copy').getBoundingClientRect();
-      if (c.bottom > f.top + 1) cross++;
+      if (Math.min(c.right, f.right) - Math.max(c.left, f.left) > 1 && Math.min(c.bottom, f.bottom) - Math.max(c.top, f.top) > 1) cross++;
     }
     // the three quotes: equal width, and on a row (1024 up) the names on one line however uneven the quotes are —
     // each quote stands under a hairline and the name is pushed to the foot. Below 1024 they are one per row.
@@ -33,7 +34,10 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // on 2026-10-13 he asked for "the footer with the clean lines", and the header became a floating pill: so the
     // pill's 1px edge, the footer's hairline (a pseudo-element, checked below), and the 1px ring inside an outlined
     // control are drawn, and nothing else is. Focus and error rings only appear in those states.
-    const allowed = e => e.matches('.nav__bar, .btn--primary, .btn--line');
+    // Since 2026-11-17 the glass buttons over a photograph (.on-photo: the strip's pause, the film's play) are Some
+    // Wins' glass, which he picked with its light caught on the top edge: that inset is the material, not a line.
+    // Anything else that draws a border or a shadow still fails.
+    const allowed = e => e.matches('.nav__bar, .btn--primary, .btn--line, .on-photo');
     const navLine = getComputedStyle(document.querySelector('.nav__bar')).boxShadow !== 'none';
     const ft = document.querySelector('.foot__top'); const footLine = !!ft && parseFloat(getComputedStyle(ft, '::before').height) === 1;
     const drawn = [...document.querySelectorAll('body *')].filter(e => {
@@ -59,17 +63,21 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // focus. Hierarchy is size and weight. A field's placeholder is not a word on the page.
     const ink = getComputedStyle(h1).color; const grey = [];
     let n; while ((n = walker.nextNode())) { const el = n.parentElement; if (!n.textContent.trim() || !el.getClientRects().length || el.closest('script, style, svg, dialog:not([open]), .curtain, .sr-only')) continue; weights.add(getComputedStyle(el).fontWeight);
-      if (!el.closest('.btn--primary, .skip') && getComputedStyle(el).color !== ink) grey.push(n.textContent.trim().slice(0, 24)); }
+      // the closing statement's words wait in the quiet ink until they are read (Some Wins' statement, 2026-11-17):
+      // exempt only while the script is lighting them, so a word left grey with no --lit on it still fails
+      if (!el.closest('.btn--primary, .skip') && !(el.matches('.close__lead span') && el.style.getPropertyValue('--lit') !== '') && getComputedStyle(el).color !== ink) grey.push(n.textContent.trim().slice(0, 24)); }
     // every control is a pill: a corner of at least half its height (on his portfolio's superellipse since 2026-10-13)
     const notCapsule = [...document.querySelectorAll('.btn, .input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open])')).filter(e => parseFloat(getComputedStyle(e).borderTopLeftRadius) < e.offsetHeight / 2 - 0.5).map(e => String(e.className).slice(0, 30));
     // no dark control (2026-10-13, "such a dark cta … doesnt really fit the site"): no button or link anywhere on the
-    // page is filled with a ground darker than mid-grey. The main action is outlined.
+    // page is filled with a ground darker than mid-grey, with ONE exception since 2026-11-17: the main action
+    // (.btn--primary) is Some Wins' liquid ink, which he picked by name ("Liquid ink buttons"). Any other dark control
+    // still fails.
     const lumOf = c => { const m = c.match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return 1; return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
-    const darks = [...document.querySelectorAll('button, a, input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open]), .curtain, .skip') && !e.matches('.skip') && lumOf(getComputedStyle(e).backgroundColor) < 0.5).map(e => (e.textContent || e.className).trim().slice(0, 20));
-    // above 768 each section's headline and its photograph share the page's centre line (Apple's centred stack;
-    // until 2026-10-13 the heading's capitals stood on the photograph's top edge instead). On a phone it reads from
-    // the left, so there is nothing to measure.
-    const capGap = innerWidth >= 768 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const t = row.querySelector('.tell__title').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (f.left + f.right) / 2); })) : 0;
+    const darks = [...document.querySelectorAll('button, a, input')].filter(e => e.getClientRects().length && !e.closest('dialog:not([open]), .curtain, .skip') && !e.matches('.skip') && !e.matches('.btn--primary') && lumOf(getComputedStyle(e).backgroundColor) < 0.5).map(e => (e.textContent || e.className).trim().slice(0, 20));
+    // from 900 the words' tile and the photograph's stand side by side as one row: their tops and their floors meet
+    // within 2px (Some Wins' tiles, 2026-11-17; it was the headline and photograph sharing the centre line of Apple's
+    // stack). Below 900 they stack, so there is nothing to measure.
+    const capGap = innerWidth >= 900 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const c = row.querySelector('.tell__copy').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.max(Math.abs(c.top - f.top), Math.abs(c.bottom - f.bottom)); })) : 0;
     // the reel is a film strip (2026-10-14, "kinda like a film strip"): frames 6px apart on the film base, 2px corners,
     // and the frames meet with no gap of their own, so the loop's seam is one more frame boundary and not a jump
     const ph = [...document.querySelectorAll('.reel__run:first-child .photo')].slice(0, 2).map(p => p.getBoundingClientRect());
@@ -81,7 +89,7 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
     && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2
     && r.strip.across === 6 && r.strip.down === 0 && r.strip.corner === 2 && r.grey.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, headline off the photo's centre line ${r.capGap}px, film frames ${r.strip.across}px apart, ${r.strip.down}px between cells, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, tiles' tops and floors apart by ${r.capGap}px, film frames ${r.strip.across}px apart, ${r.strip.down}px between cells, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();

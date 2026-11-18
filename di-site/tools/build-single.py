@@ -22,7 +22,8 @@ def data(p, mime):
 css = '\n'.join((root / 'css' / f).read_text() for f in ['tokens.css', 'base.css', 'components.css', 'home.css'])
 css = css.replace('url("../fonts/inter-variable.woff2")', f'url("{data("fonts/inter-variable.woff2","font/woff2")}")')
 assert css.count('data:font/woff2') == 1, 'font url not matched'
-js = (root / 'js' / 'main.js').read_text()
+# main.js, then what the page takes from Some Wins (the liquid and the scroll-linked moves, 2026-11-17)
+js = (root / 'js' / 'main.js').read_text() + '\n' + (root / 'js' / 'somewins.js').read_text()
 
 MIME = {'avif': 'image/avif', 'webp': 'image/webp', 'jpg': 'image/jpeg'}
 def srcset(m):

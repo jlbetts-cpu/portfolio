@@ -76,7 +76,9 @@
      where Inter's own size curve settles for display sizes, and it is what Linear sets Inter at (Screenrove's
      measurement); tracking is a function of size (Some Wins' design bible, M5), so every display size shares it. */
   --fs-display: clamp(min(2.5rem, 12.5vw), 1rem + 4.2vw, 4.5rem);   --lh-display: 1.05; --ls-display: -0.022em;   /* the floor never wider than the screen allows: 40px at 320 as before, but a reader who has asked for larger text no longer pushes "understanding" past a phone's edge (392px in 358 at 24px) */
-  --fs-h1:      clamp(2rem, 1rem + 2.6vw, 3.5rem);          --lh-h1: 1.07;      --ls-h1: -0.022em;
+  /* Section headlines at Some Wins' size: 26px on a phone, 32 wide (it was Apple's 56). Some Wins never sets
+     anything over 28 ("smaller font like reads as way more premium"); the hero's claim alone stays large. Some Wins (Jayden, 2026-11-17: "just like the materials and like structurally I feel like somewins is stronger") */
+  --fs-h1:      clamp(1.625rem, 1.3rem + .9vw, 2rem);       --lh-h1: 1.22;      --ls-h1: -0.02em;
   --fs-h3:      clamp(1.1875rem, 1.05rem + .6vw, 1.5rem);   --lh-h3: 1.22;      --ls-h3: -0.012em;
   --fs-body:    clamp(.9375rem, .9rem + .2vw, 1rem);        --lh-body: 1.64;    --ls-body: 0;
   --fs-small:   0.9375rem;
@@ -85,7 +87,7 @@
   /* reading sizes for the two places the page asks to be read rather than scanned: the prose of the two sections and
      the three quotes. Body size (16px at 1440) next to a photograph read as a caption to it. The prose is his
      portfolio's about page now, 18 on 27, in the ink and never a tier down; it was 20 on 32 in 72% ink. */
-  --fs-read:    clamp(1.125rem, 1rem + .4vw, 1.3125rem);      --lh-read: 1.45;   /* 21px at 1440: Apple's section copy, centred under its headline */
+  --fs-read:    1.0625rem;      --lh-read: 1.5;   /* 17 on 25.5, Some Wins' body; it was Apple's 21, centred under a 56px headline */
   --fs-quote:   clamp(1.125rem, 1rem + .55vw, 1.4375rem);     --lh-quote: 1.42;   --ls-quote: -0.008em;
 
   /* Space — 4px grid. Jayden, after Linda's round: "the spacing of the site feels so cramped, not premium — let
@@ -134,6 +136,9 @@
   --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-pop:    linear(0, 0.135, 0.408, 0.681, 0.889, 1.016, 1.073, 1.083, 1.068, 1.044, 1.022, 1.006, 0.997, 0.993, 0.993, 0.995, 0.997, 0.998, 1, 1, 1.001, 1.001, 1);
+  --ease-rise: cubic-bezier(.2, .7, .2, 1);   /* Some Wins' one ease: every arrival and every scroll-linked move */
+  --r-tile: 20px;                             /* Some Wins' surface corner: the tiles, the 3-5-3's cards, the photographs in them */
+  --tile-gap: 8px;                            /* Some Wins' gutter between surfaces; 16 from 760 */
   --ease-settle: linear(0, 0.094, 0.284, 0.483, 0.653, 0.783, 0.875, 0.934, 0.971, 0.991, 1.001, 1.005, 1.006, 1.006, 1.004, 1.003, 1.002, 1.001, 1.001, 1, 1, 1, 1);
   --stagger: 60ms;
   /* The flow: one angular velocity shared by the reel and the ring. Read by js/main.js. */
@@ -156,6 +161,7 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-reveal: 160ms; --dur-enter: 200ms; --stagger: 0ms; --flow-drift: 0; --flow-scroll: 0; }
 }
+@media (min-width: 760px) { :root { --tile-gap: 16px; } }
 @media (max-width: 1279px) { :root { --ring-r: 290; --ring-item: 190px; } }
 @media (max-width: 1023px) { :root { --ring-r: 250; --ring-item: 150px; } }
 @media (max-width: 767px)  { :root { --ring-r: 170; --ring-item: clamp(60px, 19vw, 80px); } }   /* the circle and the radius shrink with the screen; see .ring__stage */
