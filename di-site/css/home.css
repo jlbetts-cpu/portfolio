@@ -135,6 +135,66 @@
   .tell__figure { width: 100%; }
 }
 
+/* ---------- The 3-5-3: what Linda teaches, drawn (2026-11-18) ----------
+   The layout is the name: three large cards, five small ones, then one wide card. Each is a drawing and a few words,
+   on the band's grey inside this white section, at the photographs' radius. A card is a ground, never a line or a
+   shadow (the page's three lines stay three). The drawings are flat shapes in the logo's eight colours: they are the
+   only colour in the section, and they sit inside the cards, never in the chrome. */
+.method__head { display: grid; justify-items: center; gap: var(--sp-4); text-align: center; margin-bottom: clamp(40px, 4.4vw, 64px); }
+.method__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; }
+.method__lead { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: balance; }
+.method__row { margin: clamp(40px, 4vw, 56px) 0 var(--sp-5); font-size: var(--fs-ui); line-height: 1.4; font-weight: 600; color: var(--ink); text-align: center; }
+.method__head + .method__row { margin-top: 0; }
+.method__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin: 0; padding: 0; list-style: none; }
+.method__cards--3 { grid-template-columns: 1fr; }
+@media (min-width: 768px) {
+  .method__cards { gap: var(--sp-4); }
+  .method__cards--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .method__cards--5 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .method__cards--5 > * { grid-column: span 2; }
+  .method__cards--5 > :nth-child(4) { grid-column: 2 / span 2; }   /* five on two rows below 1024: three, then two centred */
+}
+@media (min-width: 1024px) {
+  .method__cards--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .method__cards--5 > *, .method__cards--5 > :nth-child(4) { grid-column: auto; }
+}
+@media (max-width: 767px) { .method__cards--5 > :last-child { grid-column: 1 / -1; } }   /* two by two, and the fifth across */
+.method__card { display: grid; justify-items: center; align-content: start; text-align: center; padding: clamp(24px, 2.4vw, 36px) clamp(18px, 1.8vw, 28px); border-radius: var(--r-lg); background: var(--band); transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.method__card--phase { padding-top: clamp(20px, 2vw, 28px); }
+.method__art { display: block; width: 100%; height: auto; overflow: visible; }
+.method__card--phase .method__art { max-width: 220px; margin-bottom: var(--sp-4); }
+.method__art--small { width: 88px; margin-bottom: var(--sp-4); }
+.method__step { margin-bottom: var(--sp-1); font-size: var(--fs-ui); line-height: 1.4; font-weight: 600; color: var(--ink); }
+.method__name { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); text-wrap: balance; }
+.method__line { margin-top: var(--sp-2); font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); text-wrap: balance; max-width: 22em; }
+.method__cards--5 .method__name { font-size: var(--fs-body); line-height: 1.35; letter-spacing: 0; }
+.method__cards--5 .method__line { margin-top: var(--sp-1); }
+.method__card--wide { gap: var(--sp-4); }
+.method__art--venn { max-width: 240px; }
+.method__card--wide .method__name { font-size: var(--fs-h3); }
+@media (min-width: 768px) {
+  .method__card--wide { grid-template-columns: minmax(0, 260px) minmax(0, 24em); justify-content: center; align-items: center; gap: clamp(32px, 4vw, 64px); text-align: left; justify-items: start; padding-block: clamp(28px, 3vw, 44px); }
+  .method__art--venn { max-width: none; }
+}
+/* the drawings: the logo's eight colours, flat, round-ended where they are lines */
+.method__art .g { fill: var(--logo-green); } .method__art .y { fill: var(--logo-star); } .method__art .s { fill: var(--logo-sky); }
+.method__art .p { fill: var(--logo-pink); } .method__art .m { fill: var(--logo-magenta); } .method__art .v { fill: var(--logo-violet); }
+.method__art .o { fill: var(--logo-orange); } .method__art .k { fill: var(--ink); }
+.method__art .ks, .method__art .ps, .method__art .os, .method__art .ss { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.method__art .ks { stroke: var(--ink); } .method__art .ps { stroke: var(--logo-pink); } .method__art .os { stroke: var(--logo-orange); stroke-width: 9; }
+.method__art .ss { stroke: var(--logo-sky); stroke-width: 5; stroke-dasharray: 10 9; }
+.venn circle { opacity: .82; }   /* see-through, not multiplied: three saturated colours multiplied meet in near-black */
+.method__art .w { fill: #fff; }
+.venn__words text { fill: var(--ink); font-family: var(--font); font-size: 17px; font-weight: 600; text-anchor: middle; }
+@media (max-width: 767px) {
+  .method__head { justify-items: start; text-align: left; } .method__lead { text-wrap: pretty; }   /* a phone reads from the left, as the sections above do */
+  .method__row { text-align: left; }
+  /* a phase on a phone: its drawing beside its words, so three cards are one screen rather than three */
+  .method__card--phase { grid-template-columns: 112px minmax(0, 1fr); column-gap: var(--sp-5); align-items: center; justify-items: start; text-align: left; padding: var(--sp-5) var(--sp-5) var(--sp-5) var(--sp-4); }
+  .method__card--phase .method__art { grid-row: 1 / span 3; max-width: none; margin: 0; }
+  .method__card--phase .method__line { text-wrap: pretty; }
+}
+
 /* ---------- Her work in China: the film (2026-10-16) ----------
    The section above's shape, with the film under the words at its own 9:16: 405 wide is 720 tall, which sits whole on
    a 900px screen under the header. Its poster is its own first frame, so play hands over without a jump; until the

@@ -1,6 +1,6 @@
-// Gate: the film of Linda's work in China (2026-10-16), in its own section after the quote ring.
-//   place        the section comes straight after the ring, and every section's ground differs from the one before it
-//                (Apple's bands: the film's section is white, so the testimonials went grey and the close white)
+// Gate: the film of Linda's work in China (2026-10-16), in its own section; after the 3-5-3 since 2026-11-18.
+//   place        the section comes straight after the 3-5-3, and every section's ground differs from the one before it
+//                (Apple's bands), but for the closing section and the footer, which share their grey with the hairline
 //   nothing      a walk down the whole page fetches none of the film; its poster waits until it is near the screen
 //   poster       9:16, whole on a 1440×900 screen under the header and the width of a phone's column; the play button
 //                is 44px or more, inside the frame's bottom-right quarter (the centre is the poster's own title)
@@ -8,14 +8,16 @@
 //                and the poster gives way once the film is drawing; a browser that refuses gives the button back
 //   file         H.264 and AAC, which every browser plays (the iPhone's HEVC is not played by Chrome or Firefox on
 //                many machines), laid out to start before it has all arrived (moov ahead of mdat), and stamped with
-//                its own hash, since /assets/ is cached for a year. This test browser has no H.264 decoder of its own,
-//                so playback itself is not watched here: play() is answered for it, and the refusal is real
-// --self-test: preloads the film, puts the film's section on grey, and plays it muted; "nothing", "place" and "play"
+//                its own hash, since /assets/ is cached for a year
+//   plays        clicked, the film really plays, with its sound on, and the clock moves (since 2026-11-18, when the
+//                test browser gained an H.264 decoder; until then play() was answered for it and the refusal was the
+//                browser's own). The refusal is staged now: the film's file is answered with a 404
+// --self-test: preloads the film, takes the film's section off its grey, and plays it muted; "nothing", "place" and "play"
 // must each fail.
 import { browser, report, URL } from './_lib.mjs';
 const selfTest = process.argv.includes('--self-test');
 const b = await browser();
-const page = async (w, h, { bug, answer } = {}) => {
+const page = async (w, h, { bug, answer, refuse } = {}) => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
   const pg = await ctx.newPage();
   await pg.addInitScript((answer) => {
@@ -23,11 +25,12 @@ const page = async (w, h, { bug, answer } = {}) => {
     // the answer a browser with an H.264 decoder gives: play() resolves, and the film starts drawing
     if (answer) HTMLMediaElement.prototype.play = function () { window.__played = { muted: this.muted, controls: this.controls }; setTimeout(() => this.dispatchEvent(new Event('playing')), 50); return Promise.resolve(); };
   }, !!answer);
+  if (refuse) await pg.route(/linda-china\.mp4/, (route) => route.fulfill({ status: 404, body: '' }));
   if (bug) {
     await pg.route(/index\.html$/, async (route) => {
       const res = await route.fetch(); let t = await res.text();
       if (bug === 'preload') t = t.replace('preload="none"', 'preload="auto"');
-      if (bug === 'band') t = t.replace('class="tell watch"', 'class="tell watch band"');
+      if (bug === 'band') t = t.replace('class="tell watch band"', 'class="tell watch"');
       await route.fulfill({ response: res, body: t });
     });
     if (bug === 'muted') await pg.route(/main\.js/, async (route) => { const res = await route.fetch(); await route.fulfill({ response: res, body: (await res.text()).replace('video.muted = false', 'video.muted = true') }); });
@@ -49,10 +52,11 @@ const run = async (bug) => {
       const secs = [...document.querySelectorAll('main > section, body > section, body > footer')];
       const i = secs.findIndex(s => s.id === 'china');
       const ground = secs.map(s => getComputedStyle(s).backgroundColor === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.body).backgroundColor : getComputedStyle(s).backgroundColor);
-      const same = ground.map((g, k) => k && g === ground[k - 1] ? `${secs[k - 1].id || secs[k - 1].className} / ${secs[k].id || secs[k].className}` : null).filter(Boolean);
+      // the closing section and the footer share their grey, with the hairline between them: that pair is the one exception
+      const same = ground.map((g, k) => k && g === ground[k - 1] && !(secs[k].id === 'contact' && secs[k - 1].classList.contains('close')) ? `${secs[k - 1].id || secs[k - 1].className} / ${secs[k].id || secs[k].className}` : null).filter(Boolean);
       return { after: i > 0 && secs[i - 1].id, title: document.querySelector('#chinaTitle') && document.querySelector('#chinaTitle').textContent, same };
     });
-    check('place: after the quote ring, and no two sections in a row on one ground', place.after === 'quote' && place.title === 'Her work in China' && place.same.length === 0, JSON.stringify(place));
+    check('place: after the 3-5-3, and no two sections in a row on one ground', place.after === 'method' && place.title === 'Her work in China' && place.same.length === 0, JSON.stringify(place));
     await pg.evaluate(async () => { document.documentElement.style.scrollBehavior = 'auto'; for (let y = 0; y < document.documentElement.scrollHeight; y += 400) { scrollTo(0, y); await new Promise(r => setTimeout(r, 100)); } });
     await pg.evaluate(() => document.querySelector('.film').scrollIntoView({ block: 'center' })); await pg.waitForTimeout(1200);
     check('nothing: a walk down the page fetches none of the film, and the poster only once near', film.length === 0 && posterAtLoad === 0 && poster.length === 1, JSON.stringify({ film: film.length, posterAtLoad, poster: poster.length }));
@@ -83,9 +87,20 @@ const run = async (bug) => {
     check('play: with the sound on, then the browser\'s controls and focus, the poster gone', !before.controls && after.played && after.played.muted === false && after.controls && after.focus === 'film__video' && after.button === 0 && after.poster === 0, JSON.stringify({ before, after }));
     await ctx.close();
   }
-  // play, refused: this browser has no H.264 decoder, so the real play() refuses
+  // plays for real: a click, and two seconds later the clock has moved with the sound on
   {
     const { ctx, pg } = await page(1440, 900, { bug });
+    await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.film').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(900);
+    const can = await pg.evaluate(() => document.createElement('video').canPlayType('video/mp4; codecs="avc1.640028, mp4a.40.2"'));
+    const p = await pg.locator('.film__play').boundingBox();
+    await pg.mouse.click(p.x + p.width / 2, p.y + p.height / 2); await pg.waitForTimeout(2200);
+    const r = await pg.evaluate(() => { const v = document.querySelector('.film__video'); return { t: +v.currentTime.toFixed(2), paused: v.paused, muted: v.muted, playing: document.querySelector('.film').classList.contains('is-playing') }; });
+    check('plays: a click plays the film, sound on, the clock moving', can === '' || (r.t > 1 && !r.paused && !r.muted && r.playing), JSON.stringify({ decoder: can || 'none here', ...r }));
+    await ctx.close();
+  }
+  // refused: the film's file does not come, and the button comes back rather than leaving a dead poster
+  {
+    const { ctx, pg } = await page(1440, 900, { bug, refuse: true });
     await pg.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('.film').scrollIntoView({ block: 'center' }); }); await pg.waitForTimeout(900);
     await pg.focus('.film__play'); await pg.keyboard.press('Enter'); await pg.waitForTimeout(1500);
     const r = await pg.evaluate(() => ({ started: document.querySelector('.film').classList.contains('is-started'), controls: document.querySelector('.film__video').controls, focus: !!document.activeElement && document.activeElement.classList.contains('film__play') }));
@@ -110,7 +125,7 @@ await run(null);
 if (selfTest) {
   for (const bug of ['preload', 'band', 'muted']) await run(bug);
   await b.close();
-  const caught = fails['nothing: a walk down the page fetches none of the film, and the poster only once near'] && fails['place: after the quote ring, and no two sections in a row on one ground'] && fails['play: with the sound on, then the browser\'s controls and focus, the poster gone'];
+  const caught = fails['nothing: a walk down the page fetches none of the film, and the poster only once near'] && fails['place: after the 3-5-3, and no two sections in a row on one ground'] && fails['play: with the sound on, then the browser\'s controls and focus, the poster gone'];
   console.log(caught ? 'SELF-TEST OK: the preloaded film, the grey section and the muted play were each caught' : 'SELF-TEST FAILED: ' + JSON.stringify(fails));
   process.exit(caught ? 0 : 1);
 }

@@ -196,17 +196,84 @@ tells=''.join(tell(*t) for t in TELL)
 
 # ---- Her work in China: the film (2026-10-16) ----
 # Linda was given a film of her work in China (an interview and a workshop, English and Chinese subtitles burned in) and
-# Jayden told her it would have a section of its own. It comes after the quote ring: her line, "Creativity in motion
-# creates knowledge!", and then the work in motion. Directly after "Who Linda is" read best on paper, but every section
-# alternates white and grey, so a section there pushed the ring, which stays as it is, onto white; here only the
-# testimonials and the closing section change ground. The same centred stack as the two sections above, the film
+# Jayden told her it would have a section of its own. It came straight after the quote ring on 2026-10-16; since the
+# 3-5-3 went in (2026-11-18) it follows that, on grey: her line, what she teaches, then the film of her teaching it. The same centred stack as the two sections above, the film
 # under the words at its own 9:16. Nothing of the film loads until it is asked for, only its poster (its own first
 # frame, the title card), and one quiet button plays it with the sound on and hands over to the browser's controls.
 # THE COPY HERE IS PLACEHOLDER, like the two sections above, until Linda writes it.
+# ---- The 3-5-3: what Linda teaches, drawn (2026-11-18) ----
+# From her own document, "The 3-5-3": three phases, five pillars and the trifecta. The first build listed them as two
+# lines each in plain columns, and Jayden: "that looks ugly ... containers and illustrations would be nice ... thats a
+# lot to read make it more visual." So the layout is the 3-5-3 itself: three large cards, five small ones, and one wide
+# card of three circles. Each card is a drawing and a few words; the long version stays in her document. The drawings
+# are flat shapes in the logo's own eight colours (the --logo-* tokens), round like its figures: no outline, no shadow,
+# no gradient. Text carries the meaning; the drawings are aria-hidden.
+def _star(cx, cy, r, cls):   # the logo's four-point star
+    k = r * .18
+    return (f'<path class="{cls}" d="M{cx} {cy-r} Q{cx+k} {cy-k} {cx+r} {cy} Q{cx+k} {cy+k} {cx} {cy+r} '
+            f'Q{cx-k} {cy+k} {cx-r} {cy} Q{cx-k} {cy-k} {cx} {cy-r}Z"/>')
+def _foot(x, y, rot):
+    return (f'<g class="v" transform="translate({x} {y}) rotate({rot})"><ellipse cx="0" cy="0" rx="10" ry="15"/>'
+            f'<circle cx="-7" cy="-21" r="3.6"/><circle cx="-1" cy="-24" r="3.6"/><circle cx="5.5" cy="-23" r="3.3"/><circle cx="10.5" cy="-19" r="3"/></g>')
+ART = {
+ 'caterpillar': ('0 0 200 140',
+   '<g class="k"><circle cx="40" cy="110" r="2.6"/><circle cx="64" cy="105" r="2.6"/><circle cx="89" cy="109" r="2.6"/><circle cx="114" cy="105" r="2.6"/><circle cx="139" cy="109" r="2.6"/></g>'
+   '<circle class="g" cx="40" cy="92" r="16"/><circle class="y" cx="64" cy="86" r="17"/><circle class="g" cx="89" cy="90" r="17"/>'
+   '<circle class="y" cx="114" cy="86" r="17"/><circle class="g" cx="139" cy="90" r="17"/><circle class="g" cx="165" cy="76" r="21"/>'
+   '<path class="ks" d="M158 58 L150 40 M170 56 L176 38"/><circle class="y" cx="150" cy="39" r="5"/><circle class="y" cx="176" cy="37" r="5"/>'
+   '<circle class="k" cx="171" cy="71" r="3.5"/><circle class="p" cx="161" cy="83" r="4"/>'),
+ 'cocoon': ('0 0 200 140',
+   '<path class="ks" style="stroke-width:6" d="M36 24 H164"/><path class="g" d="M134 22 C140 6 160 4 170 10 C162 22 148 26 134 22Z"/>'
+   '<path class="ks" d="M100 24 V36"/><path class="v" d="M100 34 C124 40 130 72 120 100 C114 116 104 126 100 128 C96 126 86 116 80 100 C70 72 76 40 100 34Z"/>'
+   '<path class="ps" d="M83 62 Q100 70 117 62 M85 86 Q100 94 115 86"/>' + _star(146, 76, 11, 'y') + _star(58, 96, 7, 's')),
+ 'butterfly': ('0 0 200 140',
+   '<path class="m" d="M97 66 C80 30 40 22 34 46 C28 70 62 82 97 72Z"/><path class="m" d="M103 66 C120 30 160 22 166 46 C172 70 138 82 103 72Z"/>'
+   '<path class="p" d="M97 76 C70 80 48 96 58 114 C68 128 92 110 97 86Z"/><path class="p" d="M103 76 C130 80 152 96 142 114 C132 128 108 110 103 86Z"/>'
+   '<circle class="y" cx="58" cy="48" r="7"/><circle class="y" cx="142" cy="48" r="7"/><circle class="s" cx="72" cy="104" r="4.5"/><circle class="s" cx="128" cy="104" r="4.5"/>'
+   '<rect class="k" x="95" y="50" width="10" height="66" rx="5"/><path class="ks" d="M98 54 L86 32 M102 54 L114 32"/><circle class="y" cx="86" cy="31" r="4.5"/><circle class="y" cx="114" cy="31" r="4.5"/>'),
+ 'empowerment': ('0 0 100 100',
+   '<circle class="o" cx="50" cy="24" r="10"/><rect class="o" x="40" y="38" width="20" height="30" rx="10"/>'
+   '<path class="os" d="M44 46 L26 26 M56 46 L74 26 M45 64 L40 86 M55 64 L60 86"/>' + _star(18, 18, 7, 'y') + _star(83, 16, 6, 'y')),
+ 'spontaneity': ('0 0 100 100', _star(48, 54, 34, 'y') + _star(80, 20, 11, 's') + '<circle class="p" cx="20" cy="26" r="4.5"/>'),
+ 'experience': ('0 0 100 100', _foot(34, 66, -14) + _foot(64, 40, 14)),
+ 'perception': ('0 0 100 100', '<rect class="ss" x="20" y="26" width="56" height="56" rx="15"/>' + _star(76, 26, 13, 'y') + '<circle class="p" cx="48" cy="54" r="5"/>'),
+ 'communication': ('0 0 100 100',
+   '<path class="g" d="M56 16 H74 A16 16 0 0 1 90 32 V36 A16 16 0 0 1 74 52 H72 L80 64 L62 52 H56 A16 16 0 0 1 40 36 V32 A16 16 0 0 1 56 16Z"/>'
+   '<path class="s" d="M30 40 H48 A18 18 0 0 1 66 58 V62 A18 18 0 0 1 48 80 H34 L18 92 L22 79 A18 18 0 0 1 12 62 V58 A18 18 0 0 1 30 40Z"/>'
+   '<path class="p" d="M39 70 C30 63 28 56 33 53 C36 51 39 53 39 56 C39 53 42 51 45 53 C50 56 48 63 39 70Z"/>'),
+ 'trifecta': ('0 0 260 220',
+   '<g class="venn"><circle class="s" cx="94" cy="84" r="60"/><circle class="p" cx="166" cy="84" r="60"/><circle class="y" cx="130" cy="146" r="60"/></g>'
+   + _star(130, 106, 15, 'w') +
+   '<g class="venn__words"><text x="76" y="74">Think</text><text x="184" y="74">Feel</text><text x="130" y="184">Gut</text></g>'),
+}
+def art(name, cls=''):
+    vb, body = ART[name]
+    return f'<svg class="method__art {cls}" viewBox="{vb}" aria-hidden="true" focusable="false">{body}</svg>'
+PHASES=[('caterpillar','Phase 1','The caterpillar','Games that wake up the brain and build trust.'),
+        ('cocoon','Phase 2','The cocoon','Learning to work off each other, through improv.'),
+        ('butterfly','Phase 3','The butterfly','Free scenes, then talking through every choice.')]
+PILLARS=[('empowerment','Empowerment','Every voice is heard.'),
+         ('spontaneity','Spontaneity','No time to second-guess.'),
+         ('experience','Experience','What you live, you keep.'),
+         ('perception','Sensory perception','Making the invisible visible.'),
+         ('communication','Communication','More than words.')]
+method=(f'<section class="method" id="method" aria-labelledby="methodTitle"><div class="container">'
+        f'<div class="method__head reveal"><h2 class="method__title" id="methodTitle">The 3-5-3</h2>'
+        f'<p class="method__lead">Three phases, five pillars and a trifecta.</p></div>'
+        f'<h3 class="method__row reveal">3 phases</h3><ul class="method__cards method__cards--3 reveal--stagger">'
+        + ''.join(f'<li class="method__card method__card--phase reveal">{art(a)}<p class="method__step">{n}</p><h4 class="method__name">{t}</h4><p class="method__line">{l}</p></li>' for a,n,t,l in PHASES)
+        + f'</ul><h3 class="method__row reveal">5 pillars</h3><ul class="method__cards method__cards--5 reveal--stagger">'
+        + ''.join(f'<li class="method__card reveal">{art(a, "method__art--small")}<h4 class="method__name">{t}</h4><p class="method__line">{l}</p></li>' for a,t,l in PILLARS)
+        + f'</ul><h3 class="method__row reveal">The trifecta</h3>'
+        f'<div class="method__card method__card--wide reveal">{art("trifecta", "method__art--venn")}'
+        f'<div class="method__words"><h4 class="method__name">Think it, feel it, trust your gut.</h4>'
+        f'<p class="method__line">Learning to get all three working together.</p></div></div>'
+        f'</div></section>')
+
 FILM=json.load(open(f'{root}/assets/video/linda-china.json'))
 FILM_TITLE='From a Student My Teachers Gave Up On to an Educator: How Improv Changed My Life'
 _fv='assets/video/linda-china'
-china=(f'<section class="tell watch" id="china" aria-labelledby="chinaTitle">'
+china=(f'<section class="tell watch band" id="china" aria-labelledby="chinaTitle">'
        f'<div class="container grid tell__row">'
        f'<figure class="tell__figure reveal"><div class="film" data-film style="background-image:url({FILM["placeholder"]})">'
        f'<video class="film__video" controls playsinline preload="none" width="{FILM["width"]}" height="{FILM["height"]}" aria-label="Film: {html.escape(FILM_TITLE)}">'
@@ -314,17 +381,20 @@ page=f'''<!DOCTYPE html>
     </div>
   </section>
 
+{method}
+
 {china}
 
-  <!-- the grounds alternate (Apple's bands): the film's section is white, so from here the grey moves down one -->
-  <section class="voices-sec band" id="voices" aria-label="Testimonials">
+  <!-- the grounds alternate (Apple's bands): white for the 3-5-3, grey for the film, white for the testimonials, grey for
+       the close and the footer, which share it with the hairline between them -->
+  <section class="voices-sec" id="voices" aria-label="Testimonials">
     <div class="container">
       <ul class="voices grid reveal--stagger" aria-label="Testimonials">{pile}</ul>
     </div>
   </section>
 </main>
 
-<section class="close" aria-labelledby="newsletterTitle">
+<section class="close band" aria-labelledby="newsletterTitle">
   <!-- The closing line and the newsletter: the last thing the page says. The ways to reach Linda moved into the footer
        below it (2026-10-13), which is drawn the way his portfolio's is. -->
   <div class="container"><div class="close__body reveal">

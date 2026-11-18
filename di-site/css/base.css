@@ -36,7 +36,7 @@ img { height: auto; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 input { font: inherit; }
-h1, h2, h3, p, figure, blockquote { margin: 0; }
+h1, h2, h3, h4, p, figure, blockquote { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { background: color-mix(in srgb, var(--logo-sky) 26%, transparent); color: var(--ink); }   /* the logo's sky, softly: an inverted black block was the one harsh thing left */
@@ -48,7 +48,7 @@ ul { margin: 0; padding: 0; list-style: none; }
    change of ground is the break. On a grey band a field or a soft control takes the white, or it would vanish. It was
    one white page with --section-y between sections, the ring 1.4 times that as the page's one break. */
 main > section + section, .close { margin-top: 0; }
-.tell, .section.ring, .voices-sec, .close { padding-block: var(--section-y); }
+.tell, .section.ring, .method, .voices-sec, .close { padding-block: var(--section-y); }
 .band { background: var(--band); --bg-raised: var(--bg-overlay); }
 /* the twelve-column grid every section lays out on */
 .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--grid-gap); }
