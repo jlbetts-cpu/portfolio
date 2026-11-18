@@ -6,10 +6,9 @@
       by fBm noise, colour points worked out from the shape's own colour (deeper, lighter, a step of hue either way) and
       mixed over it so it still reads as itself, the seams lifted so they grow richer and never grey, grain in the
       colour. Still, as the app's tower is: a picture, not a movie.
-      - the 3-5-3's drawings: every filled shape its own seed, so no two match. Strokes stay flat (a straight line has
-        no box to fill);
       - the main action (.btn--primary): the app's liquid ink, near-black, charcoal and graphite.
-      No WebGL: the drawings stay flat and the button stays the flat ink.
+      No WebGL: the button stays the flat ink. (The 3-5-3's flat drawings wore the block liquid until they became
+      3D renders on 2026-11-17.)
 
    2. THE SCROLL. Some Wins' two scroll-linked moves, one pass a frame and only while scrolling: the China film grows
       the last 8% into its place as it comes up the screen, and the closing line's words light up one after another as
@@ -148,49 +147,4 @@
     btns[b].style.setProperty('--liquid-ink', 'url(' + paint(bw, bh, ink, 0.3 + b * 0.17, true, dpr) + ')');
   }
 
-  // the 3-5-3's drawings
-  var NS = 'http://www.w3.org/2000/svg';
-  var uid = 0;
-  function drawings() {
-    var arts = document.querySelectorAll('.method__art');
-    for (var a = 0; a < arts.length; a++) {
-      var svg = arts[a];
-      if (svg.getAttribute('data-liquid')) continue;
-      var box = svg.getBoundingClientRect();
-      var vb = svg.viewBox && svg.viewBox.baseVal;
-      if (!box.width || !vb || !vb.width) continue;
-      var scale = box.width / vb.width;
-      var defs = document.createElementNS(NS, 'defs');
-      var shapes = svg.querySelectorAll('circle, ellipse, rect, path');
-      for (var i = 0; i < shapes.length; i++) {
-        var el = shapes[i];
-        var cs = getComputedStyle(el);
-        if (cs.fill === 'none' || !/rgb/.test(cs.fill)) continue;
-        var base = rgb(cs.fill);
-        if (!base) continue;
-        var bb;
-        try { bb = el.getBBox(); } catch (e) { continue; }
-        if (bb.width < 1 || bb.height < 1) continue;
-        var dark = Math.max(base[0], base[1], base[2]) < 0.2;
-        var w = Math.max(8, Math.round(bb.width * scale * dpr));
-        var h = Math.max(8, Math.round(bb.height * scale * dpr));
-        var id = 'liq' + (uid++);
-        var pat = document.createElementNS(NS, 'pattern');
-        pat.setAttribute('id', id);
-        pat.setAttribute('patternUnits', 'objectBoundingBox');
-        pat.setAttribute('patternContentUnits', 'objectBoundingBox');
-        pat.setAttribute('width', '1'); pat.setAttribute('height', '1');
-        var img = document.createElementNS(NS, 'image');
-        img.setAttribute('width', '1'); img.setAttribute('height', '1');
-        img.setAttribute('preserveAspectRatio', 'none');
-        img.setAttribute('href', paint(w, h, base, ((a * 37 + i * 11) % 97) / 97 + 0.13, dark, dpr));
-        pat.appendChild(img);
-        defs.appendChild(pat);
-        el.style.fill = 'url(#' + id + ')';
-      }
-      svg.insertBefore(defs, svg.firstChild);
-      svg.setAttribute('data-liquid', '1');
-    }
-  }
-  if (document.readyState === 'complete') drawings(); else window.addEventListener('load', drawings);
 })();

@@ -45,6 +45,8 @@ CLONE = "document.querySelectorAll('[data-clone]').forEach(function(u){u.innerHT
 body = re.sub(r'srcset="([^"]+)"', srcset, body)
 body = re.sub(r'src="(assets/video/[a-z0-9-]+-poster\.jpg)\?v=\w+"', lambda m: f'src="{data(m.group(1), "image/jpeg")}"', body)
 body = re.sub(r'src="assets/video/[a-z0-9-]+\.mp4\?v=\w+"', lambda m: f'src="{quote(video_href)}"', body)
+# the 3-5-3's renders (2026-11-17), inlined as they are
+body = re.sub(r'src="(assets/method/[a-z0-9-]+\.webp)\?v=\w+"', lambda m: f'src="{data(m.group(1), "image/webp")}"', body)
 body = re.sub(r'src="images/([a-z0-9-]+)-960\.jpg"', lambda m: f'src="{data(f"images/{m.group(1)}-480.webp","image/webp")}"', body)
 
 def lbdata(m):

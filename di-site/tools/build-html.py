@@ -1,6 +1,7 @@
 # Generates index.html once from images/manifest.json + the copy. Dev tool; the output is committed and served static.
 import json, html, re, hashlib, math
-root='/home/user/portfolio/di-site'
+import pathlib
+root=str(pathlib.Path(__file__).resolve().parent.parent)   # was the cloud machine's /home/user/portfolio/di-site; it runs anywhere now
 man=json.load(open(f'{root}/images/manifest.json'))
 logo=open(f'{root}/assets/logo/inline-logo.html').read().strip()
 navlogo=logo.replace(' role="img" aria-labelledby="logoTitle"><title id="logoTitle">Developmental Improvisation</title>', ' aria-hidden="true">')
@@ -247,8 +248,16 @@ ART = {
    '<g class="venn__words"><text x="76" y="74">Think</text><text x="184" y="74">Feel</text><text x="130" y="184">Gut</text></g>'),
 }
 def art(name, cls=''):
-    vb, body = ART[name]
-    return f'<svg class="method__art {cls}" viewBox="{vb}" aria-hidden="true" focusable="false">{body}</svg>'
+    # Since 2026-11-17 a soft 3D render of the same subject (Jayden: "i also think its the illustrations i wish they
+    # were images", then "Rendered 3D objects"), made in Figma from one prompt style and cut from its grey in
+    # tools/key-renders.py. Decorative, as the drawings were: the tile's words say what it is. The flat drawings stay
+    # in ART above, unused, in case they are wanted back.
+    from PIL import Image as _I
+    f = f'assets/method/{name}.webp'
+    w, h = _I.open(f'{root}/{f}').size
+    f1 = f'assets/method/{name}-1x.webp'   # half size, for a 1x screen (the images gate: never 1.5x the width drawn)
+    return (f'<picture class="method__pic {cls}"><img class="method__art" src="{f1}?v={V(f1)}" srcset="{f1}?v={V(f1)} 1x, {f}?v={V(f)} 2x" '
+            f'alt="" width="{w}" height="{h}" loading="lazy" decoding="async"></picture>')
 PHASES=[('caterpillar','Phase 1','The caterpillar','Games that wake up the brain and build trust.'),
         ('cocoon','Phase 2','The cocoon','Learning to work off each other, through improv.'),
         ('butterfly','Phase 3','The butterfly','Free scenes, then talking through every choice.')]
@@ -257,18 +266,21 @@ PILLARS=[('empowerment','Empowerment','Every voice is heard.'),
          ('experience','Experience','What you live, you keep.'),
          ('perception','Sensory perception','Making the invisible visible.'),
          ('communication','Communication','More than words.')]
+# THE 3-5-3 AS ONE SET OF SOME WINS TILES (2026-11-17, Jayden: "the 353 section does not look good or premium"). It was
+# three rows, each under its own small label, of centred feature cards with a small drawing floating in each. Now one
+# grid, Some Wins' gutter between every tile so the nine read as one piece: each tile's words at its top left and its
+# drawing standing on its floor, large. The three row labels went (the lead already says three, five and three); the
+# tiles' sizes say which is which: three tall phases, five square pillars, one wide trifecta.
 method=(f'<section class="method" id="method" aria-labelledby="methodTitle"><div class="container">'
         f'<div class="method__head reveal"><h2 class="method__title" id="methodTitle">The 3-5-3</h2>'
         f'<p class="method__lead">Three phases, five pillars and a trifecta.</p></div>'
-        f'<h3 class="method__row reveal">3 phases</h3><ul class="method__cards method__cards--3 reveal--stagger">'
-        + ''.join(f'<li class="method__card method__card--phase reveal">{art(a)}<p class="method__step">{n}</p><h4 class="method__name">{t}</h4><p class="method__line">{l}</p></li>' for a,n,t,l in PHASES)
-        + f'</ul><h3 class="method__row reveal">5 pillars</h3><ul class="method__cards method__cards--5 reveal--stagger">'
-        + ''.join(f'<li class="method__card reveal">{art(a, "method__art--small")}<h4 class="method__name">{t}</h4><p class="method__line">{l}</p></li>' for a,t,l in PILLARS)
-        + f'</ul><h3 class="method__row reveal">The trifecta</h3>'
-        f'<div class="method__card method__card--wide reveal">{art("trifecta", "method__art--venn")}'
-        f'<div class="method__words"><h4 class="method__name">Think it, feel it, trust your gut.</h4>'
-        f'<p class="method__line">Learning to get all three working together.</p></div></div>'
-        f'</div></section>')
+        f'<ul class="method__grid reveal--stagger">'
+        + ''.join(f'<li class="method__card method__card--phase reveal"><div class="method__words"><p class="method__step">{n}</p><h3 class="method__name">{t}</h3><p class="method__line">{l}</p></div>{art(a)}</li>' for a,n,t,l in PHASES)
+        + ''.join(f'<li class="method__card method__card--pillar reveal"><div class="method__words"><h3 class="method__name">{t}</h3><p class="method__line">{l}</p></div>{art(a, "method__art--small")}</li>' for a,t,l in PILLARS)
+        + f'<li class="method__card method__card--wide reveal"><div class="method__words"><p class="method__step">The trifecta</p>'
+        f'<h3 class="method__name">Think it, feel it, trust your gut.</h3>'
+        f'<p class="method__line">Learning to get all three working together.</p></div>{art("trifecta", "method__art--venn")}</li>'
+        f'</ul></div></section>')
 
 FILM=json.load(open(f'{root}/assets/video/linda-china.json'))
 FILM_TITLE='From a Student My Teachers Gave Up On to an Educator: How Improv Changed My Life'
@@ -334,6 +346,7 @@ page=f'''<!DOCTYPE html>
 <link rel="stylesheet" href="css/components.css?v={V('css/components.css')}">
 <link rel="stylesheet" href="css/home.css?v={V('css/home.css')}">
 <script src="js/main.js?v={V('js/main.js')}" defer></script>
+<script src="js/somewins.js?v={V('js/somewins.js')}" defer></script>
 </head>
 <body>
 <script>(function(){{var h=document.documentElement,c=1;try{{c=/[?&#]curtain\\b/.test(location.href)||!sessionStorage.getItem('di:curtain')}}catch(e){{}}h.classList.add('js');var n;try{{n=localStorage.getItem('di:newsletter')}}catch(e){{try{{n=sessionStorage.getItem('di:newsletter')}}catch(f){{}}}}if(n==='subscribed')h.classList.add('subscribed');if(c&&!matchMedia('(prefers-reduced-motion: reduce)').matches)h.classList.add('curtaining')}})()</script>
@@ -341,6 +354,7 @@ page=f'''<!DOCTYPE html>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="mark" viewBox="0 0 787 842">{whitemark_paths}</symbol></svg>
 {sprite}
 
+<div class="veil" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <header class="nav" id="nav">
   <div class="container nav__bar">
     <a class="nav__brand" href="/" aria-label="Developmental Improvisation, home">{navglyph}Developmental Improvisation</a>

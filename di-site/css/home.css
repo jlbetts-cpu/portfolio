@@ -126,7 +126,8 @@
    heading's capitals on the photograph's top edge (Some Wins' "read from the top"), for most of the day. */
 /* SOME WINS' TILES (2026-11-17, Jayden picked "Tile sections"; it was Apple's centred stack, headline, words, then
    the photograph). Two surfaces side by side on a twelve-column grid, Some Wins' 8px gutter (16 from 760): the words
-   in one, the headline at its top and the paragraphs on its floor, and the photograph filling the next. A tile is the
+   in one, the headline at its top and the paragraphs straight under it (they sat on the tile's floor for one round:
+   "i dont like how far the text sits down on every panel"), and the photograph filling the next. A tile is the
    other ground (white on a grey band, grey on white), so the band still alternates and the tile still reads. One
    corner for both, Some Wins' 20. On a phone they stack, words first. */
 .tell__row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--tile-gap); align-items: stretch; text-align: left; }
@@ -134,7 +135,7 @@
 .tell__figure .photo { width: 100%; height: 100%; border-radius: var(--r-tile); }
 .tell__copy { order: -1; display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-6); border-radius: var(--r-tile); background: var(--band); }
 .band .tell__copy { background: var(--bg); }
-.tell__title { margin-bottom: auto; padding-bottom: var(--sp-8); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 16em; }
+.tell__title { margin-bottom: var(--sp-2); font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; max-width: 16em; }
 .tell__p { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: pretty; }
 @media (min-width: 760px) { .tell__copy { padding: var(--sp-8); } }
 @media (min-width: 900px) {
@@ -155,56 +156,48 @@
 .method__head { display: grid; justify-items: center; gap: var(--sp-4); text-align: center; margin-bottom: clamp(40px, 4.4vw, 64px); }
 .method__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: 600; color: var(--ink); text-wrap: balance; }
 .method__lead { font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); max-width: 34em; text-wrap: balance; }
-.method__row { margin: clamp(40px, 4vw, 56px) 0 var(--sp-5); font-size: var(--fs-ui); line-height: 1.4; font-weight: 600; color: var(--ink); text-align: center; }
-.method__head + .method__row { margin-top: 0; }
-.method__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin: 0; padding: 0; list-style: none; }
-.method__cards--3 { grid-template-columns: 1fr; }
+/* SOME WINS' TILES (2026-11-17, "the 353 section does not look good or premium"). One grid of nine, Some Wins' gutter
+   between every tile so they read as one piece rather than three labelled rows of feature cards: each tile's words at
+   its top left, small and in the ink, and its drawing standing on the tile's floor, large. The sizes carry the
+   structure the row labels used to: three tall phases, five square pillars, one wide trifecta. 30 columns from 1024
+   (10 for a phase, 6 for a pillar), 6 from 768 (three pillars, then two), 2 on a phone. */
+.method__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tile-gap); margin: 0; padding: 0; list-style: none; }
+.method__card { display: flex; flex-direction: column; gap: var(--sp-6); padding: var(--sp-6); border-radius: var(--r-tile); background: var(--band); text-align: left; transition-delay: calc(var(--stagger) * var(--d, 0)); }
+.method__card--phase, .method__card--wide { grid-column: span 2; }
+.method__card--pillar { aspect-ratio: 1; }
+.method__card--pillar:nth-of-type(8) { grid-column: span 2; aspect-ratio: auto; }   /* the fifth, across: square it was a screen tall */
 @media (min-width: 768px) {
-  .method__cards { gap: var(--sp-4); }
-  .method__cards--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .method__cards--5 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .method__cards--5 > * { grid-column: span 2; }
-  .method__cards--5 > :nth-child(4) { grid-column: 2 / span 2; }   /* five on two rows below 1024: three, then two centred */
+  .method__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .method__card--phase, .method__card--pillar { grid-column: span 2; }
+  .method__card--pillar:nth-of-type(7), .method__card--pillar:nth-of-type(8) { grid-column: span 3; aspect-ratio: auto; }
+  .method__card--wide { grid-column: 1 / -1; }
+  .method__card--phase, .method__card--wide { padding: var(--sp-8); }
 }
 @media (min-width: 1024px) {
-  .method__cards--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .method__cards--5 > *, .method__cards--5 > :nth-child(4) { grid-column: auto; }
+  .method__grid { grid-template-columns: repeat(30, minmax(0, 1fr)); }
+  .method__card--phase { grid-column: span 10; }
+  .method__card--pillar, .method__card--pillar:nth-of-type(7), .method__card--pillar:nth-of-type(8) { grid-column: span 6; aspect-ratio: 1; }
 }
-@media (max-width: 767px) { .method__cards--5 > :last-child { grid-column: 1 / -1; } }   /* two by two, and the fifth across */
-.method__card { display: grid; justify-items: center; align-content: start; text-align: center; padding: clamp(24px, 2.4vw, 36px) clamp(18px, 1.8vw, 28px); border-radius: var(--r-tile); background: var(--band); transition-delay: calc(var(--stagger) * var(--d, 0)); }   /* Some Wins' surface corner (2026-11-17) */
-.method__card--phase { padding-top: clamp(20px, 2vw, 28px); }
-.method__art { display: block; width: 100%; height: auto; overflow: visible; }
-.method__card--phase .method__art { max-width: 220px; margin-bottom: var(--sp-4); }
-.method__art--small { width: 88px; margin-bottom: var(--sp-4); }
-.method__step { margin-bottom: var(--sp-1); font-size: var(--fs-ui); line-height: 1.4; font-weight: 600; color: var(--ink); }
+.method__words { display: grid; gap: var(--sp-1); }
+.method__step { font-size: var(--fs-ui); line-height: 1.4; color: var(--ink); }
 .method__name { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); text-wrap: balance; }
-.method__line { margin-top: var(--sp-2); font-size: var(--fs-body); line-height: var(--lh-body); color: var(--ink); text-wrap: balance; max-width: 22em; }
-.method__cards--5 .method__name { font-size: var(--fs-body); line-height: 1.35; letter-spacing: 0; }
-.method__cards--5 .method__line { margin-top: var(--sp-1); }
-.method__card--wide { gap: var(--sp-4); }
-.method__art--venn { max-width: 240px; }
-.method__card--wide .method__name { font-size: var(--fs-h3); }
+.method__line { font-size: var(--fs-body); line-height: 1.45; color: var(--ink); text-wrap: pretty; max-width: 22em; }
+.method__card--pillar .method__name { font-size: 1.0625rem; line-height: 1.3; letter-spacing: -0.005em; }
+/* the renders (2026-11-17, "Rendered 3D objects"): sized by HEIGHT, so a tall cocoon and a long caterpillar stand at one
+   scale on their floors, and never wider than the tile */
+.method__pic { display: block; margin-top: auto; align-self: center; max-width: 100%; }
+.method__art { display: block; width: auto; max-width: 100%; height: 100%; object-fit: contain; }   /* object-fit: a narrow tile squeezes the width, never the shape */
+.method__card--phase .method__pic { height: clamp(160px, 15vw, 220px); }
+.method__art--small { height: clamp(64px, 6.4vw, 92px); }
+.method__art--venn { height: clamp(200px, 22vw, 280px); }
 @media (min-width: 768px) {
-  .method__card--wide { grid-template-columns: minmax(0, 260px) minmax(0, 24em); justify-content: center; align-items: center; gap: clamp(32px, 4vw, 64px); text-align: left; justify-items: start; padding-block: clamp(28px, 3vw, 44px); }
-  .method__art--venn { max-width: none; }
+  .method__card--wide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); align-items: end; gap: var(--sp-8); }
+  .method__card--wide .method__words { align-self: start; }
+  .method__art--venn { justify-self: center; }
 }
-/* the drawings: the logo's eight colours, flat, round-ended where they are lines */
-.method__art .g { fill: var(--logo-green); } .method__art .y { fill: var(--logo-star); } .method__art .s { fill: var(--logo-sky); }
-.method__art .p { fill: var(--logo-pink); } .method__art .m { fill: var(--logo-magenta); } .method__art .v { fill: var(--logo-violet); }
-.method__art .o { fill: var(--logo-orange); } .method__art .k { fill: var(--ink); }
-.method__art .ks, .method__art .ps, .method__art .os, .method__art .ss { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.method__art .ks { stroke: var(--ink); } .method__art .ps { stroke: var(--logo-pink); } .method__art .os { stroke: var(--logo-orange); stroke-width: 9; }
-.method__art .ss { stroke: var(--logo-sky); stroke-width: 5; stroke-dasharray: 10 9; }
-.venn circle { opacity: .82; }   /* see-through, not multiplied: three saturated colours multiplied meet in near-black */
-.method__art .w { fill: #fff; }
-.venn__words text { fill: var(--ink); font-family: var(--font); font-size: 17px; font-weight: 600; text-anchor: middle; }
 @media (max-width: 767px) {
   .method__head { justify-items: start; text-align: left; } .method__lead { text-wrap: pretty; }   /* a phone reads from the left, as the sections above do */
-  .method__row { text-align: left; }
-  /* a phase on a phone: its drawing beside its words, so three cards are one screen rather than three */
-  .method__card--phase { grid-template-columns: 112px minmax(0, 1fr); column-gap: var(--sp-5); align-items: center; justify-items: start; text-align: left; padding: var(--sp-5) var(--sp-5) var(--sp-5) var(--sp-4); }
-  .method__card--phase .method__art { grid-row: 1 / span 3; max-width: none; margin: 0; }
-  .method__card--phase .method__line { text-wrap: pretty; }
+  .method__card--phase .method__pic { height: 180px; }
 }
 
 /* ---------- Her work in China: the film (2026-10-16) ----------
