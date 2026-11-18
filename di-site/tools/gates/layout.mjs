@@ -78,18 +78,25 @@ for (const [w, h] of [[1440, 900], [1024, 768], [390, 844], [320, 640]]) {
     // within 2px (Some Wins' tiles, 2026-11-17; it was the headline and photograph sharing the centre line of Apple's
     // stack). Below 900 they stack, so there is nothing to measure.
     const capGap = innerWidth >= 900 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const c = row.querySelector('.tell__copy').getBoundingClientRect(), f = row.querySelector('.tell__figure').getBoundingClientRect(); return Math.max(Math.abs(c.top - f.top), Math.abs(c.bottom - f.bottom)); })) : 0;
+    // the row is the words' height, 560 at the least, and never the picture's: Linda's 2:3 portrait once made her row
+    // 736 with half the words' tile empty, the film's 9:16 China's 692 (2026-11-18). Measured as the row's excess over
+    // max(560, what the words need).
+    const rowExcess = innerWidth >= 900 ? Math.max(...[...document.querySelectorAll('.tell__row')].map(row => { const c = row.querySelector('.tell__copy'), cs = getComputedStyle(c); const need = [...c.children].reduce((a, k) => Math.max(a, k.getBoundingClientRect().bottom), 0) - c.getBoundingClientRect().top + parseFloat(cs.paddingBottom); return row.getBoundingClientRect().height - Math.max(560, need); })) : 0;
+    // the 3-5-3's tiles that share a row share a floor: a two-line pillar name once made its tile 9px taller (2026-11-18)
+    const methodRows = {}; document.querySelectorAll('.method__card').forEach(k => { const b = k.getBoundingClientRect(); (methodRows[Math.round(b.top)] ||= []).push(b.bottom); });
+    const methodRagged = Math.max(0, ...Object.values(methodRows).map(v => Math.max(...v) - Math.min(...v)));
     // the reel is a film strip (2026-10-14, "kinda like a film strip"): frames 6px apart on the film base, 2px corners,
     // and the frames meet with no gap of their own, so the loop's seam is one more frame boundary and not a jump
     const ph = [...document.querySelectorAll('.reel__run:first-child .photo')].slice(0, 2).map(p => p.getBoundingClientRect());
     const its = [...document.querySelector('.reel__run').children].slice(0, 2).map(li => li.getBoundingClientRect());
     const strip = { across: Math.round(ph[1].left - ph[0].right), down: Math.round(its[1].left - its[0].right), corner: parseFloat(getComputedStyle(document.querySelector('.reel .photo')).borderTopLeftRadius) };
-    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, darks, navLine, footLine, capGap: Math.round(capGap), strip, grey };
+    return { overflow, lines, edges: [...edges], cards, cross, ragged, oneInk, drawn, peek, peekOk, weights: [...weights].sort(), notCapsule, darks, navLine, footLine, capGap: Math.round(capGap), rowExcess: Math.round(rowExcess), methodRagged: Math.round(methodRagged), strip, grey };
   });
   // five lines at every width by design (the display runs to 96px); six means the measure or the clamp has slipped
   const ok = r.overflow <= 0 && r.lines <= 5 && r.edges.length === 1 && r.cards.length === 3 && new Set(r.cards).size === 1 && r.cross === 0 && r.ragged === 0 && r.oneInk && r.drawn.length === 0 && r.peekOk
-    && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2
+    && r.weights.join() === '400,600' && r.notCapsule.length === 0 && r.darks.length === 0 && r.navLine && r.footLine && r.capGap <= 2 && r.rowExcess <= 2 && r.methodRagged <= 1
     && r.strip.across === 6 && r.strip.down === 0 && r.strip.corner === 2 && r.grey.length === 0;
-  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, tiles' tops and floors apart by ${r.capGap}px, film frames ${r.strip.across}px apart, ${r.strip.down}px between cells, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
+  report(`layout ${w}×${h}`, ok, `overflow ${r.overflow}px, headline ${r.lines} lines, column ${r.edges[0]}, quote cards ${[...new Set(r.cards)].join('/')}, words over the photo ${r.cross}, ragged rules ${r.ragged}, headline one colour ${r.oneInk}, lines drawn ${r.drawn.length ? r.drawn.join(', ') : 0}, peek ${r.peek}px, weights ${r.weights.join('/')}, not capsules ${r.notCapsule.length ? r.notCapsule.join(', ') : 0}, dark controls ${r.darks.length ? r.darks.join(', ') : 0}, header/footer hairlines ${r.navLine}/${r.footLine}, tiles' tops and floors apart by ${r.capGap}px, rows over their words by ${r.rowExcess}px, 3-5-3 floors apart by ${r.methodRagged}px, film frames ${r.strip.across}px apart, ${r.strip.down}px between cells, ${r.strip.corner}px corner, grey text ${r.grey.length ? r.grey.slice(0, 4).join(' | ') : 0}`);
   await pg.close();
 }
 await b.close();

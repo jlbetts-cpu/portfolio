@@ -144,8 +144,14 @@
   .tell__figure { grid-column: span 5; grid-row: 1; }
   #about .tell__copy { grid-column: 1 / span 7; } #about .tell__figure { grid-column: 8 / span 5; }
   #founder .tell__figure { grid-column: 1 / span 5; } #founder .tell__copy { grid-column: 6 / span 7; }
-  #china .tell__copy { grid-column: 1 / span 8; } #china .tell__figure { grid-column: 9 / span 4; }
   .tell__figure .photo { aspect-ratio: auto; min-height: 100%; }
+  /* The row is as tall as the words need, and never under 560: the picture fills it and adds nothing of its own.
+     Without this the photograph's own shape set the row, so Linda's 2:3 portrait made her tile 736 tall with half of
+     it empty, and the film's 9:16 made China's 692 (2026-11-18, "areas that look a bit unfinished"). */
+  .tell__figure { contain: size; }
+  /* the film is drawn at the width that makes it the other rows' 560 at its own 9:16, and the words take the rest */
+  #china .tell__row { grid-template-columns: minmax(0, 1fr) 315px; }
+  #china .tell__copy { grid-column: 1; } #china .tell__figure { grid-column: 2; }
 }
 
 /* ---------- The 3-5-3: what Linda teaches, drawn (2026-11-18) ----------
@@ -164,7 +170,9 @@
 .method__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tile-gap); margin: 0; padding: 0; list-style: none; }
 .method__card { display: flex; flex-direction: column; gap: var(--sp-6); padding: var(--sp-6); border-radius: var(--r-tile); background: var(--band); text-align: left; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .method__card--phase, .method__card--wide { grid-column: span 2; }
-.method__card--pillar { aspect-ratio: 1; }
+.method__card--pillar { aspect-ratio: 1; place-self: stretch; }   /* square at the least, and every tile in a row as tall as
+   its tallest: with a ratio, "normal" alignment is start, so a two-line name made its tile 9px taller than the next;
+   stretched one way only, the ratio then sized the width off the height and pushed the page 37px sideways on a phone */
 .method__card--pillar:nth-of-type(8) { grid-column: span 2; aspect-ratio: auto; }   /* the fifth, across: square it was a screen tall */
 @media (min-width: 768px) {
   .method__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -190,10 +198,17 @@
 .method__card--phase .method__pic { height: clamp(160px, 15vw, 220px); }
 .method__art--small { height: clamp(64px, 6.4vw, 92px); }
 .method__art--venn { height: clamp(200px, 22vw, 280px); }
+/* The trifecta is where the three phases and five pillars arrive, so from 768 it is the section's one centred tile: the
+   line at the sections' headline size over the Venn, on the axis the section's own head opens on. It was the other
+   tiles' shape stretched across, the words small in the top-left corner and the Venn pushed against the right edge,
+   with 900 by 300 of empty ground between them (2026-11-18, "the trifecta one looks a bit off"). A phone keeps the
+   left-reading stack every other tile has. */
 @media (min-width: 768px) {
-  .method__card--wide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); align-items: end; gap: var(--sp-8); }
-  .method__card--wide .method__words { align-self: start; }
-  .method__art--venn { justify-self: center; }
+  .method__card--wide { align-items: center; text-align: center; gap: var(--sp-8); padding-top: var(--sp-12); }
+  .method__card--wide .method__words { justify-items: center; gap: var(--sp-2); }
+  .method__card--wide .method__name { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
+  .method__card--wide .method__line { font-size: var(--fs-read); line-height: var(--lh-read); max-width: none; }
+  .method__card--wide .method__pic { margin-top: 0; }
 }
 @media (max-width: 767px) {
   .method__head { justify-items: start; text-align: left; } .method__lead { text-wrap: pretty; }   /* a phone reads from the left, as the sections above do */
