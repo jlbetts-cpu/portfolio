@@ -1,5 +1,8 @@
 # Build log — Developmental Improvisation, home page
 
+## v62 (2026-11-18) — a folder for his computer
+*"how do i open this on my computer can you organize the developmental improv folder and have it in there."* Opened straight from a folder, the real site loses its typeface in Chrome, which will not load a font from a local file (measured: the font request fails on CORS and the page falls back to Arial). So the folder's front door is `Open the website.html`, the one-file copy with the typeface, the photographs and the script inlined, beside a Video folder the film plays from; from a folder the font loads, the poster and play button show, and the film's path resolves. The builder for that copy lived in a scratch folder a restart wiped; it is `tools/build-single.py` now, with the film's path as an argument. The folder also holds the logo in the site's tuned colours (the build-icons mapping applied to the original files) and in black and white, as SVG and PNG, with the originals kept; the website files as published; and the notes.
+
 ## v61 (2026-10-26) — one tracking for every display size
 His pick of the v60 pair: **B, Inter's own.** The claim, the sections' headlines and the closing line now run at −0.022em, and the ring's quote reads the same token instead of its own −0.02em, so tracking is a function of size again (the bible's M5): 53px and 56px no longer disagree. It was −0.032em on the claim and −0.03em on the headlines. The headline keeps its line count at every width the layout gate measures (2 at 1440, 3 at 1024, 5 on a phone), and with the browser's text at 24px a phone still does not scroll sideways.
 
