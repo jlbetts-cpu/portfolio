@@ -401,8 +401,12 @@ page=f'''<!DOCTYPE html>
 
   <!-- the grounds alternate (Apple's bands): white for the 3-5-3, grey for the film, white for the testimonials, grey for
        the close and the footer, which share it with the hairline between them -->
-  <section class="voices-sec" id="voices" aria-label="Testimonials">
+  <!-- a heading of its own (2026-11-19, "the testimonials section ... just dont feel organized"): it was the one section
+       with no name, three quotes arriving unannounced. Set as the 3-5-3's head is, so the page's sections are named one way. Her own word for it, from her site
+       and her menu: the copy gate allows nothing else -->
+  <section class="voices-sec" id="voices" aria-labelledby="voicesTitle">
     <div class="container">
+      <div class="method__head voices__head reveal"><h2 class="method__title" id="voicesTitle">Testimonials</h2></div>
       <ul class="voices grid reveal--stagger" aria-label="Testimonials">{pile}</ul>
     </div>
   </section>

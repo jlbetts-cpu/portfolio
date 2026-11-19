@@ -13,9 +13,13 @@
      brand's colour lives in the photographs and in the mark's sweep; the page itself is ink and light, which is the
      rule in his own app: "saturated colour means a win or a photograph; chrome is ink and light." */
   --bg:          #FFFFFF;   /* Apple's page white (2026-10-13); the bands between are --band */
-  --band:        #F5F5F7;   /* Apple's light grey, every other section edge to edge */
-  --bg-raised:   #F2F2F5;
-  --bg-sunken:   #E8E8EE;
+  /* the logo's violet, an ounce of it (2026-11-19, "these grey panels dont really fit the brand ... adding an ounce of
+     color from like the color scheme will make it look a lot more premium", picked "Violet" over warm and sky). Apple's
+     grey was already this hue, 286 in oklch, at chroma .003; these keep its lightness and take .014-.022. --ink-3 holds
+     4.94:1 on the band (contrast.mjs). The old greys: #F5F5F7, #F2F2F5, #E8E8EE */
+  --band:        #F4F4FF;   /* every other section edge to edge, and every tile on white */
+  --bg-raised:   #F1F1FD;
+  --bg-sunken:   #E6E6F7;
   --bg-overlay:  #FFFFFF;
   --line:        rgba(21,20,29,.10);
   --ring:        rgba(21,20,29,.12);    /* the outlined control's inset ring: his portfolio's rgba(17,18,20,.12) */

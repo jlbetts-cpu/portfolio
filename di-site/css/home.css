@@ -279,26 +279,30 @@ html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
    discs are gone with the boxes. And the hairline each quote stood under went next: "remove the lines, just use clean
    white space." The quotes are held apart by space alone — 64px between columns, 48px between rows. On a row the
    names line up along the bottom however uneven the quotes are. */
-.voices { row-gap: var(--sp-12); }
+/* TILES (2026-11-19, picked "A: tiles" from two rendered layouts, reversing 2026-10-13's "no cards on the testimonials":
+   that rule was against the grey bordered box with a disc of initials; the page has since become Some Wins' tiles, and
+   loose quotes were the one section outside the system). Each quote is a tile on the other ground, as the sections'
+   words are: Some Wins' corner and gutter, the quote at its top, the person on its floor, so on a row the names still
+   line up along the bottom. The opening mark sits inline: a tile's padding is its edge, there is no margin to hang in. */
+.voices { gap: var(--tile-gap); }
+.voice { padding: var(--sp-6); border-radius: var(--r-tile); background: var(--band); }
+.band .voice { background: var(--bg); }
+@media (min-width: 760px) { .voice { padding: var(--sp-8); } }
 .voices > .voice { grid-column: 1 / -1; transition-delay: calc(var(--stagger) * var(--d, 0)); }
 .voice { display: flex; flex-direction: column; color: var(--ink); }
-.voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; text-indent: -0.42em; }
+.voice__quote { font-size: var(--fs-quote); line-height: var(--lh-quote); letter-spacing: var(--ls-quote); color: var(--ink); text-wrap: pretty; }
 .voice__quote::before { content: "\201C"; }
 .voice__quote::after { content: "\201D"; }
 .voice__who { margin-top: auto; padding-top: var(--sp-6); }
 .voice__name { font-size: var(--fs-small); font-weight: 600; color: var(--ink); line-height: 1.4; }
 .voice__role { font-size: var(--fs-caption); color: var(--ink); line-height: 1.4; }
-@media (min-width: 1024px) { .voices { column-gap: var(--sp-16); } .voices > .voice { grid-column: span 4; } }
-/* CENTRED, as every other section is since the Apple pass (2026-10-14, "make everything feel more premium"): the
-   testimonials were the one left-aligned block on a centred page and read as another site. Each quote is balanced on
-   its own centre line with its marks set inline (a hung mark belongs to a left edge, and there is none), the person
-   centred under it; on a row the names still line up along the bottom. A tablet shows one per row, 36em at most. On a
-   phone the quotes read from the left, as the sections' paragraphs do. */
-@media (min-width: 768px) {
-  .voice { align-items: center; text-align: center; }
-  .voice__quote { text-indent: 0; text-wrap: balance; }
-}
-@media (min-width: 768px) and (max-width: 1023px) { .voices > .voice { max-width: 36em; margin-inline: auto; } }
+@media (min-width: 1024px) { .voices > .voice { grid-column: span 4; } }
+/* FROM THE LEFT (2026-11-19, "the testimonials section ... just dont feel organized"). They were centred on 2026-10-14
+   because every section was then; since the sections became Some Wins' tiles on 2026-11-17 everything above reads from
+   the left, and three centred, balanced quotes of different lengths were the one block with no edge to read from. Now
+   the section is named the way the 3-5-3 is (a centred head over left-reading tiles). A tablet shows one tile per row
+   in a 36em column on the centre line, under the centred head. */
+@media (min-width: 768px) and (max-width: 1023px) { .voices > .voice { max-width: 36em; width: 100%; justify-self: center; } }
 
 /* ---------- The closing section ----------
    The closing line and the newsletter: the last thing the page says, three bands of type with nothing round them. The
@@ -320,10 +324,19 @@ html:not(.js) .film__poster, html:not(.js) .film__play { display: none; }
 .subscribed .close__done { grid-column: 1 / -1; display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-read); line-height: var(--lh-read); color: var(--ink); }
 .close__done .icon { width: 1.1em; height: 1.1em; }
 .close__title { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); font-weight: 600; color: var(--ink); margin-bottom: var(--sp-4); }
-/* centred, as the sections above it are: the line, then the newsletter under it, on the page's centre line */
+/* centred on a phone and a tablet: the line, then the newsletter under it, on the page's centre line */
 .close__grid { justify-items: center; text-align: center; }
 .close__lead { margin-inline: auto; }
 .close__sign { width: min(520px, 100%); }
+/* SPLIT FROM 1200 (2026-11-19, picked with the tiles): the line on the left and the newsletter on the right, their
+   floors on one line, so the close stands on the same two edges as the footer under it (identity left, links right)
+   instead of a narrow centred stack over a wide split one. Not narrower: on column 9 the email field is 146px at 900
+   and 183px at 1024, too short to see an address in; 260px at 1440. */
+@media (min-width: 1200px) {
+  .close__grid { justify-items: start; text-align: left; align-items: end; }
+  .close__lead { grid-column: 1 / span 6; margin-inline: 0; max-width: 12em; }
+  .close__sign, .subscribed .close__done { grid-column: 9 / span 4; width: 100%; }   /* column 9: where the footer's Menu starts */
+}
 
 /* ---------- The footer: his portfolio's ----------
    jaydenbetts.design, measured from its own source on 2026-10-13: one hairline the full width of the page (a boundary

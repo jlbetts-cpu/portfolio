@@ -21,10 +21,10 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=51b3f79bb1">
 <link rel="manifest" href="site.webmanifest?v=55e079c2a2">
 <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/tokens.css?v=9eee947387">
+<link rel="stylesheet" href="css/tokens.css?v=5b430b1990">
 <link rel="stylesheet" href="css/base.css?v=e54b628c05">
 <link rel="stylesheet" href="css/components.css?v=cf801cadeb">
-<link rel="stylesheet" href="css/home.css?v=5e75d5f3e4">
+<link rel="stylesheet" href="css/home.css?v=60b7a67505">
 <script src="js/main.js?v=8c71fdc79e" defer></script>
 <script src="js/somewins.js?v=0ecdfcf438" defer></script>
 </head>
@@ -81,8 +81,12 @@
 
   <!-- the grounds alternate (Apple's bands): white for the 3-5-3, grey for the film, white for the testimonials, grey for
        the close and the footer, which share it with the hairline between them -->
-  <section class="voices-sec" id="voices" aria-label="Testimonials">
+  <!-- a heading of its own (2026-11-19, "the testimonials section ... just dont feel organized"): it was the one section
+       with no name, three quotes arriving unannounced. Set as the 3-5-3's head is, so the page's sections are named one way. Her own word for it, from her site
+       and her menu: the copy gate allows nothing else -->
+  <section class="voices-sec" id="voices" aria-labelledby="voicesTitle">
     <div class="container">
+      <div class="method__head voices__head reveal"><h2 class="method__title" id="voicesTitle">Testimonials</h2></div>
       <ul class="voices grid reveal--stagger" aria-label="Testimonials"><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li><li class="voice reveal" data-placeholder="true"><p class="voice__quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.</p><div class="voice__who"><div class="voice__name">First Last</div><div class="voice__role">Role, Organization</div></div></li></ul>
     </div>
   </section>

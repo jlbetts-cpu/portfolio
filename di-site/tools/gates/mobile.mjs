@@ -70,14 +70,17 @@ for (const [w, h] of (selfTest ? [[390, 844]] : [[390, 844], [360, 780], [320, 6
   // it closes back into its frame over 360ms (since 2026-10-14), so wait for it to have closed rather than a fixed 500ms
   if (lbOpen) { await pg.tap('.lightbox__close'); await pg.waitForFunction(() => !document.querySelector('#lightbox').open, null, { timeout: 2000 }).catch(() => {}); await pg.waitForTimeout(250); }
   const keys = await pg.evaluate(() => window.__di.flow.holdKeys.filter(k => k !== 'offscreen'));
-  // the quotes on a phone: a stack on hairlines, each the column's width, nothing scrolling sideways
+  // the quotes on a phone: a stack, each the column's width, nothing scrolling sideways. Until 2026-11-19 this also
+  // demanded no ground behind any quote ("no cards on the testimonials", 2026-10-13); Jayden reversed that ("A: tiles"),
+  // so it now demands the opposite and stays able to fail: every quote a tile on one and the same ground, never a
+  // half-boxed stack and never loose type
   const row = await pg.evaluate(() => {
     const v = document.querySelector('.voices'), col = document.querySelector('#voices .container');
     const w = col.getBoundingClientRect().width - parseFloat(getComputedStyle(col).paddingLeft) - parseFloat(getComputedStyle(col).paddingRight);
     const items = [...v.children].map(c => Math.round(c.getBoundingClientRect().width));
-    return { sideways: v.scrollWidth > v.clientWidth + 1, items, column: Math.round(w), boxed: [...v.children].some(c => getComputedStyle(c).backgroundColor !== 'rgba(0, 0, 0, 0)') };
+    return { sideways: v.scrollWidth > v.clientWidth + 1, items, column: Math.round(w), tiled: (() => { const g = [...v.children].map(c => getComputedStyle(c).backgroundColor); return g[0] !== 'rgba(0, 0, 0, 0)' && g.every(x => x === g[0]); })() };
   });
-  const swipes = !row.sideways && !row.boxed && row.items.every(x => Math.abs(x - row.column) <= 1);
+  const swipes = !row.sideways && row.tiled && row.items.every(x => Math.abs(x - row.column) <= 1);
   const ok = env.coarse && env.noHover && ungated.length === 0 && inputs.every(f => f >= 16) && /rgba\(0, 0, 0, 0\)|transparent/.test(tapHL) && locked && unlocked && notStuck && ring === 0 && !foot.panel && Math.abs(foot.card - foot.column) <= 1 && keys.length === 0 && swipes;
   report(`mobile ${w}×${h}`, ok, JSON.stringify({ ...env, ungated, inputs, tapHL, locked, unlocked, notStuck, ringOut: ring, ...foot, holds: keys, quotes: row }));
   await ctx.close();
